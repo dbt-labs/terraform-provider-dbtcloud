@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/data_sources"
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/resources"
 )
 
@@ -28,9 +27,6 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job": resources.ResourceJob(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"dbt_cloud_account": data_sources.DataSourceAccount(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
