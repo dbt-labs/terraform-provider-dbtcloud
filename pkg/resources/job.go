@@ -36,6 +36,7 @@ func ResourceJob() *schema.Resource {
 		Create: resourceJobCreate,
 		Read:   resourceJobRead,
 		Update: resourceJobUpdate,
+		Delete: resourceJobDelete,
 
 		Schema: jobSchema,
 	}
@@ -180,6 +181,13 @@ func resourceJobUpdate(d *schema.ResourceData, m interface{}) error {
 
 		return err
 	}
+
+	return nil
+}
+
+func resourceJobDelete(d *schema.ResourceData, m interface{}) error {
+
+	log.Printf("Job deleting is not yet supported in DBT Cloud")
 
 	return nil
 }
