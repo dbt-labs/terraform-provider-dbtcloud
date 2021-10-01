@@ -46,7 +46,7 @@ func resourceJobRead(d *schema.ResourceData, m interface{}) error {
 
 	account_id := d.Get("account_id").(int)
 	job_id := d.Id()
-
+	log.Printf("%s".job_id)
 	if token != "" {
 		url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)
 		req, err := http.NewRequest("GET", url, nil)
@@ -67,7 +67,7 @@ func resourceJobRead(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 
-		return err
+		return job
 	}
 
 	return nil
