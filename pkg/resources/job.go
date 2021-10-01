@@ -2,10 +2,12 @@ package resources
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
@@ -45,7 +47,7 @@ func resourceJobRead(d *schema.ResourceData, m interface{}) error {
 	token := d.Get("token").(string)
 
 	account_id := d.Get("account_id").(int)
-	job_id := d.Get("job_id").(int)
+	job_id := d.Id()
 
 	if token != "" {
 		url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)

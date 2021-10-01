@@ -36,5 +36,5 @@ resource "dbt_cloud_job" "test" {
 Import is supported using the following syntax:
 
 ```shell
-terraform import dbt_cloud_job.example_job name
+terraform import dbt_cloud_job.example_job job_id
 ```
