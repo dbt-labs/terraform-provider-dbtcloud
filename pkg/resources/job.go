@@ -2,12 +2,10 @@ package resources
 
 import (
 	"bytes"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
