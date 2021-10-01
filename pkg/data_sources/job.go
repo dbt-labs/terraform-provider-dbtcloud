@@ -34,8 +34,8 @@ var jobSchema = map[string]*schema.Schema{
 
 func DatasourceJob() *schema.Resource {
 	return &schema.Resource{
-		Read:   datasourceJobRead,
-		Schema: jobSchema,
+		ReadContext: datasourceJobRead,
+		Schema:      jobSchema,
 	}
 }
 
