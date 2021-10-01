@@ -67,7 +67,7 @@ func resourceJobRead(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 
-		return job
+		return err
 	}
 
 	return nil

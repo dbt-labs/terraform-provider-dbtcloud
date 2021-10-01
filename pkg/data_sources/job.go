@@ -1,7 +1,6 @@
 package data_sources
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -35,7 +34,7 @@ var jobSchema = map[string]*schema.Schema{
 
 func DatasourceJob() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceGithubUserRead,
+		Read:   datasourceJobRead,
 		Schema: jobSchema,
 	}
 }
@@ -44,6 +43,8 @@ func datasourceJobRead(d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	token := d.Get("token").(string)
 	account_id := d.Get("account_id").(int)
 	job_id := d.Get("job_id").(int)
+
+	var diags diag.Diagnostics
 
 	url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)
 	req, err := http.NewRequest("GET", url, nil)
@@ -66,7 +67,7 @@ func datasourceJobRead(d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if err := d.Set("job", job); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(strconv.FormatInt(job_id, 10))
+	d.SetId(strconv.Itoa(job_id))
 
 	return diags
 }
