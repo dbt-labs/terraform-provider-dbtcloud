@@ -43,6 +43,7 @@ func DatasourceJob() *schema.Resource {
 func datasourceJobRead(d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	token := d.Get("token").(string)
 	account_id := d.Get("account_id").(int)
+	job_id := d.Get("job_id").(int)
 
 	url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)
 	req, err := http.NewRequest("GET", url, nil)
