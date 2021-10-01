@@ -13,10 +13,6 @@ import (
 )
 
 var jobSchema = map[string]*schema.Schema{
-	"account_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Required: true,
-	},
 	"project_id": &schema.Schema{
 		Type:     schema.TypeInt,
 		Required: true,
@@ -39,6 +35,9 @@ func ResourceJob() *schema.Resource {
 		Delete: resourceJobDelete,
 
 		Schema: jobSchema,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 	}
 }
 
