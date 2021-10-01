@@ -39,7 +39,7 @@ func DatasourceJob() *schema.Resource {
 	}
 }
 
-func datasourceJobRead(d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	token := d.Get("token").(string)
 	account_id := d.Get("account_id").(int)
 	job_id := d.Get("job_id").(int)
