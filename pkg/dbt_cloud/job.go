@@ -94,11 +94,12 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &job, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string) (*Job, error) {
 	newJob := JobData{
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
 		Name:           name,
+		Execute_Steps:  executeSteps,
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {

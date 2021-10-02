@@ -12,16 +12,28 @@ import (
 
 var jobSchema = map[string]*schema.Schema{
 	"project_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Required: true,
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "Project ID to create the job in",
 	},
 	"environment_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Required: true,
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "Environment ID to create the job in",
 	},
 	"name": &schema.Schema{
-		Type:     schema.TypeString,
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "Job name",
+	},
+	"execute_steps": &schema.Schema{
+		Type:     schema.TypeList,
+		MinItems: 1,
 		Required: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+		Description: "List of commands to execute for the job",
 	},
 }
 
@@ -68,8 +80,9 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	projectId := d.Get("project_id").(int)
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
+	executeSteps := d.Get("execute_steps").([]string)
 
-	j, err := c.CreateJob(projectId, environmentId, name)
+	j, err := c.CreateJob(projectId, environmentId, name, executeSteps)
 	if err != nil {
 		return diag.FromErr(err)
 	}
