@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const HostURL string = "https://cloud.getdbt.com/api/v2/"
+const HostURL string = "https://cloud.getdbt.com/api/v2"
 
 // Client -
 type Client struct {
@@ -72,7 +72,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 	}
 
 	if (account_id != nil) && (token != nil) {
-		url := fmt.Sprintf("%s/accounts/%s", HostURL, account_id)
+		url := fmt.Sprintf("%s/accounts/%s", HostURL, &account_id)
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)
@@ -95,7 +95,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
+	req.Header.Add("Authorization", fmt.Sprintf("Token %s", &c.Token))
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
