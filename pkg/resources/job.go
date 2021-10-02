@@ -80,9 +80,14 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	projectId := d.Get("project_id").(int)
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
-	executeSteps := d.Get("execute_steps").([]string)
+	executeSteps := d.Get("execute_steps").([]interface{})
 
-	j, err := c.CreateJob(projectId, environmentId, name, executeSteps)
+	steps := []string{}
+	for _, step := range executeSteps {
+		steps = append(steps, step.(string))
+	}
+
+	j, err := c.CreateJob(projectId, environmentId, name, steps)
 	if err != nil {
 		return diag.FromErr(err)
 	}
