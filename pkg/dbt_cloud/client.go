@@ -17,6 +17,7 @@ type Client struct {
 	HTTPClient *http.Client
 	Token      string
 	AccountURL string
+	AccountID  int
 }
 
 type ResponseStatus struct {
@@ -71,6 +72,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 		HostURL:    HostURL,
 		Token:      *token,
+		AccountID:  *account_id,
 	}
 
 	if (account_id != nil) && (token != nil) {

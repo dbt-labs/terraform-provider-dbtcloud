@@ -96,6 +96,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 
 func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string) (*Job, error) {
 	newJob := JobData{
+		Account_Id:     c.AccountID,
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
 		Name:           name,
