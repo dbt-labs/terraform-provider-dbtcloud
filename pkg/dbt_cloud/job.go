@@ -75,7 +75,7 @@ type Job struct {
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/jobs/%s", c.HostURL, jobID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/jobs/%s", c.AccountURL, jobID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -94,15 +94,18 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &job, nil
 }
 
-func (c *Client) CreateJob(accountId int, projectId int, environmentId int, name string) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string) (*Job, error) {
 	newJob := JobData{
-		Account_Id:     accountId,
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
 		Name:           name,
 	}
 	newJobData, err := json.Marshal(newJob)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs", c.HostURL), strings.NewReader(string(newJobData)))
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs", c.AccountURL), strings.NewReader(string(newJobData)))
 	if err != nil {
 		return nil, err
 	}

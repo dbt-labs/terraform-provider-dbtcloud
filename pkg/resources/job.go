@@ -65,12 +65,11 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	accountId := d.Get("account_id").(int)
 	projectId := d.Get("project_id").(int)
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
 
-	j, err := c.CreateJob(accountId, projectId, environmentId, name)
+	j, err := c.CreateJob(projectId, environmentId, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -16,6 +16,7 @@ type Client struct {
 	HostURL    string
 	HTTPClient *http.Client
 	Token      string
+	AccountURL string
 }
 
 type ResponseStatus struct {
@@ -89,6 +90,8 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		c.AccountURL = url
 	}
 
 	return &c, nil
@@ -97,8 +100,6 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
-	fmt.Print("Token %s", c.Token)
-	fmt.Print("Token %s", &c.Token)
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
