@@ -2,13 +2,12 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/data_sources"
+	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/resources"
 )
 
@@ -39,28 +38,34 @@ func Provider() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
 	token := d.Get("token").(string)
+	account_id := d.Get("account_id").(int)
 
 	var diags diag.Diagnostics
 
-	if token != "" {
-		url := fmt.Sprintf("%s/accounts/", "https://cloud.getdbt.com/api/v2/")
-		client := &http.Client{}
-		req, err := http.NewRequest("GET", url, nil)
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
-		resp, err := client.Do(req)
+	if (token != "") && (account_id != 0) {
+		c, err := dbt_cloud.NewClient(&account_id, &token)
 
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Unable to login to DBT Cloud",
-				Detail:   "Unable to auth token for DBT Cloud",
+				Detail:   "Unable to authenticate for DBT Cloud",
 			})
 			return nil, diags
 		}
 
-		return resp, diags
+		return c, diags
 	}
 
-	return nil, nil
+	c, err := dbt_cloud.NewClient(nil, nil)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Unable to create DBT Cloud client",
+			Detail:   "Unable to create anonymous DBT Cloud  client",
+		})
+		return nil, diags
+	}
+
+	return c, diags
 }

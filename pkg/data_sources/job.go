@@ -2,12 +2,7 @@ package data_sources
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -41,34 +36,22 @@ func DatasourceJob() *schema.Resource {
 }
 
 func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	token := d.Get("token").(string)
-	account_id := d.Get("account_id").(int)
-	job_id := d.Get("job_id").(int)
+	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
 
-	url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	jobId := strconv.Itoa(d.Get("job_id").(int))
 
-	if err != nil {
-		log.Printf("Error reading job %s", job_id)
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	job := new(dbt_cloud.Job)
-	err = json.NewDecoder(resp.Body).Decode(&job)
+	job, err := c.GetJob(jobId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	if err := d.Set("job", job); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(strconv.Itoa(job_id))
+
+	d.SetId(jobId)
 
 	return diags
 }

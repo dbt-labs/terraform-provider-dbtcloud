@@ -1,14 +1,12 @@
 package resources
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
-	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,10 +27,10 @@ var jobSchema = map[string]*schema.Schema{
 
 func ResourceJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceJobCreate,
-		Read:   resourceJobRead,
-		Update: resourceJobUpdate,
-		Delete: resourceJobDelete,
+		CreateContext: resourceJobCreate,
+		ReadContext:   resourceJobRead,
+		UpdateContext: resourceJobUpdate,
+		DeleteContext: resourceJobDelete,
 
 		Schema: jobSchema,
 		Importer: &schema.ResourceImporter{
@@ -41,152 +39,58 @@ func ResourceJob() *schema.Resource {
 	}
 }
 
-func resourceJobRead(d *schema.ResourceData, m interface{}) error {
-	token := d.Get("token").(string)
+func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
 
-	account_id := d.Get("account_id").(int)
-	job_id := d.Id()
-	log.Printf("%s", job_id)
-	if token != "" {
-		url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s", account_id, job_id)
-		req, err := http.NewRequest("GET", url, nil)
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Do(req)
+	// Warning or errors can be collected in a slice type
+	var diags diag.Diagnostics
 
-		if err != nil {
-			log.Printf("Error reading job %s", job_id)
-			return err
-		}
-		defer resp.Body.Close()
+	jobId := d.Id()
 
-		job := new(dbt_cloud.Job)
-		err = json.NewDecoder(resp.Body).Decode(&job)
-		if err != nil {
-			return err
-		}
-
-		return err
+	job, err := c.GetJob(jobId)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
-	return nil
+	if err := d.Set("job", job); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diags
 }
 
-func resourceJobCreate(d *schema.ResourceData, m interface{}) error {
-	token := d.Get("token").(string)
+func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
 
-	account_id := d.Get("account_id").(int)
-	project_id := d.Get("project_id").(int)
-	environment_id := d.Get("environment_id").(int)
+	// Warning or errors can be collected in a slice type
+	var diags diag.Diagnostics
+
+	accountId := d.Get("account_id").(int)
+	projectId := d.Get("project_id").(int)
+	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
-	execute_steps := d.Get("execute_steps").([]string)
-	dbt_version := d.Get("dbt_version").(string)
-	triggers := d.Get("triggers").(dbt_cloud.JobTrigger)
-	settings := d.Get("settings").(dbt_cloud.JobSettings)
-	state := d.Get("state").(int)
-	generate_docs := d.Get("generate_docs").(bool)
-	schedule := d.Get("schedule").(dbt_cloud.JobSchedule)
 
-	if token != "" {
-		newJob := dbt_cloud.JobData{
-			Account_Id:     account_id,
-			Project_Id:     project_id,
-			Environment_Id: environment_id,
-			Name:           name,
-			Execute_Steps:  execute_steps,
-			Dbt_Version:    dbt_version,
-			Triggers:       triggers,
-			Settings:       settings,
-			State:          state,
-			Generate_Docs:  generate_docs,
-			Schedule:       schedule,
-		}
-		url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/", account_id)
-		newJobData, err := json.Marshal(newJob)
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(newJobData))
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
-		client := &http.Client{Timeout: 60 * time.Second}
-		resp, err := client.Do(req)
-
-		if err != nil {
-			log.Printf("Error creating job")
-			return err
-		}
-		defer resp.Body.Close()
-
-		job := new(dbt_cloud.Job)
-		err = json.NewDecoder(resp.Body).Decode(&job)
-		if err != nil {
-			return err
-		}
-
-		return err
+	j, err := c.CreateJob(accountId, projectId, environmentId, name)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
-	return nil
+	d.SetId(strconv.Itoa(j.ID))
+
+	resourceJobRead(ctx, d, m)
+
+	return diags
 }
 
-func resourceJobUpdate(d *schema.ResourceData, m interface{}) error {
-	token := d.Get("token").(string)
-
-	account_id := d.Get("account_id").(int)
-	project_id := d.Get("project_id").(int)
-	job_id := d.Get("job_id").(int)
-	environment_id := d.Get("environment_id").(int)
-	name := d.Get("name").(string)
-	execute_steps := d.Get("execute_steps").([]string)
-	dbt_version := d.Get("dbt_version").(string)
-	triggers := d.Get("triggers").(dbt_cloud.JobTrigger)
-	settings := d.Get("settings").(dbt_cloud.JobSettings)
-	state := d.Get("state").(int)
-	generate_docs := d.Get("generate_docs").(bool)
-	schedule := d.Get("schedule").(dbt_cloud.JobSchedule)
-
-	if token != "" {
-		newJob := dbt_cloud.JobData{
-			Account_Id:     account_id,
-			Project_Id:     project_id,
-			Environment_Id: environment_id,
-			Name:           name,
-			Execute_Steps:  execute_steps,
-			Dbt_Version:    dbt_version,
-			Triggers:       triggers,
-			Settings:       settings,
-			State:          state,
-			Generate_Docs:  generate_docs,
-			Schedule:       schedule,
-		}
-		url := fmt.Sprintf("https://cloud.getdbt.com/api/v2/accounts/%s/jobs/%s/", account_id, job_id)
-		newJobData, err := json.Marshal(newJob)
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(newJobData))
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
-		client := &http.Client{Timeout: 60 * time.Second}
-		resp, err := client.Do(req)
-
-		if err != nil {
-			log.Printf("Error updating job")
-			return err
-		}
-		defer resp.Body.Close()
-
-		job := new(dbt_cloud.Job)
-		err = json.NewDecoder(resp.Body).Decode(&job)
-		if err != nil {
-			return err
-		}
-
-		return err
-	}
-
-	return nil
+func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return resourceJobRead(ctx, d, m)
 }
 
-func resourceJobDelete(d *schema.ResourceData, m interface{}) error {
+func resourceJobDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
 	log.Printf("Job deleting is not yet supported in DBT Cloud")
 
-	return nil
+	var diags diag.Diagnostics
+
+	return diags
 }
