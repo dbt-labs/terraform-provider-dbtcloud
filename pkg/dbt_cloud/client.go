@@ -96,7 +96,9 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Token %s", &c.Token))
+	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
+	fmt.Print("Token %s", c.Token)
+	fmt.Print("Token %s", &c.Token)
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
