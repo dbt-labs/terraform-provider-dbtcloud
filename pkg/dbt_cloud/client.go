@@ -88,8 +88,6 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		c.Token = *token
 	}
 
 	return &c, nil

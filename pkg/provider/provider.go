@@ -49,7 +49,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Unable to login to DBT Cloud",
-				Detail:   "Unable to authenticate for DBT Cloud",
+				Detail:   err.Error(),
 			})
 			return nil, diags
 		}
