@@ -72,7 +72,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 	}
 
 	if (account_id != nil) && (token != nil) {
-		url := fmt.Sprintf("%s/accounts/%s", HostURL, &account_id)
+		url := fmt.Sprintf("%s/accounts/%s", HostURL, *account_id)
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)
