@@ -40,39 +40,25 @@ type JobSchedule struct {
 	Time scheduleTime `json:"time"`
 }
 
-type JobRequest struct {
-	ID             *int        `json:"id"`
-	Account_Id     int         `json:"account_id"`
-	Project_Id     int         `json:"project_id"`
-	Environment_Id int         `json:"environment_id"`
-	Name           string      `json:"name"`
-	Execute_Steps  []string    `json:"execute_steps"`
-	Dbt_Version    *string     `json:"dbt_version"`
-	Triggers       JobTrigger  `json:"triggers"`
-	Settings       JobSettings `json:"settings"`
-	State          int         `json:"state"`
-	Generate_Docs  bool        `json:"generate_docs"`
-	Schedule       JobSchedule `json:"schedule"`
-}
-
 type JobResponse struct {
 	Data   Job            `json:"data"`
 	Status responseStatus `json:"status"`
 }
 
 type Job struct {
-	ID             *int         `json:"id"`
-	Account_Id     int         `json:"account_id"`
-	Project_Id     int         `json:"project_id"`
-	Environment_Id int         `json:"environment_id"`
-	Name           string      `json:"name"`
-	Execute_Steps  []string    `json:"execute_steps"`
-	Dbt_Version    *string     `json:"dbt_version"`
-	Triggers       JobTrigger  `json:"triggers"`
-	Settings       JobSettings `json:"settings"`
-	State          int         `json:"state"`
-	Generate_Docs  bool        `json:"generate_docs"`
-	Schedule       JobSchedule `json:"schedule"`
+	ID                   *int        `json:"id"`
+	Account_Id           int         `json:"account_id"`
+	Project_Id           int         `json:"project_id"`
+	Environment_Id       int         `json:"environment_id"`
+	Name                 string      `json:"name"`
+	Execute_Steps        []string    `json:"execute_steps"`
+	Dbt_Version          *string     `json:"dbt_version,omitempty"`
+	Triggers             JobTrigger  `json:"triggers"`
+	Settings             JobSettings `json:"settings"`
+	State                int         `json:"state"`
+	Generate_Docs        bool        `json:"generate_docs"`
+	Schedule             JobSchedule `json:"schedule"`
+	Run_Generate_Sources bool        `json:"run_generate_sources"`
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
@@ -95,7 +81,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool) (*Job, error) {
 	state := 1
 	if !isActive {
 		state = 2
@@ -119,16 +105,18 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		},
 	}
 
-	newJob := JobRequest{
-		Account_Id:     c.AccountID,
-		Project_Id:     projectId,
-		Environment_Id: environmentId,
-		Name:           name,
-		Execute_Steps:  executeSteps,
-		State:          state,
-		Triggers:       jobTriggers,
-		Settings:       jobSettings,
-		Schedule:       jobSchedule,
+	newJob := Job{
+		Account_Id:           c.AccountID,
+		Project_Id:           projectId,
+		Environment_Id:       environmentId,
+		Name:                 name,
+		Execute_Steps:        executeSteps,
+		State:                state,
+		Triggers:             jobTriggers,
+		Settings:             jobSettings,
+		Schedule:             jobSchedule,
+		Generate_Docs:        generateDocs,
+		Run_Generate_Sources: runGenerateSources,
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion
@@ -139,6 +127,31 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/", c.AccountURL), strings.NewReader(string(newJobData)))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	jobResponse := JobResponse{}
+	err = json.Unmarshal(body, &jobResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &jobResponse.Data, nil
+}
+
+func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
+	jobData, err := json.Marshal(job)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId), strings.NewReader(string(jobData)))
 	if err != nil {
 		return nil, err
 	}
