@@ -154,7 +154,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(j.ID))
+	d.SetId(strconv.Itoa(*j.ID))
 
 	resourceJobRead(ctx, d, m)
 
