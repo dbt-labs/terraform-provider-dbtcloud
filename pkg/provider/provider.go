@@ -18,11 +18,13 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_TOKEN", nil),
+				Description: "API token for your DBT Cloud",
 			},
 			"account_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_ACCOUNT_ID", nil),
+				Description: "Account identifier for your DBT Cloud implementation",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -62,7 +64,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Unable to create DBT Cloud client",
-			Detail:   "Unable to create anonymous DBT Cloud  client",
+			Detail:   err.Error(),
 		})
 		return nil, diags
 	}

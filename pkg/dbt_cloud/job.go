@@ -94,13 +94,42 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &job, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string) (*Job, error) {
-	newJob := JobData{
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string) (*Job, error) {
+	state := 1
+	if !isActive {
+		state = 2
+	}
+	jobTriggers := JobTrigger{
+		Github_Webhook:     triggers["github_webhook"].(bool),
+		Schedule:           triggers["schedule"].(bool),
+		Custom_Branch_Only: triggers["custom_branch_only"].(bool),
+	}
+	jobSettings := JobSettings{
+		Threads:     numThreads,
+		Target_Name: targetName,
+	}
+	jobSchedule := JobSchedule{
+		Cron: "",
+		Date: scheduleDate{
+			Type: "every_day",
+		},
+		Time: scheduleTime{
+			Type:     "every_hour",
+			Interval: 1,
+		},
+	}
+
+	newJob := Job{
 		Account_Id:     c.AccountID,
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
 		Name:           name,
 		Execute_Steps:  executeSteps,
+		State:          state,
+		Dbt_Version:    dbtVersion,
+		Triggers:       jobTriggers,
+		Settings:       jobSettings,
+		Schedule:       jobSchedule,
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {

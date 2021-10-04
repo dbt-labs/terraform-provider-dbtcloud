@@ -35,6 +35,39 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "List of commands to execute for the job",
 	},
+	"dbt_version": &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: "Version number of DBT to use in this job",
+	},
+	"is_active": &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     true,
+		Description: "Flag for whether the job is marked active or deleted",
+	},
+	"triggers": &schema.Schema{
+		Type:     schema.TypeMap,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		Description: "Flags for which types of triggers to use, keys of github_webhook, schedule, custom_branch_only",
+	},
+	"num_threads": &schema.Schema{
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Default:     1,
+		Description: "Number of threads to use in the job",
+	},
+	"target_name": &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Default:     "default",
+		Description: "Target name for the DBT profile",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -76,6 +109,21 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("execute_steps", job.Execute_Steps); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("dbt_version", job.Dbt_Version); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("is_active", job.State == 1); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("triggers", job.Triggers); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("num_threads", job.Settings.Threads); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("target_name", job.Settings.Target_Name); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -90,13 +138,18 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
 	executeSteps := d.Get("execute_steps").([]interface{})
+	dbtVersion := d.Get("dbt_version").(string)
+	isActive := d.Get("is_active").(bool)
+	triggers := d.Get("triggers").(map[string]interface{})
+	numThreads := d.Get("num_threads").(int)
+	targetName := d.Get("target_name").(string)
 
 	steps := []string{}
 	for _, step := range executeSteps {
 		steps = append(steps, step.(string))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName)
 	if err != nil {
 		return diag.FromErr(err)
 	}

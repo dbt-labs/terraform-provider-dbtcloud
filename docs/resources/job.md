@@ -16,6 +16,10 @@ resource "dbt_cloud_job" "test" {
   project_id     = 101
   environment_id = 1
   name           = "Test job"
+  execute_steps  = [
+    "dbt run",
+    "dbt test"
+  ]
 }
 ```
 
@@ -27,9 +31,15 @@ resource "dbt_cloud_job" "test" {
 - **project_id** (Integer)
 - **environment_id** (Integer)
 - **name** (String)
+- **execute_steps** (List of Strings)
 
 ### Optional
 
+- **dbt_version** (String)
+- **is_active** (Bool)
+- **triggers** (Dict)
+- **num_threads** (Integer)
+- **target_name** (String)
 
 ## Import
 
