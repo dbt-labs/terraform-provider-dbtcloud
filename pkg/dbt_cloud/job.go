@@ -54,19 +54,34 @@ type JobData struct {
 	Schedule       JobSchedule `json:"schedule"`
 }
 
+type JobRequest struct {
+	ID             *int        `json:"id"`
+	Account_Id     int         `json:"account_id"`
+	Project_Id     int         `json:"project_id"`
+	Environment_Id int         `json:"environment_id"`
+	Name           string      `json:"name"`
+	Execute_Steps  []string    `json:"execute_steps"`
+	Dbt_Version    *string     `json:"dbt_version"`
+	Triggers       JobTrigger  `json:"triggers"`
+	Settings       JobSettings `json:"settings"`
+	State          int         `json:"state"`
+	Generate_Docs  bool        `json:"generate_docs"`
+	Schedule       JobSchedule `json:"schedule"`
+}
+
 type JobResponse struct {
 	Data   Job            `json:"data"`
 	Status responseStatus `json:"status"`
 }
 
 type Job struct {
-	ID             int         `json:"id"`
+	ID             *int        `json:"id"`
 	Account_Id     int         `json:"account_id"`
 	Project_Id     int         `json:"project_id"`
 	Environment_Id int         `json:"environment_id"`
 	Name           string      `json:"name"`
 	Execute_Steps  []string    `json:"execute_steps"`
-	Dbt_Version    string      `json:"dbt_version"`
+	Dbt_Version    *string     `json:"dbt_version"`
 	Triggers       JobTrigger  `json:"triggers"`
 	Settings       JobSettings `json:"settings"`
 	State          int         `json:"state"`
@@ -75,7 +90,7 @@ type Job struct {
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/jobs/%s", c.AccountURL, jobID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -126,18 +141,19 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		Name:           name,
 		Execute_Steps:  executeSteps,
 		State:          state,
-		Dbt_Version:    dbtVersion,
 		Triggers:       jobTriggers,
 		Settings:       jobSettings,
 		Schedule:       jobSchedule,
+	}
+	if dbtVersion != nil {
+		newJob.Dbt_Version = dbtVersion
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs", c.AccountURL), strings.NewReader(string(newJobData)))
-	fmt.Printf(string(newJobData))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/", c.AccountURL), strings.NewReader(string(newJobData)))
 	if err != nil {
 		return nil, err
 	}
