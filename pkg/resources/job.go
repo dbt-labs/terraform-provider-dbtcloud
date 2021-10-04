@@ -35,6 +35,17 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "List of commands to execute for the job",
 	},
+	"dbt_version": &schema.Schema{
+	    Type: schema.TypeString,
+	    Optional: true,
+	    Description: "Version number of DBT to use in this job",
+	},
+	"is_active": &schema.Schema{
+	    Type: schema.TypeBool,
+	    Optional: true,
+	    Default: true,
+	    Description: "Flag for whether the job is marked active or deleted",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -76,6 +87,12 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("execute_steps", job.Execute_Steps); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("dbt_version", job.Dbt_Version); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("is_active", job.State == 1); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -90,13 +107,15 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
 	executeSteps := d.Get("execute_steps").([]interface{})
+	dbtVersion := d.Get("dbt_version").(string)
+	isActive := d.Get("is_active").(bool)
 
 	steps := []string{}
 	for _, step := range executeSteps {
 		steps = append(steps, step.(string))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive)
 	if err != nil {
 		return diag.FromErr(err)
 	}

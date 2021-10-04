@@ -94,13 +94,27 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &job, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string) (*Job, error) {
-	newJob := JobData{
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool) (*Job, error) {
+    state := 1
+    if !isActive {
+        state = 2
+    }
+    triggers := JobTrigger{}
+    settings := JobSettings{}
+    schedule := JobSchedule{}
+
+	newJob := Job{
+	    ID: nil
 		Account_Id:     c.AccountID,
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
 		Name:           name,
 		Execute_Steps:  executeSteps,
+		State: state,
+		Dbt_Version: dbtVersion,
+		Triggers: triggers,
+	    Settings: settings,
+	    Schedule: schedule,
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
