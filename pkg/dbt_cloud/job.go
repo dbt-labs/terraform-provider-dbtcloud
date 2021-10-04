@@ -124,7 +124,6 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		Target_Name: targetName,
 	}
 	jobSchedule := JobSchedule{
-		Cron: "",
 		Date: scheduleDate{
 			Type: "every_day",
 		},
@@ -134,7 +133,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		},
 	}
 
-	newJob := Job{
+	newJob := JobRequest{
 		Account_Id:     c.AccountID,
 		Project_Id:     projectId,
 		Environment_Id: environmentId,
