@@ -47,7 +47,16 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("job", job); err != nil {
+	if err := d.Set("project_id", job.Project_Id); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("environment_id", job.Environment_Id); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("name", job.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("job_id", job.ID); err != nil {
 		return diag.FromErr(err)
 	}
 
