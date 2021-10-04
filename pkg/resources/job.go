@@ -68,6 +68,18 @@ var jobSchema = map[string]*schema.Schema{
 		Default:     "default",
 		Description: "Target name for the DBT profile",
 	},
+	"generate_docs": &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Flag for whether the job should generate documentation",
+	},
+	"run_generate_sources": &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Flag for whether the job should run generate sources",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -124,6 +136,12 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("target_name", job.Settings.Target_Name); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("generate_docs", job.Generate_Docs); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("run_generate_sources", job.Run_Generate_Sources); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -143,13 +161,15 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	triggers := d.Get("triggers").(map[string]interface{})
 	numThreads := d.Get("num_threads").(int)
 	targetName := d.Get("target_name").(string)
+	generateDocs := d.Get("generate_docs").(bool)
+	runGenerateSources := d.Get("run_generate_sources").(bool)
 
 	steps := []string{}
 	for _, step := range executeSteps {
 		steps = append(steps, step.(string))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -162,14 +182,43 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 }
 
 func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
+	jobId := d.Id()
+
+	if d.HasChange("name") {
+		job, err := c.GetJob(jobId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		name := d.Get("name").(string)
+		job.Name = name
+		_, err = c.UpdateJob(jobId, *job)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return resourceJobRead(ctx, d, m)
 }
 
 func resourceJobDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
-	log.Printf("Job deleting is not yet supported in DBT Cloud")
+	c := m.(*dbt_cloud.Client)
+	jobId := d.Id()
+	log.Printf("Job deleting is not yet supported in DBT Cloud, setting state to deleted")
 
 	var diags diag.Diagnostics
+
+	job, err := c.GetJob(jobId)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	job.State = 2
+	_, err = c.UpdateJob(jobId, *job)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }

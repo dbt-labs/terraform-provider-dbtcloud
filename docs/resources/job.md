@@ -40,6 +40,8 @@ resource "dbt_cloud_job" "test" {
 - **triggers** (Dict)
 - **num_threads** (Integer)
 - **target_name** (String)
+- **generate_docs** (Bool)
+- **run_generate_sources** (Bool)
 
 ## Import
 
