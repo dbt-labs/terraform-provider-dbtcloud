@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strconv"
 
@@ -127,9 +128,6 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("is_active", job.State == 1); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("triggers", job.Triggers); err != nil {
-		return diag.FromErr(err)
-	}
 	if err := d.Set("num_threads", job.Settings.Threads); err != nil {
 		return diag.FromErr(err)
 	}
@@ -140,6 +138,13 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 	if err := d.Set("run_generate_sources", job.Run_Generate_Sources); err != nil {
+		return diag.FromErr(err)
+	}
+
+	var triggers map[string]interface{}
+	triggersInput, _ := json.Marshal(job.Triggers)
+	json.Unmarshal(triggersInput, &triggers)
+	if err := d.Set("triggers", triggers); err != nil {
 		return diag.FromErr(err)
 	}
 
