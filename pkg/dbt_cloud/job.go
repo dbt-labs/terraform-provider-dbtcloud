@@ -100,13 +100,13 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 		return nil, err
 	}
 
-	job := Job{}
-	err = json.Unmarshal(body, &job)
+	jobResponse := JobResponse{}
+	err = json.Unmarshal(body, &jobResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &job, nil
+	return &jobResponse.Data, nil
 }
 
 func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string) (*Job, error) {
