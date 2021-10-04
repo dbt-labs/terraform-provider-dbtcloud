@@ -55,12 +55,12 @@ type JobData struct {
 }
 
 type JobResponse struct {
-	Data   JobData        `json:"data"`
+	Data   Job            `json:"data"`
 	Status responseStatus `json:"status"`
 }
 
 type Job struct {
-	ID             int         `json:"id,omitempty"`
+	ID             int         `json:"id"`
 	Account_Id     int         `json:"account_id"`
 	Project_Id     int         `json:"project_id"`
 	Environment_Id int         `json:"environment_id"`
@@ -137,6 +137,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs", c.AccountURL), strings.NewReader(string(newJobData)))
+	fmt.Printf(string(newJobData))
 	if err != nil {
 		return nil, err
 	}
@@ -146,11 +147,11 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		return nil, err
 	}
 
-	job := Job{}
-	err = json.Unmarshal(body, &job)
+	jobResponse := JobResponse{}
+	err = json.Unmarshal(body, &jobResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &job, nil
+	return &jobResponse.Data, nil
 }
