@@ -52,7 +52,7 @@ type Job struct {
 	Environment_Id       int         `json:"environment_id"`
 	Name                 string      `json:"name"`
 	Execute_Steps        []string    `json:"execute_steps"`
-	Dbt_Version          *string     `json:"dbt_version,omitempty"`
+	Dbt_Version          *string     `json:"dbt_version"`
 	Triggers             JobTrigger  `json:"triggers"`
 	Settings             JobSettings `json:"settings"`
 	State                int         `json:"state"`
