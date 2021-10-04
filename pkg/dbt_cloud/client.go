@@ -100,7 +100,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-    req.Header.Add("Accept", "application/json")
+	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
 

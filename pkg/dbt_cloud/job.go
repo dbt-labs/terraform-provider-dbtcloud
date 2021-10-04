@@ -75,13 +75,13 @@ type JobResponse struct {
 }
 
 type Job struct {
-	ID             *int         `json:"id"`
+	ID             *int        `json:"id"`
 	Account_Id     int         `json:"account_id"`
 	Project_Id     int         `json:"project_id"`
 	Environment_Id int         `json:"environment_id"`
 	Name           string      `json:"name"`
 	Execute_Steps  []string    `json:"execute_steps"`
-	Dbt_Version    *string      `json:"dbt_version"`
+	Dbt_Version    *string     `json:"dbt_version"`
 	Triggers       JobTrigger  `json:"triggers"`
 	Settings       JobSettings `json:"settings"`
 	State          int         `json:"state"`
@@ -146,7 +146,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		Schedule:       jobSchedule,
 	}
 	if dbtVersion != nil {
-	    newJob.Dbt_Version = dbtVersion
+		newJob.Dbt_Version = dbtVersion
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
