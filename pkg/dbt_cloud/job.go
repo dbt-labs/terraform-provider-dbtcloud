@@ -86,10 +86,22 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 	if !isActive {
 		state = 2
 	}
+	github_webhook, gw_found := triggers["github_webhook"]
+	if !gw_found {
+		github_webhook = false
+	}
+	schedule, s_found := triggers["schedule"]
+	if !s_found {
+		schedule = false
+	}
+	custom_branch_only, cbo_found := triggers["custom_branch_only"]
+	if !cbo_found {
+		custom_branch_only = false
+	}
 	jobTriggers := JobTrigger{
-		Github_Webhook:     triggers["github_webhook"].(bool),
-		Schedule:           triggers["schedule"].(bool),
-		Custom_Branch_Only: triggers["custom_branch_only"].(bool),
+		Github_Webhook:     github_webhook.(bool),
+		Schedule:           schedule.(bool),
+		Custom_Branch_Only: custom_branch_only.(bool),
 	}
 	jobSettings := JobSettings{
 		Threads:     numThreads,
