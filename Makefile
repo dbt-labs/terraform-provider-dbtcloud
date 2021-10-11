@@ -1,6 +1,6 @@
 NAME=dbt-cloud
 BINARY=terraform-provider-$(NAME)
-VERSION=0.1
+VERSION=$(shell cat VERSION)
 
 default: install
 
@@ -10,3 +10,6 @@ build:
 install: build
 	mkdir -p ~/.terraform.d/plugins/gthesheep/dbt_cloud/0.1/darwin_amd64
 	mv $(BINARY) ~/.terraform.d/plugins/gthesheep/dbt_cloud/0.1/darwin_amd64/$(BINARY)
+
+docs:
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs

@@ -11,20 +11,24 @@ import (
 
 var jobSchema = map[string]*schema.Schema{
 	"project_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Required: true,
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "ID of the project the job is in",
 	},
 	"environment_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Computed: true,
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of the environment the job is in",
 	},
 	"name": &schema.Schema{
-		Type:     schema.TypeString,
-		Computed: true,
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "Given name for the job",
 	},
 	"job_id": &schema.Schema{
-		Type:     schema.TypeInt,
-		Required: true,
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "ID of the job",
 	},
 }
 
