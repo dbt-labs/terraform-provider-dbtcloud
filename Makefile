@@ -17,7 +17,7 @@ install: build
 docs:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
-test: fmt deps
+test:
 	go test
 
 check-docs: docs
