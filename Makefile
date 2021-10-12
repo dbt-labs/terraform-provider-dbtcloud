@@ -22,3 +22,6 @@ test:
 
 check-docs: docs
 	git diff --exit-code -- docs
+
+deps:
+	go mod tidy
