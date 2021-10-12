@@ -18,9 +18,11 @@ install: build
 docs:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
-test:
+test: deps
 	go test
 
 check-docs: docs
 	git diff --exit-code -- docs
 
+deps:
+	go mod tidy
