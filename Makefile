@@ -5,7 +5,8 @@ VERSION=$(shell cat VERSION)
 default: install
 
 setup:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh
+	go get golang.org/x/tools/cmd/goimports
 
 build:
 	go build -ldflags "-w -s" -o $(BINARY) .
@@ -23,5 +24,3 @@ test:
 check-docs: docs
 	git diff --exit-code -- docs
 
-deps:
-	go mod tidy
