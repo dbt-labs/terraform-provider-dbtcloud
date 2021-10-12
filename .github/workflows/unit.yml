@@ -5,8 +5,6 @@ name: Unit tests
 jobs:
   unit:
     runs-on: ubuntu-latest
-    env:
-      GOFLAGS: "-mod=vendor"
     strategy:
       matrix:
         target:
