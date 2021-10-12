@@ -4,7 +4,24 @@ Terraform Provider for DBT Cloud
 Primarily focused on managing jobs in DBT Cloud, given what
 is available via the API.
 Data sources for other concepts are added for convenience.
+In order to use this provider, add the following to your Terraform providers
+setup, with the latest version number.
+```terraform
+terraform {
+  required_providers {
+    dbt = {
+      source  = "GtheSheep/dbt-cloud"
+      version = "<version>"
+    }
+  }
+}
+```
 
+## Authentication
+
+If you want to explicitly set the authentication variables on the provider, you
+can do so as below, though likely via a `variables.tf` file or config in your
+CI-CD pipeline to keep these credentials safe.
 ```terraform
 provider "dbt" {
   // required
@@ -12,3 +29,10 @@ provider "dbt" {
   token      = "..."
 }
 ```
+You can also set them via environment variables, `DBT_CLOUD_ACCOUNT_ID` and 
+`DBT_CLOUD_TOKEN` for the `account_id` and `token` respectively.
+
+## Examples
+Check out the `examples/` folder for some usage options, these are intended to
+simply showcase what this module can do rather than be best practices for any
+given use case.
