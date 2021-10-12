@@ -18,14 +18,11 @@ install: build
 docs:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
-test: fmt deps
-	go test
+test: deps
+	go test -mod=readonly
 
 check-docs: docs
 	git diff --exit-code -- docs
 
 deps:
 	go mod tidy
-
-fmt:
-	goimports -w -d $$(find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./dist/*")
