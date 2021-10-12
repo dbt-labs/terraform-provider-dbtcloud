@@ -5,7 +5,7 @@ VERSION=$(shell cat VERSION)
 default: install
 
 setup:
-	go get golang.org/x/tools/cmd/goimports
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 build:
 	go build -ldflags "-w -s" -o $(BINARY) .
