@@ -12,8 +12,8 @@ build:
 	go build -ldflags "-w -s" -o $(BINARY) .
 
 install: build
-	mkdir -p ~/.terraform.d/plugins/gthesheep/dbt_cloud/0.1/darwin_amd64
-	mv $(BINARY) ~/.terraform.d/plugins/gthesheep/dbt_cloud/0.1/darwin_amd64/$(BINARY)
+	mkdir -p ~/.terraform.d/plugins/something.com/gthesheep/dbt-cloud/$(VERSION)/darwin_amd64
+	mv $(BINARY) ~/.terraform.d/plugins/something.com/gthesheep/dbt-cloud/$(VERSION)/darwin_amd64/$(BINARY)
 
 docs:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs

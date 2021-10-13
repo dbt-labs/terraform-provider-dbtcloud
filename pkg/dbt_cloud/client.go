@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const HostURL string = "https://cloud.getdbt.com/api/v2"
+const HostURL string = "https://cloud.getdbt.com/api/"
 
 // Client -
 type Client struct {
@@ -76,7 +76,7 @@ func NewClient(account_id *int, token *string) (*Client, error) {
 	}
 
 	if (account_id != nil) && (token != nil) {
-		url := fmt.Sprintf("%s/accounts/%s", HostURL, strconv.Itoa(*account_id))
+		url := fmt.Sprintf("%s/v2/accounts/%s", HostURL, strconv.Itoa(*account_id))
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)
