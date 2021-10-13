@@ -34,6 +34,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job":     resources.ResourceJob(),
 			"dbt_cloud_project": resources.ResourceProject(),
+			"dbt_cloud_environment": resources.ResourceEnvironment(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
