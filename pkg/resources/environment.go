@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+const ENVIRONMENT_STATE_ACTIVE = 1
+const ENVIRONMENT_STATE_DELETED = 2
 
 func ResourceEnvironment() *schema.Resource {
 	return &schema.Resource{
@@ -19,6 +23,12 @@ func ResourceEnvironment() *schema.Resource {
 		DeleteContext: resourceEnvironmentDelete,
 
 		Schema: map[string]*schema.Schema{
+			"is_active": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Whether the environment is active",
+			},
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
@@ -48,7 +58,20 @@ func ResourceEnvironment() *schema.Resource {
 					}
 					errs = append(errs, fmt.Errorf("%q must be either development or deployment, got: %q", key, type_))
 					return
-				}},
+				},
+			},
+			"use_custom_branch": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to use a custom git branch in this environment",
+			},
+			"custom_branch": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Which custom branch to use in this environment",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -63,12 +86,15 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
+	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
 	name := d.Get("name").(string)
 	dbtVersion := d.Get("dbt_version").(string)
 	type_ := d.Get("type").(string)
+	useCustomBranch := d.Get("use_custom_branch").(bool)
+	customBranch := d.Get("custom_branch").(string)
 
-	environment, err := c.CreateEnvironment(projectId, name, dbtVersion, type_)
+	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -101,6 +127,9 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("is_active", environment.State == ENVIRONMENT_STATE_ACTIVE); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("project_id", environment.Project_Id); err != nil {
 		return diag.FromErr(err)
 	}
@@ -113,14 +142,75 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("type", environment.Type); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("use_custom_branch", environment.Use_Custom_Branch); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("custom_branch", environment.Custom_Branch); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
 
 func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return nil
+	c := m.(*dbt_cloud.Client)
+
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	environmentId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// TODO: add more changes here
+
+	if d.HasChange("name") {
+		environment, err := c.GetEnvironment(projectId, environmentId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		name := d.Get("name").(string)
+		environment.Name = name
+		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return resourceEnvironmentRead(ctx, d, m)
 }
 
 func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return nil
+	c := m.(*dbt_cloud.Client)
+
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	environmentId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("Environment deleting is not yet supported in dbt Cloud, setting state to deleted")
+
+	var diags diag.Diagnostics
+
+	environment, err := c.GetEnvironment(projectId, environmentId)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	environment.State = ENVIRONMENT_STATE_DELETED
+	_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diags
 }
