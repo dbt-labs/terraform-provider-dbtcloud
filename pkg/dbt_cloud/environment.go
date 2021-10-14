@@ -25,16 +25,16 @@ type EnvironmentResponse struct {
 }
 
 type Environment struct {
-	ID                *int    `json:"id"`
-	Account_Id        int     `json:"account_id"`
-	Project_Id        int     `json:"project_id"`
-	Credentials_Id    *int    `json:"credentials_id"`
-	Name              string  `json:"name"`
-	Dbt_Version       string  `json:"dbt_version"`
-	Type              string  `json:"type"`
-	Use_Custom_Branch bool    `json:"use_custom_branch"`
-	Custom_Branch     *string `json:"custom_branch"`
-	State             int     `json:"state"`
+	ID                *int   `json:"id"`
+	State             int    `json:"state"`
+	Account_Id        int    `json:"account_id"`
+	Project_Id        int    `json:"project_id"`
+	Credentials_Id    *int   `json:"credentials_id"`
+	Name              string `json:"name"`
+	Dbt_Version       string `json:"dbt_version"`
+	Type              string `json:"type"`
+	Use_Custom_Branch bool   `json:"use_custom_branch"`
+	Custom_Branch     string `json:"custom_branch"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -63,17 +63,22 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 	return nil, fmt.Errorf("did not find environment ID %d in project ID %d", environmentId, projectId)
 }
 
-func (c *Client) CreateEnvironment(projectId int, name string, dbtVersion string, type_ string) (*Environment, error) {
-	newEnvironment := Environment{
-		Account_Id:  c.AccountID,
-		Project_Id:  projectId,
-		Name:        name,
-		Dbt_Version: dbtVersion,
-		Type:        type_,
+func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string) (*Environment, error) {
+	state := 1
+	if !isActive {
+		state = 2
+	}
 
+	newEnvironment := Environment{
+		State:             state,
+		Account_Id:        c.AccountID,
+		Project_Id:        projectId,
+		Name:              name,
+		Dbt_Version:       dbtVersion,
+		Type:              type_,
 		Credentials_Id:    nil,
-		Use_Custom_Branch: false,
-		State:             1,
+		Use_Custom_Branch: useCustomBranch,
+		Custom_Branch:     customBranch,
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
