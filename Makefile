@@ -19,7 +19,7 @@ docs:
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 test: deps
-	go test -mod=readonly
+	go test -mod=readonly ./...
 
 check-docs: docs
 	git diff --exit-code -- docs
