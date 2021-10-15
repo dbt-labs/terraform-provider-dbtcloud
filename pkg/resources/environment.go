@@ -34,6 +34,12 @@ func ResourceEnvironment() *schema.Resource {
 				Required:    true,
 				Description: "Project ID to create the environment in",
 			},
+			"credential_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     nil,
+				Description: "Credential ID to create the environment with",
+			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -88,13 +94,14 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
+	credentialId := d.Get("credential_id").(int)
 	name := d.Get("name").(string)
 	dbtVersion := d.Get("dbt_version").(string)
 	type_ := d.Get("type").(string)
 	useCustomBranch := d.Get("use_custom_branch").(bool)
 	customBranch := d.Get("custom_branch").(string)
 
-	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch)
+	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
