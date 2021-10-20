@@ -213,7 +213,7 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			job.Settings.Target_Name = targetName
 		}
 		if d.HasChange("execute_steps") {
-			executeSteps := d.Get("execute_steps").([]string)
+			executeSteps := d.Get("execute_steps").([]interface{})
 			job.Execute_Steps = executeSteps
 		}
 
