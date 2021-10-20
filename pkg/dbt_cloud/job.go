@@ -3,7 +3,6 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -165,8 +164,6 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId), strings.NewReader(string(jobData)))
-	log.Printf(fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId))
-	log.Printf(string(jobData))
 	if err != nil {
 		return nil, err
 	}
