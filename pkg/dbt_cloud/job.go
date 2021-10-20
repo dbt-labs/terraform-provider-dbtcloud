@@ -164,6 +164,8 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId), strings.NewReader(string(jobData)))
+	fmt.Printf(fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId))
+	fmt.Printf(string(jobData))
 	if err != nil {
 		return nil, err
 	}
