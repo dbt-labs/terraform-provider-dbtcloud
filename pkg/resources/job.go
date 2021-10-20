@@ -190,14 +190,33 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
 
-	if d.HasChange("name") {
+	if d.HasChange("name") || d.HasChange("dbt_version") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		name := d.Get("name").(string)
-		job.Name = name
+		if d.HasChange("name") {
+			name := d.Get("name").(string)
+			job.Name = name
+		}
+		if d.HasChange("dbt_version") {
+			dbtVersion := d.Get("dbt_version").(string)
+			job.Dbt_Version = &dbtVersion
+		}
+		if d.HasChange("num_threads") {
+			numThreads := d.Get("num_threads").(int)
+			job.Settings.Threads = numThreads
+		}
+		if d.HasChange("target_name") {
+			targetName := d.Get("target_name").(string)
+			job.Settings.Target_Name = targetName
+		}
+		if d.HasChange("execute_steps") {
+			executeSteps := d.Get("execute_steps").([]string)
+			job.Execute_Steps = executeSteps
+		}
+
 		_, err = c.UpdateJob(jobId, *job)
 		if err != nil {
 			return diag.FromErr(err)
