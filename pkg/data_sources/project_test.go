@@ -22,6 +22,8 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "project_id", randomID),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "name"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "id"),
+		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "connection_id"),
+		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "repository_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "state"),
 	)
 

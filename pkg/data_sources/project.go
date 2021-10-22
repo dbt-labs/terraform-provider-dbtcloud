@@ -20,6 +20,16 @@ var projectSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Given name for project",
 	},
+	"connection_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of the connection associated with the project",
+	},
+	"repository_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of the repository associated with the project",
+	},
 	"state": &schema.Schema{
 		Type:        schema.TypeInt,
 		Computed:    true,
@@ -50,6 +60,12 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", project.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("connection_id", project.ConnectionID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("repository_id", project.RepositoryID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("state", project.State); err != nil {
