@@ -25,7 +25,9 @@ description: |-
 
 ### Read-Only
 
+- **connection_id** (Number) ID of the connection associated with the project
 - **name** (String) Given name for project
+- **repository_id** (Number) ID of the repository associated with the project
 - **state** (Number) Project state should be 1 = active, as 2 = deleted
 
 
