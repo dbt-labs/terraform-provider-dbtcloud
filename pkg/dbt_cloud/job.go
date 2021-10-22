@@ -7,13 +7,6 @@ import (
 	"strings"
 )
 
-type responseStatus struct {
-	Code              int    `json:"code"`
-	Is_Success        bool   `json:"is_success"`
-	User_Message      string `json:"user_message"`
-	Developer_Message string `json:"developer_message"`
-}
-
 type JobTrigger struct {
 	Github_Webhook     bool `json:"github_webhook"`
 	Schedule           bool `json:"schedule"`
@@ -42,7 +35,7 @@ type JobSchedule struct {
 
 type JobResponse struct {
 	Data   Job            `json:"data"`
-	Status responseStatus `json:"status"`
+	Status ResponseStatus `json:"status"`
 }
 
 type Job struct {
@@ -62,7 +55,7 @@ type Job struct {
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("v2/%s/jobs/%s/", c.AccountURL, jobID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +131,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/", c.AccountURL), strings.NewReader(string(newJobData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("v2/%s/jobs/", c.AccountURL), strings.NewReader(string(newJobData)))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +156,7 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/jobs/%s/", c.AccountURL, jobId), strings.NewReader(string(jobData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("v2/%s/jobs/%s/", c.AccountURL, jobId), strings.NewReader(string(jobData)))
 	if err != nil {
 		return nil, err
 	}

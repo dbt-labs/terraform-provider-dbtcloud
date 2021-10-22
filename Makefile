@@ -26,3 +26,7 @@ check-docs: docs
 
 deps:
 	go mod tidy
+
+release:
+	git tag "v$(VERSION)"
+	git push origin "v$(VERSION)"

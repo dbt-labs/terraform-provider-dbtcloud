@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const HostURL string = "https://cloud.getdbt.com/api/v2"
+const HostURL string = "https://cloud.getdbt.com/api"
 
 // Client -
 type Client struct {
