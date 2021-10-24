@@ -22,7 +22,7 @@ type ProjectResponse struct {
 }
 
 func (c *Client) GetProject(projectID string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("v3/%s/projects/%s/", c.AccountURL, projectID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/accounts/%s/v3/projects/%s/", c.HostURL, c.AccountID, projectID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, conne
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("v3/%s/projects/", c.AccountURL), strings.NewReader(string(newProjectData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts/%s/v3/projects/", c.HostURL, c.AccountID), strings.NewReader(string(newProjectData)))
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("v3/%s/projects/%s/", c.AccountURL, projectID), strings.NewReader(string(projectData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts/%s/v3/projects/%s/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(projectData)))
 	if err != nil {
 		return nil, err
 	}
