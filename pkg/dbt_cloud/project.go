@@ -15,6 +15,7 @@ type Project struct {
 	ConnectionID           *int    `json:"connection_id"`
 	RepositoryID           *int    `json:"repository_id"`
 	State                  int     `json:"state"`
+	AccountID              int     `json:"account_id"`
 }
 
 type ProjectResponse struct {
@@ -49,6 +50,7 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, conne
 		ConnectionID:           &connectionID,
 		RepositoryID:           &repositoryID,
 		State:                  1,
+		AccountID:              c.AccountID,
 	}
 	newProjectData, err := json.Marshal(newProject)
 	if err != nil {
