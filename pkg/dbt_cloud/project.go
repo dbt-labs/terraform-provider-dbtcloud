@@ -58,12 +58,21 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
 	newProject := Project{
 		Name:                   name,
-		DbtProjectSubdirectory: &dbtProjectSubdirectory,
 		ConnectionID:           &connectionID,
 		RepositoryID:           &repositoryID,
 		State:                  1,
 		AccountID:              c.AccountID,
 	}
+	if &dbtProjectSubdirectory != "" {
+		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
+	}
+	if &connectionID != 0 {
+		newProject.ConnectionID = &connectionID
+	}
+	if &repositoryID != 0 {
+		newProject.RepositoryID = &repositoryID
+	}
+	
 	newProjectData, err := json.Marshal(newProject)
 	if err != nil {
 		return nil, err
