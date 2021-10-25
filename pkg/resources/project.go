@@ -70,9 +70,6 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if err := d.Set("repository_id", project.RepositoryID); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("state", project.State); err != nil {
-		return diag.FromErr(err)
-	}
 
 	return diags
 }
