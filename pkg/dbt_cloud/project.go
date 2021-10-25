@@ -63,13 +63,13 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, conne
 		State:                  1,
 		AccountID:              c.AccountID,
 	}
-	if &dbtProjectSubdirectory != "" {
+	if dbtProjectSubdirectory != "" {
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
 	}
-	if &connectionID != 0 {
+	if connectionID != 0 {
 		newProject.ConnectionID = &connectionID
 	}
-	if &repositoryID != 0 {
+	if repositoryID != 0 {
 		newProject.RepositoryID = &repositoryID
 	}
 	
