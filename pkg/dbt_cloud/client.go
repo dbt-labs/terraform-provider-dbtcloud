@@ -116,7 +116,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	if (res.StatusCode != http.StatusOK) && (res.StatusCode != 201) {
-		return nil, fmt.Errorf("url: %s %s, status: %d, body: %s", req.URL.Host, req.URL.Path, res.StatusCode, body)
+		return nil, fmt.Errorf("%s url: %s %s, status: %d, body: %s", req.Method, req.URL.Host, req.URL.Path, res.StatusCode, body)
 	}
 
 	return body, err
