@@ -13,8 +13,8 @@ type Project struct {
 	ID                     *int    `json:"id,omitempty"`
 	Name                   string  `json:"name"`
 	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory,omitempty"`
-	ConnectionID           *int    `json:"connection_id,omitempty"`
-	RepositoryID           *int    `json:"repository_id,omitempty"`
+	ConnectionID           *int    `json:"connection_id,integer,omitempty"`
+	RepositoryID           *int    `json:"repository_id,integer,omitempty"`
 	State                  int     `json:"state"`
 	AccountID              int     `json:"account_id"`
 }
