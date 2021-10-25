@@ -3,6 +3,7 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -67,6 +68,7 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, conne
 	if err != nil {
 		return nil, err
 	}
+	log.Println(string(newProjectData))
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newProjectData)))
 	if err != nil {
