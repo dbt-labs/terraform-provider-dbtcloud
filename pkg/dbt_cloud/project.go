@@ -46,7 +46,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 	}
 	
 	for i, project := range projectListResponse.Data {
- 		if *project.ID == projectID {
+		if strconv.Itoa(*project.ID) == projectID {
  			return &projectListResponse.Data[i], nil
  		}
  	}
