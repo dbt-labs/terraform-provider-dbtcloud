@@ -58,8 +58,6 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
 	newProject := Project{
 		Name:                   name,
-		ConnectionID:           &connectionID,
-		RepositoryID:           &repositoryID,
 		State:                  1,
 		AccountID:              c.AccountID,
 	}
