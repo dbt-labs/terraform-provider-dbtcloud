@@ -129,7 +129,7 @@ func resourceProjectUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	return resourceJobRead(ctx, d, m)
+	return resourceProjectRead(ctx, d, m)
 }
 
 func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
