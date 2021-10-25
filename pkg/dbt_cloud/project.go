@@ -18,13 +18,18 @@ type Project struct {
 	AccountID              int     `json:"account_id"`
 }
 
+type ProjectListResponse struct {
+	Data   []Project      `json:"data"`
+	Status ResponseStatus `json:"status"`
+}
+
 type ProjectResponse struct {
 	Data   Project        `json:"data"`
 	Status ResponseStatus `json:"status"`
 }
 
 func (c *Client) GetProject(projectID string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +39,19 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		return nil, err
 	}
 
-	projectResponse := ProjectResponse{}
-	err = json.Unmarshal(body, &projectResponse)
+	projectListResponse := ProjectListResponse{}
+	err = json.Unmarshal(body, &projectListResponse)
 	if err != nil {
 		return nil, err
 	}
+	
+	for i, project := range projectListResponse.Data {
+ 		if *project.ID == projectID {
+ 			return &projectListResponse.Data[i], nil
+ 		}
+ 	}
 
-	return &projectResponse.Data, nil
+	return nil, fmt.Errorf("Did not find project ID %d in account ID %d", projectID, strconv.Itoa(c.AccountID))
 }
 
 func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
