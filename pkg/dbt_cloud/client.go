@@ -114,9 +114,9 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	bodyr, err := ioutil.ReadAll(req.Body)
+
 	if (res.StatusCode != http.StatusOK) && (res.StatusCode != 201) {
-		return nil, fmt.Errorf("%s url: %s %s, status: %d, body: %s, b: %s", req.Method, req.URL.Host, req.URL.Path, res.StatusCode, body, bodyr)
+		return nil, fmt.Errorf("%s url: %s, status: %d, body: %s", req.Method, req.URL, res.StatusCode, body)
 	}
 
 	return body, err
