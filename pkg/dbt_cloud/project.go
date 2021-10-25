@@ -10,11 +10,11 @@ import (
 )
 
 type Project struct {
-	ID                     *int    `json:"id"`
+	ID                     *int    `json:"id,omitempty"`
 	Name                   string  `json:"name"`
-	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory"`
-	ConnectionID           *int    `json:"connection_id"`
-	RepositoryID           *int    `json:"repository_id"`
+	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory,omitempty"`
+	ConnectionID           *int    `json:"connection_id,omitempty"`
+	RepositoryID           *int    `json:"repository_id,omitempty"`
 	State                  int     `json:"state"`
 	AccountID              int     `json:"account_id"`
 }
