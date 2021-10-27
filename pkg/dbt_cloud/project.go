@@ -30,7 +30,7 @@ type ProjectResponse struct {
 }
 
 func (c *Client) GetProject(projectID string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,19 +40,13 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		return nil, err
 	}
 
-	projectListResponse := ProjectListResponse{}
-	err = json.Unmarshal(body, &projectListResponse)
+	projectResponse := ProjectResponse{}
+	err = json.Unmarshal(body, &projectResponse)
 	if err != nil {
 		return nil, err
 	}
 	
-	for i, project := range projectListResponse.Data {
-		if strconv.Itoa(*project.ID) == projectID {
- 			return &projectListResponse.Data[i], nil
- 		}
- 	}
-
-	return nil, fmt.Errorf("Did not find project ID %d in account ID %d", projectID, strconv.Itoa(c.AccountID))
+	return &projectResponse.Data, nil
 }
 
 func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
