@@ -7,21 +7,14 @@ import (
 	"strings"
 )
 
-type snowflakeCredentialResponseStatus struct {
-	Code              int    `json:"code"`
-	Is_Success        bool   `json:"is_success"`
-	User_Message      string `json:"user_message"`
-	Developer_Message string `json:"developer_message"`
-}
-
 type SnowflakeCredentialListResponse struct {
-	Data   []SnowflakeCredential             `json:"data"`
-	Status snowflakeCredentialResponseStatus `json:"status"`
+	Data   []SnowflakeCredential `json:"data"`
+	Status ResponseStatus        `json:"status"`
 }
 
 type SnowflakeCredentialResponse struct {
-	Data   SnowflakeCredential               `json:"data"`
-	Status snowflakeCredentialResponseStatus `json:"status"`
+	Data   SnowflakeCredential `json:"data"`
+	Status ResponseStatus      `json:"status"`
 }
 
 type SnowflakeCredential struct {
@@ -63,7 +56,7 @@ func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*Snowf
 	return nil, fmt.Errorf("did not find credential ID %d in project ID %d", credentialId, projectId)
 }
 
-func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, schema string, user string, password string, authType string) (*SnowflakeCredential, error) {
+func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, schema string, user string, password string, authType string, numThreads int) (*SnowflakeCredential, error) {
 	newSnowflakeCredential := SnowflakeCredential{
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
@@ -73,7 +66,7 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 		User:       user,
 		Password:   &password,
 		Auth_Type:  authType,
-		Threads:    1, // TODO: make variable
+		Threads:    numThreads,
 	}
 	newSnowflakeCredentialData, err := json.Marshal(newSnowflakeCredential)
 	if err != nil {

@@ -106,7 +106,7 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(environment.Project_Id) + "," + strconv.Itoa(*environment.ID))
+	d.SetId(fmt.Sprintf("%d%s%d", environment.Project_Id, dbt_cloud.ID_DELIMITER, *environment.ID))
 
 	resourceJobRead(ctx, d, m)
 
@@ -119,12 +119,12 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -194,12 +194,12 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
 	if err != nil {
 		return diag.FromErr(err)
 	}

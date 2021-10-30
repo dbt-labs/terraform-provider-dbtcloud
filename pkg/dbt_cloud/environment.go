@@ -7,21 +7,14 @@ import (
 	"strings"
 )
 
-type environmentResponseStatus struct {
-	Code              int    `json:"code"`
-	Is_Success        bool   `json:"is_success"`
-	User_Message      string `json:"user_message"`
-	Developer_Message string `json:"developer_message"`
-}
-
 type EnvironmentListResponse struct {
-	Data   []Environment             `json:"data"`
-	Status environmentResponseStatus `json:"status"`
+	Data   []Environment  `json:"data"`
+	Status ResponseStatus `json:"status"`
 }
 
 type EnvironmentResponse struct {
-	Data   Environment               `json:"data"`
-	Status environmentResponseStatus `json:"status"`
+	Data   Environment    `json:"data"`
+	Status ResponseStatus `json:"status"`
 }
 
 type Environment struct {
