@@ -1,0 +1,41 @@
+name: Test Terraform Plan
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+
+jobs:
+  TerraformPlan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    env:
+      DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+      DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get Terraform version
+        run: echo "TERRAFORM_VERSION=1.0.1" >> $GITHUB_ENV
+        id: set-terraform-version
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt -check -no-color
+
+      - name: Terraform init
+        id: init
+        run: terraform init
+        working-directory: debug
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -var dbt_cloud_project_id=${{ secrets.TEST_DBT_CLOUD_PROJECT_ID }}
+        working-directory: debug
