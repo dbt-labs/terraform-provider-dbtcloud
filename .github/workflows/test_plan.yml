@@ -39,3 +39,8 @@ jobs:
         id: plan
         run: terraform plan -var dbt_cloud_project_id=${{ secrets.TEST_DBT_CLOUD_PROJECT_ID }}
         working-directory: debug
+
+      - name: Terraform apply
+        id: apply
+        run: terraform apply -var dbt_cloud_project_id=${{ secrets.TEST_DBT_CLOUD_PROJECT_ID }}
+        working-directory: debug
