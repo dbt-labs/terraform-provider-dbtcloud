@@ -10,20 +10,24 @@ import (
 )
 
 var snowflakeCredentialSchema = map[string]*schema.Schema{
-	"is_active": &schema.Schema{
-		Type:        schema.TypeBool,
-		Optional:    true,
-		Default:     true,
-		Description: "Whether the Snowflake credential is active",
-	},
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
-		Description: "Project ID to create the Snowflake credential in",
+		Description: "Project ID",
+	},
+	"credential_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "Credential ID",
+	},
+	"is_active": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether the Snowflake credential is active",
 	},
 	"auth_type": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "The type of Snowflake credential ('password' only currently supported in Terraform)",
 		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 			type_ := val.(string)
@@ -38,23 +42,23 @@ var snowflakeCredentialSchema = map[string]*schema.Schema{
 	},
 	"schema": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "Default schema name",
 	},
 	"user": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "Username for Snowflake",
 	},
 	"password": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Sensitive:   true,
 		Description: "Password for Snowflake",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
-		Required:    true,
+		Computed:    true,
 		Description: "Number of threads to use",
 	},
 	// TODO: add private_key and private_key_passphrase

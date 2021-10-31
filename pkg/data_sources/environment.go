@@ -10,36 +10,39 @@ import (
 )
 
 var environmentSchema = map[string]*schema.Schema{
-	"is_active": &schema.Schema{
-		Type:        schema.TypeBool,
-		Optional:    true,
-		Default:     true,
-		Description: "Whether the environment is active",
+	"environment_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "Project ID to create the environment in",
 	},
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID to create the environment in",
 	},
+	"is_active": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether the environment is active",
+	},
 	"credential_id": &schema.Schema{
 		Type:        schema.TypeInt,
-		Optional:    true,
-		Default:     nil,
+		Computed:    true,
 		Description: "Credential ID to create the environment with",
 	},
 	"name": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "Environment name",
 	},
 	"dbt_version": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "Version number of dbt to use in this environment",
 	},
 	"type": &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    true,
+		Computed:    true,
 		Description: "The type of environment (must be either development or deployment)",
 		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 			type_ := val.(string)
@@ -55,14 +58,12 @@ var environmentSchema = map[string]*schema.Schema{
 	},
 	"use_custom_branch": &schema.Schema{
 		Type:        schema.TypeBool,
-		Optional:    true,
-		Default:     false,
+		Computed:    true,
 		Description: "Whether to use a custom git branch in this environment",
 	},
 	"custom_branch": &schema.Schema{
 		Type:        schema.TypeString,
-		Optional:    true,
-		Default:     "",
+		Computed:    true,
 		Description: "Which custom branch to use in this environment",
 	},
 }
