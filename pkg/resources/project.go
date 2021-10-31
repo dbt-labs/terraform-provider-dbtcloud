@@ -143,7 +143,7 @@ func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	project.State = 2
+	project.State = dbt_cloud.STATE_DELETED
 	_, err = c.UpdateProject(projectID, *project)
 	if err != nil {
 		return diag.FromErr(err)

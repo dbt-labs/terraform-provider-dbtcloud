@@ -241,7 +241,7 @@ func resourceJobDelete(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 
-	job.State = 2
+	job.State = dbt_cloud.STATE_DELETED
 	_, err = c.UpdateJob(jobId, *job)
 	if err != nil {
 		return diag.FromErr(err)
