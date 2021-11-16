@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -209,8 +208,6 @@ func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m in
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	log.Printf("Environment deleting is not yet supported in dbt Cloud, setting state to deleted")
 
 	var diags diag.Diagnostics
 

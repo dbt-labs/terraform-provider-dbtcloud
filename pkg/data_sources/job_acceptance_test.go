@@ -1,6 +1,5 @@
 package data_sources_test
 
-
 import (
 	"fmt"
 	"testing"
@@ -34,7 +33,7 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 }
 
 func jobs(jobName string) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
     resource "dbt_cloud_project" "test_project" {
         name = "jobs_test_project"
     }

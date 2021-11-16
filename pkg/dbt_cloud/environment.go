@@ -26,7 +26,7 @@ type Environment struct {
 	Name              string  `json:"name"`
 	Dbt_Version       string  `json:"dbt_version"`
 	Type              string  `json:"type"`
-	Use_Custom_Branch bool   `json:"use_custom_branch"`
+	Use_Custom_Branch bool    `json:"use_custom_branch"`
 	Custom_Branch     *string `json:"custom_branch,omitempty"`
 	Environment_Id    *int    `json:"environment_id,omitempty"`
 }
@@ -50,7 +50,7 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 
 	for i, environment := range environmentListResponse.Data {
 		if *environment.ID == environmentId {
-		    environmentListResponse.Data[i].Environment_Id = &environmentId
+			environmentListResponse.Data[i].Environment_Id = &environmentId
 			return &environmentListResponse.Data[i], nil
 		}
 	}
@@ -74,10 +74,10 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 		Use_Custom_Branch: useCustomBranch,
 	}
 	if credentialId != 0 {
-	    newEnvironment.Credential_Id = &credentialId
+		newEnvironment.Credential_Id = &credentialId
 	}
 	if customBranch != "" {
-	    newEnvironment.Custom_Branch = &customBranch
+		newEnvironment.Custom_Branch = &customBranch
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
@@ -100,7 +100,7 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 		return nil, err
 	}
 
-    environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
+	environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
 	return &environmentResponse.Data, nil
 }
 
@@ -126,6 +126,6 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 		return nil, err
 	}
 
-    environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
+	environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
 	return &environmentResponse.Data, nil
 }

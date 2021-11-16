@@ -160,12 +160,12 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	snowflakeCredentialId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	snowflakeCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -190,7 +190,7 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 		if d.HasChange("password") {
 			password := d.Get("password").(string)
-			snowflakeCredential.Password = &password
+			snowflakeCredential.Password = password
 		}
 		if d.HasChange("num_threads") {
 			numThreads := d.Get("num_threads").(int)

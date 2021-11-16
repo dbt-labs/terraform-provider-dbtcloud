@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"strconv"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
@@ -49,13 +48,13 @@ var jobSchema = map[string]*schema.Schema{
 	},
 	"triggers": &schema.Schema{
 		Type:     schema.TypeMap,
-		Optional: true,
+		Required: true,
 		Elem: &schema.Schema{
 			Type:     schema.TypeBool,
-			Optional: true,
+			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, keys of github_webhook, schedule, custom_branch_only",
+		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -190,7 +189,9 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
 
-	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("num_threads") || d.HasChange("target_name") || d.HasChange("execute_steps") {
+	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("num_threads") ||
+		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
+		d.HasChange("generate_docs") || d.HasChange("triggers") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -212,12 +213,27 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			targetName := d.Get("target_name").(string)
 			job.Settings.Target_Name = targetName
 		}
+		if d.HasChange("run_generate_sources") {
+			runGenerateSources := d.Get("run_generate_sources").(bool)
+			job.Run_Generate_Sources = runGenerateSources
+		}
+		if d.HasChange("generate_docs") {
+			generateDocs := d.Get("generate_docs").(bool)
+			job.Generate_Docs = generateDocs
+		}
 		if d.HasChange("execute_steps") {
 			executeSteps := make([]string, len(d.Get("execute_steps").([]interface{})))
 			for i, step := range d.Get("execute_steps").([]interface{}) {
 				executeSteps[i] = step.(string)
 			}
 			job.Execute_Steps = executeSteps
+		}
+		if d.HasChange("triggers") {
+			newTriggers := d.Get("triggers").(map[string]interface{})
+			job.Triggers.Github_Webhook = newTriggers["github_webhook"].(bool)
+			job.Triggers.GitProviderWebhook = newTriggers["git_provider_webhook"].(bool)
+			job.Triggers.Schedule = newTriggers["schedule"].(bool)
+			job.Triggers.Custom_Branch_Only = newTriggers["custom_branch_only"].(bool)
 		}
 
 		_, err = c.UpdateJob(jobId, *job)
@@ -232,7 +248,6 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 func resourceJobDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
-	log.Printf("Job deleting is not yet supported in DBT Cloud, setting state to deleted")
 
 	var diags diag.Diagnostics
 

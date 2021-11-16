@@ -2,87 +2,76 @@ package resources_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("DBT_CLOUD_ACCOUNT_ID"); v == "" {
-		t.Fatal("DBT_CLOUD_ACCOUNT_ID must be set for acceptance tests")
-	}
-	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
-		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
-	}
-}
-
 func TestAccDbtCloudProjectResource(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbtCloudProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudProjectResourceBasic(),
+				Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", "TEST"),
+					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName),
 				),
+			},
+			// RENAME
+			{
+				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
+					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
+				),
+			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
+					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
+					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "dbt_project_subdirectory", "/project/subdirectory_where/dbt-is"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbt_cloud_project.test_project",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
 			},
 		},
 	})
 }
 
-func TestAccDbtCloudProjectResource_Update(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudProjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudProjectResourceBefore(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", "TEST_BEFORE"),
-				),
-			},
-			{
-				Config: testAccDbtCloudProjectResourceAfter(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", "TEST_AFTER"),
-				),
-			},
-		},
-	})
-}
-
-func testAccDbtCloudProjectResourceBasic() string {
+func testAccDbtCloudProjectResourceBasicConfig(projectName string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
-  name        = "TEST"
+  name        = "%s"
 }
-`)
-}
-
-func testAccDbtCloudProjectResourceBefore() string {
-	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
-  name        = "TEST_BEFORE"
-}
-`)
+`, projectName)
 }
 
-func testAccDbtCloudProjectResourceAfter() string {
+func testAccDbtCloudProjectResourceFullConfig(projectName string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
-  name        = "TEST_AFTER"
+  name        = "%s"
+  dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
 }
-`)
+`, projectName)
 }
 
 func testAccCheckDbtCloudProjectExists(resource string) resource.TestCheckFunc {
@@ -94,9 +83,8 @@ func testAccCheckDbtCloudProjectExists(resource string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		projectID := rs.Primary.ID
 		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
-		_, err := apiClient.GetProject(projectID)
+		_, err := apiClient.GetProject(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -111,10 +99,9 @@ func testAccCheckDbtCloudProjectDestroy(s *terraform.State) error {
 		if rs.Type != "dbt_cloud_project" {
 			continue
 		}
-
 		_, err := apiClient.GetProject(rs.Primary.ID)
 		if err == nil {
-			return fmt.Errorf("Alert still exists")
+			return fmt.Errorf("Project still exists")
 		}
 		notFoundErr := "not found"
 		expectedErr := regexp.MustCompile(notFoundErr)
