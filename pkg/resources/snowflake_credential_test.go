@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
+func TestDbtCloudSnowflakeCredentialResource(t *testing.T) {
 
 	config := fmt.Sprintf(`
 			resource "dbt_cloud_snowflake_credential" "test" {

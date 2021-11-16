@@ -29,16 +29,6 @@ var snowflakeCredentialSchema = map[string]*schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The type of Snowflake credential ('password' only currently supported in Terraform)",
-		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-			type_ := val.(string)
-			switch type_ {
-			case
-				"password":
-				return
-			}
-			errs = append(errs, fmt.Errorf("%q must be password, got: %q", key, type_))
-			return
-		},
 	},
 	"schema": &schema.Schema{
 		Type:        schema.TypeString,

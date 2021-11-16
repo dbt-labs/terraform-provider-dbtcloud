@@ -78,6 +78,11 @@ func ResourceEnvironment() *schema.Resource {
 				Default:     "",
 				Description: "Which custom branch to use in this environment",
 			},
+			"environment_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Environment ID within the project",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -89,7 +94,6 @@ func ResourceEnvironment() *schema.Resource {
 func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
 	isActive := d.Get("is_active").(bool)
@@ -108,7 +112,7 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	d.SetId(fmt.Sprintf("%d%s%d", environment.Project_Id, dbt_cloud.ID_DELIMITER, *environment.ID))
 
-	resourceJobRead(ctx, d, m)
+	resourceEnvironmentRead(ctx, d, m)
 
 	return diags
 }
@@ -116,7 +120,6 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -155,6 +158,9 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("custom_branch", environment.Custom_Branch); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("environment_id", environment.Environment_Id); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -162,12 +168,12 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), ",")[0])
+	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), ",")[1])
+	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -8,6 +8,16 @@ import (
 func providers() map[string]*schema.Provider {
 	p := provider.Provider()
 	return map[string]*schema.Provider{
-		"dbt_cloud": p,
+		"dbt": p,
+	}
+}
+
+var testAccProviders map[string]*schema.Provider
+var testAccProvider *schema.Provider
+
+func init() {
+	testAccProvider = provider.Provider()
+	testAccProviders = map[string]*schema.Provider{
+		"dbt": testAccProvider,
 	}
 }

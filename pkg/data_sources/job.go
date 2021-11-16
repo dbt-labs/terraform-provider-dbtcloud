@@ -2,6 +2,7 @@ package data_sources
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
@@ -29,6 +30,16 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID of the job",
+	},
+	"triggers": &schema.Schema{
+		Type:     schema.TypeMap,
+		Computed: true,
+		Elem: &schema.Schema{
+			Type:     schema.TypeBool,
+			Optional: false,
+			Default:  false,
+		},
+		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
 	},
 }
 
@@ -61,6 +72,12 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	if err := d.Set("job_id", job.ID); err != nil {
+		return diag.FromErr(err)
+	}
+	var triggers map[string]interface{}
+	triggersInput, _ := json.Marshal(job.Triggers)
+	json.Unmarshal(triggersInput, &triggers)
+	if err := d.Set("triggers", triggers); err != nil {
 		return diag.FromErr(err)
 	}
 
