@@ -21,6 +21,7 @@ description: |-
 - **execute_steps** (List of String) List of commands to execute for the job
 - **name** (String) Job name
 - **project_id** (Number) Project ID to create the job in
+- **triggers** (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
 
 ### Optional
 
@@ -31,6 +32,5 @@ description: |-
 - **num_threads** (Number) Number of threads to use in the job
 - **run_generate_sources** (Boolean) Flag for whether the job should run generate sources
 - **target_name** (String) Target name for the DBT profile
-- **triggers** (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, schedule, custom_branch_only
 
 

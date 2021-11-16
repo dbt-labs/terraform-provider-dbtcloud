@@ -30,4 +30,8 @@ description: |-
 - **is_active** (Boolean) Whether the environment is active
 - **use_custom_branch** (Boolean) Whether to use a custom git branch in this environment
 
+### Read-Only
+
+- **environment_id** (Number) Environment ID within the project
+
 

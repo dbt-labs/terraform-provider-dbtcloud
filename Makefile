@@ -16,6 +16,7 @@ install: build
 	mv ./$(BINARY) $(HOME)/.terraform.d/plugins/$(BINARY)
 
 docs:
+	go get github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 test: deps
