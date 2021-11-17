@@ -129,3 +129,17 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 	environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
 	return &environmentResponse.Data, nil
 }
+
+func (c *Client) DeleteEnvironment(projectId, environmentId int) (string, error) {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d", HostURL, c.AccountID, projectId, environmentId), nil)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = c.doRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	return "", err
+}
