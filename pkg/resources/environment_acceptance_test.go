@@ -16,6 +16,7 @@ import (
 func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -30,14 +31,14 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName),
 				),
 			},
-			// 			// RENAME
-			// 			{
-			// 				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
-			// 				),
-			// 			},
+			// RENAME
+			{
+				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+				),
+			},
 			// 			// MODIFY
 			// 			{
 			// 				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),

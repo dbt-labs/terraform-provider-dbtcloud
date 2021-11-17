@@ -7,32 +7,34 @@ import (
 	"strings"
 )
 
-type EnvironmentListResponse struct {
-	Data   []Environment  `json:"data"`
-	Status ResponseStatus `json:"status"`
-}
-
 type EnvironmentResponse struct {
 	Data   Environment    `json:"data"`
 	Status ResponseStatus `json:"status"`
 }
 
 type Environment struct {
-	ID                *int    `json:"id,omitempty"`
-	State             int     `json:"state,omitempty"`
-	Account_Id        int     `json:"account_id"`
-	Project_Id        int     `json:"project_id"`
-	Credential_Id     *int    `json:"credentials_id,omitempty"`
-	Name              string  `json:"name"`
-	Dbt_Version       string  `json:"dbt_version"`
-	Type              string  `json:"type"`
-	Use_Custom_Branch bool    `json:"use_custom_branch"`
-	Custom_Branch     *string `json:"custom_branch,omitempty"`
-	Environment_Id    *int    `json:"environment_id,omitempty"`
+	ID                           *int    `json:"id,omitempty"`
+	State                        int     `json:"state,omitempty"`
+	Account_Id                   int     `json:"account_id"`
+	Project_Id                   int     `json:"project_id"`
+	Credential_Id                *int    `json:"credentials_id"`
+	Name                         string  `json:"name"`
+	Dbt_Version                  string  `json:"dbt_version"`
+	Type                         string  `json:"type"`
+	Use_Custom_Branch            bool    `json:"use_custom_branch"`
+	Custom_Branch                *string `json:"custom_branch"`
+	Environment_Id               *int    `json:"-"`
+	Support_Docs                 bool    `json:"supports_docs"`
+	Created_At                   *string `json:"created_at"`
+	Updated_At                   *string `json:"updated_at"`
+	Project                      Project `json:"project"`
+	Jobs                         *string `json:"jobs"`
+	Credentials                  *string `json:"credentials"`
+	Custom_Environment_Variables *string `json:"custom_environment_variables"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/", HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42,20 +44,14 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 		return nil, err
 	}
 
-	environmentListResponse := EnvironmentListResponse{}
-	err = json.Unmarshal(body, &environmentListResponse)
+	environmentResponse := EnvironmentResponse{}
+	err = json.Unmarshal(body, &environmentResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, environment := range environmentListResponse.Data {
-		if *environment.ID == environmentId {
-			environmentListResponse.Data[i].Environment_Id = &environmentId
-			return &environmentListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("did not find environment ID %d in project ID %d", environmentId, projectId)
+	environmentResponse.Data.Environment_Id = &environmentId
+	return &environmentResponse.Data, nil
 }
 
 func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string, credentialId int) (*Environment, error) {
@@ -110,7 +106,7 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d", HostURL, c.AccountID, projectId, environmentId), strings.NewReader(string(environmentData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), strings.NewReader(string(environmentData)))
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +127,7 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 }
 
 func (c *Client) DeleteEnvironment(projectId, environmentId int) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d", HostURL, c.AccountID, projectId, environmentId), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), nil)
 	if err != nil {
 		return "", err
 	}
