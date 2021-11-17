@@ -44,17 +44,6 @@ var environmentSchema = map[string]*schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The type of environment (must be either development or deployment)",
-		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-			type_ := val.(string)
-			switch type_ {
-			case
-				"development",
-				"deployment":
-				return
-			}
-			errs = append(errs, fmt.Errorf("%q must be either development or deployment, got: %q", key, type_))
-			return
-		},
 	},
 	"use_custom_branch": &schema.Schema{
 		Type:        schema.TypeBool,
@@ -110,6 +99,9 @@ func datasourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	if err := d.Set("custom_branch", environment.Custom_Branch); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("environment_id", environment.Environment_Id); err != nil {
 		return diag.FromErr(err)
 	}
 

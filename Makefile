@@ -16,10 +16,14 @@ install: build
 	mv ./$(BINARY) $(HOME)/.terraform.d/plugins/$(BINARY)
 
 docs:
+	go get github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 test: deps
-	go test -mod=readonly ./...
+	go test -mod=readonly -count=1 ./...
+
+test-acceptance: deps
+	TF_ACC=1 go test -mod=readonly -count=1 ./...
 
 check-docs: docs
 	git diff --exit-code -- docs

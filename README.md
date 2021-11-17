@@ -36,3 +36,8 @@ You can also set them via environment variables, `DBT_CLOUD_ACCOUNT_ID` and
 Check out the `examples/` folder for some usage options, these are intended to
 simply showcase what this module can do rather than be best practices for any
 given use case.
+
+## Running Acceptance Tests
+Currently acceptance tests, run via `make test-acceptance` must be done on your
+own account, as there is no free tier of DBT Cloud that grants API access,
+despite us asking nicely :)

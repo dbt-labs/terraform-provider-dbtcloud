@@ -28,5 +28,6 @@ description: |-
 
 - **environment_id** (Number) ID of the environment the job is in
 - **name** (String) Given name for the job
+- **triggers** (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
 
 

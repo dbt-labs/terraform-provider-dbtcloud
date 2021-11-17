@@ -18,16 +18,17 @@ type EnvironmentResponse struct {
 }
 
 type Environment struct {
-	ID                *int   `json:"id"`
-	State             int    `json:"state"`
-	Account_Id        int    `json:"account_id"`
-	Project_Id        int    `json:"project_id"`
-	Credential_Id     *int   `json:"credentials_id"`
-	Name              string `json:"name"`
-	Dbt_Version       string `json:"dbt_version"`
-	Type              string `json:"type"`
-	Use_Custom_Branch bool   `json:"use_custom_branch"`
-	Custom_Branch     string `json:"custom_branch"`
+	ID                *int    `json:"id,omitempty"`
+	State             int     `json:"state,omitempty"`
+	Account_Id        int     `json:"account_id"`
+	Project_Id        int     `json:"project_id"`
+	Credential_Id     *int    `json:"credentials_id,omitempty"`
+	Name              string  `json:"name"`
+	Dbt_Version       string  `json:"dbt_version"`
+	Type              string  `json:"type"`
+	Use_Custom_Branch bool    `json:"use_custom_branch"`
+	Custom_Branch     *string `json:"custom_branch,omitempty"`
+	Environment_Id    *int    `json:"environment_id,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -49,6 +50,7 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 
 	for i, environment := range environmentListResponse.Data {
 		if *environment.ID == environmentId {
+			environmentListResponse.Data[i].Environment_Id = &environmentId
 			return &environmentListResponse.Data[i], nil
 		}
 	}
@@ -69,9 +71,13 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 		Name:              name,
 		Dbt_Version:       dbtVersion,
 		Type:              type_,
-		Credential_Id:     &credentialId,
 		Use_Custom_Branch: useCustomBranch,
-		Custom_Branch:     customBranch,
+	}
+	if credentialId != 0 {
+		newEnvironment.Credential_Id = &credentialId
+	}
+	if customBranch != "" {
+		newEnvironment.Custom_Branch = &customBranch
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
@@ -94,6 +100,7 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 		return nil, err
 	}
 
+	environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
 	return &environmentResponse.Data, nil
 }
 
@@ -119,5 +126,20 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 		return nil, err
 	}
 
+	environmentResponse.Data.Environment_Id = environmentResponse.Data.ID
 	return &environmentResponse.Data, nil
+}
+
+func (c *Client) DeleteEnvironment(projectId, environmentId int) (string, error) {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d", HostURL, c.AccountID, projectId, environmentId), nil)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = c.doRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	return "", err
 }

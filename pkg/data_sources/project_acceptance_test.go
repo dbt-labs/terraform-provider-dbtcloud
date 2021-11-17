@@ -10,18 +10,13 @@ import (
 
 func TestAccDbtCloudProjectDataSource(t *testing.T) {
 
-	randomID := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := fmt.Sprintf(`
-			data "dbt_cloud_project" "test" {
-				project_id = "%s"
-			}
-		`, randomID)
+	config := project(randomProjectName)
 
-	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "project_id", randomID),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "name"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "id"),
+	check := resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "project_id"),
+		resource.TestCheckResourceAttr("data.dbt_cloud_project.test", "name", randomProjectName),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "connection_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "repository_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "state"),
@@ -36,4 +31,17 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 			},
 		},
 	})
+}
+
+func project(projectName string) string {
+	return fmt.Sprintf(`
+    resource "dbt_cloud_project" "test" {
+		name = "%s"
+		dbt_project_subdirectory = "/path"
+	}
+
+    data "dbt_cloud_project" "test" {
+		project_id = dbt_cloud_project.test.id
+	}
+    `, projectName)
 }
