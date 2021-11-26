@@ -118,9 +118,9 @@ resource "dbt_cloud_job" "test_job" {
     "dbt test"
   ]
   triggers = {
-    "github_webhook": true,
+    "github_webhook": false,
     "git_provider_webhook": false,
-    "schedule": false,
+    "schedule": true,
     "custom_branch_only": false,
   }
   is_active = true
@@ -128,6 +128,8 @@ resource "dbt_cloud_job" "test_job" {
   target_name = "test"
   run_generate_sources = true
   generate_docs = true
+  schedule_type = "every_day"
+  schedule_hours = [9, 17]
 }
 `, projectName, environmentName, jobName)
 }

@@ -8,6 +8,15 @@ import (
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	scheduleTypes = []string{
+		"every_day",
+		"days_of_week",
+		"custom_cron",
+	}
 )
 
 var jobSchema = map[string]*schema.Schema{
@@ -80,6 +89,45 @@ var jobSchema = map[string]*schema.Schema{
 		Default:     false,
 		Description: "Flag for whether the job should run generate sources",
 	},
+	"schedule_type": &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		Default:      "every_day",
+		Description:  "Type of schedule to use, one of every_day/ days_of_week/ custom_cron",
+		ValidateFunc: validation.StringInSlice(scheduleTypes, false),
+	},
+	"schedule_interval": &schema.Schema{
+		Type:          schema.TypeInt,
+		Optional:      true,
+		Default:       1,
+		Description:   "Number of hours between job executions if running on a schedule",
+		ValidateFunc:  validation.IntBetween(1, 23),
+		ConflictsWith: []string{"schedule_hours"},
+	},
+	"schedule_hours": &schema.Schema{
+		Type:     schema.TypeList,
+		MinItems: 1,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeInt,
+		},
+		Description:   "List of hours to execute the job at if running on a schedule",
+		ConflictsWith: []string{"schedule_interval"},
+	},
+	"schedule_days": &schema.Schema{
+		Type:     schema.TypeList,
+		MinItems: 1,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeInt,
+		},
+		Description: "List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule",
+	},
+	"schedule_cron": &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: "Custom cron expression for schedule",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -139,6 +187,27 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("run_generate_sources", job.Run_Generate_Sources); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("schedule_type", job.Schedule.Date.Type); err != nil {
+		return diag.FromErr(err)
+	}
+
+	schedule := 1
+	if job.Schedule.Time.Interval > 0 {
+		schedule = job.Schedule.Time.Interval
+	}
+	if err := d.Set("schedule_interval", schedule); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("schedule_hours", job.Schedule.Time.Hours); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("schedule_days", job.Schedule.Date.Days); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("schedule_cron", job.Schedule.Date.Cron); err != nil {
+		return diag.FromErr(err)
+	}
 
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(job.Triggers)
@@ -167,13 +236,26 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	targetName := d.Get("target_name").(string)
 	generateDocs := d.Get("generate_docs").(bool)
 	runGenerateSources := d.Get("run_generate_sources").(bool)
+	scheduleType := d.Get("schedule_type").(string)
+	scheduleInterval := d.Get("schedule_interval").(int)
+	scheduleHours := d.Get("schedule_hours").([]interface{})
+	scheduleDays := d.Get("schedule_days").([]interface{})
+	scheduleCron := d.Get("schedule_cron").(string)
 
 	steps := []string{}
 	for _, step := range executeSteps {
 		steps = append(steps, step.(string))
 	}
+	hours := []int{}
+	for _, hour := range scheduleHours {
+		hours = append(hours, hour.(int))
+	}
+	days := []int{}
+	for _, day := range scheduleDays {
+		days = append(days, day.(int))
+	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -191,7 +273,9 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 
 	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("num_threads") ||
 		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
-		d.HasChange("generate_docs") || d.HasChange("triggers") {
+		d.HasChange("generate_docs") || d.HasChange("triggers") || d.HasChange("schedule_type") ||
+		d.HasChange("schedule_interval") || d.HasChange("schedule_hours") || d.HasChange("schedule_days") ||
+		d.HasChange("schedule_cron") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -234,6 +318,34 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			job.Triggers.GitProviderWebhook = newTriggers["git_provider_webhook"].(bool)
 			job.Triggers.Schedule = newTriggers["schedule"].(bool)
 			job.Triggers.Custom_Branch_Only = newTriggers["custom_branch_only"].(bool)
+		}
+		if d.HasChange("schedule_type") {
+			scheduleType := d.Get("schedule_type").(string)
+			job.Schedule.Date.Type = scheduleType
+		}
+		if d.HasChange("schedule_interval") {
+			scheduleInterval := d.Get("schedule_interval").(int)
+			job.Schedule.Time.Interval = scheduleInterval
+		}
+		if d.HasChange("schedule_hours") {
+			scheduleHours := make([]int, len(d.Get("schedule_hours").([]interface{})))
+			for i, hour := range d.Get("schedule_hours").([]interface{}) {
+				scheduleHours[i] = hour.(int)
+			}
+			job.Schedule.Time.Hours = &scheduleHours
+			job.Schedule.Time.Type = "at_exact_hours"
+			job.Schedule.Time.Interval = 0
+		}
+		if d.HasChange("schedule_days") {
+			scheduleDays := make([]int, len(d.Get("schedule_days").([]interface{})))
+			for i, day := range d.Get("schedule_days").([]interface{}) {
+				scheduleDays[i] = day.(int)
+			}
+			job.Schedule.Date.Days = &scheduleDays
+		}
+		if d.HasChange("schedule_cron") {
+			scheduleCron := d.Get("schedule_cron").(string)
+			job.Schedule.Date.Cron = &scheduleCron
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

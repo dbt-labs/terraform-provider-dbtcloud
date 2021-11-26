@@ -31,6 +31,11 @@ description: |-
 - **is_active** (Boolean) Flag for whether the job is marked active or deleted
 - **num_threads** (Number) Number of threads to use in the job
 - **run_generate_sources** (Boolean) Flag for whether the job should run generate sources
+- **schedule_cron** (String) Custom cron expression for schedule
+- **schedule_days** (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
+- **schedule_hours** (List of Number) List of hours to execute the job at if running on a schedule
+- **schedule_interval** (Number) Number of hours between job executions if running on a schedule
+- **schedule_type** (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
 - **target_name** (String) Target name for the DBT profile
 
 

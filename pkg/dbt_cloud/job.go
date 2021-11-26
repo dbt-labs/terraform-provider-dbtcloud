@@ -21,12 +21,15 @@ type JobSettings struct {
 }
 
 type scheduleDate struct {
-	Type string `json:"type"`
+	Type string  `json:"type"`
+	Days *[]int  `json:"days,omitempty"`
+	Cron *string `json:"cron,omitempty"`
 }
 
 type scheduleTime struct {
 	Type     string `json:"type"`
-	Interval int    `json:"interval"`
+	Interval int    `json:"interval,omitempty"`
+	Hours    *[]int `json:"hours,omitempty"`
 }
 
 type JobSchedule struct {
@@ -76,7 +79,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string) (*Job, error) {
 	state := 1
 	if !isActive {
 		state = 2
@@ -107,14 +110,31 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		Threads:     numThreads,
 		Target_Name: targetName,
 	}
+
+	time := scheduleTime{
+		Type:     "every_hour",
+		Interval: 1,
+	}
+	if scheduleInterval > 0 {
+		time.Interval = scheduleInterval
+	}
+	if len(scheduleHours) > 0 {
+		time.Type = "at_exact_hours"
+		time.Hours = &scheduleHours
+		time.Interval = 0
+	}
+
+	date := scheduleDate{
+		Type: scheduleType,
+	}
+	if scheduleType == "days_of_week" {
+		date.Days = &scheduleDays
+	} else if scheduleCron != "" {
+		date.Cron = &scheduleCron
+	}
 	jobSchedule := JobSchedule{
-		Date: scheduleDate{
-			Type: "every_day",
-		},
-		Time: scheduleTime{
-			Type:     "every_hour",
-			Interval: 1,
-		},
+		Date: date,
+		Time: time,
 	}
 
 	newJob := Job{
