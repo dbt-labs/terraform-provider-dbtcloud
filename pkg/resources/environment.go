@@ -160,6 +160,9 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("environment_id", environment.Environment_Id); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("credential_id", environment.Credential_Id); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
