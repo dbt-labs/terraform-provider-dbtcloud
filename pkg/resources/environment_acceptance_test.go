@@ -18,6 +18,7 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,15 +40,15 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
 				),
 			},
-			// 			// MODIFY
-			// 			{
-			// 				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "dbt_project_subdirectory", "/project/subdirectory_where/dbt-is"),
-			// 				),
-			// 			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudProjectExists("dbt_cloud_environment.test_env"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_environment.test_env",
@@ -72,6 +73,25 @@ resource "dbt_cloud_environment" "test_env" {
   project_id = dbt_cloud_project.test_project.id
 }
 `, projectName, environmentName)
+}
+
+func testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_project" "test_project_2" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_environment" "test_env" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "1.0.1"
+  project_id = dbt_cloud_project.test_project_2.id
+}
+`, projectName, projectName2, environmentName)
 }
 
 func testAccCheckDbtCloudEnvironmentExists(resource string) resource.TestCheckFunc {
