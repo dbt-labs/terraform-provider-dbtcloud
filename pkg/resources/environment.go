@@ -182,14 +182,29 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	// TODO: add more changes here
 
-	if d.HasChange("name") {
+	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("credential_id") || d.HasChange("project_id") {
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		name := d.Get("name").(string)
-		environment.Name = name
+		if d.HasChange("name") {
+			name := d.Get("name").(string)
+			environment.Name = name
+		}
+		if d.HasChange("dbt_version") {
+			Dbt_Version := d.Get("dbt_version").(string)
+			environment.Dbt_Version = Dbt_Version
+		}
+		if d.HasChange("credential_id") {
+			Credential_Id := d.Get("credential_id").(int)
+			environment.Credential_Id = &Credential_Id
+		}
+		if d.HasChange("project_id") {
+			Project_Id := d.Get("project_id").(int)
+			environment.Project_Id = Project_Id
+		}
+
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
 		if err != nil {
 			return diag.FromErr(err)
