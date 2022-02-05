@@ -55,9 +55,9 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 }
 
 func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string, credentialId int) (*Environment, error) {
-	state := 1
+	state := STATE_ACTIVE
 	if !isActive {
-		state = 2
+		state = STATE_DELETED
 	}
 
 	newEnvironment := Environment{

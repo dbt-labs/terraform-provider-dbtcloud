@@ -61,7 +61,7 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
 		Type:       type_,
-		State:      1, // TODO: make variable
+		State:      STATE_ACTIVE, // TODO: make variable
 		Schema:     schema,
 		User:       user,
 		Password:   password,
