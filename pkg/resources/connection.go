@@ -17,6 +17,7 @@ const CONNECTION_STATE_DELETED = 2
 var (
 	connectionTypes = []string{
 		"snowflake",
+		"bigquery",
 	}
 )
 
@@ -47,8 +48,8 @@ func ResourceConnection() *schema.Resource {
 			"type": &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "The type of environment (must be either development or deployment)",
-				ValidateFunc: validation.StringInSlice(scheduleTypes, false),
+				Description:  "The type of connection",
+				ValidateFunc: validation.StringInSlice(connectionTypes, false),
 			},
 			"account": &schema.Schema{
 				Type:        schema.TypeString,
@@ -72,12 +73,14 @@ func ResourceConnection() *schema.Resource {
 			},
 			"allow_sso": &schema.Schema{
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
+				Default:     false,
 				Description: "Whether or not the connection should allow SSO",
 			},
 			"allow_keep_alive": &schema.Schema{
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
+				Default:     false,
 				Description: "Whether or not the connection should allow client session keep alive",
 			},
 		},
