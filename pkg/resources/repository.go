@@ -10,9 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const REPOSITORY_STATE_ACTIVE = 1
-const REPOSITORY_STATE_DELETED = 2
-
 func ResourceRepository() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceRepositoryCreate,
@@ -79,7 +76,7 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("is_active", repository.State == REPOSITORY_STATE_ACTIVE); err != nil {
+	if err := d.Set("is_active", repository.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("project_id", repository.ProjectID); err != nil {
@@ -113,9 +110,9 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("is_active") {
 			isActive := d.Get("is_active").(bool)
 			if isActive {
-				repository.State = REPOSITORY_STATE_ACTIVE
+				repository.State = dbt_cloud.STATE_ACTIVE
 			} else {
-				repository.State = REPOSITORY_STATE_DELETED
+				repository.State = dbt_cloud.STATE_DELETED
 			}
 		}
 

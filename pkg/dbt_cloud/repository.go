@@ -47,9 +47,9 @@ func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, err
 }
 
 func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool) (*Repository, error) {
-	state := 1
+	state := STATE_ACTIVE
 	if !isActive {
-		state = 2
+		state = STATE_DELETED
 	}
 
 	newRepository := Repository{

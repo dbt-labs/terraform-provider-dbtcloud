@@ -11,9 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const ENVIRONMENT_STATE_ACTIVE = 1
-const ENVIRONMENT_STATE_DELETED = 2
-
 func ResourceEnvironment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceEnvironmentCreate,
@@ -136,7 +133,7 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("is_active", environment.State == ENVIRONMENT_STATE_ACTIVE); err != nil {
+	if err := d.Set("is_active", environment.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("project_id", environment.Project_Id); err != nil {

@@ -80,9 +80,9 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 }
 
 func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string) (*Job, error) {
-	state := 1
+	state := STATE_ACTIVE
 	if !isActive {
-		state = 2
+		state = STATE_DELETED
 	}
 	github_webhook, gw_found := triggers["github_webhook"]
 	if !gw_found {

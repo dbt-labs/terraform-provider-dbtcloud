@@ -52,7 +52,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
 	newProject := Project{
 		Name:      name,
-		State:     1,
+		State:     STATE_ACTIVE,
 		AccountID: c.AccountID,
 	}
 	if dbtProjectSubdirectory != "" {

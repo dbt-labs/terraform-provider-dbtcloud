@@ -62,9 +62,9 @@ func (c *Client) GetConnection(connectionID, projectID string) (*Connection, err
 }
 
 func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO bool, clientSessionKeepAlive bool) (*Connection, error) {
-	state := 1
+	state := STATE_ACTIVE
 	if !isActive {
-		state = 2
+		state = STATE_DELETED
 	}
 
 	connectionDetails := ConnectionDetails{

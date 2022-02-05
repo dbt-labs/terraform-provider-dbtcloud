@@ -11,9 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const CONNECTION_STATE_ACTIVE = 1
-const CONNECTION_STATE_DELETED = 2
-
 var (
 	connectionTypes = []string{
 		"snowflake",
@@ -132,7 +129,7 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("is_active", connection.State == CONNECTION_STATE_ACTIVE); err != nil {
+	if err := d.Set("is_active", connection.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("project_id", connection.ProjectID); err != nil {
