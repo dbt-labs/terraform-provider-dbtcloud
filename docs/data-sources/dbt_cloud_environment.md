@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- **environment_id** (Number) Project ID to create the environment in
+- **environment_id** (Number) ID of the environment
 - **project_id** (Number) Project ID to create the environment in
 
 ### Optional

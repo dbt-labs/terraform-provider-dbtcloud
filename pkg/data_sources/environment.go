@@ -13,7 +13,7 @@ var environmentSchema = map[string]*schema.Schema{
 	"environment_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
-		Description: "Project ID to create the environment in",
+		Description: "ID of the environment",
 	},
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
