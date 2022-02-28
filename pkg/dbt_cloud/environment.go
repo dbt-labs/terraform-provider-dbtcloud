@@ -34,7 +34,7 @@ type Environment struct {
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/", HostURL, c.AccountID, projectId), strings.NewReader(string(newEnvironmentData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newEnvironmentData)))
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), strings.NewReader(string(environmentData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), strings.NewReader(string(environmentData)))
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 }
 
 func (c *Client) DeleteEnvironment(projectId, environmentId int) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", HostURL, c.AccountID, projectId, environmentId), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), nil)
 	if err != nil {
 		return "", err
 	}

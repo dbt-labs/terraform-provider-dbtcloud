@@ -31,7 +31,7 @@ type SnowflakeCredential struct {
 }
 
 func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*SnowflakeCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", HostURL, c.AccountID, projectId), strings.NewReader(string(newSnowflakeCredentialData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newSnowflakeCredentialData)))
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *Client) UpdateSnowflakeCredential(projectId int, credentialId int, snow
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d", HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(snowflakeCredentialData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(snowflakeCredentialData)))
 	if err != nil {
 		return nil, err
 	}
