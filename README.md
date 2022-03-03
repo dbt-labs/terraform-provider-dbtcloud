@@ -39,5 +39,4 @@ given use case.
 
 ## Running Acceptance Tests
 Currently acceptance tests, run via `make test-acceptance` must be done on your
-own account, as there is no free tier of DBT Cloud that grants API access,
-despite us asking nicely :)
+own account, as there is no free tier of DBT Cloud that grants API access
