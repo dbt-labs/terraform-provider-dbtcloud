@@ -27,10 +27,13 @@ provider "dbt" {
   // required
   account_id = ...
   token      = "..."
+  host_url   = "..."
 }
 ```
-You can also set them via environment variables, `DBT_CLOUD_ACCOUNT_ID` and 
-`DBT_CLOUD_TOKEN` for the `account_id` and `token` respectively.
+You can also set them via environment variables:
+`DBT_CLOUD_ACCOUNT_ID` for the `account_id`.
+`DBT_CLOUD_TOKEN` for the `token`.
+`DBT_CLOUD_HOST_URL` (Optional) for the `host_url`.
 
 ## Examples
 Check out the `examples/` folder for some usage options, these are intended to
