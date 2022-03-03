@@ -30,7 +30,7 @@ provider "dbt" {
   host_url   = "..."
 }
 ```
-You can also set them via environment variables:
+You can also set them via environment variables:  
 `DBT_CLOUD_ACCOUNT_ID` for the `account_id`.  
 `DBT_CLOUD_TOKEN` for the `token`.  
 `DBT_CLOUD_HOST_URL` (Optional) for the `host_url`.
