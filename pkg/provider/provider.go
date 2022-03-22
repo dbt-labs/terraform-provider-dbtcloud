@@ -27,8 +27,8 @@ func Provider() *schema.Provider {
 				Description: "Account identifier for your DBT Cloud implementation",
 			},
 			"host_url": &schema.Schema{
-				Type: schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_HOST_URL", "https://cloud.getdbt.com/api"),
 				Description: "URL for your DBT Cloud deployment",
 			},
@@ -39,6 +39,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_environment":          data_sources.DatasourceEnvironment(),
 			"dbt_cloud_snowflake_credential": data_sources.DatasourceSnowflakeCredential(),
 			"dbt_cloud_connection":           data_sources.DatasourceConnection(),
+			"dbt_cloud_repository":           data_sources.DatasourceRepository(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job":                  resources.ResourceJob(),

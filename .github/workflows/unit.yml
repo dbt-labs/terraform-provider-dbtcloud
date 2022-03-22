@@ -10,6 +10,7 @@ jobs:
         target:
           - check-docs
           - test
+          - test-acceptance
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -19,3 +20,6 @@ jobs:
         run: make setup
       - name: make ${{ matrix.target }}
         run: make ${{ matrix.target }}
+        env:
+          DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
