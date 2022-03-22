@@ -61,7 +61,7 @@ func connection(projectName, connectionName string) string {
 
     data "dbt_cloud_connection" "test" {
         project_id = dbt_cloud_project.test_project.id
-        connection_id = dbt_cloud_connection.test_connection.connection_id
+        connection_id = dbt_cloud_connection.test_connection.id
     }
     `, projectName, connectionName)
 }
