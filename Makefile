@@ -6,7 +6,7 @@ default: install
 
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh
-	go get golang.org/x/tools/cmd/goimports
+	go install golang.org/x/tools/cmd/goimports@latest
 
 build:
 	go build -ldflags "-w -s" -o $(BINARY) .

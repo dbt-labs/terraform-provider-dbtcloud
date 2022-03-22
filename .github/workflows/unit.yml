@@ -10,6 +10,7 @@ jobs:
         target:
           - check-docs
           - test
+          - test-acceptance
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
