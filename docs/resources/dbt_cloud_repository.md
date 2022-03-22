@@ -17,12 +17,12 @@ description: |-
 
 ### Required
 
-- **project_id** (Number) Project ID to create the environment in
-- **remote_url** (String) Git URL for the repository
+- `project_id` (Number) Project ID to create the environment in
+- `remote_url` (String) Git URL for the repository
 
 ### Optional
 
-- **id** (String) The ID of this resource.
-- **is_active** (Boolean) Whether the repository is active
+- `id` (String) The ID of this resource.
+- `is_active` (Boolean) Whether the repository is active
 
 

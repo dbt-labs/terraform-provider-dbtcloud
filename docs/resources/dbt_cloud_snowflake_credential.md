@@ -17,20 +17,20 @@ description: |-
 
 ### Required
 
-- **auth_type** (String) The type of Snowflake credential ('password' only currently supported in Terraform)
-- **num_threads** (Number) Number of threads to use
-- **password** (String, Sensitive) Password for Snowflake
-- **project_id** (Number) Project ID to create the Snowflake credential in
-- **schema** (String) Default schema name
-- **user** (String) Username for Snowflake
+- `auth_type` (String) The type of Snowflake credential ('password' only currently supported in Terraform)
+- `num_threads` (Number) Number of threads to use
+- `password` (String, Sensitive) Password for Snowflake
+- `project_id` (Number) Project ID to create the Snowflake credential in
+- `schema` (String) Default schema name
+- `user` (String) Username for Snowflake
 
 ### Optional
 
-- **id** (String) The ID of this resource.
-- **is_active** (Boolean) Whether the Snowflake credential is active
+- `id` (String) The ID of this resource.
+- `is_active` (Boolean) Whether the Snowflake credential is active
 
 ### Read-Only
 
-- **credential_id** (Number) The system Snowflake credential ID
+- `credential_id` (Number) The system Snowflake credential ID
 
 

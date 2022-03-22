@@ -17,13 +17,13 @@ description: |-
 
 ### Required
 
-- **name** (String) Project name
+- `name` (String) Project name
 
 ### Optional
 
-- **connection_id** (Number) Connection ID
-- **dbt_project_subdirectory** (String) DBT project subdirectory path
-- **id** (String) The ID of this resource.
-- **repository_id** (Number) Repository ID
+- `connection_id` (Number) Connection ID
+- `dbt_project_subdirectory` (String) DBT project subdirectory path
+- `id` (String) The ID of this resource.
+- `repository_id` (Number) Repository ID
 
 

@@ -26,6 +26,12 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_ACCOUNT_ID", nil),
 				Description: "Account identifier for your DBT Cloud implementation",
 			},
+			"host_url": &schema.Schema{
+				Type: schema.TypeString,
+				Optional: true,
+				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_HOST_URL", "https://cloud.getdbt.com/api"),
+				Description: "URL for your DBT Cloud deployment",
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job":                  data_sources.DatasourceJob(),
@@ -50,11 +56,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	token := d.Get("token").(string)
 	account_id := d.Get("account_id").(int)
+	host_url := d.Get("host_url").(string)
 
 	var diags diag.Diagnostics
 
 	if (token != "") && (account_id != 0) {
-		c, err := dbt_cloud.NewClient(&account_id, &token)
+		c, err := dbt_cloud.NewClient(&account_id, &token, &host_url)
 
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
@@ -68,7 +75,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return c, diags
 	}
 
-	c, err := dbt_cloud.NewClient(nil, nil)
+	c, err := dbt_cloud.NewClient(nil, nil, nil)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
