@@ -26,6 +26,11 @@ func ResourceConnection() *schema.Resource {
 		DeleteContext: resourceConnectionDelete,
 
 		Schema: map[string]*schema.Schema{
+			"connection_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Connection Identifier",
+			},
 			"is_active": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -129,6 +134,9 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("connection_id", connection.ID); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("is_active", connection.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}

@@ -18,6 +18,11 @@ func ResourceRepository() *schema.Resource {
 		DeleteContext: resourceRepositoryDelete,
 
 		Schema: map[string]*schema.Schema{
+			"repository_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Repository Identifier",
+			},
 			"is_active": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -76,6 +81,9 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("repository_id", repository.ID); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("is_active", repository.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}
