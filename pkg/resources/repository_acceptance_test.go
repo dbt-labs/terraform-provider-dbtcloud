@@ -15,7 +15,7 @@ import (
 func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
 	repoUrl := "https://github.com/GtheSheep/terraform-provider-dbt-cloud.git"
-	repoUrl2 := "https://github.com/GtheSheep/dbt-core.git"
+	// 	repoUrl2 := "https://github.com/GtheSheep/dbt-core.git"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -30,14 +30,14 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
 				),
 			},
-			// Change URL
-			{
-				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
-					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
-				),
-			},
+			// 			// Change URL
+			// 			{
+			// 				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
+			// 				),
+			// 			},
 			// 			// MODIFY
 			// 			{
 			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
