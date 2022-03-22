@@ -15,7 +15,7 @@ import (
 func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
 	repoUrl := "https://github.com/GtheSheep/terraform-provider-dbt-cloud.git"
-	repoUrl2 := "https://github.com/GtheSheep/dbt-core.git"
+	// 	repoUrl2 := "https://github.com/GtheSheep/dbt-core.git"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
