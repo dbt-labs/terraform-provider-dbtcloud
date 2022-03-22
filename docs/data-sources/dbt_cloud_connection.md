@@ -17,23 +17,23 @@ description: |-
 
 ### Required
 
-- **connection_id** (Number) ID for the connection
-- **project_id** (Number) Project ID to create the environment in
+- `connection_id` (Number) ID for the connection
+- `project_id` (Number) Project ID to create the environment in
 
 ### Optional
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ### Read-Only
 
-- **account** (String) Account for the connection
-- **allow_keep_alive** (Boolean) Flag for whether or not to use the keep session alive parameter in the connection
-- **allow_sso** (Boolean) Flag for whether or not to use SSO for the connection
-- **database** (String) Database name for the connection
-- **is_active** (Boolean) Whether the environment is active
-- **name** (String) Connection name
-- **role** (String) Role name for the connection
-- **type** (String) Connection type
-- **warehouse** (String) Warehouse name for the connection
+- `account` (String) Account for the connection
+- `allow_keep_alive` (Boolean) Flag for whether or not to use the keep session alive parameter in the connection
+- `allow_sso` (Boolean) Flag for whether or not to use SSO for the connection
+- `database` (String) Database name for the connection
+- `is_active` (Boolean) Whether the environment is active
+- `name` (String) Connection name
+- `role` (String) Role name for the connection
+- `type` (String) Connection type
+- `warehouse` (String) Warehouse name for the connection
 
 

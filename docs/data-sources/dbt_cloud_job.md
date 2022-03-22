@@ -17,17 +17,17 @@ description: |-
 
 ### Required
 
-- **job_id** (Number) ID of the job
-- **project_id** (Number) ID of the project the job is in
+- `job_id` (Number) ID of the job
+- `project_id` (Number) ID of the project the job is in
 
 ### Optional
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ### Read-Only
 
-- **environment_id** (Number) ID of the environment the job is in
-- **name** (String) Given name for the job
-- **triggers** (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
+- `environment_id` (Number) ID of the environment the job is in
+- `name` (String) Given name for the job
+- `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
 
 
