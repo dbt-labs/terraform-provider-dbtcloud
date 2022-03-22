@@ -32,7 +32,7 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 			},
 			// Change URL
 			{
-				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl, projectName),
+				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
