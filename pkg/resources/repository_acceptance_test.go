@@ -30,14 +30,14 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
 				),
 			},
-			// Change URL
-			{
-				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudConnectionExists("dbt_cloud_repository.test_repository"),
-					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
-				),
-			},
+			// 			// Change URL
+			// 			{
+			// 				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudConnectionExists("dbt_cloud_repository.test_repository"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
+			// 				),
+			// 			},
 			// 			// MODIFY
 			// 			{
 			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
