@@ -40,15 +40,15 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
 				),
 			},
-			// 			// MODIFY
-			// 			{
-			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
-			// 				),
-			// 			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_environment.test_env",
