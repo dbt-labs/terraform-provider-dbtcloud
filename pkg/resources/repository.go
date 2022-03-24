@@ -42,6 +42,7 @@ func ResourceRepository() *schema.Resource {
 			"git_clone_strategy": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "deploy_key",
 				Description: "Git clone strategy for the repository",
 			},
 			"repository_credentials_id": &schema.Schema{
@@ -121,8 +122,6 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	// TODO: add more changes here
-
 	if d.HasChange("remote_url") || d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
 		repository, err := c.GetRepository(repositoryIdString, projectIdString)
 		if err != nil {
@@ -143,7 +142,7 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 		}
 		if d.HasChange("git_clone_strategy") {
 			gitCloneStrategy := d.Get("git_clone_strategy").(string)
-			repository.GitCloneStrategy = &gitCloneStrategy
+			repository.GitCloneStrategy = gitCloneStrategy
 		}
 		if d.HasChange("repository_credentials_id") {
 			repositoryCredentialsID := d.Get("repository_credentials_id").(int)

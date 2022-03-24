@@ -30,14 +30,14 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
 				),
 			},
-			{
-				Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
-					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
-					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "git_clone_strategy", "deploy_token"),
-				),
-			},
+			// 			{
+			// 				Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "git_clone_strategy", "deploy_token"),
+			// 				),
+			// 			},
 			// 			// Change URL
 			// 			{
 			// 				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
