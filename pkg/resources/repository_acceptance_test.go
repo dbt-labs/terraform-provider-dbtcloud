@@ -30,6 +30,14 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
 				),
 			},
+			{
+				Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
+					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
+					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "git_clone_strategy", "deploy_token"),
+				),
+			},
 			// 			// Change URL
 			// 			{
 			// 				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
@@ -67,6 +75,21 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_repository" "test_repository" {
   remote_url = "%s"
   project_id = dbt_cloud_project.test_project.id
+}
+`, projectName, repoUrl)
+}
+
+func testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_repository" "test_repository" {
+  remote_url = "%s"
+  project_id = dbt_cloud_project.test_project.id
+  git_clone_strategy = "deploy_token"
+  repository_credentials_id = 10
 }
 `, projectName, repoUrl)
 }

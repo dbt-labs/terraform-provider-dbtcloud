@@ -39,6 +39,16 @@ func ResourceRepository() *schema.Resource {
 				Required:    true,
 				Description: "Git URL for the repository",
 			},
+			"git_clone_strategy": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Git clone strategy for the repository",
+			},
+			"repository_credentials_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Credentials ID for the repository (From the repository side not the DBT Cloud ID)",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -55,8 +65,10 @@ func resourceRepositoryCreate(ctx context.Context, d *schema.ResourceData, m int
 	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
 	remoteUrl := d.Get("remote_url").(string)
+	gitCloneStrategy := d.Get("git_clone_strategy").(string)
+	repositoryCredentialsID := d.Get("repository_credentials_id").(int)
 
-	repository, err := c.CreateRepository(projectId, remoteUrl, isActive)
+	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -93,6 +105,12 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("remote_url", repository.RemoteUrl); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("git_clone_strategy", repository.GitCloneStrategy); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("repository_credentials_id", repository.RepositoryCredentialsID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -105,7 +123,7 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	// TODO: add more changes here
 
-	if d.HasChange("remote_url") || d.HasChange("is_active") {
+	if d.HasChange("remote_url") || d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
 		repository, err := c.GetRepository(repositoryIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
@@ -122,6 +140,14 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 			} else {
 				repository.State = dbt_cloud.STATE_DELETED
 			}
+		}
+		if d.HasChange("git_clone_strategy") {
+			gitCloneStrategy := d.Get("git_clone_strategy").(string)
+			repository.GitCloneStrategy = &gitCloneStrategy
+		}
+		if d.HasChange("repository_credentials_id") {
+			repositoryCredentialsID := d.Get("repository_credentials_id").(int)
+			repository.RepositoryCredentialsID = &repositoryCredentialsID
 		}
 
 		_, err = c.UpdateRepository(repositoryIdString, projectIdString, *repository)

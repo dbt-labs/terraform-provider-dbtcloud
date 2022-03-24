@@ -9,11 +9,13 @@ import (
 )
 
 type Repository struct {
-	ID        *int   `json:"id,omitempty"`
-	AccountID int    `json:"account_id"`
-	ProjectID int    `json:"project_id"`
-	RemoteUrl string `json:"remote_url"`
-	State     int    `json:"state"`
+	ID                      *int    `json:"id,omitempty"`
+	AccountID               int     `json:"account_id"`
+	ProjectID               int     `json:"project_id"`
+	RemoteUrl               string  `json:"remote_url"`
+	State                   int     `json:"state"`
+	GitCloneStrategy        *string `json:"git_clone_strategy"`
+	RepositoryCredentialsID *int    `json:"repository_credentials_id"`
 }
 
 type RepositoryListResponse struct {
@@ -46,7 +48,7 @@ func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, err
 	return &repositoryResponse.Data, nil
 }
 
-func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool) (*Repository, error) {
+func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool, gitCloneStrategy string, repositoryCredentialsID int) (*Repository, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -57,6 +59,12 @@ func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool
 		ProjectID: projectID,
 		RemoteUrl: remoteUrl,
 		State:     state,
+	}
+	if gitCloneStrategy != "" {
+		newRepository.GitCloneStrategy = &gitCloneStrategy
+	}
+	if repositoryCredentialsID != 0 {
+		newRepository.RepositoryCredentialsID = &repositoryCredentialsID
 	}
 
 	newRepositoryData, err := json.Marshal(newRepository)
