@@ -37,7 +37,7 @@ func ResourceRepository() *schema.Resource {
 			"remote_url": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Git URL for the repository",
+				Description: "Git URL for the repository or <Group>/<Project> for Gitlab",
 			},
 			"git_clone_strategy": &schema.Schema{
 				Type:        schema.TypeString,
@@ -49,6 +49,11 @@ func ResourceRepository() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Credentials ID for the repository (From the repository side not the DBT Cloud ID)",
+			},
+			"gitlab_project_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Identifier for the Gitlab project",
 			},
 		},
 
@@ -68,8 +73,9 @@ func resourceRepositoryCreate(ctx context.Context, d *schema.ResourceData, m int
 	remoteUrl := d.Get("remote_url").(string)
 	gitCloneStrategy := d.Get("git_clone_strategy").(string)
 	repositoryCredentialsID := d.Get("repository_credentials_id").(int)
+	gitlabProjectID := d.Get("gitlab_project_id").(int)
 
-	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID)
+	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID, gitlabProjectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -110,6 +116,9 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("repository_credentials_id", repository.RepositoryCredentialsID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -32,4 +32,8 @@ description: |-
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the connection is active
 
+### Read-Only
+
+- `connection_id` (Number) Connection Identifier
+
 

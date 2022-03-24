@@ -18,11 +18,18 @@ description: |-
 ### Required
 
 - `project_id` (Number) Project ID to create the environment in
-- `remote_url` (String) Git URL for the repository
+- `remote_url` (String) Git URL for the repository or <Group>/<Project> for Gitlab
 
 ### Optional
 
+- `git_clone_strategy` (String) Git clone strategy for the repository
+- `gitlab_project_id` (Number) Identifier for the Gitlab project
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the repository is active
+- `repository_credentials_id` (Number) Credentials ID for the repository (From the repository side not the DBT Cloud ID)
+
+### Read-Only
+
+- `repository_id` (Number) Repository Identifier
 
 

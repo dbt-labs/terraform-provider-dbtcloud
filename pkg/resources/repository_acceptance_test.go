@@ -23,76 +23,78 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
 		Steps: []resource.TestStep{
+			// Create Github repository
 			{
-				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl, projectName),
+				Config: testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
-					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
+					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository_github"),
+					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_github", "remote_url", repoUrl),
 				),
 			},
-			// 			{
-			// 				Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "git_clone_strategy", "deploy_token"),
-			// 				),
-			// 			},
-			// 			// Change URL
-			// 			{
-			// 				Config: testAccDbtCloudRepositoryResourceBasicConfig(repoUrl2, projectName),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository", "remote_url", repoUrl2),
-			// 				),
-			// 			},
-			// 			// MODIFY
-			// 			{
-			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_environment.test_env"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
-			// 				),
-			// 			},
+			// MODIFY
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_repository.test_repository",
+				ResourceName:            "dbt_cloud_repository.test_repository_github",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
 			},
 		},
 	})
+
+	// 	resource.Test(t, resource.TestCase{
+	// 		PreCheck:     func() { testAccPreCheck(t) },
+	// 		Providers:    testAccProviders,
+	// 		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+	// 		Steps: []resource.TestStep{
+	// 			// Create Gitlab repository
+	// 			{
+	// 				Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName),
+	// 				Check: resource.ComposeTestCheckFunc(
+	// 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository_gitlab"),
+	// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_gitlab", "remote_url", repoUrl),
+	// 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_gitlab", "git_clone_strategy", "deploy_token"),
+	// 				),
+	// 			},
+	// 			// 						MODIFY
+	// 			// 			IMPORT
+	// 			{
+	// 				ResourceName:            "dbt_cloud_repository.test_repository_gitlab",
+	// 				ImportState:             true,
+	// 				ImportStateVerify:       true,
+	// 				ImportStateVerifyIgnore: []string{},
+	// 			},
+	// 		},
+	// 	})
 }
 
-func testAccDbtCloudRepositoryResourceBasicConfig(repoUrl, projectName string) string {
+func testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_repository" "test_repository" {
+resource "dbt_cloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbt_cloud_project.test_project.id
 }
 `, projectName, repoUrl)
 }
 
-func testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName string) string {
-	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
-  name        = "%s"
-}
-
-resource "dbt_cloud_repository" "test_repository" {
-  remote_url = "%s"
-  project_id = dbt_cloud_project.test_project.id
-  git_clone_strategy = "deploy_token"
-  repository_credentials_id = 10
-}
-`, projectName, repoUrl)
-}
+// func testAccDbtCloudRepositoryResourceGitlabConfig(repoUrl, projectName string) string {
+// 	return fmt.Sprintf(`
+// resource "dbt_cloud_project" "test_project" {
+//   name        = "%s"
+// }
+//
+// resource "dbt_cloud_repository" "test_repository_gitlab" {
+//   remote_url = "%s"
+//   project_id = dbt_cloud_project.test_project.id
+//   git_clone_strategy = "deploy_token"
+//   repository_credentials_id = 10
+// }
+// `, projectName, repoUrl)
+// }
 
 //
 // func testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName string) string {
