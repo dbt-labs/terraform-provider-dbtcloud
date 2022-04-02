@@ -131,16 +131,12 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	if d.HasChange("remote_url") || d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
+	if d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
 		repository, err := c.GetRepository(repositoryIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		if d.HasChange("remote_url") {
-			remoteUrl := d.Get("remote_url").(string)
-			repository.RemoteUrl = remoteUrl
-		}
 		if d.HasChange("is_active") {
 			isActive := d.Get("is_active").(bool)
 			if isActive {

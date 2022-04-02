@@ -15,7 +15,6 @@ import (
 func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
 	repoUrl := "https://github.com/GtheSheep/baa.git"
-	// 	repoUrl2 := "https://github.com/GtheSheep/dbt-core.git"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -94,26 +93,6 @@ resource "dbt_cloud_repository" "test_repository_github" {
 //   repository_credentials_id = 10
 // }
 // `, projectName, repoUrl)
-// }
-
-//
-// func testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName string) string {
-// 	return fmt.Sprintf(`
-// resource "dbt_cloud_project" "test_project" {
-//   name        = "%s"
-// }
-//
-// resource "dbt_cloud_project" "test_project_2" {
-//   name        = "%s"
-// }
-//
-// resource "dbt_cloud_environment" "test_env" {
-//   name        = "%s"
-//   type = "deployment"
-//   dbt_version = "1.0.1"
-//   project_id = dbt_cloud_project.test_project_2.id
-// }
-// `, projectName, projectName2, environmentName)
 // }
 
 func testAccCheckDbtCloudRepositoryExists(resource string) resource.TestCheckFunc {
