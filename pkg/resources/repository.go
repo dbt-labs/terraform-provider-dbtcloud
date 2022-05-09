@@ -42,7 +42,7 @@ func ResourceRepository() *schema.Resource {
 			"git_clone_strategy": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "deploy_token",
+				Default:     "deploy_key",
 				Description: "Git clone strategy for the repository",
 			},
 			"repository_credentials_id": &schema.Schema{
