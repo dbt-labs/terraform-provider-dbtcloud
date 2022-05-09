@@ -10,9 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const REPOSITORY_STATE_ACTIVE = 1
-const REPOSITORY_STATE_DELETED = 2
-
 func ResourceRepository() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceRepositoryCreate,
@@ -21,6 +18,11 @@ func ResourceRepository() *schema.Resource {
 		DeleteContext: resourceRepositoryDelete,
 
 		Schema: map[string]*schema.Schema{
+			"repository_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Repository Identifier",
+			},
 			"is_active": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -35,7 +37,23 @@ func ResourceRepository() *schema.Resource {
 			"remote_url": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Git URL for the repository",
+				Description: "Git URL for the repository or <Group>/<Project> for Gitlab",
+			},
+			"git_clone_strategy": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "deploy_key",
+				Description: "Git clone strategy for the repository",
+			},
+			"repository_credentials_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Credentials ID for the repository (From the repository side not the DBT Cloud ID)",
+			},
+			"gitlab_project_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Identifier for the Gitlab project",
 			},
 		},
 
@@ -53,8 +71,11 @@ func resourceRepositoryCreate(ctx context.Context, d *schema.ResourceData, m int
 	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
 	remoteUrl := d.Get("remote_url").(string)
+	gitCloneStrategy := d.Get("git_clone_strategy").(string)
+	repositoryCredentialsID := d.Get("repository_credentials_id").(int)
+	gitlabProjectID := d.Get("gitlab_project_id").(int)
 
-	repository, err := c.CreateRepository(projectId, remoteUrl, isActive)
+	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID, gitlabProjectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -79,13 +100,25 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("is_active", repository.State == REPOSITORY_STATE_ACTIVE); err != nil {
+	if err := d.Set("repository_id", repository.ID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("is_active", repository.State == dbt_cloud.STATE_ACTIVE); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("project_id", repository.ProjectID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("remote_url", repository.RemoteUrl); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("git_clone_strategy", repository.GitCloneStrategy); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("repository_credentials_id", repository.RepositoryCredentialsID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -98,25 +131,27 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	// TODO: add more changes here
-
-	if d.HasChange("remote_url") || d.HasChange("is_active") {
+	if d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
 		repository, err := c.GetRepository(repositoryIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		if d.HasChange("remote_url") {
-			remoteUrl := d.Get("remote_url").(string)
-			repository.RemoteUrl = remoteUrl
-		}
 		if d.HasChange("is_active") {
 			isActive := d.Get("is_active").(bool)
 			if isActive {
-				repository.State = REPOSITORY_STATE_ACTIVE
+				repository.State = dbt_cloud.STATE_ACTIVE
 			} else {
-				repository.State = REPOSITORY_STATE_DELETED
+				repository.State = dbt_cloud.STATE_DELETED
 			}
+		}
+		if d.HasChange("git_clone_strategy") {
+			gitCloneStrategy := d.Get("git_clone_strategy").(string)
+			repository.GitCloneStrategy = gitCloneStrategy
+		}
+		if d.HasChange("repository_credentials_id") {
+			repositoryCredentialsID := d.Get("repository_credentials_id").(int)
+			repository.RepositoryCredentialsID = &repositoryCredentialsID
 		}
 
 		_, err = c.UpdateRepository(repositoryIdString, projectIdString, *repository)

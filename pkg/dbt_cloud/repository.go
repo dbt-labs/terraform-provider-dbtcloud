@@ -9,11 +9,14 @@ import (
 )
 
 type Repository struct {
-	ID        *int   `json:"id,omitempty"`
-	AccountID int    `json:"account_id"`
-	ProjectID int    `json:"project_id"`
-	RemoteUrl string `json:"remote_url"`
-	State     int    `json:"state"`
+	ID                      *int   `json:"id,omitempty"`
+	AccountID               int    `json:"account_id"`
+	ProjectID               int    `json:"project_id"`
+	RemoteUrl               string `json:"remote_url"`
+	State                   int    `json:"state"`
+	GitCloneStrategy        string `json:"git_clone_strategy"`
+	RepositoryCredentialsID *int   `json:"repository_credentials_id"`
+	GitlabProjectID         *int   `json:"gitlab_project_id"`
 }
 
 type RepositoryListResponse struct {
@@ -46,17 +49,24 @@ func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, err
 	return &repositoryResponse.Data, nil
 }
 
-func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool) (*Repository, error) {
-	state := 1
+func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool, gitCloneStrategy string, repositoryCredentialsID int, gitlabProjectID int) (*Repository, error) {
+	state := STATE_ACTIVE
 	if !isActive {
-		state = 2
+		state = STATE_DELETED
 	}
 
 	newRepository := Repository{
-		AccountID: c.AccountID,
-		ProjectID: projectID,
-		RemoteUrl: remoteUrl,
-		State:     state,
+		AccountID:        c.AccountID,
+		ProjectID:        projectID,
+		RemoteUrl:        remoteUrl,
+		State:            state,
+		GitCloneStrategy: gitCloneStrategy,
+	}
+	if repositoryCredentialsID != 0 {
+		newRepository.RepositoryCredentialsID = &repositoryCredentialsID
+	}
+	if gitlabProjectID != 0 {
+		newRepository.GitlabProjectID = &gitlabProjectID
 	}
 
 	newRepositoryData, err := json.Marshal(newRepository)

@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-const HostURL string = "https://cloud.getdbt.com/api"
-
 // Client -
 type Client struct {
 	HostURL    string
@@ -67,16 +65,16 @@ type AuthResponse struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string) (*Client, error) {
+func NewClient(account_id *int, token *string, host_url *string) (*Client, error) {
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
-		HostURL:    HostURL,
+		HostURL:    *host_url,
 		Token:      *token,
 		AccountID:  *account_id,
 	}
 
 	if (account_id != nil) && (token != nil) {
-		url := fmt.Sprintf("%s/v2/accounts/%s", HostURL, strconv.Itoa(*account_id))
+		url := fmt.Sprintf("%s/v2/accounts/%s", *host_url, strconv.Itoa(*account_id))
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)

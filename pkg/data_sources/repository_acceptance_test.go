@@ -11,12 +11,12 @@ import (
 func TestAccDbtCloudRepositoryDataSource(t *testing.T) {
 
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	randomRepositoryUrl := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	repoUrl := "https://github.com/GtheSheep/terraform-provider-dbt-cloud.git"
 
-	config := repository(randomProjectName, randomRepositoryUrl)
+	config := repository(randomProjectName, repoUrl)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_repository.test", "remote_url", randomRepositoryUrl),
+		resource.TestCheckResourceAttr("data.dbt_cloud_repository.test", "remote_url", repoUrl),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_repository.test", "repository_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_repository.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_repository.test", "is_active"),

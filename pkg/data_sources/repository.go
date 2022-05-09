@@ -31,6 +31,21 @@ var repositorySchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Connection name",
 	},
+	"git_clone_strategy": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "Git clone strategy for the repository",
+	},
+	"repository_credentials_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "Credentials ID for the repository (From the repository side not the DBT Cloud ID)",
+	},
+	"gitlab_project_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "Identifier for the Gitlab project",
+	},
 }
 
 func DatasourceRepository() *schema.Resource {
@@ -63,6 +78,15 @@ func datasourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	if err := d.Set("remote_url", repository.RemoteUrl); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("git_clone_strategy", repository.GitCloneStrategy); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("repository_credentials_id", repository.RepositoryCredentialsID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
 		return diag.FromErr(err)
 	}
 
