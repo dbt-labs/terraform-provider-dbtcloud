@@ -30,7 +30,7 @@ type RepositoryResponse struct {
 }
 
 func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(projectID)), strings.NewReader(string(newRepositoryData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(projectID)), strings.NewReader(string(newRepositoryData)))
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *Client) UpdateRepository(repositoryID, projectID string, repository Rep
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), strings.NewReader(string(repositoryData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), strings.NewReader(string(repositoryData)))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (c *Client) UpdateRepository(repositoryID, projectID string, repository Rep
 }
 
 func (c *Client) DeleteRepository(repositoryID, projectID string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
 	if err != nil {
 		return "", err
 	}
