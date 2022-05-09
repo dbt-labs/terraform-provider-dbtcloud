@@ -26,11 +26,11 @@ description: |-
 
 ### Optional
 
-- `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the Snowflake credential is active
 
 ### Read-Only
 
 - `credential_id` (Number) The system Snowflake credential ID
+- `id` (String) The ID of this resource.
 
 

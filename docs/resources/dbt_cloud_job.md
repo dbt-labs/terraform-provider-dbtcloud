@@ -27,7 +27,6 @@ description: |-
 
 - `dbt_version` (String) Version number of DBT to use in this job
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
-- `id` (String) The ID of this resource.
 - `is_active` (Boolean) Flag for whether the job is marked active or deleted
 - `num_threads` (Number) Number of threads to use in the job
 - `run_generate_sources` (Boolean) Flag for whether the job should run generate sources
@@ -37,5 +36,9 @@ description: |-
 - `schedule_interval` (Number) Number of hours between job executions if running on a schedule
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
 - `target_name` (String) Target name for the DBT profile
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 

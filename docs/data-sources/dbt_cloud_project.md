@@ -19,13 +19,10 @@ description: |-
 
 - `project_id` (Number) ID of the project to represent
 
-### Optional
-
-- `id` (String) The ID of this resource.
-
 ### Read-Only
 
 - `connection_id` (Number) ID of the connection associated with the project
+- `id` (String) The ID of this resource.
 - `name` (String) Given name for project
 - `repository_id` (Number) ID of the repository associated with the project
 - `state` (Number) Project state should be 1 = active, as 2 = deleted

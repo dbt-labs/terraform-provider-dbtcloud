@@ -24,12 +24,12 @@ description: |-
 
 - `git_clone_strategy` (String) Git clone strategy for the repository
 - `gitlab_project_id` (Number) Identifier for the Gitlab project
-- `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the repository is active
 - `repository_credentials_id` (Number) Credentials ID for the repository (From the repository side not the DBT Cloud ID)
 
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `repository_id` (Number) Repository Identifier
 
 

@@ -26,12 +26,12 @@ description: |-
 
 - `credential_id` (Number) Credential ID to create the environment with
 - `custom_branch` (String) Which custom branch to use in this environment
-- `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the environment is active
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
 
 ### Read-Only
 
 - `environment_id` (Number) Environment ID within the project
+- `id` (String) The ID of this resource.
 
 
