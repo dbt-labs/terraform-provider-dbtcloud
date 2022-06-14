@@ -50,6 +50,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_snowflake_credential": resources.ResourceSnowflakeCredential(),
 			"dbt_cloud_connection":           resources.ResourceConnection(),
 			"dbt_cloud_repository":           resources.ResourceRepository(),
+			"dbt_cloud_group":                resources.ResourceGroup(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
