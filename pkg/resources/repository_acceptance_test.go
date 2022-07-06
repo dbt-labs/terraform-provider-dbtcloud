@@ -14,7 +14,7 @@ import (
 
 func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
-	repoUrlGithub := "https://github.com/GtheSheep/terraform-provider-dbt-cloud.git"
+	repoUrlGithub := "git@https://github.com/GtheSheep/terraform-provider-dbt-cloud.git"
 	// 	repoUrlGitlab := "GtheSheep/test"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
