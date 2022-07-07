@@ -61,7 +61,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_a"),
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_b"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_a", "deferring_job_id"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_b", "deferring_job_id"),
 				),
 			},
 			// IMPORT
