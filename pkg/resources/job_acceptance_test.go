@@ -59,9 +59,9 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_a"),
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_b"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_b", "deferring_job_id"),
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_2", "deferring_job_id"),
 				),
 			},
 			// IMPORT
@@ -156,7 +156,7 @@ resource "dbt_cloud_environment" "test_job_environment" {
     type = "development"
 }
 
-resource "dbt_cloud_job" "test_job_a" {
+resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
@@ -171,7 +171,7 @@ resource "dbt_cloud_job" "test_job_a" {
   }
 }
 
-resource "dbt_cloud_job" "test_job_b" {
+resource "dbt_cloud_job" "test_job_2" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
@@ -184,7 +184,7 @@ resource "dbt_cloud_job" "test_job_b" {
     "schedule": false,
     "custom_branch_only": false,
   }
-  deferring_job_id = dbt_cloud_job.test_job_a.id
+  deferring_job_id = dbt_cloud_job.test_job.id
 }
 `, projectName, environmentName, jobName, jobName2)
 }
