@@ -128,6 +128,11 @@ var jobSchema = map[string]*schema.Schema{
 		Optional:    true,
 		Description: "Custom cron expression for schedule",
 	},
+	"deferring_job_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Description: "Job identifier that this job defers to",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -208,6 +213,9 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("schedule_cron", job.Schedule.Date.Cron); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
+		return diag.FromErr(err)
+	}
 
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(job.Triggers)
@@ -241,6 +249,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	scheduleHours := d.Get("schedule_hours").([]interface{})
 	scheduleDays := d.Get("schedule_days").([]interface{})
 	scheduleCron := d.Get("schedule_cron").(string)
+	deferringJobId := d.Get("deferring_job_id").(int)
 
 	steps := []string{}
 	for _, step := range executeSteps {
@@ -255,7 +264,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -275,7 +284,7 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
 		d.HasChange("generate_docs") || d.HasChange("triggers") || d.HasChange("schedule_type") ||
 		d.HasChange("schedule_interval") || d.HasChange("schedule_hours") || d.HasChange("schedule_days") ||
-		d.HasChange("schedule_cron") {
+		d.HasChange("schedule_cron") || d.HasChange("deferringJobId") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -346,6 +355,10 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		if d.HasChange("schedule_cron") {
 			scheduleCron := d.Get("schedule_cron").(string)
 			job.Schedule.Date.Cron = &scheduleCron
+		}
+		if d.HasChange("deferring_job_id") {
+			deferringJobId := d.Get("deferring_job_id").(int)
+			job.Deferring_Job_Id = &deferringJobId
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

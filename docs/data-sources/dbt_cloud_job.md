@@ -17,6 +17,7 @@ description: |-
 
 ### Required
 
+- `deferring_job_id` (Number) ID of the job this job defers to
 - `job_id` (Number) ID of the job
 - `project_id` (Number) ID of the project the job is in
 

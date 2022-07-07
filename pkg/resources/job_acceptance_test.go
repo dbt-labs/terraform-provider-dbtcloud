@@ -55,6 +55,15 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "generate_docs"),
 				),
 			},
+			// DEFERRING JOBS
+			{
+				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_2", "deferring_job_id"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_job.test_job",
@@ -132,6 +141,60 @@ resource "dbt_cloud_job" "test_job" {
   schedule_hours = [9, 17]
 }
 `, projectName, environmentName, jobName)
+}
+
+func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbt_cloud_environment" "test_job_environment" {
+    project_id = dbt_cloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "0.21.0"
+    type = "development"
+}
+
+resource "dbt_cloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbt_cloud_project.test_job_project.id
+  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  dbt_version = "0.20.2"
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": true,
+    "custom_branch_only": false,
+  }
+  is_active = true
+  num_threads = 37
+  target_name = "test"
+  run_generate_sources = true
+  generate_docs = true
+  schedule_type = "every_day"
+  schedule_hours = [9, 17]
+}
+
+resource "dbt_cloud_job" "test_job_2" {
+  name        = "%s"
+  project_id = dbt_cloud_project.test_job_project.id
+  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+    "custom_branch_only": false,
+  }
+  deferring_job_id = dbt_cloud_job.test_job.id
+}
+`, projectName, environmentName, jobName, jobName2)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {

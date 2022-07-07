@@ -57,6 +57,7 @@ type Job struct {
 	Generate_Docs        bool        `json:"generate_docs"`
 	Schedule             JobSchedule `json:"schedule"`
 	Run_Generate_Sources bool        `json:"run_generate_sources"`
+	Deferring_Job_Id     *int        `json:"deferring_job_definition_id"`
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
@@ -79,7 +80,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -152,6 +153,9 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion
+	}
+	if deferringJobId != 0 {
+		newJob.Deferring_Job_Id = &deferringJobId
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
