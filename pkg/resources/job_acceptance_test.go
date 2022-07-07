@@ -160,15 +160,23 @@ resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  dbt_version = "0.20.2"
   execute_steps = [
     "dbt test"
   ]
   triggers = {
     "github_webhook": false,
     "git_provider_webhook": false,
-    "schedule": false,
+    "schedule": true,
     "custom_branch_only": false,
   }
+  is_active = true
+  num_threads = 37
+  target_name = "test"
+  run_generate_sources = true
+  generate_docs = true
+  schedule_type = "every_day"
+  schedule_hours = [9, 17]
 }
 
 resource "dbt_cloud_job" "test_job_2" {
