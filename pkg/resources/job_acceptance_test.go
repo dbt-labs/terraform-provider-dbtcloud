@@ -55,6 +55,15 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "generate_docs"),
 				),
 			},
+			// DEFERRING JOBS
+			{
+				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_a"),
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_b"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_a", "deferring_job_id"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_job.test_job",
@@ -132,6 +141,52 @@ resource "dbt_cloud_job" "test_job" {
   schedule_hours = [9, 17]
 }
 `, projectName, environmentName, jobName)
+}
+
+func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbt_cloud_environment" "test_job_environment" {
+    project_id = dbt_cloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "0.21.0"
+    type = "development"
+}
+
+resource "dbt_cloud_job" "test_job_a" {
+  name        = "%s"
+  project_id = dbt_cloud_project.test_job_project.id
+  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+    "custom_branch_only": false,
+  }
+}
+
+resource "dbt_cloud_job" "test_job_b" {
+  name        = "%s"
+  project_id = dbt_cloud_project.test_job_project.id
+  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+    "custom_branch_only": false,
+  }
+  deferring_job_id = dbt_cloud_job.test_job_a.id
+}
+`, projectName, environmentName, jobName, jobName2)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {

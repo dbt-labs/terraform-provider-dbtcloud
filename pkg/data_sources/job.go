@@ -31,6 +31,11 @@ var jobSchema = map[string]*schema.Schema{
 		Required:    true,
 		Description: "ID of the job",
 	},
+	"deferring_job_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "ID of the job this job defers to",
+	},
 	"triggers": &schema.Schema{
 		Type:     schema.TypeMap,
 		Computed: true,
@@ -72,6 +77,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	if err := d.Set("job_id", job.ID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
 		return diag.FromErr(err)
 	}
 	var triggers map[string]interface{}
