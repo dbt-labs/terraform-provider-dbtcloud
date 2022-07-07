@@ -155,7 +155,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		newJob.Dbt_Version = &dbtVersion
 	}
 	if deferringJobId != 0 {
-		newJob.Dbt_Version = &dbtVersion
+		newJob.Deferring_Job_Id = &deferringJobId
 	}
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
