@@ -90,7 +90,7 @@ resource "dbt_cloud_environment" "test_job_environment" {
 
 resource "dbt_cloud_job" "test_job" {
   name        = "%s"
-  project_id = dbt_cloud_project.test_job_project.id
+  project_id = dbt_cloud_project.test_job_project.ID
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
   execute_steps = [
     "dbt test"

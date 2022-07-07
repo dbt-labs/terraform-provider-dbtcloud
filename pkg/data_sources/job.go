@@ -33,7 +33,7 @@ var jobSchema = map[string]*schema.Schema{
 	},
 	"deferring_job_id": &schema.Schema{
 		Type:        schema.TypeInt,
-		Required:    true,
+		Computed:    true,
 		Description: "ID of the job this job defers to",
 	},
 	"triggers": &schema.Schema{
