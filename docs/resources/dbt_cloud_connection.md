@@ -20,7 +20,7 @@ description: |-
 - `account` (String) Account name for the connection
 - `database` (String) Database name for the connection
 - `name` (String) Connection name
-- `project_id` (Number) Project ID to create the environment in
+- `project_id` (Number) Project ID to create the connection in
 - `role` (String) Role name for the connection
 - `type` (String) The type of connection
 - `warehouse` (String) Warehouse name for the connection
