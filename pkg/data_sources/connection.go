@@ -19,12 +19,12 @@ var connectionSchema = map[string]*schema.Schema{
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
-		Description: "Project ID to create the environment in",
+		Description: "Project ID to create the connection in",
 	},
 	"is_active": &schema.Schema{
 		Type:        schema.TypeBool,
 		Computed:    true,
-		Description: "Whether the environment is active",
+		Description: "Whether the connection is active",
 	},
 	"name": &schema.Schema{
 		Type:        schema.TypeString,
