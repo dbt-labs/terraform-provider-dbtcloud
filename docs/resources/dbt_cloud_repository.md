@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `project_id` (Number) Project ID to create the environment in
+- `project_id` (Number) Project ID to create the repository in
 - `remote_url` (String) Git URL for the repository or <Group>/<Project> for Gitlab
 
 ### Optional

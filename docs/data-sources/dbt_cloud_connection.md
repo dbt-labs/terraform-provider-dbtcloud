@@ -18,7 +18,7 @@ description: |-
 ### Required
 
 - `connection_id` (Number) ID for the connection
-- `project_id` (Number) Project ID to create the environment in
+- `project_id` (Number) Project ID to create the connection in
 
 ### Read-Only
 
@@ -27,7 +27,7 @@ description: |-
 - `allow_sso` (Boolean) Flag for whether or not to use SSO for the connection
 - `database` (String) Database name for the connection
 - `id` (String) The ID of this resource.
-- `is_active` (Boolean) Whether the environment is active
+- `is_active` (Boolean) Whether the connection is active
 - `name` (String) Connection name
 - `role` (String) Role name for the connection
 - `type` (String) Connection type

@@ -32,7 +32,7 @@ func ResourceRepository() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
-				Description: "Project ID to create the environment in",
+				Description: "Project ID to create the repository in",
 			},
 			"remote_url": &schema.Schema{
 				Type:        schema.TypeString,
