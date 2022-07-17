@@ -15,6 +15,8 @@ type ConnectionDetails struct {
 	AllowSSO               bool   `json:"allow_sso"`
 	ClientSessionKeepAlive bool   `json:"client_session_keep_alive"`
 	Role                   string `json:"role"`
+	OAuthClientID          string `json:"oauth_client_id,omitempty"`
+	OAuthClientSecret      string `json:"oauth_client_secret,omitempty"`
 }
 
 type Connection struct {
@@ -61,7 +63,7 @@ func (c *Client) GetConnection(connectionID, projectID string) (*Connection, err
 	return &connectionResponse.Data, nil
 }
 
-func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO bool, clientSessionKeepAlive bool) (*Connection, error) {
+func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO bool, clientSessionKeepAlive bool, oAuthClientID string, oAuthClientSecret string) (*Connection, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -74,6 +76,8 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 		AllowSSO:               allowSSO,
 		ClientSessionKeepAlive: clientSessionKeepAlive,
 		Role:                   role,
+		OAuthClientID:          oAuthClientID,
+		OAuthClientSecret:      oAuthClientSecret,
 	}
 
 	newConnection := Connection{
@@ -104,6 +108,11 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 	err = json.Unmarshal(body, &connectionResponse)
 	if err != nil {
 		return nil, err
+	}
+
+	if (oAuthClientID != "") && (oAuthClientSecret != "") {
+	    connectionResponse.Data.Details.OAuthClientID = oAuthClientID
+	    connectionResponse.Data.Details.OAuthClientSecret = oAuthClientSecret
 	}
 
 	return &connectionResponse.Data, nil
