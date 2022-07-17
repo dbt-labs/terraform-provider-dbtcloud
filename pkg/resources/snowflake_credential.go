@@ -9,6 +9,14 @@ import (
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	authTypes = []string{
+		"password",
+		"keypair",
+	}
 )
 
 func ResourceSnowflakeCredential() *schema.Resource {
@@ -36,19 +44,10 @@ func ResourceSnowflakeCredential() *schema.Resource {
 				Description: "The system Snowflake credential ID",
 			},
 			"auth_type": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The type of Snowflake credential ('password' only currently supported in Terraform)",
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					type_ := val.(string)
-					switch type_ {
-					case
-						"password":
-						return
-					}
-					errs = append(errs, fmt.Errorf("%q must be password, got: %q", key, type_))
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The type of Snowflake credential ('password' or 'keypair')",
+				ValidateFunc: validation.StringInSlice(authTypes, false),
 			},
 			"schema": &schema.Schema{
 				Type:        schema.TypeString,
@@ -62,18 +61,30 @@ func ResourceSnowflakeCredential() *schema.Resource {
 			},
 			"password": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Password for Snowflake",
+				ConflictsWith: []string{"private_key", "private_key_passphrase"},
+			},
+			"private_key": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Private key for Snowflake",
+				ConflictsWith: []string{"password"},
+			},
+			"private_key_passphrase": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Private key passphrase for Snowflake",
+				ConflictsWith: []string{"password"},
 			},
 			"num_threads": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Number of threads to use",
 			},
-
-			// TODO: add private_key and private_key_passphrase
-
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -94,9 +105,11 @@ func resourceSnowflakeCredentialCreate(ctx context.Context, d *schema.ResourceDa
 	schema := d.Get("schema").(string)
 	user := d.Get("user").(string)
 	password := d.Get("password").(string)
+	privateKey := d.Get("private_key").(string)
+	privateKeyPassphrase := d.Get("private_key_passphrase").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	snowflakeCredential, err := c.CreateSnowflakeCredential(projectId, "snowflake", isActive, schema, user, password, authType, numThreads)
+	snowflakeCredential, err := c.CreateSnowflakeCredential(projectId, "snowflake", isActive, schema, user, password, privateKey, privateKeyPassphrase, authType, numThreads)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,6 +141,14 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	// TODO: Manage passwords better
+	if snowflakeCredential.Auth_Type == "password" {
+		snowflakeCredential.Password = d.Get("password").(string)
+	}
+	if snowflakeCredential.Auth_Type == "keypair" {
+		snowflakeCredential.PrivateKey = d.Get("private_key").(string)
+		snowflakeCredential.PrivateKeyPassphrase = d.Get("private_key_passphrase").(string)
+	}
 
 	if err := d.Set("credential_id", snowflakeCredentialId); err != nil {
 		return diag.FromErr(err)
@@ -150,6 +171,12 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 	if err := d.Set("password", snowflakeCredential.Password); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("private_key", snowflakeCredential.PrivateKey); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("private_key_passphrase", snowflakeCredential.PrivateKeyPassphrase); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("num_threads", snowflakeCredential.Threads); err != nil {
 		return diag.FromErr(err)
 	}
@@ -170,7 +197,7 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("auth_type") || d.HasChange("schema") || d.HasChange("user") || d.HasChange("password") || d.HasChange("num_threads") {
+	if d.HasChange("auth_type") || d.HasChange("schema") || d.HasChange("user") || d.HasChange("password") || d.HasChange("num_threads") || d.HasChange("private_key") || d.HasChange("private_key_passphrase") {
 		snowflakeCredential, err := c.GetSnowflakeCredential(projectId, snowflakeCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -192,6 +219,14 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 			password := d.Get("password").(string)
 			snowflakeCredential.Password = password
 		}
+		if d.HasChange("private_key") {
+			privateKey := d.Get("private_key").(string)
+			snowflakeCredential.PrivateKey = privateKey
+		}
+		if d.HasChange("private_key_passphrase") {
+			privateKeyPassphrase := d.Get("private_key_passphrase").(string)
+			snowflakeCredential.PrivateKeyPassphrase = privateKeyPassphrase
+		}
 		if d.HasChange("num_threads") {
 			numThreads := d.Get("num_threads").(int)
 			snowflakeCredential.Threads = numThreads
@@ -211,23 +246,10 @@ func resourceSnowflakeCredentialDelete(ctx context.Context, d *schema.ResourceDa
 
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
+	snowflakeCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	snowflakeCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	snowflakeCredential, err := c.GetSnowflakeCredential(projectId, snowflakeCredentialId)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	snowflakeCredential.State = dbt_cloud.STATE_DELETED
-	_, err = c.UpdateSnowflakeCredential(projectId, snowflakeCredentialId, *snowflakeCredential)
+	_, err := c.DeleteSnowflakeCredential(snowflakeCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}
