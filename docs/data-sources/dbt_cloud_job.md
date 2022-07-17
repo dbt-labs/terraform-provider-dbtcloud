@@ -17,12 +17,12 @@ description: |-
 
 ### Required
 
-- `deferring_job_id` (Number) ID of the job this job defers to
 - `job_id` (Number) ID of the job
 - `project_id` (Number) ID of the project the job is in
 
 ### Read-Only
 
+- `deferring_job_id` (Number) ID of the job this job defers to
 - `environment_id` (Number) ID of the environment the job is in
 - `id` (String) The ID of this resource.
 - `name` (String) Given name for the job

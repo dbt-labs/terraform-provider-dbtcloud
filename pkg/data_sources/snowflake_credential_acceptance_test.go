@@ -30,7 +30,6 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 			{
 				Config:             config,
 				Check:              check,
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

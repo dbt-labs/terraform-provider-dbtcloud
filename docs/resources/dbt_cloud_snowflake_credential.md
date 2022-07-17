@@ -17,9 +17,8 @@ description: |-
 
 ### Required
 
-- `auth_type` (String) The type of Snowflake credential ('password' only currently supported in Terraform)
+- `auth_type` (String) The type of Snowflake credential ('password' or 'keypair')
 - `num_threads` (Number) Number of threads to use
-- `password` (String, Sensitive) Password for Snowflake
 - `project_id` (Number) Project ID to create the Snowflake credential in
 - `schema` (String) Default schema name
 - `user` (String) Username for Snowflake
@@ -27,6 +26,9 @@ description: |-
 ### Optional
 
 - `is_active` (Boolean) Whether the Snowflake credential is active
+- `password` (String, Sensitive) Password for Snowflake
+- `private_key` (String, Sensitive) Private key for Snowflake
+- `private_key_passphrase` (String, Sensitive) Private key passphrase for Snowflake
 
 ### Read-Only
 

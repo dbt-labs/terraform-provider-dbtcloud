@@ -28,7 +28,7 @@ var snowflakeCredentialSchema = map[string]*schema.Schema{
 	"auth_type": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
-		Description: "The type of Snowflake credential ('password' only currently supported in Terraform)",
+		Description: "The type of Snowflake credential ('password' or 'keypair')",
 	},
 	"schema": &schema.Schema{
 		Type:        schema.TypeString,
@@ -40,18 +40,11 @@ var snowflakeCredentialSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Username for Snowflake",
 	},
-	"password": &schema.Schema{
-		Type:        schema.TypeString,
-		Computed:    true,
-		Sensitive:   true,
-		Description: "Password for Snowflake",
-	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Number of threads to use",
 	},
-	// TODO: add private_key and private_key_passphrase
 }
 
 func DatasourceSnowflakeCredential() *schema.Resource {
@@ -87,9 +80,6 @@ func snowflakeCredentialRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 	if err := d.Set("user", snowflakeCredential.User); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("password", snowflakeCredential.Password); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("num_threads", snowflakeCredential.Threads); err != nil {
