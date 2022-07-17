@@ -17,6 +17,8 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,7 +26,7 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName),
+				Config: testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName, oAuthClientID, oAuthClientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_connection"),
 					resource.TestCheckResourceAttr("dbt_cloud_connection.test_connection", "name", connectionName),
@@ -32,7 +34,7 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 			},
 			// RENAME
 			{
-				Config: testAccDbtCloudConnectionResourceBasicConfig(connectionName2, projectName),
+				Config: testAccDbtCloudConnectionResourceBasicConfig(connectionName2, projectName, oAuthClientID, oAuthClientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_connection"),
 					resource.TestCheckResourceAttr("dbt_cloud_connection.test_connection", "name", connectionName2),
@@ -52,13 +54,13 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 				ResourceName:            "dbt_cloud_connection.test_connection",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ImportStateVerifyIgnore: []string{"oauth_client_id", "oauth_client_secret"},
 			},
 		},
 	})
 }
 
-func testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName string) string {
+func testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName, oAuthClientID, oAuthClientSecret string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
   name        = "%s"
@@ -74,8 +76,10 @@ resource "dbt_cloud_connection" "test_connection" {
   role = "user"
   allow_sso = false
   allow_keep_alive = false
+  oauth_client_id = "%s"
+  oauth_client_secret = "%s"
 }
-`, projectName, connectionName)
+`, projectName, connectionName, oAuthClientID, oAuthClientSecret)
 }
 
 //

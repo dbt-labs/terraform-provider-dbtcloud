@@ -30,6 +30,8 @@ description: |-
 - `allow_keep_alive` (Boolean) Whether or not the connection should allow client session keep alive
 - `allow_sso` (Boolean) Whether or not the connection should allow SSO
 - `is_active` (Boolean) Whether the connection is active
+- `oauth_client_id` (String) OAuth client identifier
+- `oauth_client_secret` (String) OAuth client secret
 
 ### Read-Only
 

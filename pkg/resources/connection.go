@@ -85,6 +85,18 @@ func ResourceConnection() *schema.Resource {
 				Default:     false,
 				Description: "Whether or not the connection should allow client session keep alive",
 			},
+			"oauth_client_id": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     false,
+				Description: "OAuth client identifier",
+			},
+			"oauth_client_secret": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     false,
+				Description: "OAuth client secret",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -108,8 +120,10 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	role := d.Get("role").(string)
 	allowSSO := d.Get("allow_sso").(bool)
 	allowKeepAlive := d.Get("allow_keep_alive").(bool)
+	oAuthClientID := d.Get("oauth_client_id").(string)
+	oAuthClientSecret := d.Get("oauth_client_secret").(string)
 
-	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, allowSSO, allowKeepAlive)
+	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, allowSSO, allowKeepAlive, oAuthClientID, oAuthClientSecret)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,6 +147,10 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+    // TODO: Remove when API returns these
+	connection.Details.OAuthClientID = d.Get("oauth_client_id").(string)
+	connection.Details.OAuthClientSecret = d.Get("oauth_client_secret").(string)
 
 	if err := d.Set("connection_id", connection.ID); err != nil {
 		return diag.FromErr(err)
@@ -167,6 +185,12 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("allow_keep_alive", connection.Details.ClientSessionKeepAlive); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("oauth_client_id", connection.Details.OAuthClientID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("oauth_client_secret", connection.Details.OAuthClientSecret); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -179,7 +203,7 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	// TODO: add more changes here
 
-	if d.HasChange("name") || d.HasChange("type") || d.HasChange("account") || d.HasChange("database") || d.HasChange("warehouse") || d.HasChange("role") || d.HasChange("allow_sso") || d.HasChange("allow_keep_alive") {
+	if d.HasChange("name") || d.HasChange("type") || d.HasChange("account") || d.HasChange("database") || d.HasChange("warehouse") || d.HasChange("role") || d.HasChange("allow_sso") || d.HasChange("allow_keep_alive") || d.HasChange("oauth_client_id") || d.HasChange("oauth_client_secret") {
 		connection, err := c.GetConnection(connectionIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
@@ -216,6 +240,14 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("allow_keep_alive") {
 			allowKeepAlive := d.Get("allow_keep_alive").(bool)
 			connection.Details.ClientSessionKeepAlive = allowKeepAlive
+		}
+		if d.HasChange("oauth_client_id") {
+			oAuthClientID := d.Get("oauth_client_id").(string)
+			connection.Details.OAuthClientID = oAuthClientID
+		}
+		if d.HasChange("oauth_client_secret") {
+			oAuthClientSecret := d.Get("oauth_client_secret").(string)
+			connection.Details.OAuthClientSecret = oAuthClientSecret
 		}
 
 		_, err = c.UpdateConnection(connectionIdString, projectIdString, *connection)
