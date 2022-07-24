@@ -148,7 +148,7 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-    // TODO: Remove when API returns these
+	// TODO: Remove when API returns these
 	connection.Details.OAuthClientID = d.Get("oauth_client_id").(string)
 	connection.Details.OAuthClientSecret = d.Get("oauth_client_secret").(string)
 

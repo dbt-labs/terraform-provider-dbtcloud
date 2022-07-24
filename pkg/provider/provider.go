@@ -45,6 +45,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_job":                  resources.ResourceJob(),
 			"dbt_cloud_project":              resources.ResourceProject(),
 			"dbt_cloud_environment":          resources.ResourceEnvironment(),
+			"dbt_cloud_environment_variable": resources.ResourceEnvironmentVariable(),
 			"dbt_cloud_snowflake_credential": resources.ResourceSnowflakeCredential(),
 			"dbt_cloud_connection":           resources.ResourceConnection(),
 			"dbt_cloud_repository":           resources.ResourceRepository(),
