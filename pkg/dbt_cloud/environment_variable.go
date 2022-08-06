@@ -83,7 +83,7 @@ func (c *Client) CreateEnvironmentVariable(projectID int, name string, environme
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf(string(newEnvironmentVariableData))
+
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(newEnvironmentVariableData)))
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (c *Client) UpdateEnvironmentVariable(projectID int, environmentVariable En
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(environmentVariableData)))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(environmentVariableData)))
 	if err != nil {
 		return nil, err
 	}

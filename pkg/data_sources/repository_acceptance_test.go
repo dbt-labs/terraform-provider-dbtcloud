@@ -43,6 +43,9 @@ func repository(projectName, repositoryUrl string) string {
         project_id = dbt_cloud_project.test_project.id
         remote_url = "%s"
         is_active = true
+        depends_on = [
+            dbt_cloud_project.test_project
+        ]
     }
 
     data "dbt_cloud_repository" "test" {

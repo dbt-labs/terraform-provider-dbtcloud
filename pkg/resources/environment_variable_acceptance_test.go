@@ -29,18 +29,23 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentVariableExists("dbt_cloud_environment_variable.test_env_var"),
 					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.%", "2"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.project", "Baa"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
 				),
 			},
 			// RENAME
-			// 			// MODIFY
-			// 			{
-			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
-			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
-			// 				),
-			// 			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentVariableExists("dbt_cloud_environment_variable.test_env_var"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.%", "2"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.project", "Oink"),
+					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Neigh"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_environment_variable.test_env_var",
@@ -71,6 +76,34 @@ resource "dbt_cloud_environment_variable" "test_env_var" {
   environment_values = {
     "project": "Baa",
     "%s": "Moo"
+  }
+  depends_on = [
+    dbt_cloud_project.test_project,
+    dbt_cloud_environment.test_env
+  ]
+}
+`, projectName, environmentName, environmentVariableName, environmentName)
+}
+
+func testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_environment" "test_env" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "1.0.0"
+  project_id = dbt_cloud_project.test_project.id
+}
+
+resource "dbt_cloud_environment_variable" "test_env_var" {
+  name        = "DBT_%s"
+  project_id = dbt_cloud_project.test_project.id
+  environment_values = {
+    "project": "Oink",
+    "%s": "Neigh"
   }
   depends_on = [
     dbt_cloud_project.test_project,

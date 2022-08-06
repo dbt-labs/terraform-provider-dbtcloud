@@ -112,7 +112,7 @@ func resourceEnvironmentVariableUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	environmentVariableName := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[2]
+	environmentVariableName := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -124,8 +124,12 @@ func resourceEnvironmentVariableUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		if d.HasChange("environment_values") {
-			environmentValues := d.Get("environment_values").(map[string]string)
-			environmentVariable.EnvironmentNameValues = environmentValues
+			environmentValues := d.Get("environment_values").(map[string]interface{})
+			environmentValuesStrings := make(map[string]string)
+			for envName, value := range environmentValues {
+				environmentValuesStrings[envName] = value.(string)
+			}
+			environmentVariable.EnvironmentNameValues = environmentValuesStrings
 		}
 
 		_, err = c.UpdateEnvironmentVariable(projectID, *environmentVariable)
@@ -134,7 +138,7 @@ func resourceEnvironmentVariableUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	return resourceEnvironmentRead(ctx, d, m)
+	return resourceEnvironmentVariableRead(ctx, d, m)
 }
 
 func resourceEnvironmentVariableDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
