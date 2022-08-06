@@ -111,8 +111,8 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 	}
 
 	if (oAuthClientID != "") && (oAuthClientSecret != "") {
-	    connectionResponse.Data.Details.OAuthClientID = oAuthClientID
-	    connectionResponse.Data.Details.OAuthClientSecret = oAuthClientSecret
+		connectionResponse.Data.Details.OAuthClientID = oAuthClientID
+		connectionResponse.Data.Details.OAuthClientSecret = oAuthClientSecret
 	}
 
 	return &connectionResponse.Data, nil

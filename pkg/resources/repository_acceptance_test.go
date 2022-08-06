@@ -77,6 +77,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbt_cloud_project.test_project.id
+  depends_on = [dbt_cloud_project.test_project]
 }
 `, projectName, repoUrl)
 }

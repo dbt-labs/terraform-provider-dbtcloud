@@ -28,8 +28,8 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 		Providers: providers(),
 		Steps: []resource.TestStep{
 			{
-				Config:             config,
-				Check:              check,
+				Config: config,
+				Check:  check,
 			},
 		},
 	})
