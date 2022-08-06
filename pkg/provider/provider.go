@@ -34,6 +34,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"dbt_cloud_group":                data_sources.DatasourceGroup(),
 			"dbt_cloud_job":                  data_sources.DatasourceJob(),
 			"dbt_cloud_project":              data_sources.DatasourceProject(),
 			"dbt_cloud_environment":          data_sources.DatasourceEnvironment(),
@@ -50,6 +51,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_snowflake_credential": resources.ResourceSnowflakeCredential(),
 			"dbt_cloud_connection":           resources.ResourceConnection(),
 			"dbt_cloud_repository":           resources.ResourceRepository(),
+			"dbt_cloud_group":                resources.ResourceGroup(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
