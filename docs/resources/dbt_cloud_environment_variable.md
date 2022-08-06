@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `environment_values` (Map of String) Map from environment names to respective variable value
+- `environment_values` (Map of String) Map from environment names to respective variable value, a special key `project` should be set for the project default variable value
 - `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
 - `project_id` (Number) Project for the variable to be created in
 

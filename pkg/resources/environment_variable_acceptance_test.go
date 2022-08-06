@@ -69,8 +69,13 @@ resource "dbt_cloud_environment_variable" "test_env_var" {
   name        = "DBT_%s"
   project_id = dbt_cloud_project.test_project.id
   environment_values = {
+    "project": "Baa",
     "%s": "Moo"
   }
+  depends_on = [
+    dbt_cloud_project.test_project,
+    dbt_cloud_environment.test_env
+  ]
 }
 `, projectName, environmentName, environmentVariableName, environmentName)
 }

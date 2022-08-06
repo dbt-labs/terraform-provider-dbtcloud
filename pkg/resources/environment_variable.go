@@ -39,7 +39,7 @@ func ResourceEnvironmentVariable() *schema.Resource {
 			"environment_values": &schema.Schema{
 				Type:        schema.TypeMap,
 				Required:    true,
-				Description: "Map from environment names to respective variable value",
+				Description: "Map from environment names to respective variable value, a special key `project` should be set for the project default variable value",
 			},
 		},
 
