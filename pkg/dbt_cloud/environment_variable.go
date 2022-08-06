@@ -56,6 +56,7 @@ func (c *Client) GetEnvironmentVariable(projectID int, environmentVariableName s
 	}
 
 	environmentsVariables := environmentVariableResponse.Data.Variables[environmentVariableName]
+	fmt.Printf(string(environmentVariableResponse.Data.Variables))
 	if environmentsVariables == nil {
 	    return nil, fmt.Errorf("did not find environment variables %s in project ID %d", environmentVariableName, projectID)
 	}
