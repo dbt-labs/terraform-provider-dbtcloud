@@ -57,7 +57,7 @@ func (c *Client) GetEnvironmentVariable(projectID int, environmentVariableName s
 
 	environmentsVariables, _ := environmentVariableResponse.Data.Variables[environmentVariableName]
 	if environmentsVariables == nil {
-	    return nil, fmt.Errorf("Environment variables %s not found in project ID %d", environmentVariableName, projectID)
+		return nil, fmt.Errorf("Environment variables %s not found in project ID %d", environmentVariableName, projectID)
 	}
 	environmentValues := make(map[string]string)
 	for environmentName, environmentVariableNameValue := range environmentsVariables {
@@ -83,7 +83,7 @@ func (c *Client) CreateEnvironmentVariable(projectID int, name string, environme
 	if err != nil {
 		return nil, err
 	}
-    fmt.Printf(string(newEnvironmentVariableData))
+	fmt.Printf(string(newEnvironmentVariableData))
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(newEnvironmentVariableData)))
 	if err != nil {
 		return nil, err
