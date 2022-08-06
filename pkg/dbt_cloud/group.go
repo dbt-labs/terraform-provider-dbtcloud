@@ -26,7 +26,7 @@ type Group struct {
 	State            int               `json:"state"`
 	AssignByDefault  bool              `json:"assign_by_default"`
 	SSOMappingGroups []string          `json:"sso_mapping_groups"`
-	Permissions      []GroupPermission `json:"group_permissions"`
+	Permissions      []GroupPermission `json:"group_permissions,omitempty"`
 }
 
 type GroupResponse struct {
@@ -62,7 +62,7 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Did not find group with ID %d", groupID)
+	return nil, fmt.Errorf("Group with ID %d not found", groupID)
 }
 
 func (c *Client) CreateGroup(name string, assignByDefault bool, ssoMappingGroups []string) (*Group, error) {
@@ -103,7 +103,7 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/groups/%s/", c.HostURL, strconv.Itoa(c.AccountID), groupID), strings.NewReader(string(groupData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID), strings.NewReader(string(groupData)))
 	if err != nil {
 		return nil, err
 	}

@@ -31,12 +31,13 @@ func ResourceGroup() *schema.Resource {
 			},
 			"assign_by_default": &schema.Schema{
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
+				Default:     false,
 				Description: "Whether or not to assign this group to users by default",
 			},
 			"sso_mapping_groups": &schema.Schema{
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "SSO mapping group names for this group",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
