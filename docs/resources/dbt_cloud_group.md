@@ -8,7 +8,7 @@ description: |-
 
 # dbt_cloud_group (Resource)
 
-
+*Note*: Groups currently do not support updates, as per both the API and the UI.
 
 
 
@@ -30,3 +30,10 @@ description: |-
 - `id` (String) The ID of this resource.
 
 
+### Import
+
+Import using a group ID found in the URL or via the API.
+```commandline
+terraform import dbt_cloud_group.test_group "group_id"
+terraform import dbt_cloud_group.test_group 12345
+```
