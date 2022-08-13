@@ -43,3 +43,10 @@ description: |-
 - `id` (String) The ID of this resource.
 
 
+### Import
+
+Import using a job ID found in the URL or via the API.
+```commandline
+terraform import dbt_cloud_job.test_job "job_id"
+terraform import dbt_cloud_job.test_job 12345
+```

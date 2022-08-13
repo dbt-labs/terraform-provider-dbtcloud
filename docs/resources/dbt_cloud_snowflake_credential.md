@@ -36,3 +36,10 @@ description: |-
 - `id` (String) The ID of this resource.
 
 
+### Import
+
+Import using a project ID and credential ID found in the URL or via the API.
+```commandline
+terraform import dbt_cloud_snowflake_credential.test_snowflake_credential "project_id:credential_id"
+terraform import dbt_cloud_snowflake_credential.test_snowflake_credential 12345:6789
+```
