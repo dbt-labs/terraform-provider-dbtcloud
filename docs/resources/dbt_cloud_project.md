@@ -21,9 +21,7 @@ description: |-
 
 ### Optional
 
-- `connection_id` (Number) Connection ID
 - `dbt_project_subdirectory` (String) DBT project subdirectory path
-- `repository_id` (Number) Repository ID
 
 ### Read-Only
 
