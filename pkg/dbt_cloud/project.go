@@ -3,7 +3,6 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -49,7 +48,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 	return &projectResponse.Data, nil
 }
 
-func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, connectionID int, repositoryID int) (*Project, error) {
+func (c *Client) CreateProject(name string, dbtProjectSubdirectory string) (*Project, error) {
 	newProject := Project{
 		Name:      name,
 		State:     STATE_ACTIVE,
@@ -58,18 +57,11 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string, conne
 	if dbtProjectSubdirectory != "" {
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
 	}
-	if connectionID != 0 {
-		newProject.ConnectionID = &connectionID
-	}
-	if repositoryID != 0 {
-		newProject.RepositoryID = &repositoryID
-	}
 
 	newProjectData, err := json.Marshal(newProject)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(string(newProjectData))
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newProjectData)))
 	if err != nil {

@@ -15,7 +15,7 @@ install: build
 	mkdir -p $(HOME)/.terraform.d/plugins
 	mv ./$(BINARY) $(HOME)/.terraform.d/plugins/$(BINARY)
 
-docs:
+doc:
 	go get github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
