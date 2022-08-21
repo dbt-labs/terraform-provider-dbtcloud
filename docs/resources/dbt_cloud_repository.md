@@ -8,7 +8,8 @@ description: |-
 
 # dbt_cloud_repository (Resource)
 
-
+*Note*: Some upstream resources can be slow to create, so if creating a project at
+the same time as the repository, it's recommended to use the `depends_on` meta argument.
 
 
 

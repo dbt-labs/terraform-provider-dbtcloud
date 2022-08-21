@@ -8,7 +8,8 @@ description: |-
 
 # dbt_cloud_environment_variable (Resource)
 
-
+*Note*: Some upstream resources can be slow to create, so if creating a project or environment at
+the same time as the environment variables, it's recommended to use the `depends_on` meta argument.
 
 
 
