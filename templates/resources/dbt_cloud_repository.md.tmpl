@@ -37,8 +37,4 @@ the same time as the repository, it's recommended to use the `depends_on` meta a
 
 Import is supported using the following syntax:
 
-```shell
-# Import using a project ID and repository ID found in the URL or via the API.
-terraform import dbt_cloud_repository.test_repository "project_id:repository_id"
-terraform import dbt_cloud_repository.test_repository 12345:6789
-```
+{{codefile "shell" "examples/resources/dbt_cloud_repository/import.sh"}}
