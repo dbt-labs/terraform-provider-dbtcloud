@@ -42,6 +42,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_snowflake_credential": data_sources.DatasourceSnowflakeCredential(),
 			"dbt_cloud_connection":           data_sources.DatasourceConnection(),
 			"dbt_cloud_repository":           data_sources.DatasourceRepository(),
+			"dbt_cloud_user":                 data_sources.DatasourceUser(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job":                  resources.ResourceJob(),
