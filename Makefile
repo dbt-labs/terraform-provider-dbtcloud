@@ -17,7 +17,7 @@ install: build
 
 doc:
 	go get github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
-	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --website-temp-dir templates/
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --website-source-dir templates/
 
 test: deps
 	go test -mod=readonly -count=1 ./...
