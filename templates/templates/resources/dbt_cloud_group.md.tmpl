@@ -8,7 +8,7 @@ description: |-
 
 # dbt_cloud_group (Resource)
 
-
+*Note*: Groups currently do not support updates, as per both the API and the UI.
 
 
 
