@@ -2,7 +2,7 @@ package data_sources
 
 import (
 	"context"
-    "strconv"
+	"strconv"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
