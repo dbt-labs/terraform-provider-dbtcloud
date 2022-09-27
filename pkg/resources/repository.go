@@ -121,6 +121,9 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("deploy_key", repository.DeployKey.PublicKey); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
