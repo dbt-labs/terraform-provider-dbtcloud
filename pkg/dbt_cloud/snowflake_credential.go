@@ -27,6 +27,9 @@ type SnowflakeCredential struct {
 	User                 string `json:"user"`
 	Password             string `json:"password,omitempty"`
 	Auth_Type            string `json:"auth_type"`
+	Database			 string `json:"database"`
+	Role				 string `json:"role"`
+	Warehouse			 string	`json:"warehouse"`
 	Schema               string `json:"schema"`
 	PrivateKey           string `json:"private_key,omitempty"`
 	PrivateKeyPassphrase string `json:"private_key_passphrase,omitempty"`
@@ -58,12 +61,15 @@ func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*Snowf
 	return nil, fmt.Errorf("did not find credential ID %d in project ID %d", credentialId, projectId)
 }
 
-func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, schema string, user string, password string, privateKey string, privateKeyPassphrase string, authType string, numThreads int) (*SnowflakeCredential, error) {
+func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, database string, role string, warehouse string, schema string, user string, password string, privateKey string, privateKeyPassphrase string, authType string, numThreads int) (*SnowflakeCredential, error) {
 	newSnowflakeCredential := SnowflakeCredential{
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
 		Type:       type_,
 		State:      STATE_ACTIVE, // TODO: make variable
+		Database: 	database,
+		Role:		role,
+		Warehouse:	warehouse,
 		Schema:     schema,
 		User:       user,
 		Auth_Type:  authType,
