@@ -27,9 +27,9 @@ type SnowflakeCredential struct {
 	User                 string `json:"user"`
 	Password             string `json:"password,omitempty"`
 	Auth_Type            string `json:"auth_type"`
-	Database			 string `json:"database"`
-	Role				 string `json:"role"`
-	Warehouse			 string	`json:"warehouse"`
+	Database             string `json:"database"`
+	Role                 string `json:"role"`
+	Warehouse            string `json:"warehouse"`
 	Schema               string `json:"schema"`
 	PrivateKey           string `json:"private_key,omitempty"`
 	PrivateKeyPassphrase string `json:"private_key_passphrase,omitempty"`
@@ -67,9 +67,9 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 		Project_Id: projectId,
 		Type:       type_,
 		State:      STATE_ACTIVE, // TODO: make variable
-		Database: 	database,
-		Role:		role,
-		Warehouse:	warehouse,
+		Database:   database,
+		Role:       role,
+		Warehouse:  warehouse,
 		Schema:     schema,
 		User:       user,
 		Auth_Type:  authType,
