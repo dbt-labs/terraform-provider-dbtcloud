@@ -16,6 +16,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobName3 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -57,11 +58,13 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// DEFERRING JOBS
 			{
-				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
+					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_3"),
 					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_2", "deferring_job_id"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_3", "deferring_job_id"),
 				),
 			},
 			// IMPORT
@@ -143,7 +146,7 @@ resource "dbt_cloud_job" "test_job" {
 `, projectName, environmentName, jobName)
 }
 
-func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, projectName, environmentName string) string {
+func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_job_project" {
     name = "%s"
@@ -194,7 +197,23 @@ resource "dbt_cloud_job" "test_job_2" {
   }
   deferring_job_id = dbt_cloud_job.test_job.id
 }
-`, projectName, environmentName, jobName, jobName2)
+
+resource "dbt_cloud_job" "test_job_3" {
+	name        = "%s"
+	project_id = dbt_cloud_project.test_job_project.id
+	environment_id = dbt_cloud_environment.test_job_environment.environment_id
+	execute_steps = [
+	  "dbt test"
+	]
+	triggers = {
+	  "github_webhook": false,
+	  "git_provider_webhook": false,
+	  "schedule": false,
+	  "custom_branch_only": false,
+	}
+	self_deferring = true
+  }
+`, projectName, environmentName, jobName, jobName2, jobName3)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {

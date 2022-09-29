@@ -36,6 +36,12 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "ID of the job this job defers to",
 	},
+	"self_deferring": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Default:     false,
+		Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
+	},
 	"triggers": &schema.Schema{
 		Type:     schema.TypeMap,
 		Computed: true,
