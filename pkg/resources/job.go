@@ -129,14 +129,16 @@ var jobSchema = map[string]*schema.Schema{
 		Description: "Custom cron expression for schedule",
 	},
 	"deferring_job_id": &schema.Schema{
-		Type:        schema.TypeInt,
-		Optional:    true,
-		Description: "Job identifier that this job defers to",
+		Type:          schema.TypeInt,
+		Optional:      true,
+		Description:   "Job identifier that this job defers to",
+		ConflictsWith: []string{"self_deferring"},
 	},
 	"self_deferring": &schema.Schema{
-		Type:        schema.TypeBool,
-		Optional:    true,
-		Description: "Whether this job defers on a previous run of itself",
+		Type:          schema.TypeBool,
+		Optional:      true,
+		Description:   "Whether this job defers on a previous run of itself",
+		ConflictsWith: []string{"deferring_job_id"},
 	},
 }
 
@@ -293,7 +295,7 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
 		d.HasChange("generate_docs") || d.HasChange("triggers") || d.HasChange("schedule_type") ||
 		d.HasChange("schedule_interval") || d.HasChange("schedule_hours") || d.HasChange("schedule_days") ||
-		d.HasChange("schedule_cron") || d.HasChange("deferringJobId") || d.HasChange("selfDeferring") {
+		d.HasChange("schedule_cron") || d.HasChange("deferring_job_id") || d.HasChange("self_deferring") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
