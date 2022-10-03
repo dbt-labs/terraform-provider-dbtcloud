@@ -49,6 +49,21 @@ func ResourceSnowflakeCredential() *schema.Resource {
 				Description:  "The type of Snowflake credential ('password' or 'keypair')",
 				ValidateFunc: validation.StringInSlice(authTypes, false),
 			},
+			"database": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:      true,
+				Description: "Database to connect to",
+			},
+			"role": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:      true,
+				Description: "Role to assume",
+			},
+			"warehouse": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:      true,
+				Description: "Warehouse to use",
+			},
 			"schema": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
