@@ -98,7 +98,7 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Value:    token,
 	}
 	credentialFields := DatabricksCredentialFields{
-		Token:  credentialsFieldToken,
+		Token: credentialsFieldToken,
 	}
 	credentialDetails := DatabricksCredentialDetails{
 		Fields:      credentialFields,

@@ -36,6 +36,9 @@ resource "dbt_cloud_snowflake_credential" "new_credential" {
 
 ### Optional
 
+- `database` (String) Snowflake database to be used (defaults to DBT_ANALYTICS)
+- `role` (String) Snowflake role to be used (defaults to DBT_ANALYTICS)
+- `warehouse` (String) Snowflake warehouse to be used (defaults to DBT_ANALYTICS)
 - `is_active` (Boolean) Whether the Snowflake credential is active
 - `password` (String, Sensitive) Password for Snowflake
 - `private_key` (String, Sensitive) Private key for Snowflake
