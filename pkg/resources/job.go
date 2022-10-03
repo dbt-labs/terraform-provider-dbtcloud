@@ -223,7 +223,7 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("self_deferring", strconv.Itoa(*job.Deferring_Job_Id) == jobId); err != nil {
+	if err := d.Set("self_deferring", job.Deferring_Job_Id != nil && strconv.Itoa(*job.Deferring_Job_Id) == jobId); err != nil {
 		return diag.FromErr(err)
 	}
 
