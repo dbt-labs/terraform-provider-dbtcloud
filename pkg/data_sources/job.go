@@ -87,6 +87,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 	if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("self_deferring", job.Deferring_Job_Id != nil && *job.Deferring_Job_Id == *job.ID); err != nil {
+		return diag.FromErr(err)
+	}
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(job.Triggers)
 	json.Unmarshal(triggersInput, &triggers)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"fmt"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -375,7 +376,8 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		// Otherwise, set it back to what deferring_job_id specifies it to be
 		if d.HasChange("self_deferring") {
 			if d.Get("self_deferring") == true {
-				job.Deferring_Job_Id = job.ID
+				deferringJobID := *job.ID
+				job.Deferring_Job_Id = &deferringJobID
 			} else {
 				deferringJobId := d.Get("deferring_job_id").(int)
 				job.Deferring_Job_Id = &deferringJobId

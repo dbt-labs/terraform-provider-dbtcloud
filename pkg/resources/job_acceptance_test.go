@@ -58,7 +58,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// DEFERRING JOBS
 			{
-				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
@@ -146,7 +146,11 @@ resource "dbt_cloud_job" "test_job" {
 `, projectName, environmentName, jobName)
 }
 
-func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName string) string {
+func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName string, selfDeferring bool) string {
+	deferParam := "deferring_job_id = dbt_cloud_job.test_job.id"
+	if selfDeferring {
+		deferParam = "self_deferring = true"
+	}
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_job_project" {
     name = "%s"
@@ -195,7 +199,7 @@ resource "dbt_cloud_job" "test_job_2" {
     "schedule": false,
     "custom_branch_only": false,
   }
-  deferring_job_id = dbt_cloud_job.test_job.id
+  %s
 }
 
 resource "dbt_cloud_job" "test_job_3" {
@@ -213,7 +217,7 @@ resource "dbt_cloud_job" "test_job_3" {
 	}
 	self_deferring = true
   }
-`, projectName, environmentName, jobName, jobName2, jobName3)
+`, projectName, environmentName, jobName, jobName2, deferParam, jobName3)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
