@@ -64,7 +64,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_3"),
 					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_2", "deferring_job_id"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_3", "deferring_job_id"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_3", "self_deferring"),
 				),
 			},
 			// IMPORT
