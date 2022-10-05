@@ -51,17 +51,17 @@ func ResourceSnowflakeCredential() *schema.Resource {
 			},
 			"database": &schema.Schema{
 				Type:        schema.TypeString,
-				Optional:      true,
+				Optional:    true,
 				Description: "Database to connect to",
 			},
 			"role": &schema.Schema{
 				Type:        schema.TypeString,
-				Optional:      true,
+				Optional:    true,
 				Description: "Role to assume",
 			},
 			"warehouse": &schema.Schema{
 				Type:        schema.TypeString,
-				Optional:      true,
+				Optional:    true,
 				Description: "Warehouse to use",
 			},
 			"schema": &schema.Schema{
