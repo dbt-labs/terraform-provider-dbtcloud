@@ -23,6 +23,7 @@ description: |-
 ### Read-Only
 
 - `deferring_job_id` (Number) ID of the job this job defers to
+- `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `environment_id` (Number) ID of the environment the job is in
 - `id` (String) The ID of this resource.
 - `name` (String) Given name for the job

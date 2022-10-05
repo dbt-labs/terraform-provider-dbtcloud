@@ -80,7 +80,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int, selfDeferring bool) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -176,6 +176,15 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 	err = json.Unmarshal(body, &jobResponse)
 	if err != nil {
 		return nil, err
+	}
+
+	if selfDeferring {
+		updatedJob := newJob
+		deferringJobID := *jobResponse.Data.ID
+		selfID := *jobResponse.Data.ID
+		updatedJob.Deferring_Job_Id = &deferringJobID
+		updatedJob.ID = &selfID
+		return c.UpdateJob(strconv.Itoa(*jobResponse.Data.ID), updatedJob)
 	}
 
 	return &jobResponse.Data, nil
