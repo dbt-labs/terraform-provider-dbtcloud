@@ -23,10 +23,10 @@ description: |-
 ### Read-Only
 
 - `deferring_job_id` (Number) ID of the job this job defers to
-- `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `environment_id` (Number) ID of the environment the job is in
 - `id` (String) The ID of this resource.
 - `name` (String) Given name for the job
+- `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
 - `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
 
 

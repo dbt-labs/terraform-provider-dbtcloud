@@ -140,6 +140,12 @@ var jobSchema = map[string]*schema.Schema{
 		Description:   "Whether this job defers on a previous run of itself",
 		ConflictsWith: []string{"deferring_job_id"},
 	},
+	"timeout_seconds": &schema.Schema{
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Default:     0,
+		Description: "Number of seconds to allow the job to run before timing out",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -230,6 +236,10 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("timeout_seconds", job.Execution.Timeout_Seconds); err != nil {
+		return diag.FromErr(err)
+	}
+
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(job.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
@@ -264,6 +274,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	scheduleCron := d.Get("schedule_cron").(string)
 	deferringJobId := d.Get("deferring_job_id").(int)
 	selfDeferring := d.Get("self_deferring").(bool)
+	timeoutSeconds := d.Get("timeout_seconds").(int)
 
 	steps := []string{}
 	for _, step := range executeSteps {
@@ -278,7 +289,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, selfDeferring)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, selfDeferring, timeoutSeconds)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -298,7 +309,8 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
 		d.HasChange("generate_docs") || d.HasChange("triggers") || d.HasChange("schedule_type") ||
 		d.HasChange("schedule_interval") || d.HasChange("schedule_hours") || d.HasChange("schedule_days") ||
-		d.HasChange("schedule_cron") || d.HasChange("deferring_job_id") || d.HasChange("self_deferring") {
+		d.HasChange("schedule_cron") || d.HasChange("deferring_job_id") || d.HasChange("self_deferring") ||
+		d.HasChange("timeout_seconds") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -384,6 +396,10 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 				deferringJobId := d.Get("deferring_job_id").(int)
 				job.Deferring_Job_Id = &deferringJobId
 			}
+		}
+		if d.HasChange("timeout_seconds") {
+			timeoutSeconds := d.Get("timeout_seconds").(int)
+			job.Execution.Timeout_Seconds = timeoutSeconds
 		}
 
 		_, err = c.UpdateJob(jobId, *job)
