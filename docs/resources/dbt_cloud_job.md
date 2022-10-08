@@ -48,7 +48,6 @@ resource "dbt_cloud_job" "test" {
 
 - `dbt_version` (String) Version number of DBT to use in this job
 - `deferring_job_id` (Number) Job identifier that this job defers to
-- `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Flag for whether the job is marked active or deleted
 - `num_threads` (Number) Number of threads to use in the job
@@ -58,7 +57,9 @@ resource "dbt_cloud_job" "test" {
 - `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule
 - `schedule_interval` (Number) Number of hours between job executions if running on a schedule
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
+- `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the DBT profile
+- `timeout_seconds` (Number) Number of seconds to allow the job to run before timing out
 
 ### Read-Only
 
