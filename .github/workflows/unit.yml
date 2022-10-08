@@ -40,10 +40,10 @@ jobs:
 
       - uses: actions/github-script@v5
         id: update-check-run
-        if: ${{ always() }}
+        if: github.event_name == 'repository_dispatch'
         env:
           number: ${{ github.event.client_payload.pull_request.number }}
-          job: ${{ github.job.container }}
+          job: ${{ github.job }}
           # Conveniently, job.status maps to https://developer.github.com/v3/checks/runs/#update-a-check-run
           conclusion: ${{ job.status }}
         with:
