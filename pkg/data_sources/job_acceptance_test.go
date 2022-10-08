@@ -19,6 +19,7 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_job.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_job.test", "environment_id"),
 		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "name", randomJobName),
+		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "timeout_seconds", "180"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,6 +59,7 @@ func jobs(jobName string) string {
           "schedule" : false,
           "git_provider_webhook": false
         }
+        timeout_seconds = 180
     }
 
     data "dbt_cloud_job" "test" {

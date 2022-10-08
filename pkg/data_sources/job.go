@@ -51,6 +51,11 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
 	},
+	"timeout_seconds": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "Number of seconds before the job times out",
+	},
 }
 
 func DatasourceJob() *schema.Resource {
@@ -91,6 +96,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		}
 	}
 	if err := d.Set("self_deferring", selfDeferring); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("timeout_seconds", job.Execution.Timeout_Seconds); err != nil {
 		return diag.FromErr(err)
 	}
 	var triggers map[string]interface{}
