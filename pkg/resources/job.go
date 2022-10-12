@@ -363,11 +363,14 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			job.Schedule.Time.Interval = scheduleInterval
 		}
 		if d.HasChange("schedule_hours") {
+
 			scheduleHours := make([]int, len(d.Get("schedule_hours").([]interface{})))
 			for i, hour := range d.Get("schedule_hours").([]interface{}) {
 				scheduleHours[i] = hour.(int)
 			}
-			job.Schedule.Time.Hours = &scheduleHours
+			if len(d.Get("schedule_hours").([]interface{})) > 0 {
+				job.Schedule.Time.Hours = &scheduleHours
+			}
 			job.Schedule.Time.Type = "at_exact_hours"
 			job.Schedule.Time.Interval = 0
 		}
@@ -376,7 +379,9 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			for i, day := range d.Get("schedule_days").([]interface{}) {
 				scheduleDays[i] = day.(int)
 			}
-			job.Schedule.Date.Days = &scheduleDays
+			if len(d.Get("schedule_days").([]interface{})) > 0 {
+				job.Schedule.Date.Days = &scheduleDays
+			}
 		}
 		if d.HasChange("schedule_cron") {
 			scheduleCron := d.Get("schedule_cron").(string)
