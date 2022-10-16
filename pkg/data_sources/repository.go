@@ -62,8 +62,9 @@ func datasourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m int
 
 	repositoryID := d.Get("repository_id").(int)
 	projectID := d.Get("project_id").(int)
+	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
-	repository, err := c.GetRepository(strconv.Itoa(repositoryID), strconv.Itoa(projectID))
+	repository, err := c.GetRepository(strconv.Itoa(repositoryID), strconv.Itoa(projectID), fetchDeployKey)
 	if err != nil {
 		return diag.FromErr(err)
 	}

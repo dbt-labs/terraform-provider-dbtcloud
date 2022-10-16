@@ -37,8 +37,14 @@ type RepositoryResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/?include_related=['deploy_key']", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
+func (c *Client) GetRepository(repositoryID, projectID string, fetch_deploy_key bool) (*Repository, error) {
+
+	repositoryUrl := fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID)
+	if fetch_deploy_key {
+		repositoryUrl += "?include_related['deploy_key']"
+	}
+
+	req, err := http.NewRequest("GET", repositoryUrl, nil)
 	if err != nil {
 		return nil, err
 	}

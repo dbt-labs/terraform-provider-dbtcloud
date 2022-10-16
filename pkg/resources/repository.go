@@ -55,6 +55,12 @@ func ResourceRepository() *schema.Resource {
 				Optional:    true,
 				Description: "Identifier for the Gitlab project",
 			},
+			"fetch_deploy_key": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether we should return the public deploy key",
+			},
 			"deploy_key": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -99,8 +105,9 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
-	repository, err := c.GetRepository(repositoryIdString, projectIdString)
+	repository, err := c.GetRepository(repositoryIdString, projectIdString, fetchDeployKey)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -138,9 +145,10 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
 	if d.HasChange("is_active") || d.HasChange("git_clone_strategy") || d.HasChange("repository_credentials_id") {
-		repository, err := c.GetRepository(repositoryIdString, projectIdString)
+		repository, err := c.GetRepository(repositoryIdString, projectIdString, fetchDeployKey)
 		if err != nil {
 			return diag.FromErr(err)
 		}
