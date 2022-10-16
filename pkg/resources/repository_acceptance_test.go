@@ -29,6 +29,7 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository_github"),
 					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_github", "remote_url", repoUrlGithub),
+					resource.TestCheckResourceAttrSet("dbt_cloud_repository.test_repository_github", "deploy_key"),
 				),
 			},
 			// MODIFY
