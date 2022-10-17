@@ -49,6 +49,21 @@ func ResourceSnowflakeCredential() *schema.Resource {
 				Description:  "The type of Snowflake credential ('password' or 'keypair')",
 				ValidateFunc: validation.StringInSlice(authTypes, false),
 			},
+			"database": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Database to connect to",
+			},
+			"role": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Role to assume",
+			},
+			"warehouse": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Warehouse to use",
+			},
 			"schema": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -102,6 +117,9 @@ func resourceSnowflakeCredentialCreate(ctx context.Context, d *schema.ResourceDa
 	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
 	authType := d.Get("auth_type").(string)
+	database := d.Get("database").(string)
+	role := d.Get("role").(string)
+	warehouse := d.Get("warehouse").(string)
 	schema := d.Get("schema").(string)
 	user := d.Get("user").(string)
 	password := d.Get("password").(string)
@@ -109,7 +127,7 @@ func resourceSnowflakeCredentialCreate(ctx context.Context, d *schema.ResourceDa
 	privateKeyPassphrase := d.Get("private_key_passphrase").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	snowflakeCredential, err := c.CreateSnowflakeCredential(projectId, "snowflake", isActive, schema, user, password, privateKey, privateKeyPassphrase, authType, numThreads)
+	snowflakeCredential, err := c.CreateSnowflakeCredential(projectId, "snowflake", isActive, database, role, warehouse, schema, user, password, privateKey, privateKeyPassphrase, authType, numThreads)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -162,6 +180,15 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 	if err := d.Set("auth_type", snowflakeCredential.Auth_Type); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("database", snowflakeCredential.Database); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("role", snowflakeCredential.Role); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("warehouse", snowflakeCredential.Warehouse); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("schema", snowflakeCredential.Schema); err != nil {
 		return diag.FromErr(err)
 	}
@@ -197,7 +224,7 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("auth_type") || d.HasChange("schema") || d.HasChange("user") || d.HasChange("password") || d.HasChange("num_threads") || d.HasChange("private_key") || d.HasChange("private_key_passphrase") {
+	if d.HasChange("auth_type") || d.HasChange("database") || d.HasChange("role") || d.HasChange("warehouse") || d.HasChange("schema") || d.HasChange("user") || d.HasChange("password") || d.HasChange("num_threads") || d.HasChange("private_key") || d.HasChange("private_key_passphrase") {
 		snowflakeCredential, err := c.GetSnowflakeCredential(projectId, snowflakeCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -206,6 +233,18 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 		if d.HasChange("auth_type") {
 			authType := d.Get("auth_type").(string)
 			snowflakeCredential.Auth_Type = authType
+		}
+		if d.HasChange("database") {
+			schema := d.Get("database").(string)
+			snowflakeCredential.Schema = schema
+		}
+		if d.HasChange("role") {
+			schema := d.Get("role").(string)
+			snowflakeCredential.Schema = schema
+		}
+		if d.HasChange("warehouse") {
+			schema := d.Get("warehouse").(string)
+			snowflakeCredential.Schema = schema
 		}
 		if d.HasChange("schema") {
 			schema := d.Get("schema").(string)

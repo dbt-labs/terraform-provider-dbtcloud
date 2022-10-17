@@ -16,6 +16,9 @@ import (
 func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -28,9 +31,12 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, schema, user, password),
+				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database, role, warehouse, schema, user, password),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "database", database),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "role", role),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "warehouse", warehouse),
 					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "schema", schema),
 					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "user", user),
 				),
@@ -53,9 +59,12 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, schema, user, privateKey, privateKeyPassphrase),
+				Config: testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, database, role, warehouse, schema, user, privateKey, privateKeyPassphrase),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential_p"),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "database", database),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "role", role),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "warehouse", warehouse),
 					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "schema", schema),
 					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "user", user),
 					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "private_key", privateKey),
@@ -75,7 +84,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, schema, user, password string) string {
+func testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database, role, warehouse, schema, user, password string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
   name        = "%s"
@@ -84,15 +93,18 @@ resource "dbt_cloud_snowflake_credential" "test_credential" {
     is_active = true
     project_id = dbt_cloud_project.test_project.id
     auth_type = "password"
+	database = "%s"
+	role = "%s"
+	warehouse = "%s"
     schema = "%s"
     user = "%s"
     password = "%s"
     num_threads = 3
 }
-`, projectName, schema, user, password)
+`, projectName, database, role, warehouse, schema, user, password)
 }
 
-func testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, schema, user, private_key, private_key_passphrase string) string {
+func testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, database, role, warehouse, schema, user, private_key, private_key_passphrase string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
   name        = "%s"
@@ -101,13 +113,16 @@ resource "dbt_cloud_snowflake_credential" "test_credential_p" {
     is_active = true
     project_id = dbt_cloud_project.test_project.id
     auth_type = "keypair"
+	database = "%s"
+	role = "%s"
+	warehouse = "%s"
     schema = "%s"
     user = "%s"
     private_key = "%s"
     private_key_passphrase = "%s"
     num_threads = 3
 }
-`, projectName, schema, user, private_key, private_key_passphrase)
+`, projectName, database, role, warehouse, schema, user, private_key, private_key_passphrase)
 }
 
 func testAccCheckDbtCloudSnowflakeCredentialExists(resource string) resource.TestCheckFunc {

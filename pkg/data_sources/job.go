@@ -36,6 +36,11 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "ID of the job this job defers to",
 	},
+	"self_deferring": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
+	},
 	"triggers": &schema.Schema{
 		Type:     schema.TypeMap,
 		Computed: true,
@@ -45,6 +50,11 @@ var jobSchema = map[string]*schema.Schema{
 			Default:  false,
 		},
 		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
+	},
+	"timeout_seconds": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "Number of seconds before the job times out",
 	},
 }
 
@@ -79,7 +89,16 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 	if err := d.Set("job_id", job.ID); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
+	selfDeferring := job.Deferring_Job_Id != nil && *job.Deferring_Job_Id == *job.ID
+	if !selfDeferring {
+		if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+	if err := d.Set("self_deferring", selfDeferring); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("timeout_seconds", job.Execution.Timeout_Seconds); err != nil {
 		return diag.FromErr(err)
 	}
 	var triggers map[string]interface{}
