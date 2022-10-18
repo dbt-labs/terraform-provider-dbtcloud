@@ -9,14 +9,22 @@ import (
 )
 
 type Repository struct {
-	ID                      *int   `json:"id,omitempty"`
-	AccountID               int    `json:"account_id"`
-	ProjectID               int    `json:"project_id"`
-	RemoteUrl               string `json:"remote_url"`
-	State                   int    `json:"state"`
-	GitCloneStrategy        string `json:"git_clone_strategy"`
-	RepositoryCredentialsID *int   `json:"repository_credentials_id"`
-	GitlabProjectID         *int   `json:"gitlab_project_id"`
+	ID                      *int      `json:"id,omitempty"`
+	AccountID               int       `json:"account_id"`
+	ProjectID               int       `json:"project_id"`
+	RemoteUrl               string    `json:"remote_url"`
+	State                   int       `json:"state"`
+	GitCloneStrategy        string    `json:"git_clone_strategy"`
+	RepositoryCredentialsID *int      `json:"repository_credentials_id"`
+	GitlabProjectID         *int      `json:"gitlab_project_id"`
+	DeployKey               DeployKey `json:"deploy_key,omitempty"`
+}
+
+type DeployKey struct {
+	ID        int    `json:"id"`
+	AccountID int    `json:"account_id"`
+	State     int    `json:"state"`
+	PublicKey string `json:"public_key"`
 }
 
 type RepositoryListResponse struct {
@@ -29,8 +37,14 @@ type RepositoryResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-func (c *Client) GetRepository(repositoryID, projectID string) (*Repository, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
+func (c *Client) GetRepository(repositoryID, projectID string, fetch_deploy_key bool) (*Repository, error) {
+
+	repositoryUrl := fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID)
+	if fetch_deploy_key {
+		repositoryUrl += "?include_related['deploy_key']"
+	}
+
+	req, err := http.NewRequest("GET", repositoryUrl, nil)
 	if err != nil {
 		return nil, err
 	}
