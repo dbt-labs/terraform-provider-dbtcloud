@@ -9,14 +9,18 @@ import (
 )
 
 type ConnectionDetails struct {
-	Account                string `json:"account"`
-	Database               string `json:"database"`
-	Warehouse              string `json:"warehouse"`
-	AllowSSO               bool   `json:"allow_sso"`
-	ClientSessionKeepAlive bool   `json:"client_session_keep_alive"`
-	Role                   string `json:"role"`
+	Account                string `json:"account,omitempty"`
+	Database               string `json:"database,omitempty"`
+	DBName                 string `json:"dbname,omitempty"`
+	Warehouse              string `json:"warehouse,omitempty"`
+	AllowSSO               *bool  `json:"allow_sso,omitempty"`
+	ClientSessionKeepAlive *bool  `json:"client_session_keep_alive,omitempty"`
+	Role                   string `json:"role,omitempty"`
 	OAuthClientID          string `json:"oauth_client_id,omitempty"`
 	OAuthClientSecret      string `json:"oauth_client_secret,omitempty"`
+	Host                   string `json:"hostname,omitempty"`
+	Port                   int    `json:"port,omitempty"`
+	TunnelEnabled          *bool  `json:"tunnel_enabled,omitempty"`
 }
 
 type Connection struct {
@@ -63,21 +67,31 @@ func (c *Client) GetConnection(connectionID, projectID string) (*Connection, err
 	return &connectionResponse.Data, nil
 }
 
-func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO bool, clientSessionKeepAlive bool, oAuthClientID string, oAuthClientSecret string) (*Connection, error) {
+func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO *bool, clientSessionKeepAlive *bool, oAuthClientID string, oAuthClientSecret string, hostName string, port int, tunnelEnabled *bool) (*Connection, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
 	}
 
 	connectionDetails := ConnectionDetails{
-		Account:                account,
-		Database:               database,
-		Warehouse:              warehouse,
-		AllowSSO:               allowSSO,
-		ClientSessionKeepAlive: clientSessionKeepAlive,
-		Role:                   role,
-		OAuthClientID:          oAuthClientID,
-		OAuthClientSecret:      oAuthClientSecret,
+		Account:           account,
+		Warehouse:         warehouse,
+		Role:              role,
+		OAuthClientID:     oAuthClientID,
+		OAuthClientSecret: oAuthClientSecret,
+		Host:              hostName,
+		Port:              port,
+	}
+	if connectionType == "snowflake" {
+		connectionDetails.Database = database
+		connectionDetails.AllowSSO = allowSSO
+		connectionDetails.ClientSessionKeepAlive = clientSessionKeepAlive
+	} else if connectionType == "redshift" {
+		connectionDetails.TunnelEnabled = tunnelEnabled
+		connectionDetails.DBName = database
+	} else {
+		connectionDetails.TunnelEnabled = tunnelEnabled
+		connectionDetails.DBName = database
 	}
 
 	newConnection := Connection{

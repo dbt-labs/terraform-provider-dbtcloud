@@ -15,6 +15,9 @@ var (
 	connectionTypes = []string{
 		"snowflake",
 		"bigquery",
+		"redshift",
+		"postgres",
+		"alloydb",
 	}
 )
 
@@ -54,9 +57,22 @@ func ResourceConnection() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(connectionTypes, false),
 			},
 			"account": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Account name for the connection",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Account name for the connection",
+				ConflictsWith: []string{"host_name"},
+			},
+			"host_name": &schema.Schema{
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "Host name for the connection",
+				ConflictsWith: []string{"account"},
+			},
+			"port": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     nil,
+				Description: "Port number to connect via",
 			},
 			"database": &schema.Schema{
 				Type:        schema.TypeString,
@@ -65,12 +81,13 @@ func ResourceConnection() *schema.Resource {
 			},
 			"warehouse": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Warehouse name for the connection",
 			},
 			"role": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "",
 				Description: "Role name for the connection",
 			},
 			"allow_sso": &schema.Schema{
@@ -88,14 +105,20 @@ func ResourceConnection() *schema.Resource {
 			"oauth_client_id": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     false,
+				Default:     "",
 				Description: "OAuth client identifier",
 			},
 			"oauth_client_secret": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     false,
+				Default:     "",
 				Description: "OAuth client secret",
+			},
+			"tunnel_enabled": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether or not tunneling should be enabled on your database connection",
 			},
 		},
 
@@ -122,8 +145,11 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	allowKeepAlive := d.Get("allow_keep_alive").(bool)
 	oAuthClientID := d.Get("oauth_client_id").(string)
 	oAuthClientSecret := d.Get("oauth_client_secret").(string)
+	hostName := d.Get("host_name").(string)
+	port := d.Get("port").(int)
+	tunnelEnabled := d.Get("tunnel_enabled").(bool)
 
-	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, allowSSO, allowKeepAlive, oAuthClientID, oAuthClientSecret)
+	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -170,7 +196,12 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("account", connection.Details.Account); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("database", connection.Details.Database); err != nil {
+
+	databaseName := connection.Details.DBName
+	if connection.Type == "snowflake" {
+		databaseName = connection.Details.Database
+	}
+	if err := d.Set("database", databaseName); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("warehouse", connection.Details.Warehouse); err != nil {
@@ -189,6 +220,15 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("oauth_client_secret", connection.Details.OAuthClientSecret); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("host_name", connection.Details.Host); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("port", connection.Details.Port); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("tunnel_enabled", connection.Details.TunnelEnabled); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -223,7 +263,11 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		}
 		if d.HasChange("database") {
 			database := d.Get("database").(string)
-			connection.Details.Database = database
+			if connection.Type == "snowflake" {
+				connection.Details.Database = database
+			} else {
+				connection.Details.DBName = database
+			}
 		}
 		if d.HasChange("warehouse") {
 			warehouse := d.Get("warehouse").(string)
@@ -235,11 +279,11 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		}
 		if d.HasChange("allow_sso") {
 			allowSSO := d.Get("allow_sso").(bool)
-			connection.Details.AllowSSO = allowSSO
+			connection.Details.AllowSSO = &allowSSO
 		}
 		if d.HasChange("allow_keep_alive") {
 			allowKeepAlive := d.Get("allow_keep_alive").(bool)
-			connection.Details.ClientSessionKeepAlive = allowKeepAlive
+			connection.Details.ClientSessionKeepAlive = &allowKeepAlive
 		}
 		if d.HasChange("oauth_client_id") {
 			oAuthClientID := d.Get("oauth_client_id").(string)
@@ -248,6 +292,14 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("oauth_client_secret") {
 			oAuthClientSecret := d.Get("oauth_client_secret").(string)
 			connection.Details.OAuthClientSecret = oAuthClientSecret
+		}
+		if d.HasChange("host_name") {
+			hostName := d.Get("host_name").(string)
+			connection.Details.Host = hostName
+		}
+		if d.HasChange("port") {
+			port := d.Get("port").(int)
+			connection.Details.Port = port
 		}
 
 		_, err = c.UpdateConnection(connectionIdString, projectIdString, *connection)

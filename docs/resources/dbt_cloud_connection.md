@@ -17,21 +17,24 @@ description: |-
 
 ### Required
 
-- `account` (String) Account name for the connection
 - `database` (String) Database name for the connection
 - `name` (String) Connection name
 - `project_id` (Number) Project ID to create the connection in
-- `role` (String) Role name for the connection
 - `type` (String) The type of connection
-- `warehouse` (String) Warehouse name for the connection
 
 ### Optional
 
+- `account` (String) Account name for the connection
 - `allow_keep_alive` (Boolean) Whether or not the connection should allow client session keep alive
 - `allow_sso` (Boolean) Whether or not the connection should allow SSO
+- `host_name` (String) Host name for the connection
 - `is_active` (Boolean) Whether the connection is active
 - `oauth_client_id` (String) OAuth client identifier
 - `oauth_client_secret` (String) OAuth client secret
+- `port` (Number) Port number to connect via
+- `role` (String) Role name for the connection
+- `tunnel_enabled` (Boolean) Whether or not tunneling should be enabled on your database connection
+- `warehouse` (String) Warehouse name for the connection
 
 ### Read-Only
 

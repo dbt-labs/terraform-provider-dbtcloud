@@ -60,6 +60,102 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudRedshiftConnectionResource(t *testing.T) {
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudConnectionResourceRedshiftConfig(connectionName, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_redshift_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_redshift_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_redshift_connection", "database", "db"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_redshift_connection", "port", "5432"),
+				),
+			},
+			// RENAME
+			{
+				Config: testAccDbtCloudConnectionResourceRedshiftConfig(connectionName2, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_redshift_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_redshift_connection", "name", connectionName2),
+				),
+			},
+			// 			// MODIFY
+			// 			{
+			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_environment.test_env"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+			// 				),
+			// 			},
+			// IMPORT
+			{
+				ResourceName:            "dbt_cloud_connection.test_redshift_connection",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"oauth_client_id", "oauth_client_secret"},
+			},
+		},
+	})
+}
+
+func TestAccDbtCloudPostgresConnectionResource(t *testing.T) {
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudConnectionResourcePostgresConfig(connectionName, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_postgres_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_postgres_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_postgres_connection", "database", "db"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_postgres_connection", "port", "5432"),
+				),
+			},
+			// RENAME
+			{
+				Config: testAccDbtCloudConnectionResourcePostgresConfig(connectionName2, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_postgres_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_postgres_connection", "name", connectionName2),
+				),
+			},
+			// 			// MODIFY
+			// 			{
+			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_environment.test_env"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+			// 				),
+			// 			},
+			// IMPORT
+			{
+				ResourceName:            "dbt_cloud_connection.test_postgres_connection",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"oauth_client_id", "oauth_client_secret"},
+			},
+		},
+	})
+}
+
 func testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName, oAuthClientID, oAuthClientSecret string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
@@ -80,6 +176,42 @@ resource "dbt_cloud_connection" "test_connection" {
   oauth_client_secret = "%s"
 }
 `, projectName, connectionName, oAuthClientID, oAuthClientSecret)
+}
+
+func testAccDbtCloudConnectionResourceRedshiftConfig(connectionName, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_connection" "test_redshift_connection" {
+  name        = "%s"
+  type = "redshift"
+  project_id = dbt_cloud_project.test_project.id
+  host_name = "test_host_name"
+  database = "db"
+  port = 5432
+  tunnel_enabled = true
+}
+`, projectName, connectionName)
+}
+
+func testAccDbtCloudConnectionResourcePostgresConfig(connectionName, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_connection" "test_postgres_connection" {
+  name        = "%s"
+  type = "postgres"
+  project_id = dbt_cloud_project.test_project.id
+  host_name = "test_postgres"
+  database = "db"
+  port = 5432
+  tunnel_enabled = true
+}
+`, projectName, connectionName)
 }
 
 //
