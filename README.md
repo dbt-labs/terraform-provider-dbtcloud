@@ -41,5 +41,5 @@ simply showcase what this module can do rather than be best practices for any
 given use case.
 
 ## Running Acceptance Tests
-Currently acceptance tests, run via `make test-acceptance` must be done on your
+Currently, acceptance tests, run via `make test-acceptance` must be done on your
 own account, as there is no free tier of DBT Cloud that grants API access
