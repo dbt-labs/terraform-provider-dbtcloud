@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -92,7 +91,7 @@ func resourceProjectArtefactsRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	projectID, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
+	projectID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
