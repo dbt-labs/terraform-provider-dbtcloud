@@ -112,7 +112,7 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Threads:            numThreads,
 		Target_Name:        targetName,
 		Adapter_Id:         adapterId,
-		Credential_Details: credentialDetails,
+// 		Credential_Details: credentialDetails,
 	}
 
 	newDatabricksCredentialData, err := json.Marshal(newDatabricksCredential)
