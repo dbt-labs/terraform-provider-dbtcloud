@@ -16,33 +16,33 @@ type DatabricksCredentialResponse struct {
 	Data   DatabricksCredential `json:"data"`
 	Status ResponseStatus       `json:"status"`
 }
-
-type DatabricksCredentialFieldMetadataValidation struct {
-	Required bool `json:"required"`
-}
-
-type DatabricksCredentialFieldMetadata struct {
-	Label       string                                      `json:"label"`
-	Description string                                      `json:"description"`
-	Field_Type  string                                      `json:"field_type"`
-	Encrypt     bool                                        `json:"encrypt"`
-	Validation  DatabricksCredentialFieldMetadataValidation `json:"validation"`
-}
-
-type DatabricksCredentialField struct {
-	Metadata DatabricksCredentialFieldMetadata `json:"metadata"`
-	Value    string                            `json:"value"`
-}
-
-type DatabricksCredentialFields struct {
-	Token  DatabricksCredentialField `json:"token"`
-	Schema DatabricksCredentialField `json:"schema"`
-}
-
-type DatabricksCredentialDetails struct {
-	Fields      DatabricksCredentialFields `json:"fields"`
-	Field_Order []int                      `json:"field_order"`
-}
+//
+// type DatabricksCredentialFieldMetadataValidation struct {
+// 	Required bool `json:"required"`
+// }
+//
+// type DatabricksCredentialFieldMetadata struct {
+// 	Label       string                                      `json:"label"`
+// 	Description string                                      `json:"description"`
+// 	Field_Type  string                                      `json:"field_type"`
+// 	Encrypt     bool                                        `json:"encrypt"`
+// 	Validation  DatabricksCredentialFieldMetadataValidation `json:"validation"`
+// }
+//
+// type DatabricksCredentialField struct {
+// 	Metadata DatabricksCredentialFieldMetadata `json:"metadata"`
+// 	Value    string                            `json:"value"`
+// }
+//
+// type DatabricksCredentialFields struct {
+// 	Token  DatabricksCredentialField `json:"token"`
+// 	Schema DatabricksCredentialField `json:"schema"`
+// }
+//
+// type DatabricksCredentialDetails struct {
+// 	Fields      DatabricksCredentialFields `json:"fields"`
+// 	Field_Order []int                      `json:"field_order"`
+// }
 
 type DatabricksCredential struct {
 	ID                 *int                        `json:"id"`
@@ -53,7 +53,7 @@ type DatabricksCredential struct {
 	Threads            int                         `json:"threads"`
 	Target_Name        string                      `json:"target_name"`
 	Adapter_Id         int                         `json:"adapter_id"`
-	Credential_Details DatabricksCredentialDetails `json:"credential_details"`
+// 	Credential_Details DatabricksCredentialDetails `json:"credential_details"`
 }
 
 func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*DatabricksCredential, error) {
