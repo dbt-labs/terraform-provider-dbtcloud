@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/provider"
+	"github.com/gthesheep/terraform-provider-dbt_cloud/pkg/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

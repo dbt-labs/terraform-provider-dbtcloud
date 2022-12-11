@@ -15,7 +15,7 @@ package resources_test
 //
 // 	config := fmt.Sprintf(`
 // 			resource "dbt_cloud_job" "test" {
-// 				name = "dbt-cloud-job-%s"
+// 				name = "dbt_cloud-job-%s"
 // 				project_id = 123
 // 				environment_id = 789
 // 				execute_steps = [
@@ -40,7 +40,7 @@ package resources_test
 // 		resource.TestCheckResourceAttrSet("dbt_cloud_job.test", "job_id"),
 // 		resource.TestCheckResourceAttr("dbt_cloud_job.test", "project_id", "123"),
 // 		resource.TestCheckResourceAttr("dbt_cloud_job.test", "environment_id", "789"),
-// 		resource.TestCheckResourceAttr("dbt_cloud_job.test", "name", fmt.Sprintf("dbt-cloud-job-%s", randomID)),
+// 		resource.TestCheckResourceAttr("dbt_cloud_job.test", "name", fmt.Sprintf("dbt_cloud-job-%s", randomID)),
 // 	)
 //
 // 	resource.ParallelTest(t, resource.TestCase{

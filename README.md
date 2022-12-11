@@ -1,4 +1,4 @@
-# terraform-provider-dbt-cloud
+# terraform-provider-dbt_cloud
 Terraform Provider for DBT Cloud
 
 Primarily focused on managing jobs in DBT Cloud, given what
@@ -10,7 +10,7 @@ setup, with the latest version number.
 terraform {
   required_providers {
     dbt = {
-      source  = "GtheSheep/dbt-cloud"
+      source  = "GtheSheep/dbt_cloud"
       version = "<version>"
     }
   }

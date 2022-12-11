@@ -15,14 +15,14 @@ package resources_test
 //
 // 	config := fmt.Sprintf(`
 // 			resource "dbt_cloud_project" "test" {
-// 				name = "dbt-cloud-project-%s"
+// 				name = "dbt_cloud-project-%s"
 // 				dbt_project_subdirectory = "/this-way/for/DBT"
 // 			}
 // 		`, randomID)
 //
 // 	check := resource.ComposeAggregateTestCheckFunc(
 // 		resource.TestCheckResourceAttrSet("dbt_cloud_project.test", "ID"),
-// 		resource.TestCheckResourceAttr("dbt_cloud_project.test", "name", fmt.Sprintf("dbt-cloud-project-%s", randomID)),
+// 		resource.TestCheckResourceAttr("dbt_cloud_project.test", "name", fmt.Sprintf("dbt_cloud-project-%s", randomID)),
 // 		resource.TestCheckResourceAttr("dbt_cloud_project.test", "dbt_project_subdirectory", "/this-way/for/DBT"),
 // 	)
 //

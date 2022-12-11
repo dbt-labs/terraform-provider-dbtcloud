@@ -16,7 +16,7 @@ package resources_test
 // 	config := fmt.Sprintf(`
 // 			resource "dbt_cloud_environment" "test" {
 // 				is_active = true
-// 				name = "dbt-cloud-environment-%s"
+// 				name = "dbt_cloud-environment-%s"
 // 				project_id = 123
 // 				dbt_version = "0.21.0"
 // 				type = "deployment"
@@ -28,7 +28,7 @@ package resources_test
 // 	check := resource.ComposeAggregateTestCheckFunc(
 // 		resource.TestCheckResourceAttrSet("dbt_cloud_environment.test", "environment_id"),
 // 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "is_active", "true"),
-// 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "name", fmt.Sprintf("dbt-cloud-job-%s", randomID)),
+// 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "name", fmt.Sprintf("dbt_cloud-job-%s", randomID)),
 // 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "project_id", "123"),
 // 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "dbt_version", "0.21.0"),
 // 		resource.TestCheckResourceAttr("dbt_cloud_environment.test", "type", "deployment"),

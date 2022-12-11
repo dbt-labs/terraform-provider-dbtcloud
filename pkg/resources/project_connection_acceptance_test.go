@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	"github.com/gthesheep/terraform-provider-dbt_cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
