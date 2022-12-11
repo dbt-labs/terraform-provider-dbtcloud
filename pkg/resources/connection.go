@@ -187,7 +187,7 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	// TODO: Remove when API returns these
+	// TODO: Remove when done better
 	connection.Details.OAuthClientID = d.Get("oauth_client_id").(string)
 	connection.Details.OAuthClientSecret = d.Get("oauth_client_secret").(string)
 
@@ -244,10 +244,11 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("tunnel_enabled", connection.Details.TunnelEnabled); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("http_path", connection.Details.AdapterDetails.Fields["http_path"].Value); err != nil {
+	adapterDetails := *connection.Details.AdapterDetails
+	if err := d.Set("http_path", adapterDetails.Fields["http_path"].Value); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("catalog", connection.Details.AdapterDetails.Fields["catalog"].Value); err != nil {
+	if err := d.Set("catalog", adapterDetails.Fields["catalog"].Value); err != nil {
 		return diag.FromErr(err)
 	}
 
