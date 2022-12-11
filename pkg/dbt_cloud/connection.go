@@ -21,7 +21,7 @@ type ConnectionDetails struct {
 	Host                   string                      `json:"hostname,omitempty"`
 	Port                   int                         `json:"port,omitempty"`
 	TunnelEnabled          *bool                       `json:"tunnel_enabled,omitempty"`
-	AdapterDetails         DatabricksCredentialDetails `json:"connection_details,omitempty"`
+	AdapterDetails         *DatabricksCredentialDetails `json:"connection_details,omitempty"`
 }
 
 type Connection struct {
@@ -148,7 +148,7 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 			Field_Order: fieldOrder,
 		}
 
-		connectionDetails.AdapterDetails = databricksCredentialDetails
+		connectionDetails.AdapterDetails = &databricksCredentialDetails
 	} else {
 		connectionDetails.Account = account
 		connectionDetails.Warehouse = warehouse
