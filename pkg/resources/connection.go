@@ -244,11 +244,16 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("tunnel_enabled", connection.Details.TunnelEnabled); err != nil {
 		return diag.FromErr(err)
 	}
-	adapterDetails := *connection.Details.AdapterDetails
-	if err := d.Set("http_path", adapterDetails.Fields["http_path"].Value); err != nil {
+	httpPath := ""
+	catalog := ""
+	if connection.Details.AdapterDetails != nil {
+		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value
+		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value
+	}
+	if err := d.Set("http_path", httpPath); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("catalog", adapterDetails.Fields["catalog"].Value); err != nil {
+	if err := d.Set("catalog", catalog); err != nil {
 		return diag.FromErr(err)
 	}
 

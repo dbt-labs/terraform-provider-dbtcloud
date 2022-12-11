@@ -9,18 +9,18 @@ import (
 )
 
 type ConnectionDetails struct {
-	Account                string                      `json:"account,omitempty"`
-	Database               string                      `json:"database,omitempty"`
-	DBName                 string                      `json:"dbname,omitempty"`
-	Warehouse              string                      `json:"warehouse,omitempty"`
-	AllowSSO               *bool                       `json:"allow_sso,omitempty"`
-	ClientSessionKeepAlive *bool                       `json:"client_session_keep_alive,omitempty"`
-	Role                   string                      `json:"role,omitempty"`
-	OAuthClientID          string                      `json:"oauth_client_id,omitempty"`
-	OAuthClientSecret      string                      `json:"oauth_client_secret,omitempty"`
-	Host                   string                      `json:"hostname,omitempty"`
-	Port                   int                         `json:"port,omitempty"`
-	TunnelEnabled          *bool                       `json:"tunnel_enabled,omitempty"`
+	Account                string                       `json:"account,omitempty"`
+	Database               string                       `json:"database,omitempty"`
+	DBName                 string                       `json:"dbname,omitempty"`
+	Warehouse              string                       `json:"warehouse,omitempty"`
+	AllowSSO               *bool                        `json:"allow_sso,omitempty"`
+	ClientSessionKeepAlive *bool                        `json:"client_session_keep_alive,omitempty"`
+	Role                   string                       `json:"role,omitempty"`
+	OAuthClientID          string                       `json:"oauth_client_id,omitempty"`
+	OAuthClientSecret      string                       `json:"oauth_client_secret,omitempty"`
+	Host                   string                       `json:"hostname,omitempty"`
+	Port                   int                          `json:"port,omitempty"`
+	TunnelEnabled          *bool                        `json:"tunnel_enabled,omitempty"`
 	AdapterDetails         *DatabricksCredentialDetails `json:"connection_details,omitempty"`
 }
 
