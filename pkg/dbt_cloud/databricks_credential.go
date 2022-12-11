@@ -83,36 +83,36 @@ func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*Data
 }
 
 func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string) (*DatabricksCredential, error) {
-	// 	validation := DatabricksCredentialFieldMetadataValidation{
-	// 		Required: false,
-	// 	}
-	// 	tokenMetadata := DatabricksCredentialFieldMetadata{
-	// 		Label:       "Token",
-	// 		Description: "Personalized user token.",
-	// 		Field_Type:  "text",
-	// 		Encrypt:     true,
-	// 		Validation:  validation,
-	// 	}
-	// 	credentialsFieldToken := DatabricksCredentialField{
-	// 		Metadata: tokenMetadata,
-	// 		Value:    token,
-	// 	}
-	// 	credentialFields := DatabricksCredentialFields{
-	// 		Token: credentialsFieldToken,
-	// 	}
-	// 	credentialDetails := DatabricksCredentialDetails{
-	// 		Fields:      credentialFields,
-	// 		Field_Order: []int{},
-	// 	}
+	validation := DatabricksCredentialFieldMetadataValidation{
+		Required: false,
+	}
+	tokenMetadata := DatabricksCredentialFieldMetadata{
+		Label:       "Token",
+		Description: "Personalized user token.",
+		Field_Type:  "text",
+		Encrypt:     true,
+		Validation:  validation,
+	}
+	credentialsFieldToken := DatabricksCredentialField{
+		Metadata: tokenMetadata,
+		Value:    token,
+	}
+	credentialFields := DatabricksCredentialFields{
+		Token: credentialsFieldToken,
+	}
+	credentialDetails := DatabricksCredentialDetails{
+		Fields:      credentialFields,
+		Field_Order: []int{},
+	}
 	newDatabricksCredential := DatabricksCredential{
-		Account_Id:  c.AccountID,
-		Project_Id:  projectId,
-		Type:        type_,
-		State:       STATE_ACTIVE,
-		Threads:     numThreads,
-		Target_Name: targetName,
-		Adapter_Id:  adapterId,
-		// 		Credential_Details: credentialDetails,
+		Account_Id:         c.AccountID,
+		Project_Id:         projectId,
+		Type:               type_,
+		State:              STATE_ACTIVE,
+		Threads:            numThreads,
+		Target_Name:        targetName,
+		Adapter_Id:         adapterId,
+		Credential_Details: credentialDetails,
 	}
 
 	newDatabricksCredentialData, err := json.Marshal(newDatabricksCredential)
