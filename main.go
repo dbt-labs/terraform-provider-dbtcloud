@@ -7,6 +7,9 @@ import (
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/provider"
 )
 
+// Generate the Terraform provider documentation using `tfplugindocs`:
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --rendered-provider-name dbt_cloud
+
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: func() *schema.Provider {
