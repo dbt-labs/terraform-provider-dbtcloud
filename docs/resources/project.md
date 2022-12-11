@@ -27,4 +27,12 @@ description: |-
 
 - `id` (String) The ID of this resource.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# Import using a project ID found in the URL or via the API.
+terraform import dbt_cloud_project.test_project "project_id"
+terraform import dbt_cloud_project.test_project 12345
+```
