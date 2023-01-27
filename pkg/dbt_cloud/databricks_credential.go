@@ -22,11 +22,12 @@ type DatabricksCredentialFieldMetadataValidation struct {
 }
 
 type DatabricksCredentialFieldMetadata struct {
-	Label       string                                      `json:"label"`
-	Description string                                      `json:"description"`
-	Field_Type  string                                      `json:"field_type"`
-	Encrypt     bool                                        `json:"encrypt"`
-	Validation  DatabricksCredentialFieldMetadataValidation `json:"validation"`
+	Label        string                                      `json:"label"`
+	Description  string                                      `json:"description"`
+	Field_Type   string                                      `json:"field_type"`
+	Encrypt      bool                                        `json:"encrypt"`
+	Overrideable bool                                        `json:"overrideable"`
+	Validation   DatabricksCredentialFieldMetadataValidation `json:"validation"`
 }
 
 type DatabricksCredentialField struct {
@@ -34,14 +35,9 @@ type DatabricksCredentialField struct {
 	Value    string                            `json:"value"`
 }
 
-type DatabricksCredentialFields struct {
-	Token  DatabricksCredentialField `json:"token"`
-	Schema DatabricksCredentialField `json:"schema"`
-}
-
 type DatabricksCredentialDetails struct {
-	Fields      DatabricksCredentialFields `json:"fields"`
-	Field_Order []int                      `json:"field_order"`
+	Fields      map[string]DatabricksCredentialField `json:"fields"`
+	Field_Order []string                             `json:"field_order"`
 }
 
 type DatabricksCredential struct {
@@ -97,12 +93,11 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Metadata: tokenMetadata,
 		Value:    token,
 	}
-	credentialFields := DatabricksCredentialFields{
-		Token: credentialsFieldToken,
-	}
+	credentialFields := map[string]DatabricksCredentialField{}
+	credentialFields["token"] = credentialsFieldToken
 	credentialDetails := DatabricksCredentialDetails{
 		Fields:      credentialFields,
-		Field_Order: []int{},
+		Field_Order: []string{},
 	}
 	newDatabricksCredential := DatabricksCredential{
 		Account_Id:         c.AccountID,

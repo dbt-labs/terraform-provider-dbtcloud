@@ -18,6 +18,7 @@ var (
 		"redshift",
 		"postgres",
 		"alloydb",
+		"adapter",
 	}
 )
 
@@ -65,7 +66,7 @@ func ResourceConnection() *schema.Resource {
 			"host_name": &schema.Schema{
 				Type:          schema.TypeString,
 				Optional:      true,
-				Description:   "Host name for the connection",
+				Description:   "Host name for the connection, including Databricks cluster",
 				ConflictsWith: []string{"account"},
 			},
 			"port": &schema.Schema{
@@ -120,6 +121,16 @@ func ResourceConnection() *schema.Resource {
 				Default:     false,
 				Description: "Whether or not tunneling should be enabled on your database connection",
 			},
+			"http_path": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The HTTP path of the Databricks cluster or SQL warehouse",
+			},
+			"catalog": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -148,8 +159,10 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	hostName := d.Get("host_name").(string)
 	port := d.Get("port").(int)
 	tunnelEnabled := d.Get("tunnel_enabled").(bool)
+	httpPath := d.Get("http_path").(string)
+	catalog := d.Get("catalog").(string)
 
-	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled)
+	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled, httpPath, catalog)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -174,7 +187,7 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	// TODO: Remove when API returns these
+	// TODO: Remove when done better
 	connection.Details.OAuthClientID = d.Get("oauth_client_id").(string)
 	connection.Details.OAuthClientSecret = d.Get("oauth_client_secret").(string)
 
@@ -229,6 +242,18 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("tunnel_enabled", connection.Details.TunnelEnabled); err != nil {
+		return diag.FromErr(err)
+	}
+	httpPath := ""
+	catalog := ""
+	if connection.Details.AdapterDetails != nil {
+		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value
+		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value
+	}
+	if err := d.Set("http_path", httpPath); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("catalog", catalog); err != nil {
 		return diag.FromErr(err)
 	}
 
