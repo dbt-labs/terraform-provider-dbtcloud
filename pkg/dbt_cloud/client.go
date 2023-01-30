@@ -60,8 +60,8 @@ type AuthResponseData struct {
 
 // AuthResponse -
 type AuthResponse struct {
-	Status ResponseStatus   `json:"status`
-	Data   AuthResponseData `json:"data`
+	Status ResponseStatus   `json:"status"`
+	Data   AuthResponseData `json:"data"`
 }
 
 // NewClient -
