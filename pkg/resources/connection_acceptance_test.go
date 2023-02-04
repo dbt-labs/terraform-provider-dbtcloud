@@ -156,6 +156,55 @@ func TestAccDbtCloudPostgresConnectionResource(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudConnectionResourcePostgresConfig(connectionName, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_databricks_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_databricks_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_databricks_connection", "host", "test_databricks"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_databricks_connection", "http_path", "/my/databricks"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_databricks_connection", "catalog", "moo"),
+				),
+			},
+			// RENAME
+			{
+				Config: testAccDbtCloudConnectionResourcePostgresConfig(connectionName2, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_connection.test_databricks_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_connection.test_databricks_connection", "name", connectionName2),
+				),
+			},
+			// 			// MODIFY
+			// 			{
+			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
+			// 				Check: resource.ComposeTestCheckFunc(
+			// 					testAccCheckDbtCloudProjectExists("dbt_cloud_environment.test_env"),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+			// 				),
+			// 			},
+			// IMPORT
+			{
+				ResourceName:            "dbt_cloud_connection.test_databricks_connection",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
 func testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName, oAuthClientID, oAuthClientSecret string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_project" "test_project" {
@@ -210,6 +259,23 @@ resource "dbt_cloud_connection" "test_postgres_connection" {
   database = "db"
   port = 5432
   tunnel_enabled = true
+}
+`, projectName, connectionName)
+}
+
+func testAccDbtCloudConnectionResourceDatabricksConfig(connectionName, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_connection" "test_databricks_connection" {
+  name        = "%s"
+  type = "adapter"
+  project_id = dbt_cloud_project.test_project.id
+  host_name = "test_databricks"
+  http_path = "/my/databricks"
+  catalog   = "moo"
 }
 `, projectName, connectionName)
 }

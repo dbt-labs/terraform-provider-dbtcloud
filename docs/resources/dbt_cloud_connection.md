@@ -27,7 +27,9 @@ description: |-
 - `account` (String) Account name for the connection
 - `allow_keep_alive` (Boolean) Whether or not the connection should allow client session keep alive
 - `allow_sso` (Boolean) Whether or not the connection should allow SSO
-- `host_name` (String) Host name for the connection
+- `catalog` (String) Catalog name if Unity Catalog is enabled in your Databricks workspace
+- `host_name` (String) Host name for the connection, including Databricks cluster
+- `http_path` (String) The HTTP path of the Databricks cluster or SQL warehouse
 - `is_active` (Boolean) Whether the connection is active
 - `oauth_client_id` (String) OAuth client identifier
 - `oauth_client_secret` (String) OAuth client secret
