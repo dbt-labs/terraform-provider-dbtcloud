@@ -18,7 +18,9 @@ the same time as the environment variables, it's recommended to use the `depends
 
 ### Required
 
-- `environment_values` (Map of String) Map from environment names to respective variable value, a special key `project` should be set for the project default variable value
+- `environment_values` (Map of String) Map from environment names to respective variable value
+     - Environment names should be title cased, for eg: 'Production', 'Development'
+     - A special key `project` should be set for the project default variable value
 - `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
 - `project_id` (Number) Project for the variable to be created in
 
