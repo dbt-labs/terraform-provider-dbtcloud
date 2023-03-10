@@ -17,6 +17,15 @@ type UserListResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
+type CurrentUser struct {
+	User User `json:"user"`
+}
+
+type CurrentUserResponse struct {
+	Data   CurrentUser    `json:"data"`
+	Status ResponseStatus `json:"status"`
+}
+
 func (c *Client) GetUser(email string) (*User, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/", c.HostURL, strconv.Itoa(c.AccountID)), nil)
 	if err != nil {
@@ -41,4 +50,24 @@ func (c *Client) GetUser(email string) (*User, error) {
 	}
 
 	return nil, fmt.Errorf("Did not find user with email %s", email)
+}
+
+func (c *Client) GetConnectedUser() (*User, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/whoami", c.HostURL), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	currentUserResponse := CurrentUserResponse{}
+	err = json.Unmarshal(body, &currentUserResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &currentUserResponse.Data.User, nil
 }
