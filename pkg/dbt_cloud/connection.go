@@ -2,6 +2,7 @@ package dbt_cloud
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -21,6 +22,7 @@ type ConnectionDetails struct {
 	Host                   string                       `json:"hostname,omitempty"`
 	Port                   int                          `json:"port,omitempty"`
 	TunnelEnabled          *bool                        `json:"tunnel_enabled,omitempty"`
+	AdapterId              *int                         `json:"adapter_id,omitempty"`
 	AdapterDetails         *DatabricksCredentialDetails `json:"connection_details,omitempty"`
 }
 
@@ -45,6 +47,29 @@ type ConnectionListResponse struct {
 
 type ConnectionResponse struct {
 	Data   Connection     `json:"data"`
+	Status ResponseStatus `json:"status"`
+}
+
+type Adapter struct {
+	ID             *int            `json:"id,omitempty"`
+	AccountID      int             `json:"account_id"`
+	ProjectID      int             `json:"project_id"`
+	CreatedByID    int             `json:"created_by_id"`
+	Metadata       AdapterMetadata `json:"metadata_json"`
+	State          int             `json:"state"`
+	AdapterVersion string          `json:"adapter_version"`
+	CreatedAt      *string         `json:"created_at,omitempty"`
+	UpdatedAt      *string         `json:"updated_at,omitempty"`
+}
+
+type AdapterMetadata struct {
+	Title     string `json:"title"`
+	DocsLink  string `json:"docs_link"`
+	ImageLink string `json:"image_link"`
+}
+
+type AdapterResponse struct {
+	Data   Adapter        `json:"data"`
 	Status ResponseStatus `json:"status"`
 }
 
@@ -76,79 +101,16 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 
 	connectionDetails := ConnectionDetails{}
 	if connectionType == "adapter" {
-		noValidation := DatabricksCredentialFieldMetadataValidation{
-			Required: false,
-		}
-
-		typeMetadata := DatabricksCredentialFieldMetadata{
-			Label:        "Connection type",
-			Description:  "",
-			Field_Type:   "hidden",
-			Encrypt:      false,
-			Overrideable: false,
-			Validation:   noValidation,
-		}
-		typeField := DatabricksCredentialField{
-			Metadata: typeMetadata,
-			Value:    "databricks",
-		}
-
-		hostMetadata := DatabricksCredentialFieldMetadata{
-			Label:        "Server Hostname",
-			Description:  "The hostname of the Databricks cluster or SQL warehouse",
-			Field_Type:   "text",
-			Encrypt:      false,
-			Overrideable: false,
-			Validation:   noValidation,
-		}
-		hostField := DatabricksCredentialField{
-			Metadata: hostMetadata,
-			Value:    hostName,
-		}
-
-		httpPathMetadata := DatabricksCredentialFieldMetadata{
-			Label:        "HTTP Path",
-			Description:  "The HTTP path of the Databricks cluster or SQL warehouse",
-			Field_Type:   "text",
-			Encrypt:      false,
-			Overrideable: false,
-			Validation:   noValidation,
-		}
-		httpPathField := DatabricksCredentialField{
-			Metadata: httpPathMetadata,
-			Value:    httpPath,
-		}
-
-		fieldOrder := []string{"type", "host", "http_path"}
-		fields := map[string]DatabricksCredentialField{
-			"type":      typeField,
-			"host":      hostField,
-			"http_path": httpPathField,
-		}
-
-		if catalog != "" {
-			catalogMetadata := DatabricksCredentialFieldMetadata{
-				Label:        "Catalog",
-				Description:  "Optional: Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later",
-				Field_Type:   "text",
-				Encrypt:      false,
-				Overrideable: true,
-				Validation:   noValidation,
+		adapterId, err := c.createDatabricksAdapter(projectID, state)
+		if err != nil {
+			if strings.Contains(err.Error(), "This endpoint cannot be accessed with a service token") {
+				return nil, errors.New("to create an adapter typed connection, you need to use a user token. A service token can not be used to create adapters")
 			}
-			catalogField := DatabricksCredentialField{
-				Metadata: catalogMetadata,
-				Value:    catalog,
-			}
-			fieldOrder = append(fieldOrder, "catalog")
-			fields["catalog"] = catalogField
+			return nil, err
 		}
 
-		databricksCredentialDetails := DatabricksCredentialDetails{
-			Fields:      fields,
-			Field_Order: fieldOrder,
-		}
-
-		connectionDetails.AdapterDetails = &databricksCredentialDetails
+		connectionDetails.AdapterId = adapterId
+		connectionDetails.AdapterDetails = getDatabricksConnectionDetails(hostName, httpPath, catalog)
 	} else {
 		connectionDetails.Account = account
 		connectionDetails.Warehouse = warehouse
@@ -244,4 +206,124 @@ func (c *Client) DeleteConnection(connectionID, projectID string) (string, error
 	}
 
 	return "", err
+}
+
+func (c *Client) createDatabricksAdapter(projectID int, state int) (*int, error) {
+	currentUser, err := c.GetConnectedUser()
+	if err != nil {
+		return nil, err
+	}
+
+	newAdapter := Adapter{
+		ID:             nil,
+		AdapterVersion: "databricks_v0",
+		ProjectID:      projectID,
+		AccountID:      c.AccountID,
+		CreatedByID:    currentUser.ID,
+		State:          state,
+		Metadata: AdapterMetadata{
+			Title:     "Databricks",
+			DocsLink:  "https://docs.getdbt.com/reference/warehouse-setups/databricks-setup",
+			ImageLink: "https://upload.wikimedia.org/wikipedia/commons/6/63/Databricks_Logo.png",
+		},
+	}
+
+	newAdapterData, err := json.Marshal(newAdapter)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/adapters/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(projectID)), strings.NewReader(string(newAdapterData)))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	adapterResponse := AdapterResponse{}
+	err = json.Unmarshal(body, &adapterResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return adapterResponse.Data.ID, nil
+}
+
+func getDatabricksConnectionDetails(hostName string, httpPath string, catalog string) *DatabricksCredentialDetails {
+	noValidation := DatabricksCredentialFieldMetadataValidation{
+		Required: false,
+	}
+
+	typeMetadata := DatabricksCredentialFieldMetadata{
+		Label:        "Connection type",
+		Description:  "",
+		Field_Type:   "hidden",
+		Encrypt:      false,
+		Overrideable: false,
+		Validation:   noValidation,
+	}
+	typeField := DatabricksCredentialField{
+		Metadata: typeMetadata,
+		Value:    "databricks",
+	}
+
+	hostMetadata := DatabricksCredentialFieldMetadata{
+		Label:        "Server Hostname",
+		Description:  "The hostname of the Databricks cluster or SQL warehouse",
+		Field_Type:   "text",
+		Encrypt:      false,
+		Overrideable: false,
+		Validation:   noValidation,
+	}
+	hostField := DatabricksCredentialField{
+		Metadata: hostMetadata,
+		Value:    hostName,
+	}
+
+	httpPathMetadata := DatabricksCredentialFieldMetadata{
+		Label:        "HTTP Path",
+		Description:  "The HTTP path of the Databricks cluster or SQL warehouse",
+		Field_Type:   "text",
+		Encrypt:      false,
+		Overrideable: false,
+		Validation:   noValidation,
+	}
+	httpPathField := DatabricksCredentialField{
+		Metadata: httpPathMetadata,
+		Value:    httpPath,
+	}
+
+	fieldOrder := []string{"type", "host", "http_path"}
+	fields := map[string]DatabricksCredentialField{
+		"type":      typeField,
+		"host":      hostField,
+		"http_path": httpPathField,
+	}
+
+	if catalog != "" {
+		catalogMetadata := DatabricksCredentialFieldMetadata{
+			Label:        "Catalog",
+			Description:  "Optional: Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later",
+			Field_Type:   "text",
+			Encrypt:      false,
+			Overrideable: true,
+			Validation:   noValidation,
+		}
+		catalogField := DatabricksCredentialField{
+			Metadata: catalogMetadata,
+			Value:    catalog,
+		}
+		fieldOrder = append(fieldOrder, "catalog")
+		fields["catalog"] = catalogField
+	}
+
+	databricksCredentialDetails := DatabricksCredentialDetails{
+		Fields:      fields,
+		Field_Order: fieldOrder,
+	}
+
+	return &databricksCredentialDetails
 }

@@ -131,6 +131,11 @@ func ResourceConnection() *schema.Resource {
 				Optional:    true,
 				Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace",
 			},
+			"adapter_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Adapter id created for the Databricks connection",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -235,9 +240,6 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("oauth_client_secret", connection.Details.OAuthClientSecret); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("host_name", connection.Details.Host); err != nil {
-		return diag.FromErr(err)
-	}
 	if err := d.Set("port", connection.Details.Port); err != nil {
 		return diag.FromErr(err)
 	}
@@ -246,14 +248,22 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	httpPath := ""
 	catalog := ""
+	hostName := connection.Details.Host
 	if connection.Details.AdapterDetails != nil {
 		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value
 		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value
+		hostName = connection.Details.AdapterDetails.Fields["host"].Value
+	}
+	if err := d.Set("host_name", hostName); err != nil {
+		return diag.FromErr(err)
 	}
 	if err := d.Set("http_path", httpPath); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("catalog", catalog); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("adapter_id", connection.Details.AdapterId); err != nil {
 		return diag.FromErr(err)
 	}
 
