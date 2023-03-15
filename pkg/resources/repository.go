@@ -55,6 +55,12 @@ func ResourceRepository() *schema.Resource {
 				Optional:    true,
 				Description: "Identifier for the Gitlab project",
 			},
+			"github_installation_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Identifier for the GitHub App",
+			},
 			"fetch_deploy_key": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -85,8 +91,9 @@ func resourceRepositoryCreate(ctx context.Context, d *schema.ResourceData, m int
 	gitCloneStrategy := d.Get("git_clone_strategy").(string)
 	repositoryCredentialsID := d.Get("repository_credentials_id").(int)
 	gitlabProjectID := d.Get("gitlab_project_id").(int)
+	githubInstallationID := d.Get("github_installation_id").(int)
 
-	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID, gitlabProjectID)
+	repository, err := c.CreateRepository(projectId, remoteUrl, isActive, gitCloneStrategy, repositoryCredentialsID, gitlabProjectID, githubInstallationID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -131,6 +138,9 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("github_installation_id", repository.GithubInstallationID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("deploy_key", repository.DeployKey.PublicKey); err != nil {
