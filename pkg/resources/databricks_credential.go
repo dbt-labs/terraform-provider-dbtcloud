@@ -149,7 +149,10 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		}
 		if d.HasChange("token") {
 			token := d.Get("token").(string)
-			databricksCredential.Credential_Details.Fields.Token.Value = token
+			if tokenField, ok := databricksCredential.Credential_Details.Fields["token"]; ok {
+				tokenField.Value = token
+				databricksCredential.Credential_Details.Fields["token"] = tokenField
+			}
 		}
 
 		_, err = c.UpdateDatabricksCredential(projectId, databricksCredentialId, *databricksCredential)

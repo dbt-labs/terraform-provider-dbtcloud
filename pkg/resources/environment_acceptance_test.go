@@ -69,7 +69,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
-  dbt_version = "0.21.0"
+  dbt_version = "1.0.1"
   project_id = dbt_cloud_project.test_project.id
 }
 `, projectName, environmentName)

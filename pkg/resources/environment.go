@@ -177,9 +177,14 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	// TODO: add more changes here
+	if d.HasChange("name") ||
+		d.HasChange("dbt_version") ||
+		d.HasChange("credential_id") ||
+		d.HasChange("project_id") ||
+		d.HasChange("type") ||
+		d.HasChange("custom_branch") ||
+		d.HasChange("use_custom_branch") {
 
-	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("credential_id") || d.HasChange("project_id") {
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -201,7 +206,18 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 			Project_Id := d.Get("project_id").(int)
 			environment.Project_Id = Project_Id
 		}
-
+		if d.HasChange("type") {
+			Type := d.Get("type").(string)
+			environment.Type = Type
+		}
+		if d.HasChange("custom_branch") {
+			Custom_Branch := d.Get("custom_branch").(string)
+			environment.Custom_Branch = &Custom_Branch
+		}
+		if d.HasChange("use_custom_branch") {
+			Use_Custom_Branch := d.Get("use_custom_branch").(bool)
+			environment.Use_Custom_Branch = Use_Custom_Branch
+		}
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
 		if err != nil {
 			return diag.FromErr(err)
