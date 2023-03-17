@@ -9,12 +9,12 @@ jobs:
   ok-to-test:
     runs-on: ubuntu-latest
     steps:
-#     - name: Generate token
-#       id: generate_token
-#       uses: tibdex/github-app-token@v1.1.4
-#       with:
-#         app_id: ${{ secrets.OK_TO_TEST_APP_ID }}
-#         private_key: ${{ secrets.OK_TO_TEST_PRIVATE_KEY }}
+    - name: Generate token
+      id: generate_token
+      uses: tibdex/github-app-token@v1.1.4
+      with:
+        app_id: ${{ secrets.OK_TO_TEST_APP_ID }}
+        private_key: ${{ secrets.OK_TO_TEST_PRIVATE_KEY }}
 
     - name: Slash Command Dispatch
       uses: peter-evans/slash-command-dispatch@v2
