@@ -15,7 +15,9 @@ import (
 
 func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+    testDatabricks, exists := os.LookupEnv("TEST_DATABRICKS")
+    if (exists && testDatabricks == true){
+    projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -42,6 +44,7 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 			},
 		},
 	})
+    }
 }
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token string) string {
