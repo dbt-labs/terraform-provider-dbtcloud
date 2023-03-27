@@ -51,6 +51,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_project":               resources.ResourceProject(),
 			"dbt_cloud_project_connection":    resources.ResourceProjectConnection(),
 			"dbt_cloud_project_repository":    resources.ResourceProjectRepository(),
+			"dbt_cloud_project_artefacts":     resources.ResourceProjectArtefacts(),
 			"dbt_cloud_environment":           resources.ResourceEnvironment(),
 			"dbt_cloud_environment_variable":  resources.ResourceEnvironmentVariable(),
 			"dbt_cloud_databricks_credential": resources.ResourceDatabricksCredential(),
