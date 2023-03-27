@@ -16,8 +16,8 @@ import (
 
 func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 
-	testDatabricks, exists := os.LookupEnv("TEST_DATABRICKS")
-	if exists && testDatabricks == true {
+	testDatabricks := os.GetEnv("TEST_DATABRICKS")
+	if (testDatabricks == "true") {
 		projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 		targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 		token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
