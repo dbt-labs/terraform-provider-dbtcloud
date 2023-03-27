@@ -126,7 +126,7 @@ resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
-  dbt_version = "1.1.0"
+  dbt_version = "1.2.0"
   execute_steps = [
     "dbt test"
   ]
@@ -169,7 +169,7 @@ resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
-  dbt_version = "1.1.0"
+  dbt_version = "1.2.0"
   execute_steps = [
     "dbt test"
   ]
