@@ -158,6 +158,8 @@ func TestAccDbtCloudPostgresConnectionResource(t *testing.T) {
 
 func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 
+    testDatabricks := os.Getenv("TEST_DATABRICKS")
+	if (testDatabricks == "true") {
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -205,6 +207,7 @@ func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 			},
 		},
 	})
+	}
 }
 
 func testAccDbtCloudConnectionResourceBasicConfig(connectionName, projectName, oAuthClientID, oAuthClientSecret string) string {
