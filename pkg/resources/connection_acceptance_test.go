@@ -1,8 +1,8 @@
 package resources_test
 
 import (
-    "os"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
