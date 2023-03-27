@@ -56,7 +56,7 @@ resource "dbt_cloud_project" "test_artefacts_project" {
 resource "dbt_cloud_environment" "test_job_environment" {
 	project_id = dbt_cloud_project.test_artefacts_project.id
 	name = "%s"
-	dbt_version = "0.21.0"
+	dbt_version = "%s"
 	type = "development"
 }
 
@@ -82,7 +82,7 @@ resource "dbt_cloud_project_artefacts" "test_project_artefacts" {
   docs_job_id = dbt_cloud_job.test_job.id
   freshness_job_id = dbt_cloud_job.test_job.id
 }
-`, projectName, environmentName, jobName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 }
 
 func testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName string) string {

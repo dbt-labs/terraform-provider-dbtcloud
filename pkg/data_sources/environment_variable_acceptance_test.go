@@ -45,7 +45,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
-  dbt_version = "1.0.0"
+  dbt_version = "%s"
   project_id = dbt_cloud_project.test_project.id
 }
 
@@ -66,5 +66,5 @@ data "dbt_cloud_environment_variable" "test_env_var_read" {
   name = dbt_cloud_environment_variable.test_env_var.name
   project_id = dbt_cloud_environment_variable.test_env_var.project_id
 }
-`, projectName, environmentName, environmentVariableName, environmentName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }
