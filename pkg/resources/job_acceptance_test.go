@@ -46,7 +46,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
 					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "name", jobName2),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "dbt_version", "0.20.2"),
+					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "dbt_version", "1.0.0"),
 					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "target_name", "test"),
 					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "timeout_seconds", "180"),
 					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "project_id"),
@@ -88,7 +88,7 @@ resource "dbt_cloud_project" "test_job_project" {
 resource "dbt_cloud_environment" "test_job_environment" {
     project_id = dbt_cloud_project.test_job_project.id
     name = "%s"
-    dbt_version = "0.21.0"
+    dbt_version = "1.0.0"
     type = "development"
 }
 
@@ -118,7 +118,7 @@ resource "dbt_cloud_project" "test_job_project" {
 resource "dbt_cloud_environment" "test_job_environment" {
     project_id = dbt_cloud_project.test_job_project.id
     name = "%s"
-    dbt_version = "0.21.0"
+    dbt_version = "1.0.0"
     type = "development"
 }
 
@@ -126,7 +126,7 @@ resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
-  dbt_version = "0.20.2"
+  dbt_version = "1.1.0"
   execute_steps = [
     "dbt test"
   ]
@@ -161,7 +161,7 @@ resource "dbt_cloud_project" "test_job_project" {
 resource "dbt_cloud_environment" "test_job_environment" {
     project_id = dbt_cloud_project.test_job_project.id
     name = "%s"
-    dbt_version = "0.21.0"
+    dbt_version = "1.0.0"
     type = "development"
 }
 
@@ -169,7 +169,7 @@ resource "dbt_cloud_job" "test_job" {
   name        = "%s"
   project_id = dbt_cloud_project.test_job_project.id
   environment_id = dbt_cloud_environment.test_job_environment.environment_id
-  dbt_version = "0.20.2"
+  dbt_version = "1.1.0"
   execute_steps = [
     "dbt test"
   ]
