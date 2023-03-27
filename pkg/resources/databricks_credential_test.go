@@ -2,6 +2,7 @@ package resources_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,33 +16,36 @@ import (
 
 func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	testDatabricks := os.Getenv("TEST_DATABRICKS")
+	if testDatabricks == "true" {
+		projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+		targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+		token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudDatabricksCredentialExists("dbt_cloud_databricks_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_databricks_credential.test_credential", "target_name", targetName),
-				),
+		resource.Test(t, resource.TestCase{
+			PreCheck:     func() { testAccPreCheck(t) },
+			Providers:    testAccProviders,
+			CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
+			Steps: []resource.TestStep{
+				{
+					Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token),
+					Check: resource.ComposeTestCheckFunc(
+						testAccCheckDbtCloudDatabricksCredentialExists("dbt_cloud_databricks_credential.test_credential"),
+						resource.TestCheckResourceAttr("dbt_cloud_databricks_credential.test_credential", "target_name", targetName),
+					),
+				},
+				// RENAME
+				// MODIFY
+				// IMPORT
+				{
+					ResourceName:            "dbt_cloud_databricks_credential.test_credential",
+					ImportState:             true,
+					ImportStateVerify:       true,
+					ImportStateVerifyIgnore: []string{"token"},
+				},
 			},
-			// RENAME
-			// MODIFY
-			// IMPORT
-			{
-				ResourceName:            "dbt_cloud_databricks_credential.test_credential",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"token"},
-			},
-		},
-	})
+		})
+	}
 }
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token string) string {

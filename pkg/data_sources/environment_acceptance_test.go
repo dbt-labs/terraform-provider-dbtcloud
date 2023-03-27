@@ -47,7 +47,7 @@ func environment(projectName, environmentName string) string {
     resource "dbt_cloud_environment" "test_environment" {
         project_id = dbt_cloud_project.test_project.id
         name = "%s"
-        dbt_version = "0.21.0"
+        dbt_version = "1.0.0"
         type = "development"
         use_custom_branch = true
         custom_branch = "customBranchName"
