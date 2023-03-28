@@ -28,6 +28,8 @@ data "dbt_cloud_project" "test_project" {
 ### Read-Only
 
 - `connection_id` (Number) ID of the connection associated with the project
+- `docs_job_id` (Number) ID of Job for the documentation
+- `freshness_job_id` (Number) ID of Job for source freshness
 - `id` (String) The ID of this resource.
 - `name` (String) Given name for project
 - `repository_id` (Number) ID of the repository associated with the project

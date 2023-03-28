@@ -66,7 +66,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
-  dbt_version = "1.0.0"
+  dbt_version = "%s"
   project_id = dbt_cloud_project.test_project.id
 }
 
@@ -82,7 +82,7 @@ resource "dbt_cloud_environment_variable" "test_env_var" {
     dbt_cloud_environment.test_env
   ]
 }
-`, projectName, environmentName, environmentVariableName, environmentName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }
 
 func testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName string) string {
@@ -94,7 +94,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
-  dbt_version = "1.0.0"
+  dbt_version = "%s"
   project_id = dbt_cloud_project.test_project.id
 }
 
@@ -110,7 +110,7 @@ resource "dbt_cloud_environment_variable" "test_env_var" {
     dbt_cloud_environment.test_env
   ]
 }
-`, projectName, environmentName, environmentVariableName, environmentName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }
 
 func testAccCheckDbtCloudEnvironmentVariableExists(resource string) resource.TestCheckFunc {

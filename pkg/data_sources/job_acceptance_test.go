@@ -42,7 +42,7 @@ func jobs(jobName string) string {
     resource "dbt_cloud_environment" "test_environment" {
         project_id = dbt_cloud_project.test_project.id
         name = "job_test_env"
-        dbt_version = "0.21.0"
+        dbt_version = "%s"
         type = "development"
     }
 
@@ -66,5 +66,5 @@ func jobs(jobName string) string {
         job_id = dbt_cloud_job.test_job.id
         project_id = dbt_cloud_project.test_project.id
     }
-    `, jobName)
+    `, DBT_CLOUD_VERSION, jobName)
 }

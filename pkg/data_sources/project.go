@@ -30,6 +30,16 @@ var projectSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "ID of the repository associated with the project",
 	},
+	"freshness_job_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of Job for source freshness",
+	},
+	"docs_job_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of Job for the documentation",
+	},
 	"state": &schema.Schema{
 		Type:        schema.TypeInt,
 		Computed:    true,
@@ -66,6 +76,12 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 	if err := d.Set("repository_id", project.RepositoryID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("freshness_job_id", project.FreshnessJobId); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("docs_job_id", project.DocsJobId); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("state", project.State); err != nil {

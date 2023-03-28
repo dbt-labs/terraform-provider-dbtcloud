@@ -16,6 +16,8 @@ type Project struct {
 	RepositoryID           *int    `json:"repository_id,integer,omitempty"`
 	State                  int     `json:"state"`
 	AccountID              int     `json:"account_id"`
+	FreshnessJobId         *int    `json:"freshness_job_id"`
+	DocsJobId              *int    `json:"docs_job_id,"`
 }
 
 type ProjectListResponse struct {
@@ -29,7 +31,7 @@ type ProjectResponse struct {
 }
 
 func (c *Client) GetProject(projectID string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/?include_related=[freshness_job_id,docs_job_id]", c.HostURL, strconv.Itoa(c.AccountID), projectID), nil)
 	if err != nil {
 		return nil, err
 	}
