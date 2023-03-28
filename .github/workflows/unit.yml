@@ -1,5 +1,5 @@
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: pull_request actions/checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: actions/setup-go@v2
         with:
