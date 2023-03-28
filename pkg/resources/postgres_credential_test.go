@@ -26,11 +26,11 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(projectName, database, role, warehouse, schema, user, password),
+				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(projectName, default_schema, username, password),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudPostgresCredentialExists("dbt_cloud_postgres_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "default_schema", schema),
-					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "username", user),
+					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "default_schema", default_schema),
+					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "username", username),
 				),
 			},
 			// RENAME
@@ -44,30 +44,6 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 			},
 		},
 	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudPostgresCredentialResourceBasicPrivateKeyConfig(projectName, default_schema, username),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudPostgresCredentialExists("dbt_cloud_postgres_credential.test_credential_p"),
-					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential_p", "default_schema", default_schema),
-					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential_p", "username", username),
-				),
-			},
-			// RENAME
-			// MODIFY
-			// IMPORT
-			{
-				ResourceName:            "dbt_cloud_postgres_credential.test_credential_p",
-				ImportState:             true,
-				ImportStateVerify:       true,
-			},
-		},
-	})
 }
 
 func testAccDbtCloudPostgresCredentialResourceBasicConfig(projectName, default_schema, username, password string) string {
@@ -78,6 +54,7 @@ resource "dbt_cloud_project" "test_project" {
 resource "dbt_cloud_postgres_credential" "test_credential" {
     is_active = true
     project_id = dbt_cloud_project.test_project.id
+	type = "postgres"
     default_schema = "%s"
     username = "%s"
     password = "%s"

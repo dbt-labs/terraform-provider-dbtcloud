@@ -122,7 +122,7 @@ func (c *Client) UpdatePostgresCredential(projectId int, credentialId int, postg
 
 // DeletePostgresCredential deletes a Postgres credential by its ID
 func (c *Client) DeletePostgresCredential(credentialId, projectId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%s/credentials/%s/", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
 		return "", err
 	}

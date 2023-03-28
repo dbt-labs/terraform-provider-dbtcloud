@@ -57,6 +57,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_databricks_credential": resources.ResourceDatabricksCredential(),
 			"dbt_cloud_snowflake_credential":  resources.ResourceSnowflakeCredential(),
 			"dbt_cloud_bigquery_credential":   resources.ResourceBigQueryCredential(),
+			"dbt_cloud_postgres_credential":   resources.ResourcePostgresCredential(),
 			"dbt_cloud_connection":            resources.ResourceConnection(),
 			"dbt_cloud_bigquery_connection":   resources.ResourceBigQueryConnection(),
 			"dbt_cloud_repository":            resources.ResourceRepository(),
