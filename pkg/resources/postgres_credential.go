@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	authTypes = []string{
-		"password",
-		"keypair",
+	types = []string{
+		"postgres",
+		"redshift",
+		"alloydb",
 	}
 )
 
@@ -43,20 +44,27 @@ func ResourcePostgresCredential() *schema.Resource {
 				Computed:    true,
 				Description: "The system Postgres/Redshift/AlloyDB credential ID",
 			},
+			"type": &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Type of connection. One of (postgres/redshift/alloydb)",
+				ValidateFunc: validation.StringInSlice(types, false),
+			},
 			"default_schema": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
+				Description: "Default schema name",
+			},
+			"target_name": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:	 "default",
 				Description: "Default schema name",
 			},
 			"username": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Username for Postgres/Redshift/AlloyDB",
-			},
-			"type": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Type of connection. One of (postgres/redshift/alloydb)",
 			},
 			"password": &schema.Schema{
 				Type:          schema.TypeString,
@@ -85,14 +93,14 @@ func resourcePostgresCredentialCreate(ctx context.Context, d *schema.ResourceDat
 
 	isActive := d.Get("is_active").(bool)
 	projectId := d.Get("project_id").(int)
-	authType := d.Get("auth_type").(string)
-	default_schema := d.Get("default_schema").(string)
-	type_ := d.Get("user").(string)
-	username := d.Get("user").(string)
+	type_ := d.Get("type").(string)
+	defaultSchema := d.Get("default_schema").(string)
+	targetName := d.Get("target_name").(string)
+	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	postgresCredential, err := c.CreatePostgresCredential(projectId, isActive, type_, default_schema, username, password, privateKey, numThreads)
+	postgresCredential, err := c.CreatePostgresCredential(projectId, isActive, type_, defaultSchema, targetName, username, password, numThreads)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -134,7 +142,7 @@ func resourcePostgresCredentialRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("project_id", postgresCredential.Project_Id); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("default_schema", postgresCredential.defaultSchema); err != nil {
+	if err := d.Set("default_schema", postgresCredential.Default_Schema); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("username", postgresCredential.Username); err != nil {
@@ -169,12 +177,12 @@ func resourcePostgresCredentialUpdate(ctx context.Context, d *schema.ResourceDat
 			return diag.FromErr(err)
 		}
 		if d.HasChange("default_schema") {
-			schema := d.Get("default_schema").(string)
-			postgresCredential.Schema = schema
+			default_schema := d.Get("default_schema").(string)
+			postgresCredential.Default_Schema = default_schema
 		}
 		if d.HasChange("username") {
-			user := d.Get("username").(string)
-			postgresCredential.User = user
+			username := d.Get("username").(string)
+			postgresCredential.Username = username
 		}
 		if d.HasChange("password") {
 			password := d.Get("password").(string)

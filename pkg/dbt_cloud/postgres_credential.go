@@ -94,14 +94,14 @@ func (c *Client) CreatePostgresCredential(projectId int, isActive bool, type_ st
 	return &PostgresCredentialResponse.Data, nil
 }
 
-// UpdateRedshiftCredential updates an existing Redshift credential
-func (c *Client) UpdateRedshiftCredential(projectId int, credentialId int, redshiftCredential RedshiftCredential) (*RedshiftCredential, error) {
-	redshiftCredentialData, err := json.Marshal(redshiftCredential)
+// UpdatePostgresCredential updates an existing Postgres credential
+func (c *Client) UpdatePostgresCredential(projectId int, credentialId int, postgresCredential PostgresCredential) (*PostgresCredential, error) {
+	postgresCredentialData, err := json.Marshal(postgresCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(redshiftCredentialData)))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(postgresCredentialData)))
 	if err != nil {
 		return nil, err
 	}
@@ -111,26 +111,26 @@ func (c *Client) UpdateRedshiftCredential(projectId int, credentialId int, redsh
 		return nil, err
 	}
 
-	redshiftCredentialResponse := RedshiftCredentialResponse{}
-	err = json.Unmarshal(body, &redshiftCredentialResponse)
+	postgresCredentialResponse := PostgresCredentialResponse{}
+	err = json.Unmarshal(body, &postgresCredentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &redshiftCredentialResponse.Data, nil
+	return &postgresCredentialResponse.Data, nil
 }
 
-// DeleteRedshiftCredential deletes a Redshift credential by its ID
-func (c *Client) DeleteRedshiftCredential(projectId int, credentialId int) error {
+// DeletePostgresCredential deletes a Postgres credential by its ID
+func (c *Client) DeletePostgresCredential(credentialId, projectId string) (string, error) {
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = c.doRequest(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return "", err
 }
