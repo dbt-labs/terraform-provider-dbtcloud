@@ -27,7 +27,7 @@ resource "dbt_cloud_environment" "test_environment" {
 
 ### Required
 
-- `dbt_version` (String) Version number of dbt to use in this environment
+- `dbt_version` (String) Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions
 - `name` (String) Environment name
 - `project_id` (Number) Project ID to create the environment in
 - `type` (String) The type of environment (must be either development or deployment)
