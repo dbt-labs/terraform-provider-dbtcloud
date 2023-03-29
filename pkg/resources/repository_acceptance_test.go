@@ -42,6 +42,35 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 			},
 		},
 	})
+
+	repoUrlGithubApplication := "git://github.com/dbt-labs/jaffle_shop.git"
+	projectNameGithubApplication := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+		Steps: []resource.TestStep{
+			// Create Github repository via the GithUb Application
+			{
+				Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(repoUrlGithubApplication, projectNameGithubApplication),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudRepositoryExists("dbt_cloud_repository.test_repository_github_application"),
+					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_github_application", "remote_url", repoUrlGithubApplication),
+					resource.TestCheckResourceAttr("dbt_cloud_repository.test_repository_github_application", "git_clone_strategy", "github_app"),
+				),
+			},
+			// MODIFY
+			// IMPORT
+			{
+				ResourceName:            "dbt_cloud_repository.test_repository_github_application",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+			},
+		},
+	})
+
 	//
 	// 		resource.Test(t, resource.TestCase{
 	// 			PreCheck:     func() { testAccPreCheck(t) },
@@ -79,6 +108,21 @@ resource "dbt_cloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbt_cloud_project.test_project.id
   depends_on = [dbt_cloud_project.test_project]
+}
+`, projectName, repoUrl)
+}
+
+func testAccDbtCloudRepositoryResourceGithubApplicationConfig(repoUrl, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_repository" "test_repository_github_application" {
+  remote_url = "%s"
+  project_id = dbt_cloud_project.test_project.id
+  github_installation_id = 28374841
+  git_clone_strategy = "github_app"
 }
 `, projectName, repoUrl)
 }

@@ -17,6 +17,7 @@ type Repository struct {
 	GitCloneStrategy        string    `json:"git_clone_strategy"`
 	RepositoryCredentialsID *int      `json:"repository_credentials_id"`
 	GitlabProjectID         *int      `json:"gitlab_project_id"`
+	GithubInstallationID    *int      `json:"github_installation_id"`
 	DeployKey               DeployKey `json:"deploy_key,omitempty"`
 }
 
@@ -63,7 +64,7 @@ func (c *Client) GetRepository(repositoryID, projectID string, fetch_deploy_key 
 	return &repositoryResponse.Data, nil
 }
 
-func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool, gitCloneStrategy string, repositoryCredentialsID int, gitlabProjectID int) (*Repository, error) {
+func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool, gitCloneStrategy string, repositoryCredentialsID int, gitlabProjectID int, githubInstallationID int) (*Repository, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -82,7 +83,9 @@ func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool
 	if gitlabProjectID != 0 {
 		newRepository.GitlabProjectID = &gitlabProjectID
 	}
-
+	if githubInstallationID != 0 {
+		newRepository.GithubInstallationID = &githubInstallationID
+	}
 	newRepositoryData, err := json.Marshal(newRepository)
 	if err != nil {
 		return nil, err
