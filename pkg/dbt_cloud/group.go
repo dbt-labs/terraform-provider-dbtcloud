@@ -9,14 +9,14 @@ import (
 )
 
 type GroupPermission struct {
-	ID          *int   `json:"id"`
+	ID          *int   `json:"id,omitempty"`
 	AccountID   int    `json:"account_id"`
 	GroupID     int    `json:"group_id"`
-	ProjectID   int    `json:"project_id"`
+	ProjectID   int    `json:"project_id,omitempty"`
 	AllProjects bool   `json:"all_projects"`
-	State       int    `json:"state"`
-	Set         string `json:"permission_set"`
-	Level       string `json:"permission_level"`
+	State       int    `json:"state,omitempty"`
+	Set         string `json:"permission_set,omitempty"`
+	Level       string `json:"permission_level,omitempty"`
 }
 
 type Group struct {
@@ -37,6 +37,11 @@ type GroupResponse struct {
 type GroupListResponse struct {
 	Data   []Group        `json:"data"`
 	Status ResponseStatus `json:"status"`
+}
+
+type GroupPermissionListResponse struct {
+	Data   []GroupPermission `json:"data"`
+	Status ResponseStatus    `json:"status"`
 }
 
 func (c *Client) GetGroup(groupID int) (*Group, error) {
@@ -120,4 +125,29 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 	}
 
 	return &groupResponse.Data, nil
+}
+
+func (c *Client) UpdateGroupPermissions(groupID int, groupPermissions []GroupPermission) (*[]GroupPermission, error) {
+	groupPermissionData, err := json.Marshal(groupPermissions)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/group-permissions/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID), strings.NewReader(string(groupPermissionData)))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	groupPermissionResponse := GroupPermissionListResponse{}
+	err = json.Unmarshal(body, &groupPermissionResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &groupPermissionResponse.Data, nil
 }

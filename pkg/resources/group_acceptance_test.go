@@ -15,6 +15,8 @@ import (
 func TestAccDbtCloudGroupResource(t *testing.T) {
 
 	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,10 +24,31 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudGroupResourceBasicConfig(groupName),
+				Config: testAccDbtCloudGroupResourceBasicConfig(groupName, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudGroupExists("dbt_cloud_group.test_group"),
 					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "name", groupName),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.#", "2"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.1.permission_set", "member"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.1.all_projects", "true"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.permission_set", "developer"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.all_projects", "false"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_group.test_group", "group_permissions.0.project_id"),
+				),
+			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudGroupResourceFullConfig(groupName2, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudGroupExists("dbt_cloud_group.test_group"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "name", groupName2),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "assign_by_default", "true"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.#", "2"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.permission_set", "member"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.all_projects", "false"),
+					resource.TestCheckResourceAttrSet("dbt_cloud_group.test_group", "group_permissions.0.project_id"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.1.all_projects", "true"),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.1.permission_set", "developer"),
 				),
 			},
 			// IMPORT
@@ -39,12 +62,45 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudGroupResourceBasicConfig(groupName string) string {
+func testAccDbtCloudGroupResourceBasicConfig(groupName, projectName string) string {
 	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
 resource "dbt_cloud_group" "test_group" {
     name = "%s"
+    group_permissions {
+        permission_set = "member"
+        all_projects = true
+    }
+    group_permissions {
+        permission_set = "developer"
+        all_projects = false
+        project_id = dbt_cloud_project.test_project.id
+    }
 }
-`, groupName)
+`, projectName, groupName)
+}
+
+func testAccDbtCloudGroupResourceFullConfig(groupName, projectName string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+resource "dbt_cloud_group" "test_group" {
+    name = "%s"
+    assign_by_default = true
+    group_permissions {
+        permission_set = "member"
+        all_projects = false
+        project_id = dbt_cloud_project.test_project.id
+    }
+    group_permissions {
+        permission_set = "developer"
+        all_projects = true
+    }
+}
+`, projectName, groupName)
 }
 
 func testAccCheckDbtCloudGroupExists(resource string) resource.TestCheckFunc {
