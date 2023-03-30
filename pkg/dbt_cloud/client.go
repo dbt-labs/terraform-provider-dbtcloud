@@ -67,7 +67,7 @@ type AuthResponse struct {
 // NewClient -
 func NewClient(account_id *int, token *string, host_url *string) (*Client, error) {
 	c := Client{
-		HTTPClient: &http.Client{Timeout: 10 * time.Second},
+		HTTPClient: &http.Client{Timeout: 30 * time.Second},
 		HostURL:    *host_url,
 		Token:      *token,
 		AccountID:  *account_id,
