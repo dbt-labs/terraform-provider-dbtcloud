@@ -1,9 +1,16 @@
 package main
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+	"context"
+	"log"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+    "github.com/hashicorp/terraform-plugin-framework/providerserver"
+
+	dbt_cloud_new "github.com/gthesheep/terraform-provider-dbt-cloud/dbt_cloud"
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/provider"
 )
 
@@ -11,9 +18,37 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 func main() {
-	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: func() *schema.Provider {
-			return provider.Provider()
+	sdkProvider, err := tf5to6server.UpgradeServer(
+		context.Background(),
+		provider.Provider().GRPCProvider,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	providers := []func() tfprotov6.ProviderServer{
+	    // Old provider
+		func() tfprotov6.ProviderServer {
+			return sdkProvider
 		},
-	})
+		// New provider
+		func() tfprotov6.ProviderServer {
+			return providerserver.NewProtocol6(dbt_cloud_new.New())()
+		},
+	}
+
+	muxServer, err := tf6muxserver.NewMuxServer(context.Background(), providers...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var serveOpts []tf6server.ServeOpt
+	err = tf6server.Serve(
+		"registry.terraform.io/gthesheep/dbt-cloud",
+		muxServer.ProviderServer,
+		serveOpts...,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
