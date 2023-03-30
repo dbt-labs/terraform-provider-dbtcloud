@@ -1,5 +1,3 @@
-**Note:** I currently have no access to a dbt Cloud account so am reliant on local testing of contributions
-
 # terraform-provider-dbt-cloud
 Terraform Provider for DBT Cloud
 
