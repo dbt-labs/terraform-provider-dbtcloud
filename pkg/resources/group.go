@@ -191,6 +191,30 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
+	if d.HasChange("name") || d.HasChange("assign_by_default") || d.HasChange("sso_mapping_groups") {
+		group, err := c.GetGroup(groupID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		if d.HasChange("name") {
+			name := d.Get("name").(string)
+			group.Name = name
+		}
+		if d.HasChange("assign_by_default") {
+			assignByDefault := d.Get("assign_by_default").(bool)
+			group.AssignByDefault = assignByDefault
+		}
+		if d.HasChange("sso_mapping_groups") {
+			ssoMappingGroups := d.Get("sso_mapping_groups").([]string)
+			group.SSOMappingGroups = ssoMappingGroups
+		}
+		_, err = c.UpdateGroup(groupID, *group)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	if d.HasChange("group_permissions") {
 		// TODO(GtheSheep): Extract this to a function
 		groupPermissionsRaw := d.Get("group_permissions").(*schema.Set).List()

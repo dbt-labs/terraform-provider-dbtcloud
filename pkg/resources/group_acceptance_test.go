@@ -15,6 +15,7 @@ import (
 func TestAccDbtCloudGroupResource(t *testing.T) {
 
 	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
@@ -37,10 +38,11 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudGroupResourceFullConfig(groupName, projectName),
+				Config: testAccDbtCloudGroupResourceFullConfig(groupName2, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudGroupExists("dbt_cloud_group.test_group"),
-					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "name", groupName),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "name", groupName2),
+					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "assign_by_default", "true"),
 					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.#", "2"),
 					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.permission_set", "member"),
 					resource.TestCheckResourceAttr("dbt_cloud_group.test_group", "group_permissions.0.all_projects", "false"),
@@ -87,6 +89,7 @@ resource "dbt_cloud_project" "test_project" {
 }
 resource "dbt_cloud_group" "test_group" {
     name = "%s"
+    assign_by_default = true
     group_permissions {
         permission_set = "member"
         all_projects = false
