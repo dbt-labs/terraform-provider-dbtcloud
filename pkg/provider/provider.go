@@ -18,7 +18,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_TOKEN", nil),
-				Description: "API token for your DBT Cloud",
+				Description: "API token for your dbt Cloud",
 			},
 			"account_id": &schema.Schema{
 				Type:        schema.TypeInt,
@@ -30,7 +30,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_HOST_URL", "https://cloud.getdbt.com/api"),
-				Description: "URL for your DBT Cloud deployment",
+				Description: "URL for your dbt Cloud deployment",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
