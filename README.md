@@ -1,7 +1,7 @@
 # terraform-provider-dbt-cloud
-Terraform Provider for DBT Cloud
+Terraform Provider for dbt Cloud
 
-Primarily focused on managing jobs in DBT Cloud, given what
+Primarily focused on managing jobs in dbt Cloud, given what
 is available via the API.
 Data sources for other concepts are added for convenience.
 In order to use this provider, add the following to your Terraform providers
@@ -42,4 +42,4 @@ given use case.
 
 ## Running Acceptance Tests
 Currently, acceptance tests, run via `make test-acceptance` must be done on your
-own account, as there is no free tier of DBT Cloud that grants API access
+own account, as there is no free tier of dbt Cloud that grants API access
