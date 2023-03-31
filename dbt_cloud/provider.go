@@ -30,7 +30,7 @@ func New() provider.Provider {
 type dbtCloudProvider struct{}
 
 func (p *dbtCloudProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "dbt_cloud"
+	resp.TypeName = "dbt-cloud"
 }
 
 func (p *dbtCloudProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
@@ -44,7 +44,7 @@ func (p *dbtCloudProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 			},
 			"account_id": schema.Int64Attribute{
 				Optional:    true,
-				Description: "Account identifier for your DBT Cloud implementation",
+				Description: "Account identifier for your dbt Cloud implementation",
 			},
 			"host_url": schema.StringAttribute{
 				Optional:    true,
@@ -127,7 +127,7 @@ func (p *dbtCloudProvider) Configure(ctx context.Context, req provider.Configure
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
 			"Missing dbt Cloud token",
-			"dbt Cloud token must be provided in order to establish a connection, currently no default is set",
+			"dbt Cloud token must be provided in order to establish a connection, no default is set",
 		)
 	}
 
