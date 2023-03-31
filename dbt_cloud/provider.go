@@ -30,7 +30,7 @@ func New() provider.Provider {
 type dbtCloudProvider struct{}
 
 func (p *dbtCloudProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "dbt-cloud"
+	resp.TypeName = "dbt_cloud"
 }
 
 func (p *dbtCloudProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {

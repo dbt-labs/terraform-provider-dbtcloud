@@ -17,7 +17,7 @@ func TestAccDbtCloudUserDataSource(t *testing.T) {
 			// Read testing
 			{
 				Config: providerConfig + fmt.Sprintf(`
-data "dbt-cloud_user" "test_user_read" {
+data "dbt_cloud_user" "test_user_read" {
     email = "%s"
 }
 `, userEmail),
