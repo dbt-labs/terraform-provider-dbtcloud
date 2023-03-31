@@ -3,7 +3,7 @@ package dbt_cloud
 import (
 	"context"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	dbt_cloud_old "github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,7 +19,7 @@ func UserDataSource() datasource.DataSource {
 }
 
 type userDataSource struct {
-	client *dbt_cloud.Client
+	client *dbt_cloud_old.Client
 }
 
 type userDataSourceModel struct {
@@ -76,5 +76,5 @@ func (d *userDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
-	d.client = req.ProviderData.(*dbt_cloud.Client)
+	d.client = req.ProviderData.(*dbt_cloud_old.Client)
 }
