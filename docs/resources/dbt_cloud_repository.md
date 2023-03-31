@@ -14,12 +14,12 @@ the same time as the repository, it's recommended to use the `depends_on` meta a
 In order to find the `github_installation_id`, you can log in to dbt Cloud, replace <dbt_cloud_url> by your dbt Cloud
 URL and run the following commands in the Google Chrome console:
 
-```
+```console
 dbt_cloud_api_result = await (fetch('https://<dbt_cloud_url>/api/v2/integrations/github/installations/').then(res => res.json()));
 console.log("github_application_id: " + dbt_cloud_api_result.filter(res => res["access_tokens_url"].includes("github"))[0]["id"]);
 ```
 
-Alternatively, you can go to the page https://<dbt_cloud_url>/api/v2/integrations/github/installations/ and read the
+Alternatively, you can go to the page https://\<dbt_cloud_url>/api/v2/integrations/github/installations/ and read the
 value of "id"
 
 
@@ -30,7 +30,7 @@ value of "id"
 ### Required
 
 - `project_id` (Number) Project ID to create the repository in
-- `remote_url` (String) Git URL for the repository or <Group>/<Project> for Gitlab
+- `remote_url` (String) Git URL for the repository or \<Group>/\<Project> for Gitlab
 
 ### Optional
 
