@@ -4,18 +4,18 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-    "github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	dbt_cloud_new "github.com/gthesheep/terraform-provider-dbt-cloud/dbt_cloud"
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/provider"
 )
 
-// Generate the Terraform provider documentation using `tfplugindocs`:
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+// Provider documentation generation.
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name dbt-cloud
 
 func main() {
 	sdkProvider, err := tf5to6server.UpgradeServer(
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	providers := []func() tfprotov6.ProviderServer{
-	    // Old provider
+		// Old provider
 		func() tfprotov6.ProviderServer {
 			return sdkProvider
 		},

@@ -3,10 +3,9 @@ package dbt_cloud
 import (
 	"context"
 	"os"
-    "strconv"
+	"strconv"
 
-    old_dbt_cloud "github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
-
+    dbt_cloud_old "github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -14,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
+
+const (
+	DEFAULT_API_URL = "https://cloud.getdbt.com/api"
 )
 
 var (
@@ -35,12 +38,12 @@ func (p *dbtCloudProvider) Schema(_ context.Context, _ provider.SchemaRequest, r
 		Description: "Interact with dbt Cloud",
 		Attributes: map[string]schema.Attribute{
 			"token": schema.StringAttribute{
-				Optional:    false,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "API token for your dbt Cloud",
 			},
 			"account_id": schema.Int64Attribute{
-				Optional:    false,
+				Optional:    true,
 				Description: "Account identifier for your DBT Cloud implementation",
 			},
 			"host_url": schema.StringAttribute{
@@ -129,14 +132,14 @@ func (p *dbtCloudProvider) Configure(ctx context.Context, req provider.Configure
 	}
 
 	if hostURL == "" {
-		hostURL = "https://cloud.getdbt.com/api"
+		hostURL = DEFAULT_API_URL
 	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	client, err := old_dbt_cloud.NewClient(&accountID, &token, &hostURL)
+	client, err := dbt_cloud_old.NewClient(&accountID, &token, &hostURL)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create dbt Cloud API Client",
