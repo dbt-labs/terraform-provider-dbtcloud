@@ -20,9 +20,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v4
         with:
-          go-version: '1.17'
+          go-version: '>=1.17.0'
 
       - name: Install dependencies
         run: make setup
