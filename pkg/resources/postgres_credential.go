@@ -16,7 +16,6 @@ var (
 	types = []string{
 		"postgres",
 		"redshift",
-		"alloydb",
 	}
 )
 
@@ -45,9 +44,9 @@ func ResourcePostgresCredential() *schema.Resource {
 				Description: "The system Postgres/Redshift/AlloyDB credential ID",
 			},
 			"type": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Type of connection. One of (postgres/redshift/alloydb)",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Type of connection. One of (postgres/redshift)",
 				ValidateFunc: validation.StringInSlice(types, false),
 			},
 			"default_schema": &schema.Schema{
@@ -58,7 +57,7 @@ func ResourcePostgresCredential() *schema.Resource {
 			"target_name": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:	 "default",
+				Default:     "default",
 				Description: "Default schema name",
 			},
 			"username": &schema.Schema{
@@ -67,10 +66,10 @@ func ResourcePostgresCredential() *schema.Resource {
 				Description: "Username for Postgres/Redshift/AlloyDB",
 			},
 			"password": &schema.Schema{
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				Description:   "Password for Postgres/Redshift/AlloyDB",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Password for Postgres/Redshift/AlloyDB",
 			},
 			"num_threads": &schema.Schema{
 				Type:        schema.TypeInt,
