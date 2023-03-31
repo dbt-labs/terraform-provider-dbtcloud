@@ -22,8 +22,8 @@ data "dbt_cloud_user" "test_user_read" {
 }
 `, userEmail),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.dbt-cloud_user.test_user_read", "email", userEmail),
-					resource.TestCheckResourceAttrSet("data.dbt-cloud_user.test_user_read", "id"),
+					resource.TestCheckResourceAttr("data.dbt_cloud_user.test_user_read", "email", userEmail),
+					resource.TestCheckResourceAttrSet("data.dbt_cloud_user.test_user_read", "id"),
 				),
 			},
 		},
