@@ -103,7 +103,7 @@ func testAccCheckDbtCloudPostgresCredentialDestroy(s *terraform.State) error {
 		}
 		credentialId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
 		if err != nil {
-			return fmt.Errorf("Can't get projectId")
+			return fmt.Errorf("Can't get credentialId")
 		}
 
 		_, err = apiClient.GetPostgresCredential(projectId, credentialId)

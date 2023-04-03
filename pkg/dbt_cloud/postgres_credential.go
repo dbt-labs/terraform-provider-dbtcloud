@@ -101,7 +101,7 @@ func (c *Client) UpdatePostgresCredential(projectId int, credentialId int, postg
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(postgresCredentialData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(postgresCredentialData)))
 	if err != nil {
 		return nil, err
 	}

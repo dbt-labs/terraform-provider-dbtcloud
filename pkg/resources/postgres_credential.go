@@ -73,7 +73,7 @@ func ResourcePostgresCredential() *schema.Resource {
 			},
 			"num_threads": &schema.Schema{
 				Type:        schema.TypeInt,
-				Required:    true,
+				Optional:    true,
 				Description: "Number of threads to use",
 			},
 		},
