@@ -31,6 +31,7 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 					testAccCheckDbtCloudPostgresCredentialExists("dbt_cloud_postgres_credential.test_credential"),
 					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "default_schema", default_schema),
 					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "username", username),
+					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "password", password),
 				),
 			},
 			// RENAME
