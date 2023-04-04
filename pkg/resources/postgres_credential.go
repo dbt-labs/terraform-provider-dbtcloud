@@ -132,6 +132,8 @@ func resourcePostgresCredentialRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
+	postgresCredential.Password = d.Get("password").(string)
+
 	if err := d.Set("credential_id", postgresCredentialId); err != nil {
 		return diag.FromErr(err)
 	}
