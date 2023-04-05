@@ -44,7 +44,7 @@ func ResourceEnvironment() *schema.Resource {
 			"dbt_version": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Version number of dbt to use in this environment",
+				Description: "Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions",
 			},
 			"type": &schema.Schema{
 				Type:        schema.TypeString,

@@ -52,6 +52,11 @@ var repositorySchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Identifier for the Gitlab project",
 	},
+	"github_installation_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "Identifier for the GitHub installation",
+	},
 	"deploy_key": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
@@ -99,6 +104,9 @@ func datasourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	if err := d.Set("gitlab_project_id", repository.GitlabProjectID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("github_installation_id", repository.GithubInstallationID); err != nil {
 		return diag.FromErr(err)
 	}
 

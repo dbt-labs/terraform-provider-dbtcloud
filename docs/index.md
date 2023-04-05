@@ -34,9 +34,9 @@ provider "dbt" {
 
 ### Required
 
-- `account_id` (Number) Account identifier for your DBT Cloud implementation
-- `token` (String) API token for your DBT Cloud
+- `account_id` (Number) Account identifier for your dbt Cloud implementation
+- `token` (String) API token for your dbt Cloud
 
 ### Optional
 
-- `host_url` (String) URL for your DBT Cloud deployment
+- `host_url` (String) URL for your dbt Cloud deployment

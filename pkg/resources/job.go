@@ -47,7 +47,7 @@ var jobSchema = map[string]*schema.Schema{
 	"dbt_version": &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
-		Description: "Version number of DBT to use in this job",
+		Description: "Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions",
 	},
 	"is_active": &schema.Schema{
 		Type:        schema.TypeBool,

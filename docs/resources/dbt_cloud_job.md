@@ -46,7 +46,7 @@ resource "dbt_cloud_job" "test" {
 
 ### Optional
 
-- `dbt_version` (String) Version number of DBT to use in this job
+- `dbt_version` (String) Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions
 - `deferring_job_id` (Number) Job identifier that this job defers to
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Flag for whether the job is marked active or deleted

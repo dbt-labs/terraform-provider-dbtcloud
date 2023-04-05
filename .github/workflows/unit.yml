@@ -1,5 +1,5 @@
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -17,10 +17,12 @@ jobs:
     steps:
       - name: pull_request actions/checkout
         uses: actions/checkout@v2
-
-      - uses: actions/setup-go@v2
         with:
-          go-version: '1.17'
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
 
       - name: Install dependencies
         run: make setup
