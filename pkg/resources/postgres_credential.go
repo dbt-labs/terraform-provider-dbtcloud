@@ -143,7 +143,13 @@ func resourcePostgresCredentialRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("project_id", postgresCredential.Project_Id); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("type", postgresCredential.Type); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("default_schema", postgresCredential.Default_Schema); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("target_name", postgresCredential.Target_Name); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("username", postgresCredential.Username); err != nil {
@@ -172,14 +178,22 @@ func resourcePostgresCredentialUpdate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("default_schema") || d.HasChange("username") || d.HasChange("password") || d.HasChange("num_threads") {
+	if d.HasChange("type") || d.HasChange("default_schema") || d.HasChange("target_name") || d.HasChange("username") || d.HasChange("password") || d.HasChange("num_threads") {
 		postgresCredential, err := c.GetPostgresCredential(projectId, postgresCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
+		if d.HasChange("type") {
+			default_schema := d.Get("type").(string)
+			postgresCredential.Type = default_schema
+		}
 		if d.HasChange("default_schema") {
 			default_schema := d.Get("default_schema").(string)
 			postgresCredential.Default_Schema = default_schema
+		}
+		if d.HasChange("target_name") {
+			default_schema := d.Get("target_name").(string)
+			postgresCredential.Target_Name = default_schema
 		}
 		if d.HasChange("username") {
 			username := d.Get("username").(string)

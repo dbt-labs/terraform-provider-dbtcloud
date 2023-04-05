@@ -31,7 +31,8 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 					testAccCheckDbtCloudPostgresCredentialExists("dbt_cloud_postgres_credential.test_credential"),
 					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "default_schema", default_schema),
 					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "username", username),
-					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "password", password),
+					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "target_name", "default"),
+					resource.TestCheckResourceAttr("dbt_cloud_postgres_credential.test_credential", "type", "postgres"),
 				),
 			},
 			// RENAME
@@ -79,7 +80,7 @@ func testAccCheckDbtCloudPostgresCredentialExists(resource string) resource.Test
 		}
 		credentialId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
 		if err != nil {
-			return fmt.Errorf("Can't get projectId")
+			return fmt.Errorf("Can't get credentialId")
 		}
 
 		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
