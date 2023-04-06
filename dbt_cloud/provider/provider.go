@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-    dbt_cloud_old "github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	dbt_cloud_old "github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"

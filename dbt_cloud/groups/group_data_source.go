@@ -23,10 +23,10 @@ type groupDataSource struct {
 }
 
 type groupDataSourceModel struct {
-	ID    types.Int64  `tfsdk:"id"`
-	Name types.String `tfsdk:"name"`
-	IsActive types.Boolean `tfsdk:"is_active"`
-	AssignByDefault types.Boolean `tfsdk:"assign_by_default"`
+	ID               types.Int64    `tfsdk:"id"`
+	Name             types.String   `tfsdk:"name"`
+	IsActive         types.Boolean  `tfsdk:"is_active"`
+	AssignByDefault  types.Boolean  `tfsdk:"assign_by_default"`
 	SSOMappingGroups []types.String `tfsdk:"sso_mapping_groups"`
 }
 
@@ -40,11 +40,24 @@ func (d *groupDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
 				Required:    true,
-				Description: "ID of the user",
+				Description: "ID of the group",
 			},
 			"name": schema.StringAttribute{
 				Computed:    true,
 				Description: "Name for the group",
+			},
+			"is_active": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Whether the group is active",
+			},
+			"assign_by_default": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Whether or not to assign this group to users by default",
+			},
+			"sso_mapping_groups": schema.ListAttribute{
+				Computed:    true,
+				Description: "SSO mapping group names for this group",
+				ElementType: types.StringType,
 			},
 		},
 	}
@@ -55,17 +68,20 @@ func (d *groupDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
-	user, err := d.client.GetUser(string(state.Email.ValueString()))
+	group, err := d.client.GetGroup(string(state.ID.ValueInt()))
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to Read dbt Cloud User",
+			"Unable to Read dbt Cloud Group",
 			err.Error(),
 		)
 		return
 	}
 
-	state.ID = types.Int64Value(int64(user.ID))
-	state.Email = types.StringValue(user.Email)
+	state.ID = types.Int64Value(int64(group.ID))
+	state.Name = types.StringValue(group.Name)
+	state.IsActive = types.BoolValue(group.IsActive)
+	state.AssignByDefault = types.BoolValue(group.AssignByDefault)
+	state.SSOMappingGroups = []types.StringValue{group.SSOMappingGroups}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
