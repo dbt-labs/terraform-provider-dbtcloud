@@ -23,11 +23,11 @@ type groupDataSource struct {
 }
 
 type groupDataSourceModel struct {
-	ID               types.Int64    `tfsdk:"id"`
-	Name             types.String   `tfsdk:"name"`
-	IsActive         types.Boolean  `tfsdk:"is_active"`
-	AssignByDefault  types.Boolean  `tfsdk:"assign_by_default"`
-	SSOMappingGroups []types.String `tfsdk:"sso_mapping_groups"`
+	ID               types.Int64  `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	IsActive         types.Bool   `tfsdk:"is_active"`
+	AssignByDefault  types.Bool   `tfsdk:"assign_by_default"`
+	SSOMappingGroups types.List   `tfsdk:"sso_mapping_groups"`
 }
 
 func (d *groupDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -68,7 +68,7 @@ func (d *groupDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
-	group, err := d.client.GetGroup(string(state.ID.ValueInt()))
+	group, err := d.client.GetGroup(int(state.ID.ValueInt64()))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Read dbt Cloud Group",
@@ -77,11 +77,11 @@ func (d *groupDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	state.ID = types.Int64Value(int64(group.ID))
+	state.ID = types.Int64Value(int64(*group.ID))
 	state.Name = types.StringValue(group.Name)
-	state.IsActive = types.BoolValue(group.IsActive)
+	state.IsActive = types.BoolValue(group.State == STATE_ACTIVE)
 	state.AssignByDefault = types.BoolValue(group.AssignByDefault)
-	state.SSOMappingGroups = []types.StringValue{group.SSOMappingGroups}
+	state.SSOMappingGroups.ElementsAs(ctx, &group.SSOMappingGroups, false)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
