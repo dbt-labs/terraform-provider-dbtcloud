@@ -85,13 +85,13 @@ func (c *Client) CreatePostgresCredential(projectId int, isActive bool, type_ st
 		return nil, err
 	}
 
-	PostgresCredentialResponse := PostgresCredentialResponse{}
-	err = json.Unmarshal(body, &PostgresCredentialResponse)
+	postgresCredentialResponse := PostgresCredentialResponse{}
+	err = json.Unmarshal(body, &postgresCredentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PostgresCredentialResponse.Data, nil
+	return &postgresCredentialResponse.Data, nil
 }
 
 // UpdatePostgresCredential updates an existing Postgres credential
