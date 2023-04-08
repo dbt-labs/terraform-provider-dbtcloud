@@ -34,7 +34,6 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"dbt_cloud_group":                data_sources.DatasourceGroup(),
 			"dbt_cloud_job":                  data_sources.DatasourceJob(),
 			"dbt_cloud_project":              data_sources.DatasourceProject(),
 			"dbt_cloud_environment":          data_sources.DatasourceEnvironment(),

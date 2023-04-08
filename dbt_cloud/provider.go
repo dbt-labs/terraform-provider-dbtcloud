@@ -158,6 +158,7 @@ func (p *dbtCloudProvider) Configure(ctx context.Context, req provider.Configure
 
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		GroupDataSource,
 		UserDataSource,
 	}
 }

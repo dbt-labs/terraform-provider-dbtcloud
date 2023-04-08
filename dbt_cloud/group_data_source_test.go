@@ -18,6 +18,7 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 		resource.TestCheckResourceAttr("data.dbt_cloud_group.test_group_read", "name", groupName),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_group.test_group_read", "is_active"),
 		resource.TestCheckResourceAttrSet("data.dbt_cloud_group.test_group_read", "assign_by_default"),
+		resource.TestCheckResourceAttrSet("data.dbt_cloud_group.test_group_read", "sso_mapping_groups"),
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -35,6 +36,7 @@ func group(groupName string) string {
 	return fmt.Sprintf(`
 resource "dbt_cloud_group" "test_group" {
     name = "%s"
+    sso_mapping_groups = ["abc"]
 }
 
 data "dbt_cloud_group" "test_group_read" {
