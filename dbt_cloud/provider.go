@@ -164,5 +164,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 }
 
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		NewGroupResource,
+	}
 }
