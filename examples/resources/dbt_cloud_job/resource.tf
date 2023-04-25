@@ -12,6 +12,7 @@ resource "dbt_cloud_job" "test" {
   target_name          = "default"
   triggers = {
     "custom_branch_only" : true,
+    "git_provider_webhook" : false,
     "github_webhook" : false,
     "schedule" : false
   }
