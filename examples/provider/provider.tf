@@ -2,7 +2,7 @@ terraform {
   required_providers {
     dbt = {
       source  = "GtheSheep/dbt-cloud"
-      version = "0.1.0"
+      version = "0.1.9"
     }
   }
 }
