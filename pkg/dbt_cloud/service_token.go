@@ -127,7 +127,7 @@ func (c *Client) CreateServiceToken(
 	return &serviceTokenResponse.Data, nil
 }
 
-func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToken) (*Group, error) {
+func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToken) (*ServiceToken, error) {
 	serviceTokenData, err := json.Marshal(serviceToken)
 	if err != nil {
 		return nil, err
@@ -143,13 +143,13 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 		return nil, err
 	}
 
-	groupResponse := GroupResponse{}
-	err = json.Unmarshal(body, &groupResponse)
+	serviceTokenResponse := ServiceTokenResponse{}
+	err = json.Unmarshal(body, &serviceTokenResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &groupResponse.Data, nil
+	return &serviceTokenResponse.Data, nil
 }
 
 func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenPermissions []ServiceTokenPermission) (*[]ServiceTokenPermission, error) {
