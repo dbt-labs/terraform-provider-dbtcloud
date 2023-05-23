@@ -46,8 +46,8 @@ resource "dbt_cloud_webhook" "test_webhook" {
 ### Read-Only
 
 - `account_identifier` (String) Webhooks Account Identifier
-- `hmac_secret` (String, Sensitive) Webhooks active flag
-- `http_status_code` (String) Webhooks HTTP Status Code
+- `hmac_secret` (String, Sensitive) Secret key for the webhook. Can be used to validate the authenticity of the webhook.
+- `http_status_code` (String) Latest HTTP status of the webhook
 - `id` (String) The ID of this resource.
 - `webhook_id` (String) Webhooks ID
 
