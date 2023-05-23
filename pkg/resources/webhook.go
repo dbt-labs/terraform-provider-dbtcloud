@@ -203,8 +203,7 @@ func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		d.HasChange("description") ||
 		d.HasChange("client_url") ||
 		d.HasChange("event_types") ||
-		d.HasChange("job_ids") ||
-		d.HasChange("active") {
+		d.HasChange("job_ids") {
 		webhookRead, err := c.GetWebhook(webhookId)
 
 		jobIdsWrite := make([]int, len(webhookRead.JobIds))
@@ -251,10 +250,6 @@ func resourceWebhookUpdate(ctx context.Context, d *schema.ResourceData, m interf
 				jobIDs[i] = step.(int)
 			}
 			webhook.JobIds = jobIDs
-		}
-		if d.HasChange("active") {
-			active := d.Get("active").(bool)
-			webhook.Active = active
 		}
 
 		_, err = c.UpdateWebhook(webhookId, webhook)
