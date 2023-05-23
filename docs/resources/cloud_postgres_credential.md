@@ -31,7 +31,7 @@ resource "dbt_cloud_postgres_credential" "test_credential" {
 
 - `default_schema` (String) Default schema name
 - `project_id` (Number) Project ID to create the Postgres/Redshift/AlloyDB credential in
-- `type` (String) Type of connection. One of (postgres/redshift)
+- `type` (String) Type of connection. One of (postgres/redshift) use postgres for alloydb connections
 - `username` (String) Username for Postgres/Redshift/AlloyDB
 
 ### Optional
