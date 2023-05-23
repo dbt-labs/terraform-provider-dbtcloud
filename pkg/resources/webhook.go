@@ -67,12 +67,12 @@ var webhookSchema = map[string]*schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
 		Sensitive:   true,
-		Description: "Webhooks active flag",
+		Description: "Secret key for the webhook. Can be used to validate the authenticity of the webhook.",
 	},
 	"http_status_code": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
-		Description: "Webhooks HTTP Status Code",
+		Description: "Latest HTTP status of the webhook",
 	},
 	"account_identifier": &schema.Schema{
 		Type:        schema.TypeString,
