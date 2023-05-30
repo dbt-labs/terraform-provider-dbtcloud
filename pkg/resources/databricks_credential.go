@@ -36,7 +36,8 @@ func ResourceDatabricksCredential() *schema.Resource {
 			},
 			"target_name": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "default",
 				Description: "Target name",
 			},
 			"token": &schema.Schema{
@@ -47,8 +48,20 @@ func ResourceDatabricksCredential() *schema.Resource {
 			},
 			"num_threads": &schema.Schema{
 				Type:        schema.TypeInt,
-				Required:    true,
+				Optional:    true,
+				Default:     16,
 				Description: "Number of threads to use",
+			},
+			"catalog": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "The catalog where to create models",
+			},
+			"schema": &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The schema where to create models",
 			},
 		},
 
@@ -69,8 +82,10 @@ func resourceDatabricksCredentialCreate(ctx context.Context, d *schema.ResourceD
 	targetName := d.Get("target_name").(string)
 	token := d.Get("token").(string)
 	numThreads := d.Get("num_threads").(int)
+	catalog := d.Get("catalog").(string)
+	schema := d.Get("schema").(string)
 
-	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, numThreads, token)
+	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, numThreads, token, catalog, schema)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -121,6 +136,12 @@ func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceDat
 	if err := d.Set("token", d.Get("token").(string)); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("catalog", databricksCredential.UnencryptedCredentialDetails["catalog"]); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails["schema"]); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -138,7 +159,7 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("num_threads") || d.HasChange("token") {
+	if d.HasChange("num_threads") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") {
 		databricksCredential, err := c.GetDatabricksCredential(projectId, databricksCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -147,13 +168,67 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 			numThreads := d.Get("num_threads").(int)
 			databricksCredential.Threads = numThreads
 		}
-		if d.HasChange("token") {
-			token := d.Get("token").(string)
-			if tokenField, ok := databricksCredential.Credential_Details.Fields["token"]; ok {
-				tokenField.Value = token
-				databricksCredential.Credential_Details.Fields["token"] = tokenField
-			}
+		if d.HasChange("target_name") {
+			targetName := d.Get("target_name").(string)
+			databricksCredential.Target_Name = targetName
 		}
+
+		// we need to fill in the DatabricksCredentialFieldMetadata for all fields, except token if it was not changed
+		validation := dbt_cloud.DatabricksCredentialFieldMetadataValidation{
+			Required: false,
+		}
+		tokenMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+			Label:       "Token",
+			Description: "Personalized user token.",
+			Field_Type:  "text",
+			Encrypt:     true,
+			Validation:  validation,
+		}
+		catalogMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+			Label:       "Catalog",
+			Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
+			Field_Type:  "text",
+			Encrypt:     false,
+			Validation:  validation,
+		}
+		schemaMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+			Label:       "Schema",
+			Description: "User schema.",
+			Field_Type:  "text",
+			Encrypt:     false,
+			Validation:  validation,
+		}
+
+		credentialsFieldToken := dbt_cloud.DatabricksCredentialField{
+			Metadata: tokenMetadata,
+			Value:    d.Get("token").(string),
+		}
+		credentialsFieldCatalog := dbt_cloud.DatabricksCredentialField{
+			Metadata: catalogMetadata,
+			Value:    d.Get("catalog").(string),
+			// Value: "abcd",
+		}
+		credentialsFieldSchema := dbt_cloud.DatabricksCredentialField{
+			Metadata: schemaMetadata,
+			Value:    d.Get("schema").(string),
+		}
+
+		credentialFields := map[string]dbt_cloud.DatabricksCredentialField{}
+
+		// we update token only if it was changed
+		if d.HasChange("token") {
+			credentialFields["token"] = credentialsFieldToken
+		}
+
+		credentialFields["catalog"] = credentialsFieldCatalog
+		credentialFields["schema"] = credentialsFieldSchema
+
+		credentialDetails := dbt_cloud.DatabricksCredentialDetails{
+			Fields:      credentialFields,
+			Field_Order: []string{},
+		}
+
+		databricksCredential.Credential_Details = credentialDetails
 
 		_, err = c.UpdateDatabricksCredential(projectId, databricksCredentialId, *databricksCredential)
 		if err != nil {
@@ -184,6 +259,44 @@ func resourceDatabricksCredentialDelete(ctx context.Context, d *schema.ResourceD
 	}
 
 	databricksCredential.State = dbt_cloud.STATE_DELETED
+
+	// those values don't mean anything for delete operation but they are required by the API
+	validation := dbt_cloud.DatabricksCredentialFieldMetadataValidation{
+		Required: false,
+	}
+	catalogMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		Label:       "Catalog",
+		Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
+		Field_Type:  "text",
+		Encrypt:     false,
+		Validation:  validation,
+	}
+	schemaMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		Label:       "Schema",
+		Description: "User schema.",
+		Field_Type:  "text",
+		Encrypt:     false,
+		Validation:  validation,
+	}
+	credentialsFieldCatalog := dbt_cloud.DatabricksCredentialField{
+		Metadata: catalogMetadata,
+		Value:    "NA",
+	}
+	credentialsFieldSchema := dbt_cloud.DatabricksCredentialField{
+		Metadata: schemaMetadata,
+		Value:    "NA",
+	}
+	credentialFields := map[string]dbt_cloud.DatabricksCredentialField{}
+	credentialFields["catalog"] = credentialsFieldCatalog
+	credentialFields["schema"] = credentialsFieldSchema
+
+	credentialDetails := dbt_cloud.DatabricksCredentialDetails{
+		Fields:      credentialFields,
+		Field_Order: []string{},
+	}
+
+	databricksCredential.Credential_Details = credentialDetails
+
 	_, err = c.UpdateDatabricksCredential(projectId, databricksCredentialId, *databricksCredential)
 	if err != nil {
 		return diag.FromErr(err)

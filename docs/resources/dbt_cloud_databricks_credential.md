@@ -16,8 +16,9 @@ description: |-
 resource "dbt_cloud_databricks_credential" "new_credential" {
   project_id  = data.dbt_cloud_project.test_project.project_id
   adapter_id  = 123
-  num_threads = 16
-  target_name = "MOO"
+  schema      = "my_schema"
+  catalog     = "my_catalog"
+  token       = "my_secure_token"
 }
 ```
 
@@ -27,10 +28,15 @@ resource "dbt_cloud_databricks_credential" "new_credential" {
 ### Required
 
 - `adapter_id` (Number) Databricks adapter ID for the credential
-- `num_threads` (Number) Number of threads to use
 - `project_id` (Number) Project ID to create the Databricks credential in
-- `target_name` (String) Target name
+- `schema` (String) The schema where to create models
 - `token` (String, Sensitive) Token for Databricks user
+
+### Optional
+
+- `catalog` (String) The catalog where to create models
+- `num_threads` (Number) Number of threads to use
+- `target_name` (String) Target name
 
 ### Read-Only
 

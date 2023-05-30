@@ -41,19 +41,20 @@ type DatabricksCredentialDetails struct {
 }
 
 type DatabricksCredential struct {
-	ID                 *int                        `json:"id"`
-	Account_Id         int                         `json:"account_id"`
-	Project_Id         int                         `json:"project_id"`
-	Type               string                      `json:"type"`
-	State              int                         `json:"state"`
-	Threads            int                         `json:"threads"`
-	Target_Name        string                      `json:"target_name"`
-	Adapter_Id         int                         `json:"adapter_id"`
-	Credential_Details DatabricksCredentialDetails `json:"credential_details"`
+	ID                           *int                        `json:"id"`
+	Account_Id                   int                         `json:"account_id"`
+	Project_Id                   int                         `json:"project_id"`
+	Type                         string                      `json:"type"`
+	State                        int                         `json:"state"`
+	Threads                      int                         `json:"threads"`
+	Target_Name                  string                      `json:"target_name"`
+	Adapter_Id                   int                         `json:"adapter_id"`
+	Credential_Details           DatabricksCredentialDetails `json:"credential_details"`
+	UnencryptedCredentialDetails map[string]string           `json:"unencrypted_credential_details"`
 }
 
 func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*DatabricksCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/?include_related=[adapter]", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -63,22 +64,16 @@ func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*Data
 		return nil, err
 	}
 
-	databricksCredentialListResponse := DatabricksCredentialListResponse{}
-	err = json.Unmarshal(body, &databricksCredentialListResponse)
+	credentialResponse := DatabricksCredentialResponse{}
+	err = json.Unmarshal(body, &credentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, credential := range databricksCredentialListResponse.Data {
-		if *credential.ID == credentialId {
-			return &databricksCredentialListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("Did not find credential ID %d in project ID %d", credentialId, projectId)
+	return &credentialResponse.Data, nil
 }
 
-func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string) (*DatabricksCredential, error) {
+func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string, catalog string, schema string) (*DatabricksCredential, error) {
 	validation := DatabricksCredentialFieldMetadataValidation{
 		Required: false,
 	}
@@ -89,12 +84,39 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Encrypt:     true,
 		Validation:  validation,
 	}
+	catalogMetadata := DatabricksCredentialFieldMetadata{
+		Label:       "Catalog",
+		Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
+		Field_Type:  "text",
+		Encrypt:     false,
+		Validation:  validation,
+	}
+	schemaMetadata := DatabricksCredentialFieldMetadata{
+		Label:       "Schema",
+		Description: "User schema.",
+		Field_Type:  "text",
+		Encrypt:     false,
+		Validation:  validation,
+	}
+
 	credentialsFieldToken := DatabricksCredentialField{
 		Metadata: tokenMetadata,
 		Value:    token,
 	}
+	credentialsFieldCatalog := DatabricksCredentialField{
+		Metadata: catalogMetadata,
+		Value:    catalog,
+	}
+	credentialsFieldSchema := DatabricksCredentialField{
+		Metadata: schemaMetadata,
+		Value:    schema,
+	}
+
 	credentialFields := map[string]DatabricksCredentialField{}
 	credentialFields["token"] = credentialsFieldToken
+	credentialFields["catalog"] = credentialsFieldCatalog
+	credentialFields["schema"] = credentialsFieldSchema
+
 	credentialDetails := DatabricksCredentialDetails{
 		Fields:      credentialFields,
 		Field_Order: []string{},
