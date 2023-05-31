@@ -36,7 +36,6 @@ resource "dbt_cloud_databricks_credential" "new_credential" {
 ### Optional
 
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
-- `num_threads` (Number) Number of threads to use
 - `target_name` (String) Target name
 
 ### Read-Only

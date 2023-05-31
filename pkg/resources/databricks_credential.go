@@ -54,12 +54,6 @@ func ResourceDatabricksCredential() *schema.Resource {
 				Sensitive:   true,
 				Description: "Token for Databricks user",
 			},
-			"num_threads": &schema.Schema{
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     16,
-				Description: "Number of threads to use",
-			},
 			"catalog": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -95,12 +89,11 @@ func resourceDatabricksCredentialCreate(ctx context.Context, d *schema.ResourceD
 	adapterId := d.Get("adapter_id").(int)
 	targetName := d.Get("target_name").(string)
 	token := d.Get("token").(string)
-	numThreads := d.Get("num_threads").(int)
 	catalog := d.Get("catalog").(string)
 	schema := d.Get("schema").(string)
 	adapterType := d.Get("adapter_type").(string)
 
-	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, numThreads, token, catalog, schema, adapterType)
+	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, token, catalog, schema, adapterType)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -145,16 +138,13 @@ func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceDat
 	if err := d.Set("target_name", databricksCredential.Target_Name); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("num_threads", databricksCredential.Threads); err != nil {
-		return diag.FromErr(err)
-	}
 	if err := d.Set("token", d.Get("token").(string)); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("catalog", databricksCredential.UnencryptedCredentialDetails["catalog"]); err != nil {
+	if err := d.Set("catalog", databricksCredential.UnencryptedCredentialDetails.Catalog); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails["schema"]); err != nil {
+	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails.Schema); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("adapter_type", d.Get("adapter_type").(string)); err != nil {
@@ -177,14 +167,14 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("num_threads") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") || d.HasChange("adapter_type") {
+	if d.HasChange("adapter_id") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") || d.HasChange("adapter_type") {
 		databricksCredential, err := c.GetDatabricksCredential(projectId, databricksCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		if d.HasChange("num_threads") {
-			numThreads := d.Get("num_threads").(int)
-			databricksCredential.Threads = numThreads
+		if d.HasChange("adapter_id") {
+			adapterId := d.Get("adapter_id").(int)
+			databricksCredential.Adapter_Id = adapterId
 		}
 		if d.HasChange("target_name") {
 			targetName := d.Get("target_name").(string)
@@ -216,6 +206,13 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 			Encrypt:     false,
 			Validation:  validation,
 		}
+		threadsMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+			Label:       "Threads",
+			Description: "The number of threads to use for your jobs.",
+			Field_Type:  "number",
+			Encrypt:     false,
+			Validation:  validation,
+		}
 
 		credentialsFieldToken := dbt_cloud.DatabricksCredentialField{
 			Metadata: tokenMetadata,
@@ -229,17 +226,28 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 			Metadata: schemaMetadata,
 			Value:    d.Get("schema").(string),
 		}
+		credentialsFieldThreads := dbt_cloud.DatabricksCredentialField{
+			Metadata: threadsMetadata,
+			Value:    dbt_cloud.NUM_THREADS_CREDENTIAL,
+		}
 
 		credentialFields := map[string]dbt_cloud.DatabricksCredentialField{}
-
-		// we update token only if it was changed
-		if d.HasChange("token") {
-			credentialFields["token"] = credentialsFieldToken
-		}
 
 		// only databricks accepts a catalog, not spark
 		if d.Get("adapter_type").(string) == "databricks" {
 			credentialFields["catalog"] = credentialsFieldCatalog
+
+			// for databricks, we update token only if it was changed
+			if d.HasChange("token") {
+				credentialFields["token"] = credentialsFieldToken
+			}
+		}
+
+		// spark requires sending all the details
+		if d.Get("adapter_type").(string) == "spark" {
+			credentialFields["token"] = credentialsFieldToken
+			credentialFields["threads"] = credentialsFieldThreads
+			credentialFields["schema"] = credentialsFieldSchema
 		}
 
 		credentialFields["schema"] = credentialsFieldSchema

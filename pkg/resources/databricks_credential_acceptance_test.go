@@ -58,8 +58,8 @@ resource "dbt_cloud_databricks_credential" "test_credential" {
     adapter_id = 123
     target_name = "%s"
     token = "%s"
-    num_threads = 3
     schema = "my_schema"
+	# adapter_type = "databricks"
 	adapter_type = "spark"
 }
 `, projectName, targetName, token)
