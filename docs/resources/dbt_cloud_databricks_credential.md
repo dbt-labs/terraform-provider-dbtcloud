@@ -28,13 +28,14 @@ resource "dbt_cloud_databricks_credential" "new_credential" {
 ### Required
 
 - `adapter_id` (Number) Databricks adapter ID for the credential
+- `adapter_type` (String) The type of the adapter (databricks or spark)
 - `project_id` (Number) Project ID to create the Databricks credential in
 - `schema` (String) The schema where to create models
 - `token` (String, Sensitive) Token for Databricks user
 
 ### Optional
 
-- `catalog` (String) The catalog where to create models
+- `catalog` (String) The catalog where to create models (only for the databricks adapter)
 - `num_threads` (Number) Number of threads to use
 - `target_name` (String) Target name
 

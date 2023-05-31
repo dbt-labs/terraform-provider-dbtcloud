@@ -9,6 +9,14 @@ import (
 	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	adapterTypes = []string{
+		"databricks",
+		"spark",
+	}
 )
 
 func ResourceDatabricksCredential() *schema.Resource {
@@ -56,12 +64,18 @@ func ResourceDatabricksCredential() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "The catalog where to create models",
+				Description: "The catalog where to create models (only for the databricks adapter)",
 			},
 			"schema": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The schema where to create models",
+			},
+			"adapter_type": &schema.Schema{
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "The type of the adapter (databricks or spark)",
+				ValidateFunc: validation.StringInSlice(adapterTypes, false),
 			},
 		},
 
@@ -84,8 +98,9 @@ func resourceDatabricksCredentialCreate(ctx context.Context, d *schema.ResourceD
 	numThreads := d.Get("num_threads").(int)
 	catalog := d.Get("catalog").(string)
 	schema := d.Get("schema").(string)
+	adapterType := d.Get("adapter_type").(string)
 
-	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, numThreads, token, catalog, schema)
+	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, numThreads, token, catalog, schema, adapterType)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -142,6 +157,9 @@ func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceDat
 	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails["schema"]); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("adapter_type", d.Get("adapter_type").(string)); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -159,7 +177,7 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("num_threads") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") {
+	if d.HasChange("num_threads") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") || d.HasChange("adapter_type") {
 		databricksCredential, err := c.GetDatabricksCredential(projectId, databricksCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -206,7 +224,6 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		credentialsFieldCatalog := dbt_cloud.DatabricksCredentialField{
 			Metadata: catalogMetadata,
 			Value:    d.Get("catalog").(string),
-			// Value: "abcd",
 		}
 		credentialsFieldSchema := dbt_cloud.DatabricksCredentialField{
 			Metadata: schemaMetadata,
@@ -220,7 +237,11 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 			credentialFields["token"] = credentialsFieldToken
 		}
 
-		credentialFields["catalog"] = credentialsFieldCatalog
+		// only databricks accepts a catalog, not spark
+		if d.Get("adapter_type").(string) == "databricks" {
+			credentialFields["catalog"] = credentialsFieldCatalog
+		}
+
 		credentialFields["schema"] = credentialsFieldSchema
 
 		credentialDetails := dbt_cloud.DatabricksCredentialDetails{
