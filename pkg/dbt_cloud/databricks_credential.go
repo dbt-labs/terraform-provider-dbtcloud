@@ -73,7 +73,7 @@ func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*Data
 	return &credentialResponse.Data, nil
 }
 
-func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string, catalog string, schema string) (*DatabricksCredential, error) {
+func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string, catalog string, schema string, adapterType string) (*DatabricksCredential, error) {
 	validation := DatabricksCredentialFieldMetadataValidation{
 		Required: false,
 	}
@@ -114,8 +114,12 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 
 	credentialFields := map[string]DatabricksCredentialField{}
 	credentialFields["token"] = credentialsFieldToken
-	credentialFields["catalog"] = credentialsFieldCatalog
 	credentialFields["schema"] = credentialsFieldSchema
+
+	// the catalog field is only available for databricks adapter type
+	if adapterType == "databricks" {
+		credentialFields["catalog"] = credentialsFieldCatalog
+	}
 
 	credentialDetails := DatabricksCredentialDetails{
 		Fields:      credentialFields,
