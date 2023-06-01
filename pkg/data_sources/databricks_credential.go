@@ -79,10 +79,10 @@ func databricksCredentialRead(ctx context.Context, d *schema.ResourceData, m int
 	if err := d.Set("num_threads", databricksCredential.Threads); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("catalog", databricksCredential.UnencryptedCredentialDetails["catalog"]); err != nil {
+	if err := d.Set("catalog", databricksCredential.UnencryptedCredentialDetails.Catalog); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails["schema"]); err != nil {
+	if err := d.Set("schema", databricksCredential.UnencryptedCredentialDetails.Schema); err != nil {
 		return diag.FromErr(err)
 	}
 
