@@ -250,9 +250,9 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	catalog := ""
 	hostName := connection.Details.Host
 	if connection.Details.AdapterDetails != nil {
-		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value
-		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value
-		hostName = connection.Details.AdapterDetails.Fields["host"].Value
+		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value.(string)
+		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value.(string)
+		hostName = connection.Details.AdapterDetails.Fields["host"].Value.(string)
 	}
 	if err := d.Set("host_name", hostName); err != nil {
 		return diag.FromErr(err)

@@ -30,9 +30,10 @@ type DatabricksCredentialFieldMetadata struct {
 	Validation   DatabricksCredentialFieldMetadataValidation `json:"validation"`
 }
 
+// Value can actually be a string or an int (for threads)
 type DatabricksCredentialField struct {
 	Metadata DatabricksCredentialFieldMetadata `json:"metadata"`
-	Value    string                            `json:"value"`
+	Value    interface{}                       `json:"value"`
 }
 
 type DatabricksCredentialDetails struct {
@@ -40,17 +41,25 @@ type DatabricksCredentialDetails struct {
 	Field_Order []string                             `json:"field_order"`
 }
 
+type DatabricksUnencryptedCredentialDetails struct {
+	Catalog    string `json:"catalog"`
+	Schema     string `json:"schema"`
+	TargetName string `json:"target_name"`
+	Threads    int    `json:"threads"`
+	Token      string `json:"token,omitempty"`
+}
+
 type DatabricksCredential struct {
-	ID                           *int                        `json:"id"`
-	Account_Id                   int                         `json:"account_id"`
-	Project_Id                   int                         `json:"project_id"`
-	Type                         string                      `json:"type"`
-	State                        int                         `json:"state"`
-	Threads                      int                         `json:"threads"`
-	Target_Name                  string                      `json:"target_name"`
-	Adapter_Id                   int                         `json:"adapter_id"`
-	Credential_Details           DatabricksCredentialDetails `json:"credential_details"`
-	UnencryptedCredentialDetails map[string]string           `json:"unencrypted_credential_details"`
+	ID                           *int                                   `json:"id"`
+	Account_Id                   int                                    `json:"account_id"`
+	Project_Id                   int                                    `json:"project_id"`
+	Type                         string                                 `json:"type"`
+	State                        int                                    `json:"state"`
+	Threads                      int                                    `json:"threads"`
+	Target_Name                  string                                 `json:"target_name"`
+	Adapter_Id                   int                                    `json:"adapter_id"`
+	Credential_Details           DatabricksCredentialDetails            `json:"credential_details"`
+	UnencryptedCredentialDetails DatabricksUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
 
 func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*DatabricksCredential, error) {
@@ -73,7 +82,7 @@ func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*Data
 	return &credentialResponse.Data, nil
 }
 
-func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, numThreads int, token string, catalog string, schema string, adapterType string) (*DatabricksCredential, error) {
+func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, token string, catalog string, schema string, adapterType string) (*DatabricksCredential, error) {
 	validation := DatabricksCredentialFieldMetadataValidation{
 		Required: false,
 	}
@@ -98,6 +107,13 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Encrypt:     false,
 		Validation:  validation,
 	}
+	threadsMetadata := DatabricksCredentialFieldMetadata{
+		Label:       "Threads",
+		Description: "The number of threads to use for your jobs.",
+		Field_Type:  "number",
+		Encrypt:     false,
+		Validation:  validation,
+	}
 
 	credentialsFieldToken := DatabricksCredentialField{
 		Metadata: tokenMetadata,
@@ -111,14 +127,26 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Metadata: schemaMetadata,
 		Value:    schema,
 	}
+	credentialsFieldThreads := DatabricksCredentialField{
+		Metadata: threadsMetadata,
+		Value:    NUM_THREADS_CREDENTIAL,
+	}
 
 	credentialFields := map[string]DatabricksCredentialField{}
-	credentialFields["token"] = credentialsFieldToken
-	credentialFields["schema"] = credentialsFieldSchema
 
 	// the catalog field is only available for databricks adapter type
+	// there is an issue if we provide the number of threads at the creation
 	if adapterType == "databricks" {
 		credentialFields["catalog"] = credentialsFieldCatalog
+		credentialFields["token"] = credentialsFieldToken
+		credentialFields["schema"] = credentialsFieldSchema
+	}
+
+	// for spark, we use all except the catalog
+	if adapterType == "spark" {
+		credentialFields["token"] = credentialsFieldToken
+		credentialFields["schema"] = credentialsFieldSchema
+		credentialFields["threads"] = credentialsFieldThreads
 	}
 
 	credentialDetails := DatabricksCredentialDetails{
@@ -130,7 +158,7 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Project_Id:         projectId,
 		Type:               type_,
 		State:              STATE_ACTIVE,
-		Threads:            numThreads,
+		Threads:            NUM_THREADS_CREDENTIAL,
 		Target_Name:        targetName,
 		Adapter_Id:         adapterId,
 		Credential_Details: credentialDetails,
