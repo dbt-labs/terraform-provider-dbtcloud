@@ -18,7 +18,7 @@ var projectSchema = map[string]*schema.Schema{
 	"dbt_project_subdirectory": &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
-		Description: "DBT project subdirectory path",
+		Description: "dbt project subdirectory path",
 	},
 }
 
