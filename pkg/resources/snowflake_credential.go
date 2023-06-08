@@ -235,16 +235,16 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 			snowflakeCredential.Auth_Type = authType
 		}
 		if d.HasChange("database") {
-			schema := d.Get("database").(string)
-			snowflakeCredential.Schema = schema
+			database := d.Get("database").(string)
+			snowflakeCredential.Database = database
 		}
 		if d.HasChange("role") {
-			schema := d.Get("role").(string)
-			snowflakeCredential.Schema = schema
+			role := d.Get("role").(string)
+			snowflakeCredential.Role = role
 		}
 		if d.HasChange("warehouse") {
-			schema := d.Get("warehouse").(string)
-			snowflakeCredential.Schema = schema
+			warehouse := d.Get("warehouse").(string)
+			snowflakeCredential.Warehouse = warehouse
 		}
 		if d.HasChange("schema") {
 			schema := d.Get("schema").(string)
