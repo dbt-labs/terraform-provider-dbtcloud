@@ -22,6 +22,14 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	database2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	schema2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
 	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -43,6 +51,18 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 			},
 			// RENAME
 			// MODIFY
+			{
+				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database2, role2, warehouse2, schema2, user2, password2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "database", database2),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "role", role2),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "warehouse", warehouse2),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "schema", schema2),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "user", user2),
+					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "password", password2),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_snowflake_credential.test_credential",
