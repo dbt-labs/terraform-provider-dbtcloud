@@ -13,11 +13,21 @@ description: |-
 ## Example Usage
 
 ```terraform
-resource "dbt_cloud_databricks_credential" "new_credential" {
-  project_id  = data.dbt_cloud_project.test_project.project_id
-  adapter_id  = 123
-  num_threads = 16
-  target_name = "MOO"
+resource "dbt_cloud_databricks_credential" "new_credential_dx" {
+  project_id   = data.dbt_cloud_project.test_project_1.project_id
+  adapter_id   = 123
+  schema       = "my_schema"
+  catalog      = "my_catalog"
+  token        = "my_secure_token"
+  adapter_type = "databricks"
+}
+
+resource "dbt_cloud_databricks_credential" "new_credential_spark" {
+  project_id   = data.dbt_cloud_project.test_project_2.project_id
+  adapter_id   = 456
+  schema       = "my_schema"
+  token        = "my_secure_token"
+  adapter_type = "spark"
 }
 ```
 
@@ -27,10 +37,15 @@ resource "dbt_cloud_databricks_credential" "new_credential" {
 ### Required
 
 - `adapter_id` (Number) Databricks adapter ID for the credential
-- `num_threads` (Number) Number of threads to use
+- `adapter_type` (String) The type of the adapter (databricks or spark)
 - `project_id` (Number) Project ID to create the Databricks credential in
-- `target_name` (String) Target name
+- `schema` (String) The schema where to create models
 - `token` (String, Sensitive) Token for Databricks user
+
+### Optional
+
+- `catalog` (String) The catalog where to create models (only for the databricks adapter)
+- `target_name` (String) Target name
 
 ### Read-Only
 
