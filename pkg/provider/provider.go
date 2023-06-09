@@ -46,6 +46,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_bigquery_connection":  data_sources.DatasourceBigQueryConnection(),
 			"dbt_cloud_repository":           data_sources.DatasourceRepository(),
 			"dbt_cloud_user":                 data_sources.DatasourceUser(),
+			"dbt_cloud_service_token":        data_sources.DatasourceServiceToken(),
 			"dbt_cloud_webhook":              data_sources.DatasourceWebhook(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -64,6 +65,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_bigquery_connection":   resources.ResourceBigQueryConnection(),
 			"dbt_cloud_repository":            resources.ResourceRepository(),
 			"dbt_cloud_group":                 resources.ResourceGroup(),
+			"dbt_cloud_service_token":         resources.ResourceServiceToken(),
 			"dbt_cloud_webhook":               resources.ResourceWebhook(),
 		},
 		ConfigureContextFunc: providerConfigure,
