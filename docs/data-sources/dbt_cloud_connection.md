@@ -29,6 +29,7 @@ description: |-
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the connection is active
 - `name` (String) Connection name
+- `private_link_endpoint_id` (String) The ID of the PrivateLink connection
 - `role` (String) Role name for the connection
 - `type` (String) Connection type
 - `warehouse` (String) Warehouse name for the connection

@@ -35,6 +35,7 @@ type Connection struct {
 	CreatedByID             *int              `json:"created_by_id,omitempty"`
 	CreatedByServiceTokenID *int              `json:"created_by_service_token_id,omitempty"`
 	State                   int               `json:"state"`
+	PrivateLinkEndpointID   string            `json:"private_link_endpoint_id,omitempty"`
 	Created_At              *string           `json:"created_at,omitempty"`
 	Updated_At              *string           `json:"updated_at,omitempty"`
 	Details                 ConnectionDetails `json:"details"`
@@ -93,7 +94,7 @@ func (c *Client) GetConnection(connectionID, projectID string) (*Connection, err
 	return &connectionResponse.Data, nil
 }
 
-func (c *Client) CreateConnection(projectID int, name string, connectionType string, isActive bool, account string, database string, warehouse string, role string, allowSSO *bool, clientSessionKeepAlive *bool, oAuthClientID string, oAuthClientSecret string, hostName string, port int, tunnelEnabled *bool, httpPath string, catalog string) (*Connection, error) {
+func (c *Client) CreateConnection(projectID int, name string, connectionType string, privatelinkEndpointID string, isActive bool, account string, database string, warehouse string, role string, allowSSO *bool, clientSessionKeepAlive *bool, oAuthClientID string, oAuthClientSecret string, hostName string, port int, tunnelEnabled *bool, httpPath string, catalog string) (*Connection, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -132,12 +133,13 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 		}
 	}
 	newConnection := Connection{
-		AccountID: c.AccountID,
-		ProjectID: projectID,
-		Name:      name,
-		Type:      connectionType,
-		State:     state,
-		Details:   connectionDetails,
+		AccountID:             c.AccountID,
+		ProjectID:             projectID,
+		Name:                  name,
+		Type:                  connectionType,
+		PrivateLinkEndpointID: privatelinkEndpointID,
+		State:                 state,
+		Details:               connectionDetails,
 	}
 
 	newConnectionData, err := json.Marshal(newConnection)

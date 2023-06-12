@@ -36,6 +36,11 @@ var connectionSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Connection type",
 	},
+	"private_link_endpoint_id": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The ID of the PrivateLink connection",
+	},
 	"account": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
@@ -104,6 +109,9 @@ func datasourceConnectionRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	if err := d.Set("type", connection.Type); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("private_link_endpoint_id", connection.PrivateLinkEndpointID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("database", connection.Details.Database); err != nil {

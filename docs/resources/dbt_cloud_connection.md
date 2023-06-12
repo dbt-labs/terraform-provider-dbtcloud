@@ -47,6 +47,7 @@ resource "dbt_cloud_connection" "databricks" {
 - `oauth_client_id` (String) OAuth client identifier
 - `oauth_client_secret` (String) OAuth client secret
 - `port` (Number) Port number to connect via
+- `private_link_endpoint_id` (String) The ID of the PrivateLink connection. This ID can be found using the `privatelink_endpoint` data source
 - `role` (String) Role name for the connection
 - `tunnel_enabled` (Boolean) Whether or not tunneling should be enabled on your database connection
 - `warehouse` (String) Warehouse name for the connection

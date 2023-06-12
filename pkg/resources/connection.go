@@ -56,6 +56,13 @@ func ResourceConnection() *schema.Resource {
 				Required:     true,
 				Description:  "The type of connection",
 				ValidateFunc: validation.StringInSlice(connectionTypes, false),
+				ForceNew:     true,
+			},
+			"private_link_endpoint_id": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     nil,
+				Description: "The ID of the PrivateLink connection. This ID can be found using the `privatelink_endpoint` data source",
 			},
 			"account": &schema.Schema{
 				Type:          schema.TypeString,
@@ -153,6 +160,7 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	projectId := d.Get("project_id").(int)
 	name := d.Get("name").(string)
 	connectionType := d.Get("type").(string)
+	privatelinkEndpointID := d.Get("private_link_endpoint_id").(string)
 	account := d.Get("account").(string)
 	database := d.Get("database").(string)
 	warehouse := d.Get("warehouse").(string)
@@ -167,7 +175,7 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	httpPath := d.Get("http_path").(string)
 	catalog := d.Get("catalog").(string)
 
-	connection, err := c.CreateConnection(projectId, name, connectionType, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled, httpPath, catalog)
+	connection, err := c.CreateConnection(projectId, name, connectionType, privatelinkEndpointID, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled, httpPath, catalog)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -209,6 +217,9 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	if err := d.Set("type", connection.Type); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("private_link_endpoint_id", connection.PrivateLinkEndpointID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("account", connection.Details.Account); err != nil {
@@ -278,7 +289,7 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	// TODO: add more changes here
 
-	if d.HasChange("name") || d.HasChange("type") || d.HasChange("account") || d.HasChange("database") || d.HasChange("warehouse") || d.HasChange("role") || d.HasChange("allow_sso") || d.HasChange("allow_keep_alive") || d.HasChange("oauth_client_id") || d.HasChange("oauth_client_secret") {
+	if d.HasChange("name") || d.HasChange("type") || d.HasChange("private_link_endpoint_id") || d.HasChange("account") || d.HasChange("database") || d.HasChange("warehouse") || d.HasChange("role") || d.HasChange("allow_sso") || d.HasChange("allow_keep_alive") || d.HasChange("oauth_client_id") || d.HasChange("oauth_client_secret") {
 		connection, err := c.GetConnection(connectionIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
@@ -291,6 +302,10 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("type") {
 			connectionType := d.Get("type").(string)
 			connection.Type = connectionType
+		}
+		if d.HasChange("private_link_endpoint_id") {
+			privatelinkEndpointID := d.Get("private_link_endpoint_id").(string)
+			connection.PrivateLinkEndpointID = privatelinkEndpointID
 		}
 		if d.HasChange("account") {
 			account := d.Get("account").(string)
