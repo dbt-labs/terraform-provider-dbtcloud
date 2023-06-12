@@ -49,6 +49,7 @@ func Provider() *schema.Provider {
 			"dbt_cloud_user":                  data_sources.DatasourceUser(),
 			"dbt_cloud_service_token":         data_sources.DatasourceServiceToken(),
 			"dbt_cloud_webhook":               data_sources.DatasourceWebhook(),
+			"dbt_cloud_privatelink_endpoint":  data_sources.DatasourcePrivatelinkEndpoint(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"dbt_cloud_job":                   resources.ResourceJob(),
