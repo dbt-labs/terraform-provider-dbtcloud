@@ -29,6 +29,19 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudConnectionExists("dbt_cloud_bigquery_connection.test_connection"),
 					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "type", "bigquery"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "gcp_project_id", "test_project_id"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "timeout_seconds", "1000"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "private_key_id", "test_private_key_id"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "private_key", privateKey),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_email", "test_client_email"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_id", "test_client_id"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "auth_uri", "test_auth_uri"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "token_uri", "test_token_uri"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "auth_provider_x509_cert_url", "test_auth_provider_x509_cert_url"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_x509_cert_url", "test_client_x509_cert_url"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "retries", "3"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "is_configured_for_oauth", "false"),
 				),
 			},
 			// RENAME
@@ -39,12 +52,22 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "name", connectionName2),
 				),
 			},
+			// MODIFY AND ADD OAUTH
+			{
+				Config: testAccDbtCloudBigQueryConnectionResourceOAuthConfig(connectionName2, projectName, privateKey),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbt_cloud_bigquery_connection.test_connection"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "application_secret", "test_application_secret"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "application_id", "test_application_id"),
+					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "is_configured_for_oauth", "true"),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbt_cloud_bigquery_connection.test_connection",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"private_key"},
+				ImportStateVerifyIgnore: []string{"private_key", "application_secret", "application_id"},
 			},
 		},
 	})
@@ -71,6 +94,33 @@ resource "dbt_cloud_bigquery_connection" "test_connection" {
   auth_provider_x509_cert_url = "test_auth_provider_x509_cert_url"
   client_x509_cert_url = "test_client_x509_cert_url"
   retries = 3
+}
+`, projectName, connectionName, privateKey)
+}
+
+func testAccDbtCloudBigQueryConnectionResourceOAuthConfig(connectionName, projectName, privateKey string) string {
+	return fmt.Sprintf(`
+resource "dbt_cloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbt_cloud_bigquery_connection" "test_connection" {
+  name        = "%s"
+  type = "bigquery"
+  project_id = dbt_cloud_project.test_project.id
+  gcp_project_id = "test_project_id"
+  timeout_seconds = 1000
+  private_key_id = "test_private_key_id"
+  private_key = "%s"
+  client_email = "test_client_email"
+  client_id = "test_client_id"
+  auth_uri = "test_auth_uri"
+  token_uri = "test_token_uri"
+  auth_provider_x509_cert_url = "test_auth_provider_x509_cert_url"
+  client_x509_cert_url = "test_client_x509_cert_url"
+  retries = 3
+  application_secret = "test_application_secret"
+  application_id = "test_application_id"
 }
 `, projectName, connectionName, privateKey)
 }

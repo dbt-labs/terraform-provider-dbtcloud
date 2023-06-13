@@ -25,6 +25,9 @@ type BigQueryConnectionDetails struct {
 	GcsBucket               *string `json:"gcs_bucket,omitempty"`
 	DataprocRegion          *string `json:"dataproc_region,omitempty"`
 	DataprocClusterName     *string `json:"dataproc_cluster_name,omitempty"`
+	ApplicationSecret       string  `json:"application_secret,omitempty"`
+	ApplicationId           string  `json:"application_id,omitempty"`
+	IsConfiguredOAuth       bool    `json:"is_configured_for_oauth,omitempty"`
 }
 
 // maybe try interface here
@@ -87,7 +90,9 @@ func (c *Client) CreateBigQueryConnection(
 	maximumBytesBilled *int,
 	gcsBucket *string,
 	dataprocRegion *string,
-	dataprocClusterName *string) (*BigQueryConnection, error) {
+	dataprocClusterName *string,
+	applicationSecret string,
+	applicationId string) (*BigQueryConnection, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -110,6 +115,8 @@ func (c *Client) CreateBigQueryConnection(
 		GcsBucket:               gcsBucket,
 		DataprocRegion:          dataprocRegion,
 		DataprocClusterName:     dataprocClusterName,
+		ApplicationSecret:       applicationSecret,
+		ApplicationId:           applicationId,
 	}
 
 	newConnection := BigQueryConnection{

@@ -130,6 +130,23 @@ func ResourceBigQueryConnection() *schema.Resource {
 				Optional:    true,
 				Description: "Dataproc cluster name for PySpark workloads",
 			},
+			"application_secret": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The Application Secret for BQ OAuth",
+			},
+			"application_id": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The Application ID for BQ OAuth",
+			},
+			"is_configured_for_oauth": &schema.Schema{
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether the connection is configured for OAuth or not",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -201,6 +218,9 @@ func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceDat
 		dataprocClusterNameVal = &dataprocClusterName
 	}
 
+	applicationSecret := d.Get("application_secret").(string)
+	applicationId := d.Get("application_id").(string)
+
 	// scopes := d.Get("scopes").([]string)
 
 	connection, err := c.CreateBigQueryConnection(projectId,
@@ -222,7 +242,9 @@ func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceDat
 		maximumBytesBilledVal,
 		gcsBucketVal,
 		dataprocRegionVal,
-		dataprocClusterNameVal)
+		dataprocClusterNameVal,
+		applicationSecret,
+		applicationId)
 
 	// TODO fix scopes
 	// scopes)
@@ -311,6 +333,11 @@ func resourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("dataproc_cluster_name", connection.Details.DataprocClusterName); err != nil {
 		return diag.FromErr(err)
 	}
+	connection.Details.ApplicationSecret = d.Get("application_secret").(string)
+	connection.Details.ApplicationId = d.Get("application_id").(string)
+	if err := d.Set("is_configured_for_oauth", connection.Details.IsConfiguredOAuth); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -338,7 +365,9 @@ func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 		d.HasChange("maximum_bytes_billed") ||
 		d.HasChange("gcs_bucket") ||
 		d.HasChange("dataproc_region") ||
-		d.HasChange("dataproc_cluster_name") {
+		d.HasChange("dataproc_cluster_name") ||
+		d.HasChange("application_secret") ||
+		d.HasChange("application_id") {
 		connection, err := c.GetBigQueryConnection(connectionIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
@@ -439,6 +468,14 @@ func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 			} else {
 				connection.Details.DataprocClusterName = &dataprocClusterName
 			}
+		}
+		if d.HasChange("application_secret") {
+			applicationSecret := d.Get("application_secret").(string)
+			connection.Details.ApplicationSecret = applicationSecret
+		}
+		if d.HasChange("application_id") {
+			applicationId := d.Get("application_id").(string)
+			connection.Details.ApplicationId = applicationId
 		}
 
 		_, err = c.UpdateBigQueryConnection(connectionIdString, projectIdString, *connection)
