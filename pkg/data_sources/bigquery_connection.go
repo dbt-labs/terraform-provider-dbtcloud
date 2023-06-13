@@ -117,6 +117,11 @@ var bigQueryConnectionSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Dataproc cluster name for PySpark workloads",
 	},
+	"is_configured_for_oauth": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether the connection is configured for OAuth or not",
+	},
 }
 
 func DatasourceBigQueryConnection() *schema.Resource {
@@ -195,6 +200,9 @@ func datasourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	if err := d.Set("dataproc_cluster_name", connection.Details.DataprocClusterName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("is_configured_for_oauth", connection.Details.IsConfiguredOAuth); err != nil {
 		return diag.FromErr(err)
 	}
 

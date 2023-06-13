@@ -33,6 +33,7 @@ description: |-
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the connection is active
+- `is_configured_for_oauth` (Boolean) Whether the connection is configured for OAuth or not
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
 - `name` (String) Connection name

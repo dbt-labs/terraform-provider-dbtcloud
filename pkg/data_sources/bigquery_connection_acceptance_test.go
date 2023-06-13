@@ -37,6 +37,7 @@ func TestAccDbtCloudBigQueryConnectionDataSource(t *testing.T) {
 		resource.TestCheckResourceAttr("data.dbt_cloud_bigquery_connection.test", "gcs_bucket", "test_gcs_bucket"),
 		resource.TestCheckResourceAttr("data.dbt_cloud_bigquery_connection.test", "dataproc_region", "test_dataproc_region"),
 		resource.TestCheckResourceAttr("data.dbt_cloud_bigquery_connection.test", "dataproc_cluster_name", "test_dataproc_cluster_name"),
+		resource.TestCheckResourceAttr("data.dbt_cloud_bigquery_connection.test", "is_configured_for_oauth", "false"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
