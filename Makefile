@@ -1,4 +1,4 @@
-NAME=dbt-cloud
+NAME=dbtcloud
 VERSION=$(shell cat VERSION)
 BINARY=terraform-provider-$(NAME)_v$(VERSION)
 

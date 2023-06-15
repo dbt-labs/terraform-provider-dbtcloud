@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/data_sources"
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/resources"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/data_sources"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/resources"
 )
 
 func Provider() *schema.Provider {
