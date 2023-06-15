@@ -43,7 +43,7 @@ type AuthResponseData struct {
 	RunDurationLimitSeconds        int    `json:"run_duration_limit_seconds"`
 	EnterpriseAuthenticationMethod string `json:"enterprise_authentication_method"`
 	EnterpriseLoginSlug            string `json:"enterprise_login_slug"`
-	EnterpriseUniqueIdentifier     int    `json:"enterprise_unique_identifier"`
+	EnterpriseUniqueIdentifier     string `json:"enterprise_unique_identifier"`
 	BillingEmailAddress            string `json:"billing_email_address"`
 	Locked                         bool   `json:"locked"`
 	DevelopFileSystem              bool   `json:"develop_file_system"`
