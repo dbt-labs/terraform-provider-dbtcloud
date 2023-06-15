@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -60,8 +59,8 @@ type AuthResponseData struct {
 
 // AuthResponse -
 type AuthResponse struct {
-	Status ResponseStatus   `json:"status"`
-	Data   AuthResponseData `json:"data"`
+	Status ResponseStatus     `json:"status"`
+	Data   []AuthResponseData `json:"data"`
 }
 
 // NewClient -
@@ -74,7 +73,7 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 	}
 
 	if (account_id != nil) && (token != nil) {
-		url := fmt.Sprintf("%s/v2/accounts/%s/", *host_url, strconv.Itoa(*account_id))
+		url := fmt.Sprintf("%s/v2/accounts/", *host_url)
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)
@@ -83,6 +82,9 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 		}
 
 		body, err := c.doRequest(req)
+		if err != nil {
+			return nil, err
+		}
 
 		// parse response body
 		ar := AuthResponse{}
@@ -91,7 +93,15 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 			return nil, err
 		}
 
-		c.AccountURL = url
+		for _, account := range ar.Data {
+			if account.Id == *account_id {
+				c.AccountURL = url
+				return &c, nil
+			}
+		}
+
+		return nil, fmt.Errorf("the token is valid but does not have access to the account id %d", *account_id)
+
 	}
 
 	return &c, nil
