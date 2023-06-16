@@ -1,4 +1,4 @@
-module github.com/gthesheep/terraform-provider-dbt-cloud
+module github.com/dbt-labs/terraform-provider-dbtcloud
 
 go 1.17
 

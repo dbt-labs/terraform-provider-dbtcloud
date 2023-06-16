@@ -11,7 +11,7 @@ import (
 func TestAccDbtCloudRepositoryDataSource(t *testing.T) {
 
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	repoUrl := "git@github.com:GtheSheep/terraform-provider-dbt-cloud.git"
+	repoUrl := "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 
 	config := repository(randomProjectName, repoUrl)
 

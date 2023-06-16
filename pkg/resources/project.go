@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/gthesheep/terraform-provider-dbt-cloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -18,7 +18,7 @@ var projectSchema = map[string]*schema.Schema{
 	"dbt_project_subdirectory": &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
-		Description: "DBT project subdirectory path",
+		Description: "dbt project subdirectory path",
 	},
 }
 
