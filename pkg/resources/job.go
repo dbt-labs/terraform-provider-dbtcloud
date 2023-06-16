@@ -75,7 +75,7 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
 		Default:     "default",
-		Description: "Target name for the DBT profile",
+		Description: "Target name for the dbt profile",
 	},
 	"generate_docs": &schema.Schema{
 		Type:        schema.TypeBool,

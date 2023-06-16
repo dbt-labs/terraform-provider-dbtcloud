@@ -18,19 +18,19 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_TOKEN", nil),
-				Description: "API token for your DBT Cloud",
+				Description: "API token for your dbt Cloud",
 			},
 			"account_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_ACCOUNT_ID", nil),
-				Description: "Account identifier for your DBT Cloud implementation",
+				Description: "Account identifier for your dbt Cloud implementation",
 			},
 			"host_url": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_HOST_URL", "https://cloud.getdbt.com/api"),
-				Description: "URL for your DBT Cloud deployment",
+				Description: "URL for your dbt Cloud deployment",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -88,7 +88,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		if err != nil {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "Unable to login to DBT Cloud",
+				Summary:  "Unable to login to dbt Cloud",
 				Detail:   err.Error(),
 			})
 			return nil, diags
@@ -101,7 +101,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Unable to create DBT Cloud client",
+			Summary:  "Unable to create dbt Cloud client",
 			Detail:   err.Error(),
 		})
 		return nil, diags
