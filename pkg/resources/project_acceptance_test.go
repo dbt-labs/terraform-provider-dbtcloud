@@ -25,30 +25,30 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName),
+					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName),
 				),
 			},
 			// RENAME
 			{
 				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
+					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName2),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbt_cloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "name", projectName2),
-					resource.TestCheckResourceAttr("dbt_cloud_project.test_project", "dbt_project_subdirectory", "/project/subdirectory_where/dbt-is"),
+					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName2),
+					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "dbt_project_subdirectory", "/project/subdirectory_where/dbt-is"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_project.test_project",
+				ResourceName:            "dbtcloud_project.test_project",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -59,7 +59,7 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 
 func testAccDbtCloudProjectResourceBasicConfig(projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 `, projectName)
@@ -67,7 +67,7 @@ resource "dbt_cloud_project" "test_project" {
 
 func testAccDbtCloudProjectResourceFullConfig(projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
   dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
 }
@@ -96,7 +96,7 @@ func testAccCheckDbtCloudProjectDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_project" {
+		if rs.Type != "dbtcloud_project" {
 			continue
 		}
 		_, err := apiClient.GetProject(rs.Primary.ID)
