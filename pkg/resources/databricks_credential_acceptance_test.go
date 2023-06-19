@@ -27,15 +27,15 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudDatabricksCredentialExists("dbt_cloud_databricks_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_databricks_credential.test_credential", "target_name", targetName),
+					testAccCheckDbtCloudDatabricksCredentialExists("dbtcloud_databricks_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_credential.test_credential", "target_name", targetName),
 				),
 			},
 			// RENAME
 			// MODIFY
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_databricks_credential.test_credential",
+				ResourceName:            "dbtcloud_databricks_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"token", "adapter_type"},
@@ -50,11 +50,11 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_databricks_credential" "test_credential" {
-    project_id = dbt_cloud_project.test_project.id
+resource "dbtcloud_databricks_credential" "test_credential" {
+    project_id = dbtcloud_project.test_project.id
     adapter_id = 123
     target_name = "%s"
     token = "%s"
@@ -96,7 +96,7 @@ func testAccCheckDbtCloudDatabricksCredentialDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_databricks_credential" {
+		if rs.Type != "dbtcloud_databricks_credential" {
 			continue
 		}
 		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])

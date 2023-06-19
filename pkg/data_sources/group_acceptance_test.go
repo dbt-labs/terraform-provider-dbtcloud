@@ -15,9 +15,9 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 	config := group(groupName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_group.test_group_read", "name", groupName),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_group.test_group_read", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_group.test_group_read", "assign_by_default"),
+		resource.TestCheckResourceAttr("data.dbtcloud_group.test_group_read", "name", groupName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "is_active"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "assign_by_default"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,12 +33,12 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 
 func group(groupName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_group" "test_group" {
+resource "dbtcloud_group" "test_group" {
     name = "%s"
 }
 
-data "dbt_cloud_group" "test_group_read" {
-    group_id = dbt_cloud_group.test_group.id
+data "dbtcloud_group" "test_group_read" {
+    group_id = dbtcloud_group.test_group.id
 }
 `, groupName)
 }

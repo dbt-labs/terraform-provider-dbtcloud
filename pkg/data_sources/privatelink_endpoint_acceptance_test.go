@@ -24,12 +24,12 @@ func TestAccDbtCloudPrivatelinkEndpointDataSource(t *testing.T) {
 		configNoName := privatelinkEndpoint("", endpointURL)
 
 		check := resource.ComposeAggregateTestCheckFunc(
-			resource.TestCheckResourceAttr("data.dbt_cloud_privatelink_endpoint.test", "name", endpointName),
-			resource.TestCheckResourceAttr("data.dbt_cloud_privatelink_endpoint.test", "private_link_endpoint_url", endpointURL),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_privatelink_endpoint.test", "id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_privatelink_endpoint.test", "cidr_range"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_privatelink_endpoint.test", "type"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_privatelink_endpoint.test", "state"),
+			resource.TestCheckResourceAttr("data.dbtcloud_privatelink_endpoint.test", "name", endpointName),
+			resource.TestCheckResourceAttr("data.dbtcloud_privatelink_endpoint.test", "private_link_endpoint_url", endpointURL),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "cidr_range"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "type"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "state"),
 		)
 
 		resource.ParallelTest(t, resource.TestCase{
@@ -56,7 +56,7 @@ func TestAccDbtCloudPrivatelinkEndpointDataSource(t *testing.T) {
 
 func privatelinkEndpoint(endpointName, endpointURL string) string {
 	return fmt.Sprintf(`
-	data "dbt_cloud_privatelink_endpoint" "test" {
+	data "dbtcloud_privatelink_endpoint" "test" {
 		name = "%s"
 		private_link_endpoint_url = "%s"
 	  }

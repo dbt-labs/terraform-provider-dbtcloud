@@ -16,14 +16,14 @@ func TestDbtCloudWebhookDataSource(t *testing.T) {
 	config := webhooks(randomWebhookName, randomWebhookDescription)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_webhook.test", "webhook_id"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_webhook.test", "name", randomWebhookName),
-		resource.TestCheckResourceAttr("data.dbt_cloud_webhook.test", "description", randomWebhookDescription),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_webhook.test", "client_url"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_webhook.test", "event_types.#", "2"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_webhook.test", "job_ids.#", "0"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_webhook.test", "http_status_code"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_webhook.test", "account_identifier"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "webhook_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "name", randomWebhookName),
+		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "description", randomWebhookDescription),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "client_url"),
+		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "event_types.#", "2"),
+		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "job_ids.#", "0"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "http_status_code"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "account_identifier"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +39,7 @@ func TestDbtCloudWebhookDataSource(t *testing.T) {
 
 func webhooks(webhookName string, webhookDesc string) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_webhook" "test_webhook" {
+    resource "dbtcloud_webhook" "test_webhook" {
         name = "%s"
         description = "%s"
         client_url = "http://localhost/nothing"
@@ -49,8 +49,8 @@ func webhooks(webhookName string, webhookDesc string) string {
         ]
     }
 
-    data "dbt_cloud_webhook" "test" {
-        webhook_id = dbt_cloud_webhook.test_webhook.id
+    data "dbtcloud_webhook" "test" {
+        webhook_id = dbtcloud_webhook.test_webhook.id
     }
     `, webhookName, webhookDesc)
 }

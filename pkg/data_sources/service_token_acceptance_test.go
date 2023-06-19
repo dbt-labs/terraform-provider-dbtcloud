@@ -15,9 +15,9 @@ func TestAccDbtCloudServiceTokenDataSource(t *testing.T) {
 	config := serviceToken(serviceTokenName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_service_token.test_service_token_read", "name", serviceTokenName),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_service_token.test_service_token_read", "uid"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_service_token.test_service_token_read", "service_token_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_service_token.test_service_token_read", "name", serviceTokenName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_service_token.test_service_token_read", "uid"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_service_token.test_service_token_read", "service_token_id"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,12 +33,12 @@ func TestAccDbtCloudServiceTokenDataSource(t *testing.T) {
 
 func serviceToken(serviceTokenName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_service_token" "test_service_token" {
+resource "dbtcloud_service_token" "test_service_token" {
     name = "%s"
 }
 
-data "dbt_cloud_service_token" "test_service_token_read" {
-    service_token_id = dbt_cloud_service_token.test_service_token.id
+data "dbtcloud_service_token" "test_service_token_read" {
+    service_token_id = dbtcloud_service_token.test_service_token.id
 }
 `, serviceTokenName)
 }

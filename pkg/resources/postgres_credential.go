@@ -46,7 +46,7 @@ func ResourcePostgresCredential() *schema.Resource {
 			"type": &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "Type of connection. One of (postgres/redshift)",
+				Description:  "Type of connection. One of (postgres/redshift). Use postgres for alloydb connections",
 				ValidateFunc: validation.StringInSlice(types, false),
 			},
 			"default_schema": &schema.Schema{

@@ -28,49 +28,49 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "name", jobName),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
 				),
 			},
 			// RENAME
 			{
 				Config: testAccDbtCloudJobResourceBasicConfig(jobName2, projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "name", jobName2),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudJobResourceFullConfig(jobName2, projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "name", jobName2),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "dbt_version", DBT_CLOUD_VERSION),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "target_name", "test"),
-					resource.TestCheckResourceAttr("dbt_cloud_job.test_job", "timeout_seconds", "180"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "project_id"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "environment_id"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "is_active"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "num_threads"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "run_generate_sources"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job", "generate_docs"),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "dbt_version", DBT_CLOUD_VERSION),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "timeout_seconds", "180"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "run_generate_sources"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
 				),
 			},
 			// DEFERRING JOBS
 			{
 				Config: testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName, false),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job"),
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_2"),
-					testAccCheckDbtCloudJobExists("dbt_cloud_job.test_job_3"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_2", "deferring_job_id"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_job.test_job_3", "self_deferring"),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_job_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_3", "self_deferring"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_job.test_job",
+				ResourceName:            "dbtcloud_job.test_job",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -81,21 +81,21 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 
 func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_job_project" {
+resource "dbtcloud_project" "test_job_project" {
     name = "%s"
 }
 
-resource "dbt_cloud_environment" "test_job_environment" {
-    project_id = dbt_cloud_project.test_job_project.id
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
     name = "%s"
     dbt_version = "%s"
     type = "development"
 }
 
-resource "dbt_cloud_job" "test_job" {
+resource "dbtcloud_job" "test_job" {
   name        = "%s"
-  project_id = dbt_cloud_project.test_job_project.id
-  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
   execute_steps = [
     "dbt test"
   ]
@@ -111,21 +111,21 @@ resource "dbt_cloud_job" "test_job" {
 
 func testAccDbtCloudJobResourceFullConfig(jobName, projectName, environmentName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_job_project" {
+resource "dbtcloud_project" "test_job_project" {
     name = "%s"
 }
 
-resource "dbt_cloud_environment" "test_job_environment" {
-    project_id = dbt_cloud_project.test_job_project.id
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
     name = "%s"
     dbt_version = "%s"
     type = "development"
 }
 
-resource "dbt_cloud_job" "test_job" {
+resource "dbtcloud_job" "test_job" {
   name        = "%s"
-  project_id = dbt_cloud_project.test_job_project.id
-  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
   dbt_version = "%s"
   execute_steps = [
     "dbt test"
@@ -149,26 +149,26 @@ resource "dbt_cloud_job" "test_job" {
 }
 
 func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName string, selfDeferring bool) string {
-	deferParam := "deferring_job_id = dbt_cloud_job.test_job.id"
+	deferParam := "deferring_job_id = dbtcloud_job.test_job.id"
 	if selfDeferring {
 		deferParam = "self_deferring = true"
 	}
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_job_project" {
+resource "dbtcloud_project" "test_job_project" {
     name = "%s"
 }
 
-resource "dbt_cloud_environment" "test_job_environment" {
-    project_id = dbt_cloud_project.test_job_project.id
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
     name = "%s"
     dbt_version = "%s"
     type = "development"
 }
 
-resource "dbt_cloud_job" "test_job" {
+resource "dbtcloud_job" "test_job" {
   name        = "%s"
-  project_id = dbt_cloud_project.test_job_project.id
-  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
   dbt_version = "%s"
   execute_steps = [
     "dbt test"
@@ -188,10 +188,10 @@ resource "dbt_cloud_job" "test_job" {
   schedule_hours = [9, 17]
 }
 
-resource "dbt_cloud_job" "test_job_2" {
+resource "dbtcloud_job" "test_job_2" {
   name        = "%s"
-  project_id = dbt_cloud_project.test_job_project.id
-  environment_id = dbt_cloud_environment.test_job_environment.environment_id
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
   execute_steps = [
     "dbt test"
   ]
@@ -204,10 +204,10 @@ resource "dbt_cloud_job" "test_job_2" {
   %s
 }
 
-resource "dbt_cloud_job" "test_job_3" {
+resource "dbtcloud_job" "test_job_3" {
 	name        = "%s"
-	project_id = dbt_cloud_project.test_job_project.id
-	environment_id = dbt_cloud_environment.test_job_environment.environment_id
+	project_id = dbtcloud_project.test_job_project.id
+	environment_id = dbtcloud_environment.test_job_environment.environment_id
 	execute_steps = [
 	  "dbt test"
 	]
@@ -244,7 +244,7 @@ func testAccCheckDbtCloudJobDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_job" {
+		if rs.Type != "dbtcloud_job" {
 			continue
 		}
 		_, err := apiClient.GetJob(rs.Primary.ID)

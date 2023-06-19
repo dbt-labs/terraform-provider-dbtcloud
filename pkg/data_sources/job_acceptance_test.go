@@ -15,11 +15,11 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 	config := jobs(randomJobName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_job.test", "job_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_job.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_job.test", "environment_id"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "name", randomJobName),
-		resource.TestCheckResourceAttr("data.dbt_cloud_job.test", "timeout_seconds", "180"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "job_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "project_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "environment_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "name", randomJobName),
+		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "timeout_seconds", "180"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,21 +35,21 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 
 func jobs(jobName string) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_project" "test_project" {
+    resource "dbtcloud_project" "test_project" {
         name = "jobs_test_project"
     }
 
-    resource "dbt_cloud_environment" "test_environment" {
-        project_id = dbt_cloud_project.test_project.id
+    resource "dbtcloud_environment" "test_environment" {
+        project_id = dbtcloud_project.test_project.id
         name = "job_test_env"
         dbt_version = "%s"
         type = "development"
     }
 
-    resource "dbt_cloud_job" "test_job" {
+    resource "dbtcloud_job" "test_job" {
         name = "%s"
-        project_id = dbt_cloud_project.test_project.id
-        environment_id = dbt_cloud_environment.test_environment.environment_id
+        project_id = dbtcloud_project.test_project.id
+        environment_id = dbtcloud_environment.test_environment.environment_id
         execute_steps = [
             "dbt run"
         ]
@@ -62,9 +62,9 @@ func jobs(jobName string) string {
         timeout_seconds = 180
     }
 
-    data "dbt_cloud_job" "test" {
-        job_id = dbt_cloud_job.test_job.id
-        project_id = dbt_cloud_project.test_project.id
+    data "dbtcloud_job" "test" {
+        job_id = dbtcloud_job.test_job.id
+        project_id = dbtcloud_project.test_project.id
     }
     `, DBT_CLOUD_VERSION, jobName)
 }

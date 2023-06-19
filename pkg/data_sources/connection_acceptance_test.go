@@ -16,17 +16,17 @@ func TestAccDbtCloudConnectionDataSource(t *testing.T) {
 	config := connection(randomProjectName, randomConnectionName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_connection.test", "name", randomConnectionName),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "connection_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "type"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_connection.test", "account", "test_account"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_connection.test", "database", "test_db"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_connection.test", "warehouse", "test_wh"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_connection.test", "role", "test_role"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "allow_sso"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_connection.test", "allow_keep_alive"),
+		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "name", randomConnectionName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "connection_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "project_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "is_active"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "type"),
+		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "account", "test_account"),
+		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "database", "test_db"),
+		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "warehouse", "test_wh"),
+		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "role", "test_role"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "allow_sso"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "allow_keep_alive"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,12 +42,12 @@ func TestAccDbtCloudConnectionDataSource(t *testing.T) {
 
 func connection(projectName, connectionName string) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_project" "test_project" {
+    resource "dbtcloud_project" "test_project" {
         name = "%s"
     }
 
-    resource "dbt_cloud_connection" "test_connection" {
-        project_id = dbt_cloud_project.test_project.id
+    resource "dbtcloud_connection" "test_connection" {
+        project_id = dbtcloud_project.test_project.id
         name = "%s"
         type = "snowflake"
         is_active = true
@@ -59,9 +59,9 @@ func connection(projectName, connectionName string) string {
         allow_keep_alive = true
     }
 
-    data "dbt_cloud_connection" "test" {
-        project_id = dbt_cloud_project.test_project.id
-        connection_id = dbt_cloud_connection.test_connection.connection_id
+    data "dbtcloud_connection" "test" {
+        project_id = dbtcloud_project.test_project.id
+        connection_id = dbtcloud_connection.test_connection.connection_id
     }
     `, projectName, connectionName)
 }

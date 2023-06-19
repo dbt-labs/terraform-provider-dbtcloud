@@ -4,7 +4,7 @@
 
 This repo was originally created by a dbt community member, Gary James [[GtheSheep](https://github.com/GtheSheep)]
 
-| If you are still using the GtheSheep/dbt-cloud source, see [Upgrading from the community Provider](UPGRADING_PROVIDER.md) to upgrade to the latest version.
+> If you are still using the GtheSheep/dbt-cloud source, see [Upgrading from the community Provider](UPGRADING_PROVIDER.md) to upgrade to the latest version.
 
 ## Scope
 
@@ -17,7 +17,7 @@ setup, with the latest version number.
 ```terraform
 terraform {
   required_providers {
-    dbt = {
+    dbtcloud = {
       source  = "dbt-labs/dbtcloud"
       version = "<version>"
     }
@@ -32,10 +32,11 @@ can do so as below, though likely via a `variables.tf` file or config in your
 CI-CD pipeline to keep these credentials safe.
 
 ```terraform
-provider "dbt" {
+provider "dbtcloud" {
   // required
   account_id = ...
   token      = "..."
+  // optional
   host_url   = "..."
 }
 ```
@@ -58,5 +59,5 @@ own account
 
 ## Acknowledgement
 
-Thanks to Gary James [[GtheSheep](https://github.com/GtheSheep)], for all the effort put in creating this provier originally
+Thanks to Gary James [[GtheSheep](https://github.com/GtheSheep)], for all the effort put in creating this provider originally
 and for being a great dbt community member!

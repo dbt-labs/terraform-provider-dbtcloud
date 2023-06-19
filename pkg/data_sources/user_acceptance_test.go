@@ -14,8 +14,8 @@ package data_sources_test
 // 	config := user(userEmail)
 
 // 	check := resource.ComposeAggregateTestCheckFunc(
-// 		resource.TestCheckResourceAttr("data.dbt_cloud_user.test_user_read", "email", userEmail),
-// 		resource.TestCheckResourceAttrSet("data.dbt_cloud_user.test_user_read", "id"),
+// 		resource.TestCheckResourceAttr("data.dbtcloud_user.test_user_read", "email", userEmail),
+// 		resource.TestCheckResourceAttrSet("data.dbtcloud_user.test_user_read", "id"),
 // 	)
 
 // 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +31,7 @@ package data_sources_test
 
 // func user(userEmail string) string {
 // 	return fmt.Sprintf(`
-// data "dbt_cloud_user" "test_user_read" {
+// data "dbtcloud_user" "test_user_read" {
 //     email = "%s"
 // }
 // `, userEmail)

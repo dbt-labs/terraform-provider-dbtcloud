@@ -15,11 +15,11 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 	config := project(randomProjectName)
 
 	check := resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "project_id"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_project.test", "name", randomProjectName),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "connection_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "repository_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_project.test", "state"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "project_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_project.test", "name", randomProjectName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "connection_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "repository_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "state"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,13 +35,13 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 
 func project(projectName string) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_project" "test" {
+    resource "dbtcloud_project" "test" {
 		name = "%s"
 		dbt_project_subdirectory = "/path"
 	}
 
-    data "dbt_cloud_project" "test" {
-		project_id = dbt_cloud_project.test.id
+    data "dbtcloud_project" "test" {
+		project_id = dbtcloud_project.test.id
 	}
     `, projectName)
 }

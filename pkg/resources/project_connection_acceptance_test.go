@@ -25,12 +25,12 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectConnectionResourceBasicConfig(projectName, connectionName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectConnectionExists("dbt_cloud_project_connection.test_project_connection"),
+					testAccCheckDbtCloudProjectConnectionExists("dbtcloud_project_connection.test_project_connection"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_project_connection.test_project_connection",
+				ResourceName:            "dbtcloud_project_connection.test_project_connection",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -39,7 +39,7 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectConnectionResourceEmptyConfig(projectName, connectionName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectConnectionEmpty("dbt_cloud_project.test_project"),
+					testAccCheckDbtCloudProjectConnectionEmpty("dbtcloud_project.test_project"),
 				),
 			},
 		},
@@ -48,14 +48,14 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 
 func testAccDbtCloudProjectConnectionResourceBasicConfig(projectName, connectionName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_connection" "test_connection" {
+resource "dbtcloud_connection" "test_connection" {
   name        = "%s"
   type = "snowflake"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   account = "test"
   database = "db"
   warehouse = "wh"
@@ -64,23 +64,23 @@ resource "dbt_cloud_connection" "test_connection" {
   allow_keep_alive = false
 }
 
-resource "dbt_cloud_project_connection" "test_project_connection" {
-  project_id = dbt_cloud_project.test_project.id
-  connection_id = dbt_cloud_connection.test_connection.connection_id
+resource "dbtcloud_project_connection" "test_project_connection" {
+  project_id = dbtcloud_project.test_project.id
+  connection_id = dbtcloud_connection.test_connection.connection_id
 }
 `, projectName, connectionName)
 }
 
 func testAccDbtCloudProjectConnectionResourceEmptyConfig(projectName, connectionName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_connection" "test_connection" {
+resource "dbtcloud_connection" "test_connection" {
   name        = "%s"
   type = "snowflake"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   account = "test"
   database = "db"
   warehouse = "wh"
@@ -138,7 +138,7 @@ func testAccCheckDbtCloudProjectConnectionDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_project_connection" {
+		if rs.Type != "dbtcloud_project_connection" {
 			continue
 		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]

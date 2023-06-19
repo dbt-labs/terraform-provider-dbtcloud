@@ -28,30 +28,30 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName),
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName),
 				),
 			},
 			// RENAME
 			{
 				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName2),
 				),
 			},
 			// 			// MODIFY
 			// 			{
 			// 				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName2),
 			// 				Check: resource.ComposeTestCheckFunc(
-			// 					testAccCheckDbtCloudEnvironmentExists("dbt_cloud_environment.test_env"),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "name", environmentName2),
-			// 					resource.TestCheckResourceAttr("dbt_cloud_environment.test_env", "dbt_version", "1.0.1"),
+			// 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+			// 					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName2),
+			// 					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "dbt_version", "1.0.1"),
 			// 				),
 			// 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_environment.test_env",
+				ResourceName:            "dbtcloud_environment.test_env",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -62,34 +62,34 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 
 func testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_environment" "test_env" {
+resource "dbtcloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
   dbt_version = "1.0.1"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
 }
 `, projectName, environmentName)
 }
 
 func testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, projectName2, environmentName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_project" "test_project_2" {
+resource "dbtcloud_project" "test_project_2" {
   name        = "%s"
 }
 
-resource "dbt_cloud_environment" "test_env" {
+resource "dbtcloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
   dbt_version = "1.0.1"
-  project_id = dbt_cloud_project.test_project_2.id
+  project_id = dbtcloud_project.test_project_2.id
 }
 `, projectName, projectName2, environmentName)
 }
@@ -126,7 +126,7 @@ func testAccCheckDbtCloudEnvironmentDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_environment" {
+		if rs.Type != "dbtcloud_environment" {
 			continue
 		}
 		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])

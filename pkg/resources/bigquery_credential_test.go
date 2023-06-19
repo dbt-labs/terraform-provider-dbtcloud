@@ -26,15 +26,15 @@ func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudBigQueryCredentialResourceBasicConfig(projectName, dataset),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudBigQueryCredentialExists("dbt_cloud_bigquery_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_credential.test_credential", "dataset", dataset),
+					testAccCheckDbtCloudBigQueryCredentialExists("dbtcloud_bigquery_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_credential.test_credential", "dataset", dataset),
 				),
 			},
 			// RENAME
 			// MODIFY
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_bigquery_credential.test_credential",
+				ResourceName:            "dbtcloud_bigquery_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -45,12 +45,12 @@ func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
 
 func testAccDbtCloudBigQueryCredentialResourceBasicConfig(projectName, dataset string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_bigquery_credential" "test_credential" {
+resource "dbtcloud_bigquery_credential" "test_credential" {
     is_active = true
-    project_id = dbt_cloud_project.test_project.id
+    project_id = dbtcloud_project.test_project.id
     dataset = "%s"
     num_threads = 3
 }
@@ -88,7 +88,7 @@ func testAccCheckDbtCloudBigQueryCredentialDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_bigquery_credential" {
+		if rs.Type != "dbtcloud_bigquery_credential" {
 			continue
 		}
 		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])

@@ -26,12 +26,12 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectArtefactsResourceBasicConfig(projectName, environmentName, jobName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectArtefactsExists("dbt_cloud_project_artefacts.test_project_artefacts"),
+					testAccCheckDbtCloudProjectArtefactsExists("dbtcloud_project_artefacts.test_project_artefacts"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_project_artefacts.test_project_artefacts",
+				ResourceName:            "dbtcloud_project_artefacts.test_project_artefacts",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -40,7 +40,7 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectArtefactsEmpty("dbt_cloud_project.test_project"),
+					testAccCheckDbtCloudProjectArtefactsEmpty("dbtcloud_project.test_project"),
 				),
 			},
 		},
@@ -49,21 +49,21 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 
 func testAccDbtCloudProjectArtefactsResourceBasicConfig(projectName, environmentName, jobName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_artefacts_project" {
+resource "dbtcloud_project" "test_artefacts_project" {
 	name = "%s"
 }
 
-resource "dbt_cloud_environment" "test_job_environment" {
-	project_id = dbt_cloud_project.test_artefacts_project.id
+resource "dbtcloud_environment" "test_job_environment" {
+	project_id = dbtcloud_project.test_artefacts_project.id
 	name = "%s"
 	dbt_version = "%s"
 	type = "development"
 }
 
-resource "dbt_cloud_job" "test_job" {
+resource "dbtcloud_job" "test_job" {
 	name        = "%s"
-	project_id = dbt_cloud_project.test_artefacts_project.id
-	environment_id = dbt_cloud_environment.test_job_environment.environment_id
+	project_id = dbtcloud_project.test_artefacts_project.id
+	environment_id = dbtcloud_environment.test_job_environment.environment_id
 	execute_steps = [
 	"dbt test"
 	]
@@ -77,22 +77,22 @@ resource "dbt_cloud_job" "test_job" {
 	generate_docs = true
 }
 
-resource "dbt_cloud_project_artefacts" "test_project_artefacts" {
-  project_id = dbt_cloud_project.test_artefacts_project.id
-  docs_job_id = dbt_cloud_job.test_job.id
-  freshness_job_id = dbt_cloud_job.test_job.id
+resource "dbtcloud_project_artefacts" "test_project_artefacts" {
+  project_id = dbtcloud_project.test_artefacts_project.id
+  docs_job_id = dbtcloud_job.test_job.id
+  freshness_job_id = dbtcloud_job.test_job.id
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 }
 
 func testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_project_artefacts" "test_project_artefacts" {
-	project_id = dbt_cloud_project.test_project.id
+resource "dbtcloud_project_artefacts" "test_project_artefacts" {
+	project_id = dbtcloud_project.test_project.id
 	docs_job_id = 0
 	freshness_job_id = 0
   }
@@ -152,7 +152,7 @@ func testAccCheckDbtCloudProjectArtefactsDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_project_artefacts" {
+		if rs.Type != "dbtcloud_project_artefacts" {
 			continue
 		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
