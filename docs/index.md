@@ -22,14 +22,14 @@ The options are:
 
 - keep existing projects with `dbt_cloud_xxx` resources, and create new ones with `dbtcloud_xxx`
 - or update the state file manually to change the resource names (this should work but it is possible to corrupt the state, be careful and keep a backup)
-  1. perform a `terrafrom apply` to apply the changes required to dbt Cloud
+  1. perform a `terraform apply` to apply the changes required to dbt Cloud
   1. edit the resource configuration files changing resources from `dbt_cloud_xxx` to `dbtcloud_xxx`
   1. edit `required_providers { dbt  = {` and `provider "dbt"` to `required_providers { dbtcloud  = {` and `provider "dbtcloud"`
   1. pull the remote state with `terraform state pull > remote_state.tfstate` and keep a back up of the file
   1. edit the state file to change the resource types from `dbt_cloud_xxx` to `dbtcloud_xxx`
   1. push the state back with `terraform state push remote_state.tfstate`
   1. perform a `terraform init -upgrade` to update the terraform provider
-  1. perform a `terrafrom plan` to check that no change is required, you can then delete the backup of the state
+  1. perform a `terraform plan` to check that no change is required, you can then delete the backup of the state
 
 
 
