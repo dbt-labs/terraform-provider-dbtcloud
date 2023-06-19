@@ -26,35 +26,35 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudServiceTokenResourceBasicConfig(serviceTokenName, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudServiceTokenExists("dbt_cloud_service_token.test_service_token"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "name", serviceTokenName),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "git_admin"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "job_admin"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_service_token.test_service_token", "token_string"),
+					testAccCheckDbtCloudServiceTokenExists("dbtcloud_service_token.test_service_token"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "name", serviceTokenName),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "git_admin"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "job_admin"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
+					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "token_string"),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudServiceTokenResourceFullConfig(serviceTokenName2, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudServiceTokenExists("dbt_cloud_service_token.test_service_token"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "name", serviceTokenName2),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "git_admin"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbt_cloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "job_admin"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_service_token.test_service_token", "token_string"),
+					testAccCheckDbtCloudServiceTokenExists("dbtcloud_service_token.test_service_token"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "name", serviceTokenName2),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "git_admin"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
+					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
+					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "job_admin"),
+					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "token_string"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:      "dbt_cloud_service_token.test_service_token",
+				ResourceName:      "dbtcloud_service_token.test_service_token",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -67,10 +67,10 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 
 func testAccDbtCloudServiceTokenResourceBasicConfig(serviceTokenName, projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_service_token" "test_service_token" {
+resource "dbtcloud_service_token" "test_service_token" {
     name = "%s"
     service_token_permissions {
         permission_set = "git_admin"
@@ -79,7 +79,7 @@ resource "dbt_cloud_service_token" "test_service_token" {
     service_token_permissions {
         permission_set = "job_admin"
         all_projects = false
-        project_id = dbt_cloud_project.test_project.id
+        project_id = dbtcloud_project.test_project.id
     }
 }
 `, projectName, serviceTokenName)
@@ -87,15 +87,15 @@ resource "dbt_cloud_service_token" "test_service_token" {
 
 func testAccDbtCloudServiceTokenResourceFullConfig(serviceTokenName, projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_service_token" "test_service_token" {
+resource "dbtcloud_service_token" "test_service_token" {
     name = "%s"
     service_token_permissions {
         permission_set = "git_admin"
         all_projects = false
-        project_id = dbt_cloud_project.test_project.id
+        project_id = dbtcloud_project.test_project.id
     }
     service_token_permissions {
         permission_set = "job_admin"
@@ -131,7 +131,7 @@ func testAccCheckDbtCloudServiceTokenDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_service_token" {
+		if rs.Type != "dbtcloud_service_token" {
 			continue
 		}
 		ServiceTokenID, err := strconv.Atoi(rs.Primary.ID)

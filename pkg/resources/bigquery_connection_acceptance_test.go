@@ -27,44 +27,44 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudBigQueryConnectionResourceBasicConfig(connectionName, projectName, privateKey),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudConnectionExists("dbt_cloud_bigquery_connection.test_connection"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "name", connectionName),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "type", "bigquery"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "gcp_project_id", "test_project_id"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "timeout_seconds", "1000"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "private_key_id", "test_private_key_id"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "private_key", privateKey),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_email", "test_client_email"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_id", "test_client_id"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "auth_uri", "test_auth_uri"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "token_uri", "test_token_uri"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "auth_provider_x509_cert_url", "test_auth_provider_x509_cert_url"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "client_x509_cert_url", "test_client_x509_cert_url"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "retries", "3"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "is_configured_for_oauth", "false"),
+					testAccCheckDbtCloudConnectionExists("dbtcloud_bigquery_connection.test_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "type", "bigquery"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "gcp_project_id", "test_project_id"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "timeout_seconds", "1000"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "private_key_id", "test_private_key_id"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "private_key", privateKey),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "client_email", "test_client_email"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "client_id", "test_client_id"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "auth_uri", "test_auth_uri"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "token_uri", "test_token_uri"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "auth_provider_x509_cert_url", "test_auth_provider_x509_cert_url"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "client_x509_cert_url", "test_client_x509_cert_url"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "retries", "3"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "is_configured_for_oauth", "false"),
 				),
 			},
 			// RENAME
 			{
 				Config: testAccDbtCloudBigQueryConnectionResourceBasicConfig(connectionName2, projectName, privateKey),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudConnectionExists("dbt_cloud_bigquery_connection.test_connection"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "name", connectionName2),
+					testAccCheckDbtCloudConnectionExists("dbtcloud_bigquery_connection.test_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "name", connectionName2),
 				),
 			},
 			// MODIFY AND ADD OAUTH
 			{
 				Config: testAccDbtCloudBigQueryConnectionResourceOAuthConfig(connectionName2, projectName, privateKey),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudConnectionExists("dbt_cloud_bigquery_connection.test_connection"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "application_secret", "test_application_secret"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "application_id", "test_application_id"),
-					resource.TestCheckResourceAttr("dbt_cloud_bigquery_connection.test_connection", "is_configured_for_oauth", "true"),
+					testAccCheckDbtCloudConnectionExists("dbtcloud_bigquery_connection.test_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "application_secret", "test_application_secret"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "application_id", "test_application_id"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "is_configured_for_oauth", "true"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_bigquery_connection.test_connection",
+				ResourceName:            "dbtcloud_bigquery_connection.test_connection",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"private_key", "application_secret", "application_id"},
@@ -75,14 +75,14 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 
 func testAccDbtCloudBigQueryConnectionResourceBasicConfig(connectionName, projectName, privateKey string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_bigquery_connection" "test_connection" {
+resource "dbtcloud_bigquery_connection" "test_connection" {
   name        = "%s"
   type = "bigquery"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   gcp_project_id = "test_project_id"
   timeout_seconds = 1000
   private_key_id = "test_private_key_id"
@@ -100,14 +100,14 @@ resource "dbt_cloud_bigquery_connection" "test_connection" {
 
 func testAccDbtCloudBigQueryConnectionResourceOAuthConfig(connectionName, projectName, privateKey string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_bigquery_connection" "test_connection" {
+resource "dbtcloud_bigquery_connection" "test_connection" {
   name        = "%s"
   type = "bigquery"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   gcp_project_id = "test_project_id"
   timeout_seconds = 1000
   private_key_id = "test_private_key_id"
@@ -129,7 +129,7 @@ func testAccCheckDbtCloudBigQueryConnectionDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_bigquery_connection" {
+		if rs.Type != "dbtcloud_bigquery_connection" {
 			continue
 		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]

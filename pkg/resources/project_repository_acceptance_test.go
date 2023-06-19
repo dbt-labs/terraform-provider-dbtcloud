@@ -25,12 +25,12 @@ func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectRepositoryResourceBasicConfig(projectName, repoUrlGithub),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectRepositoryExists("dbt_cloud_project_repository.test_project_repository"),
+					testAccCheckDbtCloudProjectRepositoryExists("dbtcloud_project_repository.test_project_repository"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_project_repository.test_project_repository",
+				ResourceName:            "dbtcloud_project_repository.test_project_repository",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -39,7 +39,7 @@ func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudProjectRepositoryResourceEmptyConfig(projectName, repoUrlGithub),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectRepositoryEmpty("dbt_cloud_project.test_project"),
+					testAccCheckDbtCloudProjectRepositoryEmpty("dbtcloud_project.test_project"),
 				),
 			},
 		},
@@ -48,33 +48,33 @@ func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 
 func testAccDbtCloudProjectRepositoryResourceBasicConfig(projectName, repoUrlGithub string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_repository" "test_repository" {
+resource "dbtcloud_repository" "test_repository" {
   remote_url = "%s"
-  project_id = dbt_cloud_project.test_project.id
-  depends_on = [dbt_cloud_project.test_project]
+  project_id = dbtcloud_project.test_project.id
+  depends_on = [dbtcloud_project.test_project]
 }
 
-resource "dbt_cloud_project_repository" "test_project_repository" {
-  project_id = dbt_cloud_project.test_project.id
-  repository_id = dbt_cloud_repository.test_repository.repository_id
+resource "dbtcloud_project_repository" "test_project_repository" {
+  project_id = dbtcloud_project.test_project.id
+  repository_id = dbtcloud_repository.test_repository.repository_id
 }
 `, projectName, repoUrlGithub)
 }
 
 func testAccDbtCloudProjectRepositoryResourceEmptyConfig(projectName, repoUrlGithub string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_repository" "test_repository" {
+resource "dbtcloud_repository" "test_repository" {
   remote_url = "%s"
-  project_id = dbt_cloud_project.test_project.id
-  depends_on = [dbt_cloud_project.test_project]
+  project_id = dbtcloud_project.test_project.id
+  depends_on = [dbtcloud_project.test_project]
 }
 `, projectName, repoUrlGithub)
 }
@@ -126,7 +126,7 @@ func testAccCheckDbtCloudProjectRepositoryDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_project_repository" {
+		if rs.Type != "dbtcloud_project_repository" {
 			continue
 		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]

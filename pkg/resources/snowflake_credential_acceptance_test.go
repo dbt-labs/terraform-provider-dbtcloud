@@ -41,12 +41,12 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database, role, warehouse, schema, user, password),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "database", database),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "role", role),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "warehouse", warehouse),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "schema", schema),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "user", user),
+					testAccCheckDbtCloudSnowflakeCredentialExists("dbtcloud_snowflake_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "database", database),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "role", role),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "warehouse", warehouse),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "schema", schema),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "user", user),
 				),
 			},
 			// RENAME
@@ -54,18 +54,18 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database2, role2, warehouse2, schema2, user2, password2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "database", database2),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "role", role2),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "warehouse", warehouse2),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "schema", schema2),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "user", user2),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential", "password", password2),
+					testAccCheckDbtCloudSnowflakeCredentialExists("dbtcloud_snowflake_credential.test_credential"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "database", database2),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "role", role2),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "warehouse", warehouse2),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "schema", schema2),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "user", user2),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential", "password", password2),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_snowflake_credential.test_credential",
+				ResourceName:            "dbtcloud_snowflake_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"password"},
@@ -81,21 +81,21 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, database, role, warehouse, schema, user, privateKey, privateKeyPassphrase),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudSnowflakeCredentialExists("dbt_cloud_snowflake_credential.test_credential_p"),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "database", database),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "role", role),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "warehouse", warehouse),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "schema", schema),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "user", user),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "private_key", privateKey),
-					resource.TestCheckResourceAttr("dbt_cloud_snowflake_credential.test_credential_p", "private_key_passphrase", privateKeyPassphrase),
+					testAccCheckDbtCloudSnowflakeCredentialExists("dbtcloud_snowflake_credential.test_credential_p"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "database", database),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "role", role),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "warehouse", warehouse),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "schema", schema),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "user", user),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "private_key", privateKey),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_credential.test_credential_p", "private_key_passphrase", privateKeyPassphrase),
 				),
 			},
 			// RENAME
 			// MODIFY
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_snowflake_credential.test_credential_p",
+				ResourceName:            "dbtcloud_snowflake_credential.test_credential_p",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"private_key", "private_key_passphrase"},
@@ -106,12 +106,12 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 
 func testAccDbtCloudSnowflakeCredentialResourceBasicConfig(projectName, database, role, warehouse, schema, user, password string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_snowflake_credential" "test_credential" {
+resource "dbtcloud_snowflake_credential" "test_credential" {
     is_active = true
-    project_id = dbt_cloud_project.test_project.id
+    project_id = dbtcloud_project.test_project.id
     auth_type = "password"
 	database = "%s"
 	role = "%s"
@@ -126,12 +126,12 @@ resource "dbt_cloud_snowflake_credential" "test_credential" {
 
 func testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(projectName, database, role, warehouse, schema, user, private_key, private_key_passphrase string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_snowflake_credential" "test_credential_p" {
+resource "dbtcloud_snowflake_credential" "test_credential_p" {
     is_active = true
-    project_id = dbt_cloud_project.test_project.id
+    project_id = dbtcloud_project.test_project.id
     auth_type = "keypair"
 	database = "%s"
 	role = "%s"
@@ -176,7 +176,7 @@ func testAccCheckDbtCloudSnowflakeCredentialDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_snowflake_credential" {
+		if rs.Type != "dbtcloud_snowflake_credential" {
 			continue
 		}
 		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])

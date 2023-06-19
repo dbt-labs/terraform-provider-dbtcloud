@@ -25,31 +25,31 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudWebhookExists("dbt_cloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "name", webhookName),
-					resource.TestCheckResourceAttrSet("dbt_cloud_webhook.test_webhook", "hmac_secret"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_webhook.test_webhook", "account_identifier"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "event_types.#", "2"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "job_ids.#", "0"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "client_url", "http://localhost/nothing"),
+					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "name", webhookName),
+					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "hmac_secret"),
+					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "account_identifier"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "event_types.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "job_ids.#", "0"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "client_url", "http://localhost/nothing"),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudWebhookExists("dbt_cloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "name", webhookName2),
-					resource.TestCheckResourceAttrSet("dbt_cloud_webhook.test_webhook", "hmac_secret"),
-					resource.TestCheckResourceAttrSet("dbt_cloud_webhook.test_webhook", "account_identifier"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "event_types.#", "1"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "job_ids.#", "1"),
-					resource.TestCheckResourceAttr("dbt_cloud_webhook.test_webhook", "client_url", "http://localhost/new-nothing"),
+					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "name", webhookName2),
+					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "hmac_secret"),
+					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "account_identifier"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "event_types.#", "1"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "job_ids.#", "1"),
+					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "client_url", "http://localhost/new-nothing"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:      "dbt_cloud_webhook.test_webhook",
+				ResourceName:      "dbtcloud_webhook.test_webhook",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -62,10 +62,10 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 
 func testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_webhook" "test_webhook" {
+resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
 	client_url = "http://localhost/nothing"
@@ -79,17 +79,17 @@ resource "dbt_cloud_webhook" "test_webhook" {
 
 func testAccDbtCloudWebhookResourceFullConfig(webhookName, projectName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-resource "dbt_cloud_environment" "test_environment" {
+resource "dbtcloud_environment" "test_environment" {
 	dbt_version   = "1.0.1"
 	name          = "test"
-	project_id    = dbt_cloud_project.test_project.id
+	project_id    = dbtcloud_project.test_project.id
 	type          = "deployment"
   }
-resource "dbt_cloud_job" "test" {
-	environment_id = dbt_cloud_environment.test_environment.environment_id
+resource "dbtcloud_job" "test" {
+	environment_id = dbtcloud_environment.test_environment.environment_id
 	execute_steps = [
 	  "dbt test"
 	]
@@ -97,7 +97,7 @@ resource "dbt_cloud_job" "test" {
 	is_active            = true
 	name                 = "Test"
 	num_threads          = 64
-	project_id           = dbt_cloud_project.test_project.id
+	project_id           = dbtcloud_project.test_project.id
 	run_generate_sources = false
 	target_name          = "default"
 	triggers = {
@@ -107,14 +107,14 @@ resource "dbt_cloud_job" "test" {
 	  "schedule" : false
 	}
   }
-resource "dbt_cloud_webhook" "test_webhook" {
+resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
 	client_url = "http://localhost/new-nothing"
 	event_types = [
 	  "job.run.completed"
 	]
-	job_ids = [dbt_cloud_job.test.id]
+	job_ids = [dbtcloud_job.test.id]
   }
 `, projectName, webhookName)
 }
@@ -143,7 +143,7 @@ func testAccCheckDbtCloudWebhookDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_webhook" {
+		if rs.Type != "dbtcloud_webhook" {
 			continue
 		}
 		webhookID := rs.Primary.ID

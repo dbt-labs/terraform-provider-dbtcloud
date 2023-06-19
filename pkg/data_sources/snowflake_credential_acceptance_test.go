@@ -15,13 +15,13 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 	config := snowflake_credential(randomProjectName, "moo", "baa", "maa", 64)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "credential_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "auth_type"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "schema"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "user"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_snowflake_credential.test", "num_threads"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "credential_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "project_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "auth_type"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "is_active"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "schema"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "user"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "num_threads"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,12 +37,12 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 
 func snowflake_credential(projectName string, schema string, username string, password string, numThreads int) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_project" "test_credential_project" {
+    resource "dbtcloud_project" "test_credential_project" {
         name = "%s"
     }
 
-    resource "dbt_cloud_snowflake_credential" "test_cred" {
-        project_id = dbt_cloud_project.test_credential_project.id
+    resource "dbtcloud_snowflake_credential" "test_cred" {
+        project_id = dbtcloud_project.test_credential_project.id
         num_threads = 64
         user = "moo"
         password = "baa"
@@ -50,9 +50,9 @@ func snowflake_credential(projectName string, schema string, username string, pa
         auth_type = "password"
     }
 
-    data "dbt_cloud_snowflake_credential" "test" {
-        project_id = dbt_cloud_project.test_credential_project.id
-        credential_id = dbt_cloud_snowflake_credential.test_cred.credential_id
+    data "dbtcloud_snowflake_credential" "test" {
+        project_id = dbtcloud_project.test_credential_project.id
+        credential_id = dbtcloud_snowflake_credential.test_cred.credential_id
     }
     `, projectName)
 }

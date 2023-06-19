@@ -18,11 +18,11 @@ func TestAccDbtCloudEnvironmentVariableDataSource(t *testing.T) {
 	config := environmentVariable(projectName, environmentName, environmentVariableName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment_variable.test_env_var_read", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment_variable.test_env_var_read", "project_id"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment_variable.test_env_var_read", "environment_values.%", "2"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment_variable.test_env_var_read", "environment_values.project", "Baa"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment_variable.test_env_var_read", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment_variable.test_env_var_read", "project_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "environment_values.%", "2"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "environment_values.project", "Baa"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,33 +38,33 @@ func TestAccDbtCloudEnvironmentVariableDataSource(t *testing.T) {
 
 func environmentVariable(projectName, environmentName, environmentVariableName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_environment" "test_env" {
+resource "dbtcloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
   dbt_version = "%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
 }
 
-resource "dbt_cloud_environment_variable" "test_env_var" {
+resource "dbtcloud_environment_variable" "test_env_var" {
   name        = "DBT_%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   environment_values = {
     "project": "Baa",
     "%s": "Moo"
   }
   depends_on = [
-    dbt_cloud_project.test_project,
-    dbt_cloud_environment.test_env
+    dbtcloud_project.test_project,
+    dbtcloud_environment.test_env
   ]
 }
 
-data "dbt_cloud_environment_variable" "test_env_var_read" {
-  name = dbt_cloud_environment_variable.test_env_var.name
-  project_id = dbt_cloud_environment_variable.test_env_var.project_id
+data "dbtcloud_environment_variable" "test_env_var_read" {
+  name = dbtcloud_environment_variable.test_env_var.name
+  project_id = dbtcloud_environment_variable.test_env_var.project_id
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }

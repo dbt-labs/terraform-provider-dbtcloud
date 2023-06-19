@@ -38,7 +38,7 @@ func ResourceRepository() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "Git URL for the repository or <Group>/<Project> for Gitlab",
+				Description: "Git URL for the repository or \\<Group>/\\<Project> for Gitlab",
 			},
 			"git_clone_strategy": &schema.Schema{
 				Type:        schema.TypeString,

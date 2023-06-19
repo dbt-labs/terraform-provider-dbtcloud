@@ -27,11 +27,11 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(projectName, environmentName, environmentVariableName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableExists("dbt_cloud_environment_variable.test_env_var"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.%", "2"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.project", "Baa"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
+					testAccCheckDbtCloudEnvironmentVariableExists("dbtcloud_environment_variable.test_env_var"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.%", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.project", "Baa"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
 				),
 			},
 			// RENAME
@@ -39,16 +39,16 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableExists("dbt_cloud_environment_variable.test_env_var"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.%", "2"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", "environment_values.project", "Oink"),
-					resource.TestCheckResourceAttr("dbt_cloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Neigh"),
+					testAccCheckDbtCloudEnvironmentVariableExists("dbtcloud_environment_variable.test_env_var"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.%", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.project", "Oink"),
+					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Neigh"),
 				),
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbt_cloud_environment_variable.test_env_var",
+				ResourceName:            "dbtcloud_environment_variable.test_env_var",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
@@ -59,27 +59,27 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 
 func testAccDbtCloudEnvironmentVariableResourceBasicConfig(projectName, environmentName, environmentVariableName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_environment" "test_env" {
+resource "dbtcloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
   dbt_version = "%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
 }
 
-resource "dbt_cloud_environment_variable" "test_env_var" {
+resource "dbtcloud_environment_variable" "test_env_var" {
   name        = "DBT_%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   environment_values = {
     "project": "Baa",
     "%s": "Moo"
   }
   depends_on = [
-    dbt_cloud_project.test_project,
-    dbt_cloud_environment.test_env
+    dbtcloud_project.test_project,
+    dbtcloud_environment.test_env
   ]
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
@@ -87,27 +87,27 @@ resource "dbt_cloud_environment_variable" "test_env_var" {
 
 func testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName string) string {
 	return fmt.Sprintf(`
-resource "dbt_cloud_project" "test_project" {
+resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbt_cloud_environment" "test_env" {
+resource "dbtcloud_environment" "test_env" {
   name        = "%s"
   type = "deployment"
   dbt_version = "%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
 }
 
-resource "dbt_cloud_environment_variable" "test_env_var" {
+resource "dbtcloud_environment_variable" "test_env_var" {
   name        = "DBT_%s"
-  project_id = dbt_cloud_project.test_project.id
+  project_id = dbtcloud_project.test_project.id
   environment_values = {
     "project": "Oink",
     "%s": "Neigh"
   }
   depends_on = [
-    dbt_cloud_project.test_project,
-    dbt_cloud_environment.test_env
+    dbtcloud_project.test_project,
+    dbtcloud_environment.test_env
   ]
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
@@ -142,7 +142,7 @@ func testAccCheckDbtCloudEnvironmentVariableDestroy(s *terraform.State) error {
 	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbt_cloud_environment_variable" {
+		if rs.Type != "dbtcloud_environment_variable" {
 			continue
 		}
 		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])

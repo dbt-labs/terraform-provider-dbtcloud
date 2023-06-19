@@ -15,7 +15,7 @@ const (
 func providers() map[string]*schema.Provider {
 	p := provider.Provider()
 	return map[string]*schema.Provider{
-		"dbt": p,
+		"dbtcloud": p,
 	}
 }
 
@@ -25,7 +25,7 @@ var testAccProvider *schema.Provider
 func init() {
 	testAccProvider = provider.Provider()
 	testAccProviders = map[string]*schema.Provider{
-		"dbt": testAccProvider,
+		"dbtcloud": testAccProvider,
 	}
 }
 

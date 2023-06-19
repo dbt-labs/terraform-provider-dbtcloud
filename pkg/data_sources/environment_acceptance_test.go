@@ -16,15 +16,15 @@ func TestAccDbtCloudEnvironmentDataSource(t *testing.T) {
 	config := environment(randomProjectName, randomEnvironmentName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment.test", "name", randomEnvironmentName),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "environment_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "credential_id"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "dbt_version"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "type"),
-		resource.TestCheckResourceAttrSet("data.dbt_cloud_environment.test", "use_custom_branch"),
-		resource.TestCheckResourceAttr("data.dbt_cloud_environment.test", "custom_branch", "customBranchName"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment.test", "name", randomEnvironmentName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "environment_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "project_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "is_active"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "credential_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "dbt_version"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "type"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "use_custom_branch"),
+		resource.TestCheckResourceAttr("data.dbtcloud_environment.test", "custom_branch", "customBranchName"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,12 +40,12 @@ func TestAccDbtCloudEnvironmentDataSource(t *testing.T) {
 
 func environment(projectName, environmentName string) string {
 	return fmt.Sprintf(`
-    resource "dbt_cloud_project" "test_project" {
+    resource "dbtcloud_project" "test_project" {
         name = "%s"
     }
 
-    resource "dbt_cloud_environment" "test_environment" {
-        project_id = dbt_cloud_project.test_project.id
+    resource "dbtcloud_environment" "test_environment" {
+        project_id = dbtcloud_project.test_project.id
         name = "%s"
         dbt_version = "%s"
         type = "development"
@@ -53,9 +53,9 @@ func environment(projectName, environmentName string) string {
         custom_branch = "customBranchName"
     }
 
-    data "dbt_cloud_environment" "test" {
-        project_id = dbt_cloud_project.test_project.id
-        environment_id = dbt_cloud_environment.test_environment.environment_id
+    data "dbtcloud_environment" "test" {
+        project_id = dbtcloud_project.test_project.id
+        environment_id = dbtcloud_environment.test_environment.environment_id
     }
     `, projectName, environmentName, DBT_CLOUD_VERSION)
 }

@@ -29,22 +29,22 @@ func TestAccDbtCloudDatabricksCredentialDataSource(t *testing.T) {
 
 	if testDatabricks == "true" {
 		check = resource.ComposeAggregateTestCheckFunc(
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "credential_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "project_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "adapter_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "target_name"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "schema"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "num_threads"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "catalog"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "credential_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "project_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "adapter_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "target_name"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "schema"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "num_threads"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "catalog"),
 		)
 	} else {
 		check = resource.ComposeAggregateTestCheckFunc(
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "credential_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "project_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "adapter_id"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "target_name"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "schema"),
-			resource.TestCheckResourceAttrSet("data.dbt_cloud_databricks_credential.test", "num_threads"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "credential_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "project_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "adapter_id"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "target_name"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "schema"),
+			resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "num_threads"),
 		)
 	}
 
@@ -65,19 +65,19 @@ func TestAccDbtCloudDatabricksCredentialDataSource(t *testing.T) {
 
 func databricks_credential(projectName string, defaultSchema string, username string, password string, numThreads int, adapterType string) string {
 	commonConfig := fmt.Sprintf(`
-    resource "dbt_cloud_project" "test_credential_project" {
+    resource "dbtcloud_project" "test_credential_project" {
         name = "%s"
     }
 
-    data "dbt_cloud_databricks_credential" "test" {
-        project_id = dbt_cloud_project.test_credential_project.id
-        credential_id = dbt_cloud_databricks_credential.test_cred.credential_id
+    data "dbtcloud_databricks_credential" "test" {
+        project_id = dbtcloud_project.test_credential_project.id
+        credential_id = dbtcloud_databricks_credential.test_cred.credential_id
     }
     `, projectName)
 
 	if adapterType == "databricks" {
-		credential := `resource "dbt_cloud_databricks_credential" "test_cred" {
-			project_id = dbt_cloud_project.test_credential_project.id
+		credential := `resource "dbtcloud_databricks_credential" "test_cred" {
+			project_id = dbtcloud_project.test_credential_project.id
 			adapter_id = 123
 			token = "abcdefg"
 			schema = "my_schema"
@@ -87,8 +87,8 @@ func databricks_credential(projectName string, defaultSchema string, username st
 
 		return fmt.Sprintln(commonConfig, credential)
 	} else {
-		credential := `resource "dbt_cloud_databricks_credential" "test_cred" {
-			project_id = dbt_cloud_project.test_credential_project.id
+		credential := `resource "dbtcloud_databricks_credential" "test_cred" {
+			project_id = dbtcloud_project.test_credential_project.id
 			adapter_id = 123
 			token = "abcdefg"
 			schema = "my_schema"
