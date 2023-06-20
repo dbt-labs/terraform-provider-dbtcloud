@@ -197,6 +197,10 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	connection, err := c.GetConnection(connectionIdString, projectIdString)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

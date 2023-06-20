@@ -123,6 +123,10 @@ func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceDat
 
 	databricksCredential, err := c.GetDatabricksCredential(projectId, databricksCredentialId)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

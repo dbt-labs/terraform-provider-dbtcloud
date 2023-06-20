@@ -157,6 +157,10 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 
 	snowflakeCredential, err := c.GetSnowflakeCredential(projectId, snowflakeCredentialId)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 	// TODO: Manage passwords better

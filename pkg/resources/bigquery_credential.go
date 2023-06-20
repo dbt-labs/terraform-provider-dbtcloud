@@ -94,6 +94,10 @@ func resourceBigQueryCredentialRead(ctx context.Context, d *schema.ResourceData,
 
 	BigQueryCredential, err := c.GetBigQueryCredential(projectId, BigQueryCredentialId)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

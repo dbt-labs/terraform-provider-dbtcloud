@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -172,6 +173,10 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 
 	job, err := c.GetJob(jobId)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

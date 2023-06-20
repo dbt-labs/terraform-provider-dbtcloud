@@ -130,6 +130,10 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	environment, err := c.GetEnvironment(projectId, environmentId)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -16,6 +16,7 @@ var projectArtefactsSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
+		ForceNew:    true,
 	},
 	"docs_job_id": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -35,10 +36,6 @@ func ResourceProjectArtefacts() *schema.Resource {
 		ReadContext:   resourceProjectArtefactsRead,
 		UpdateContext: resourceProjectArtefactsUpdate,
 		DeleteContext: resourceProjectArtefactsDelete,
-
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("project_id", func(_ context.Context, old, new, meta interface{}) bool { return true }),
-		),
 
 		Schema: projectArtefactsSchema,
 		Importer: &schema.ResourceImporter{
@@ -99,6 +96,10 @@ func resourceProjectArtefactsRead(ctx context.Context, d *schema.ResourceData, m
 
 	project, err := c.GetProject(projectIDString)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

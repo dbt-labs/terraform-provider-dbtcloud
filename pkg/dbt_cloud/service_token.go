@@ -82,7 +82,7 @@ func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
 
 	// the endpoint returns service tokens when their state is inactive, so we need to check for the state
 	if serviceTokenResponse.Data.State != STATE_ACTIVE {
-		return nil, fmt.Errorf("not found - service token %d is not active", serviceTokenID)
+		return nil, fmt.Errorf("resource-not-found: service token %d is not active", serviceTokenID)
 	}
 
 	permissions, err := c.GetServiceTokenPermissions(serviceTokenID)

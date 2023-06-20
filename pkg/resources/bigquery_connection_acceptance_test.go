@@ -139,7 +139,7 @@ func testAccCheckDbtCloudBigQueryConnectionDestroy(s *terraform.State) error {
 		if err == nil {
 			return fmt.Errorf("Connection still exists")
 		}
-		notFoundErr := "not found"
+		notFoundErr := "resource-not-found"
 		expectedErr := regexp.MustCompile(notFoundErr)
 		if !expectedErr.Match([]byte(err.Error())) {
 			return fmt.Errorf("expected %s, got %s", notFoundErr, err)
