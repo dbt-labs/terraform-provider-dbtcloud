@@ -58,7 +58,7 @@ func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*Snowf
 		}
 	}
 
-	return nil, fmt.Errorf("did not find credential ID %d in project ID %d", credentialId, projectId)
+	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
 }
 
 func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, database string, role string, warehouse string, schema string, user string, password string, privateKey string, privateKeyPassphrase string, authType string, numThreads int) (*SnowflakeCredential, error) {

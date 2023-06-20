@@ -67,7 +67,7 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Group with ID %d not found", groupID)
+	return nil, fmt.Errorf("resource-not-found: Group with ID %d not found", groupID)
 }
 
 func (c *Client) CreateGroup(name string, assignByDefault bool, ssoMappingGroups []string) (*Group, error) {

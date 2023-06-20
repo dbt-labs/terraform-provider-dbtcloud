@@ -112,7 +112,7 @@ func testAccCheckDbtCloudPostgresCredentialDestroy(s *terraform.State) error {
 		if err == nil {
 			return fmt.Errorf("Postgres credential still exists")
 		}
-		notFoundErr := "did not find"
+		notFoundErr := "resource-not-found"
 		expectedErr := regexp.MustCompile(notFoundErr)
 		if !expectedErr.Match([]byte(err.Error())) {
 			return fmt.Errorf("expected %s, got %s", notFoundErr, err)

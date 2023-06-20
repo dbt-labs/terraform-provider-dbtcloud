@@ -63,6 +63,17 @@ type AuthResponse struct {
 	Data   []AuthResponseData `json:"data"`
 }
 
+// Parses the error we get to see if it is a 404 for a missing resource
+type APIError struct {
+	Data   interface{} `json:"data"`
+	Status struct {
+		Code             int    `json:"code"`
+		DeveloperMessage string `json:"developer_message"`
+		IsSuccess        bool   `json:"is_success"`
+		UserMessage      string `json:"user_message"`
+	} `json:"status"`
+}
+
 // NewClient -
 func NewClient(account_id *int, token *string, host_url *string) (*Client, error) {
 	c := Client{
@@ -123,9 +134,32 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
+	// if this is a 404 on a GET we check the body to see if it is a missing resource or incorrect endpoint
+	if res.StatusCode == 404 && req.Method == "GET" {
+		isResourceNotFound, err := isResourceNotFoundError(body)
+		if err != nil {
+			return nil, err
+		}
+		if isResourceNotFound {
+			return nil, fmt.Errorf("resource-not-found: %s", req.URL)
+		}
+	}
+
 	if (res.StatusCode != http.StatusOK) && (res.StatusCode != 201) {
 		return nil, fmt.Errorf("%s url: %s, status: %d, body: %s", req.Method, req.URL, res.StatusCode, body)
 	}
 
 	return body, err
+}
+
+func isResourceNotFoundError(body []byte) (bool, error) {
+	var apiErr APIError
+	if unmarshalErr := json.Unmarshal([]byte(body), &apiErr); unmarshalErr != nil {
+		return false, unmarshalErr
+	}
+	// in this case, the body of the error mentions a 404, this is different from a 404 due to a wrong URL
+	if apiErr.Status.Code == 404 {
+		return true, nil
+	}
+	return false, nil
 }

@@ -269,6 +269,10 @@ func resourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceData,
 
 	connection, err := c.GetBigQueryConnection(connectionIdString, projectIdString)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

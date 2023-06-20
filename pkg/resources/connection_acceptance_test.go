@@ -164,7 +164,7 @@ func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 		connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 		connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 		projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-		databricksHost := "test.cloud.databricks.com"
+		databricksHost := "databricks.com"
 
 		resource.Test(t, resource.TestCase{
 			PreCheck:     func() { testAccPreCheck(t) },
@@ -403,7 +403,7 @@ func testAccCheckDbtCloudConnectionDestroy(s *terraform.State) error {
 		if err == nil {
 			return fmt.Errorf("Connection still exists")
 		}
-		notFoundErr := "not found"
+		notFoundErr := "resource-not-found"
 		expectedErr := regexp.MustCompile(notFoundErr)
 		if !expectedErr.Match([]byte(err.Error())) {
 			return fmt.Errorf("expected %s, got %s", notFoundErr, err)

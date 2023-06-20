@@ -50,7 +50,7 @@ func (c *Client) GetBigQueryCredential(projectId int, credentialId int) (*BigQue
 		}
 	}
 
-	return nil, fmt.Errorf("did not find credential ID %d in project ID %d", credentialId, projectId)
+	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
 }
 
 func (c *Client) CreateBigQueryCredential(projectId int, type_ string, isActive bool, dataset string, numThreads int) (*BigQueryCredential, error) {

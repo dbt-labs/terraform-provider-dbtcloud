@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -147,6 +148,10 @@ func resourceServiceTokenRead(ctx context.Context, d *schema.ResourceData, m int
 
 	serviceToken, err := c.GetServiceToken(serviceTokenID)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

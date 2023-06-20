@@ -121,6 +121,10 @@ func resourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	repository, err := c.GetRepository(repositoryIdString, projectIdString, fetchDeployKey)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 

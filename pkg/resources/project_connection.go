@@ -8,7 +8,6 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -17,11 +16,13 @@ var projectConnectionSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Connection ID",
+		ForceNew:    true,
 	},
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
+		ForceNew:    true,
 	},
 }
 
@@ -29,13 +30,7 @@ func ResourceProjectConnection() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceProjectConnectionCreate,
 		ReadContext:   resourceProjectConnectionRead,
-		UpdateContext: resourceProjectConnectionUpdate,
 		DeleteContext: resourceProjectConnectionDelete,
-
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("connection_id", func(_ context.Context, old, new, meta interface{}) bool { return true }),
-			customdiff.ForceNewIfChange("project_id", func(_ context.Context, old, new, meta interface{}) bool { return true }),
-		),
 
 		Schema: projectConnectionSchema,
 		Importer: &schema.ResourceImporter{
@@ -85,6 +80,10 @@ func resourceProjectConnectionRead(ctx context.Context, d *schema.ResourceData, 
 
 	project, err := c.GetProject(projectIDString)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			d.SetId("")
+			return diags
+		}
 		return diag.FromErr(err)
 	}
 
@@ -96,11 +95,6 @@ func resourceProjectConnectionRead(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	return diags
-}
-
-func resourceProjectConnectionUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
-	return resourceProjectConnectionRead(ctx, d, m)
 }
 
 func resourceProjectConnectionDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

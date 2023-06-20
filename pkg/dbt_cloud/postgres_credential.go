@@ -54,7 +54,7 @@ func (c *Client) GetPostgresCredential(projectId int, credentialId int) (*Postgr
 		}
 	}
 
-	return nil, fmt.Errorf("did not find credential ID %d in project ID %d", credentialId, projectId)
+	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
 }
 
 // CreatePostgresCredential creates a new Postgres credential
