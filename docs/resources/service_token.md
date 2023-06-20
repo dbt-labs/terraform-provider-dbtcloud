@@ -17,16 +17,16 @@ description: |-
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_service_token" "test_service_token" {
-    name = "Test Service Token"
-    service_token_permissions {
-        permission_set = "git_admin"
-        all_projects = true
-    }
-    service_token_permissions {
-        permission_set = "job_admin"
-        all_projects = false
-        project_id = dbt_cloud_project.test_project.id
-    }
+  name = "Test Service Token"
+  service_token_permissions {
+    permission_set = "git_admin"
+    all_projects   = true
+  }
+  service_token_permissions {
+    permission_set = "job_admin"
+    all_projects   = false
+    project_id     = dbt_cloud_project.test_project.id
+  }
 }
 
 // permission_set accepts one of the following values:
