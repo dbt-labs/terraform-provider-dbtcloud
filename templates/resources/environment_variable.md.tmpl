@@ -10,6 +10,10 @@ description: |-
 *Note*: Some upstream resources can be slow to create, so if creating a project or environment at
 the same time as the environment variables, it's recommended to use the `depends_on` meta argument.
 
+## Example Usage
+
+{{ tffile (printf "%s%s%s" "examples/resources/" .Name "/resource.tf") }}
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import

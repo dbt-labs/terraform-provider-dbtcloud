@@ -18,6 +18,7 @@ func ResourceBigQueryConnection() *schema.Resource {
 		UpdateContext: resourceBigQueryConnectionUpdate,
 		DeleteContext: resourceBigQueryConnectionDelete,
 
+		Description: "Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.",
 		Schema: map[string]*schema.Schema{
 			"connection_id": &schema.Schema{
 				Type:        schema.TypeInt,
