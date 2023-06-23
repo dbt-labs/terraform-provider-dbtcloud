@@ -34,7 +34,7 @@ func ResourceEnvironment() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     nil,
-				Description: "Credential ID to create the environment with",
+				Description: "Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments",
 			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
@@ -44,12 +44,13 @@ func ResourceEnvironment() *schema.Resource {
 			"dbt_version": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` or `major.minor.0-pre`, e.g. `1.5.0-latest`",
 			},
 			"type": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of environment (must be either development or deployment)",
+				ForceNew:    true,
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					type_ := val.(string)
 					switch type_ {
