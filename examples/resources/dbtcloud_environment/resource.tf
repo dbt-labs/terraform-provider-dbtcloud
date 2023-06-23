@@ -2,7 +2,8 @@
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_environment" "test_environment" {
-  dbt_version   = "1.0.1"
+  // the dbt_version is always major.minor.0-latest or major.minor.0-pre
+  dbt_version   = "1.5.0-latest"
   name          = "test"
   project_id    = data.dbt_cloud_project.test_project.project_id
   type          = "deployment"

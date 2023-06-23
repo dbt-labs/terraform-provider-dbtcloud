@@ -1,0 +1,2 @@
+terraform import dbtcloud_bigquery_credential.my_credential "project_id:credential_id"
+terraform import dbtcloud_bigquery_credential.my_credential 12345:5678

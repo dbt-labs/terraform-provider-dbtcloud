@@ -1,5 +1,5 @@
 ---
-page_title: "dbtcloud Provider"
+page_title: "dbt Cloud Provider"
 subcategory: ""
 description: |-
   

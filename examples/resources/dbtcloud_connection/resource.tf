@@ -2,17 +2,17 @@
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_connection" "databricks" {
-  project_id = 1
+  project_id = dbtcloud_project.my_project_1.id
   type       = "adapter"
   name       = "Databricks"
-  database   = ""
+  database   = "" // currenyly need to be empty for databricks
   host_name  = "my-databricks-host.cloud.databricks.com"
-  https_path = "/my/path"
+  http_path  = "/my/path"
   catalog    = "moo"
 }
 
 resource "dbtcloud_connection" "redshift" {
-  project_id = 2
+  project_id = dbtcloud_project.my_project_2.id
   type       = "redshift"
   name       = "My Redshift Warehouse"
   database   = "my-database"
@@ -21,7 +21,7 @@ resource "dbtcloud_connection" "redshift" {
 }
 
 resource "dbtcloud_connection" "snowflake" {
-  project_id = 3
+  project_id = dbtcloud_project.my_project_3.id
   type       = "snowflake"
   name       = "My Snowflake warehouse"
   account    = "my-snowflake-account"

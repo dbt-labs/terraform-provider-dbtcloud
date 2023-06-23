@@ -17,7 +17,7 @@ type Environment struct {
 	State                        int                  `json:"state,omitempty"`
 	Account_Id                   int                  `json:"account_id"`
 	Project_Id                   int                  `json:"project_id"`
-	Credential_Id                *int                 `json:"credentials_id"`
+	Credential_Id                *int                 `json:"credentials_id,omitempty"`
 	Name                         string               `json:"name"`
 	Dbt_Version                  string               `json:"dbt_version"`
 	Type                         string               `json:"type"`
@@ -101,6 +101,10 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 }
 
 func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment Environment) (*Environment, error) {
+
+	// we don't send the environment details in the update request, just the credential_id
+	environment.Credentials = nil
+
 	environmentData, err := json.Marshal(environment)
 	if err != nil {
 		return nil, err

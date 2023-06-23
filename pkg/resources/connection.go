@@ -22,12 +22,20 @@ var (
 	}
 )
 
+var docs string = fmt.Sprintf(`
+Create a Data Warehouse connection for your project in dbt Cloud. The connection will need to be linked to the dbt Cloud project via a %s resource.
+		
+This resource can be used for Databricks, Postgres, Redshift, Snowflake and AlloyDB connections.
+For BigQuery, due to the list of fields being very different, you can use the %s resource.`, "`dbtcloud_project_connection`", "`dbtcloud_bigquery_connection`")
+
 func ResourceConnection() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceConnectionCreate,
 		ReadContext:   resourceConnectionRead,
 		UpdateContext: resourceConnectionUpdate,
 		DeleteContext: resourceConnectionDelete,
+
+		Description: docs,
 
 		Schema: map[string]*schema.Schema{
 			"connection_id": &schema.Schema{
@@ -291,9 +299,23 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	// TODO: add more changes here
-
-	if d.HasChange("name") || d.HasChange("type") || d.HasChange("private_link_endpoint_id") || d.HasChange("account") || d.HasChange("database") || d.HasChange("warehouse") || d.HasChange("role") || d.HasChange("allow_sso") || d.HasChange("allow_keep_alive") || d.HasChange("oauth_client_id") || d.HasChange("oauth_client_secret") {
+	if d.HasChange("name") ||
+		d.HasChange("type") ||
+		d.HasChange("private_link_endpoint_id") ||
+		d.HasChange("account") ||
+		d.HasChange("host_name") ||
+		d.HasChange("port") ||
+		d.HasChange("database") ||
+		d.HasChange("warehouse") ||
+		d.HasChange("role") ||
+		d.HasChange("allow_sso") ||
+		d.HasChange("allow_keep_alive") ||
+		d.HasChange("oauth_client_id") ||
+		d.HasChange("oauth_client_secret") ||
+		d.HasChange("tunnel_enabled") ||
+		d.HasChange("http_path") ||
+		d.HasChange("catalog") ||
+		d.HasChange("adapter_id") {
 		connection, err := c.GetConnection(connectionIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
@@ -314,6 +336,14 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 		if d.HasChange("account") {
 			account := d.Get("account").(string)
 			connection.Details.Account = account
+		}
+		if d.HasChange("host_name") {
+			hostName := d.Get("host_name").(string)
+			connection.Details.Host = hostName
+		}
+		if d.HasChange("port") {
+			port := d.Get("port").(int)
+			connection.Details.Port = port
 		}
 		if d.HasChange("database") {
 			database := d.Get("database").(string)
@@ -347,13 +377,16 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 			oAuthClientSecret := d.Get("oauth_client_secret").(string)
 			connection.Details.OAuthClientSecret = oAuthClientSecret
 		}
-		if d.HasChange("host_name") {
-			hostName := d.Get("host_name").(string)
-			connection.Details.Host = hostName
+		if d.HasChange("tunnel_enabled") {
+			tunnelEnabled := d.Get("tunnel_enabled").(bool)
+			connection.Details.TunnelEnabled = &tunnelEnabled
 		}
-		if d.HasChange("port") {
-			port := d.Get("port").(int)
-			connection.Details.Port = port
+		if d.HasChange("http_path") || d.HasChange("host_name") || d.HasChange("catalog") {
+			connection.Details.AdapterDetails = dbt_cloud.GetDatabricksConnectionDetails(d.Get("host_name").(string), d.Get("http_path").(string), d.Get("catalog").(string))
+		}
+		if d.HasChange("adapter_id") {
+			adapterId := d.Get("adapter_id").(int)
+			connection.Details.AdapterId = &adapterId
 		}
 
 		_, err = c.UpdateConnection(connectionIdString, projectIdString, *connection)

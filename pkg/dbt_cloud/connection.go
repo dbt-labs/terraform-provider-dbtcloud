@@ -111,7 +111,7 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 		}
 
 		connectionDetails.AdapterId = adapterId
-		connectionDetails.AdapterDetails = getDatabricksConnectionDetails(hostName, httpPath, catalog)
+		connectionDetails.AdapterDetails = GetDatabricksConnectionDetails(hostName, httpPath, catalog)
 	} else {
 		connectionDetails.Account = account
 		connectionDetails.Warehouse = warehouse
@@ -254,7 +254,7 @@ func (c *Client) createDatabricksAdapter(projectID int, state int) (*int, error)
 	return adapterResponse.Data.ID, nil
 }
 
-func getDatabricksConnectionDetails(hostName string, httpPath string, catalog string) *DatabricksCredentialDetails {
+func GetDatabricksConnectionDetails(hostName string, httpPath string, catalog string) *DatabricksCredentialDetails {
 	noValidation := DatabricksCredentialFieldMetadataValidation{
 		Required: false,
 	}
