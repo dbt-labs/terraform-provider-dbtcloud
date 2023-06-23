@@ -16,7 +16,7 @@ install: build
 	mv ./$(BINARY) $(HOME)/.terraform.d/plugins/$(BINARY)
 
 doc:
-	go generate ./...
+	go generate ./... && rm docs/resources/dbt_cloud_* && rm docs/data-sources/dbt_cloud_*
 
 test: deps
 	go test -mod=readonly -count=1 ./...
