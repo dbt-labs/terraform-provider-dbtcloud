@@ -102,6 +102,16 @@ var bigQueryConnectionSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Max number of bytes that can be billed for a given BigQuery query",
 	},
+	"execution_project": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "Project to bill for query execution",
+	},
+	"priority": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The priority with which to execute BigQuery queries",
+	},
 	"gcs_bucket": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
@@ -191,6 +201,12 @@ func datasourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	if err := d.Set("maximum_bytes_billed", connection.Details.MaximumBytesBilled); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("execution_project", connection.Details.ExecutionProject); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("priority", connection.Details.Priority); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("gcs_bucket", connection.Details.GcsBucket); err != nil {

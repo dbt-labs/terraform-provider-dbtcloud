@@ -41,6 +41,8 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "auth_provider_x509_cert_url", "test_auth_provider_x509_cert_url"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "client_x509_cert_url", "test_client_x509_cert_url"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "retries", "3"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "execution_project", "test_project_id_2"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "priority", "interactive"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "is_configured_for_oauth", "false"),
 				),
 			},
@@ -57,6 +59,7 @@ func TestAccDbtCloudBigQueryConnectionResource(t *testing.T) {
 				Config: testAccDbtCloudBigQueryConnectionResourceOAuthConfig(connectionName2, projectName, privateKey),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudConnectionExists("dbtcloud_bigquery_connection.test_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "priority", "batch"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "application_secret", "test_application_secret"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "application_id", "test_application_id"),
 					resource.TestCheckResourceAttr("dbtcloud_bigquery_connection.test_connection", "is_configured_for_oauth", "true"),
@@ -94,6 +97,8 @@ resource "dbtcloud_bigquery_connection" "test_connection" {
   auth_provider_x509_cert_url = "test_auth_provider_x509_cert_url"
   client_x509_cert_url = "test_client_x509_cert_url"
   retries = 3
+  execution_project = "test_project_id_2"
+  priority = "interactive"
 }
 `, projectName, connectionName, privateKey)
 }
@@ -119,6 +124,8 @@ resource "dbtcloud_bigquery_connection" "test_connection" {
   auth_provider_x509_cert_url = "test_auth_provider_x509_cert_url"
   client_x509_cert_url = "test_client_x509_cert_url"
   retries = 3
+  execution_project = "test_project_id_2"
+  priority = "batch"
   application_secret = "test_application_secret"
   application_id = "test_application_id"
 }

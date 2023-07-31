@@ -81,10 +81,12 @@ resource "dbtcloud_bigquery_connection" "test_connection_with_oauth" {
 - `application_secret` (String, Sensitive) The Application Secret for BQ OAuth
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
 - `dataproc_region` (String) Google Cloud region for PySpark workloads on Dataproc
+- `execution_project` (String) Project to bill for query execution
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `is_active` (Boolean) Whether the connection is active
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
+- `priority` (String) The priority with which to execute BigQuery queries (batch or interactive)
 - `retries` (Number) Number of retries for queries
 
 ### Read-Only

@@ -22,6 +22,8 @@ type BigQueryConnectionDetails struct {
 	Retries                 *int    `json:"retries,omitempty"`
 	Location                *string `json:"location,omitempty"`
 	MaximumBytesBilled      *int    `json:"maximum_bytes_billed,omitempty"`
+	ExecutionProject        *string `json:"execution_project,omitempty"`
+	Priority                *string `json:"priority,omitempty"`
 	GcsBucket               *string `json:"gcs_bucket,omitempty"`
 	DataprocRegion          *string `json:"dataproc_region,omitempty"`
 	DataprocClusterName     *string `json:"dataproc_cluster_name,omitempty"`
@@ -88,6 +90,8 @@ func (c *Client) CreateBigQueryConnection(
 	retries *int,
 	location *string,
 	maximumBytesBilled *int,
+	executionProject *string,
+	priority *string,
 	gcsBucket *string,
 	dataprocRegion *string,
 	dataprocClusterName *string,
@@ -112,6 +116,8 @@ func (c *Client) CreateBigQueryConnection(
 		Retries:                 retries,
 		Location:                location,
 		MaximumBytesBilled:      maximumBytesBilled,
+		ExecutionProject:        executionProject,
+		Priority:                priority,
 		GcsBucket:               gcsBucket,
 		DataprocRegion:          dataprocRegion,
 		DataprocClusterName:     dataprocClusterName,

@@ -11,6 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+var bigQueryPriorities = []string{
+	"batch",
+	"interactive",
+}
+
 func ResourceBigQueryConnection() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceBigQueryConnectionCreate,
@@ -116,6 +121,17 @@ func ResourceBigQueryConnection() *schema.Resource {
 				Optional:    true,
 				Description: "Max number of bytes that can be billed for a given BigQuery query",
 			},
+			"execution_project": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Project to bill for query execution",
+			},
+			"priority": &schema.Schema{
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The priority with which to execute BigQuery queries (batch or interactive)",
+				ValidateFunc: validation.StringInSlice(bigQueryPriorities, false),
+			},
 			"gcs_bucket": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -197,6 +213,20 @@ func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceDat
 		maximumBytesBilled := d.Get("maximum_bytes_billed").(int)
 		maximumBytesBilledVal = &maximumBytesBilled
 	}
+	var executionProjectVal *string
+	if d.Get("execution_project").(string) == "" {
+		executionProjectVal = nil
+	} else {
+		executionProject := d.Get("execution_project").(string)
+		executionProjectVal = &executionProject
+	}
+	var priorityVal *string
+	if d.Get("priority").(string) == "" {
+		priorityVal = nil
+	} else {
+		priority := d.Get("priority").(string)
+		priorityVal = &priority
+	}
 	var gcsBucketVal *string
 	if d.Get("gcs_bucket").(string) == "" {
 		gcsBucketVal = nil
@@ -241,6 +271,8 @@ func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceDat
 		retriesVal,
 		locationVal,
 		maximumBytesBilledVal,
+		executionProjectVal,
+		priorityVal,
 		gcsBucketVal,
 		dataprocRegionVal,
 		dataprocClusterNameVal,
@@ -329,6 +361,12 @@ func resourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("maximum_bytes_billed", connection.Details.MaximumBytesBilled); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("execution_project", connection.Details.ExecutionProject); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("priority", connection.Details.Priority); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("gcs_bucket", connection.Details.GcsBucket); err != nil {
 		return diag.FromErr(err)
 	}
@@ -368,6 +406,8 @@ func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 		d.HasChange("retries") ||
 		d.HasChange("location") ||
 		d.HasChange("maximum_bytes_billed") ||
+		d.HasChange("execution_project") ||
+		d.HasChange("priority") ||
 		d.HasChange("gcs_bucket") ||
 		d.HasChange("dataproc_region") ||
 		d.HasChange("dataproc_cluster_name") ||
@@ -448,6 +488,22 @@ func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 				connection.Details.MaximumBytesBilled = nil
 			} else {
 				connection.Details.MaximumBytesBilled = &maximumBytesBilled
+			}
+		}
+		if d.HasChange("execution_project") {
+			executionProject := d.Get("execution_project").(string)
+			if executionProject == "" {
+				connection.Details.ExecutionProject = nil
+			} else {
+				connection.Details.ExecutionProject = &executionProject
+			}
+		}
+		if d.HasChange("priority") {
+			priority := d.Get("priority").(string)
+			if priority == "" {
+				connection.Details.Priority = nil
+			} else {
+				connection.Details.Priority = &priority
 			}
 		}
 		if d.HasChange("gcs_bucket") {
