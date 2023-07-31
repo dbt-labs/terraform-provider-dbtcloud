@@ -29,6 +29,7 @@ description: |-
 - `client_x509_cert_url` (String) Client X509 Cert URL for the Service Account
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
 - `dataproc_region` (String) Google Cloud region for PySpark workloads on Dataproc
+- `execution_project` (String) Project to bill for query execution
 - `gcp_project_id` (String) GCP project ID
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `id` (String) The ID of this resource.
@@ -37,6 +38,7 @@ description: |-
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
 - `name` (String) Connection name
+- `priority` (String) The priority with which to execute BigQuery queries
 - `private_key` (String) Private key of the Service Account
 - `private_key_id` (String) Private key ID of the Service Account
 - `retries` (Number) Number of retries for queries

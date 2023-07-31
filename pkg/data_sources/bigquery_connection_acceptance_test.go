@@ -34,6 +34,8 @@ func TestAccDbtCloudBigQueryConnectionDataSource(t *testing.T) {
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "retries", "3"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "location", "EU"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "maximum_bytes_billed", "100000"),
+		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "execution_project", "test_gcp_project_id2"),
+		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "priority", "batch"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "gcs_bucket", "test_gcs_bucket"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "dataproc_region", "test_dataproc_region"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "dataproc_cluster_name", "test_dataproc_cluster_name"),
@@ -75,6 +77,8 @@ func bigQueryConnection(projectName, connectionName string) string {
 		retries = 3
 		location = "EU"
 		maximum_bytes_billed = 100000
+		execution_project = "test_gcp_project_id2"
+		priority = "batch"
 		gcs_bucket = "test_gcs_bucket"
 		dataproc_region = "test_dataproc_region"
 		dataproc_cluster_name = "test_dataproc_cluster_name"
