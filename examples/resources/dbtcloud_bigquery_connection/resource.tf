@@ -2,7 +2,7 @@
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_bigquery_connection" "test_connection" {
-  project_id                  = dbt_cloud_project.test_project.id
+  project_id                  = dbtcloud_project.test_project.id
   name                        = "Project Name"
   type                        = "bigquery"
   is_active                   = true
@@ -21,7 +21,7 @@ resource "dbtcloud_bigquery_connection" "test_connection" {
 
 # it is also possible to set the connection to use OAuth by filling in `application_id` and `application_secret`
 resource "dbtcloud_bigquery_connection" "test_connection_with_oauth" {
-  project_id                  = dbt_cloud_project.test_project.id
+  project_id                  = dbtcloud_project.test_project.id
   name                        = "Project Name"
   type                        = "bigquery"
   is_active                   = true
