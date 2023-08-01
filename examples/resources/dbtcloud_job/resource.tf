@@ -10,7 +10,7 @@ resource "dbtcloud_job" "test" {
   is_active            = true
   name                 = "Test"
   num_threads          = 64
-  project_id           = data.dbt_cloud_project.test_project.id
+  project_id           = data.dbtcloud_project.test_project.id
   run_generate_sources = false
   target_name          = "default"
   triggers = {
