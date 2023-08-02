@@ -3,3 +3,4 @@ vendor/
 terraform-provider*
 .idea
 .vscode
+autogen
