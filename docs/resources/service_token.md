@@ -25,7 +25,7 @@ resource "dbtcloud_service_token" "test_service_token" {
   service_token_permissions {
     permission_set = "job_admin"
     all_projects   = false
-    project_id     = dbt_cloud_project.test_project.id
+    project_id     = dbtcloud_project.test_project.id
   }
 }
 

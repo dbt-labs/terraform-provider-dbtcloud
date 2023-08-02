@@ -3,7 +3,7 @@
 
 resource "dbtcloud_postgres_credential" "test_credential" {
   is_active      = true
-  project_id     = dbt_cloud_project.test_project.id
+  project_id     = dbtcloud_project.test_project.id
   type           = "postgres"
   default_schema = "my_schema"
   username       = "my_username"

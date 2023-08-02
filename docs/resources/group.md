@@ -24,7 +24,7 @@ resource "dbtcloud_group" "test_group" {
   group_permissions {
     permission_set = "developer"
     all_projects   = false
-    project_id     = dbt_cloud_project.test_project.id
+    project_id     = dbtcloud_project.test_project.id
   }
 }
 ```

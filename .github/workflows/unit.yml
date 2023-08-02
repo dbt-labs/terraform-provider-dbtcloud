@@ -2,6 +2,9 @@ on:
   pull_request_target:
     branches:
       - main
+  merge_group:
+    branches:
+      - main
 
 name: dbt Cloud Integration Tests
 
@@ -17,7 +20,7 @@ jobs:
           - test-acceptance
     steps:
       - name: pull_request actions/checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 

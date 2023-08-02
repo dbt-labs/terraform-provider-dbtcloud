@@ -5,7 +5,7 @@ resource "dbtcloud_environment" "test_environment" {
   // the dbt_version is always major.minor.0-latest or major.minor.0-pre
   dbt_version   = "1.5.0-latest"
   name          = "test"
-  project_id    = data.dbt_cloud_project.test_project.id
+  project_id    = data.dbtcloud_project.test_project.id
   type          = "deployment"
   credential_id = dbt_cloud_snowflake_credential.new_credential.credential_id
 }
