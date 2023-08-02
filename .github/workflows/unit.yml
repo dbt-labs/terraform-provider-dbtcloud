@@ -20,7 +20,7 @@ jobs:
           - test-acceptance
     steps:
       - name: pull_request actions/checkout
-        uses: actions/checkout@v3.5
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
