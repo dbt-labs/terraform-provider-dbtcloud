@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.2...HEAD)
 
+## [0.2.3](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.2...v0.2.3)
+
+## Fixes
+
+- Update CI to avoid Node version warnings
+- Fixes to the docs
+
+## Changes
+
+- [164](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/164) Add the ability to define `priority` and `execution_project` for BigQuery connections
+- [168](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/168) Add the ability to set up email notifications (to internal users and external email addresses) based on jobs results
+
 ## [0.2.2](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.1...v0.2.2)
 
 ## Fixes
