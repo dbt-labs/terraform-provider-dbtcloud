@@ -9,3 +9,13 @@ resource "dbtcloud_environment" "test_environment" {
   type          = "deployment"
   credential_id = dbt_cloud_snowflake_credential.new_credential.credential_id
 }
+
+// we can also set a deployment environment as being the production one
+resource "dbtcloud_environment" "prod_environment" {
+  dbt_version     = "1.5.0-latest"
+  name            = "Prod"
+  project_id      = data.dbtcloud_project.test_project.id
+  type            = "deployment"
+  credential_id   = dbt_cloud_snowflake_credential.other_credential.credential_id
+  deployment_type = "production"
+}

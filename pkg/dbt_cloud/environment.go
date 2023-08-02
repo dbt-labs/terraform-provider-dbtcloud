@@ -31,6 +31,7 @@ type Environment struct {
 	Jobs                         *string              `json:"jobs"`
 	Credentials                  *SnowflakeCredential `json:"credentials"`
 	Custom_Environment_Variables *string              `json:"custom_environment_variables"`
+	DeploymentType               *string              `json:"deployment_type,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -54,7 +55,7 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 	return &environmentResponse.Data, nil
 }
 
-func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string, credentialId int) (*Environment, error) {
+func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string, credentialId int, deploymentType string) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -74,6 +75,9 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 	}
 	if customBranch != "" {
 		newEnvironment.Custom_Branch = &customBranch
+	}
+	if deploymentType != "" {
+		newEnvironment.DeploymentType = &deploymentType
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
