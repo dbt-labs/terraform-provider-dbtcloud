@@ -50,6 +50,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_service_token":         data_sources.DatasourceServiceToken(),
 			"dbtcloud_webhook":               data_sources.DatasourceWebhook(),
 			"dbtcloud_privatelink_endpoint":  data_sources.DatasourcePrivatelinkEndpoint(),
+			"dbtcloud_notification":          data_sources.DatasourceNotification(),
 			// legacy data sources to remove from 0.3
 			"dbt_cloud_group":                 data_sources.DatasourceGroup(),
 			"dbt_cloud_job":                   data_sources.DatasourceJob(),
@@ -86,6 +87,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_group":                 resources.ResourceGroup(),
 			"dbtcloud_service_token":         resources.ResourceServiceToken(),
 			"dbtcloud_webhook":               resources.ResourceWebhook(),
+			"dbtcloud_notification":          resources.ResourceNotification(),
 			// legacy resources to remove from 0.3
 			"dbt_cloud_job":                   resources.ResourceJob(),
 			"dbt_cloud_project":               resources.ResourceProject(),
