@@ -75,6 +75,12 @@ func ResourceEnvironment() *schema.Resource {
 				Default:     "",
 				Description: "Which custom branch to use in this environment",
 			},
+			"deployment_type": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be empty or set to 'production'",
+			},
 			"environment_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -101,8 +107,9 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 	type_ := d.Get("type").(string)
 	useCustomBranch := d.Get("use_custom_branch").(bool)
 	customBranch := d.Get("custom_branch").(string)
+	deploymentType := d.Get("deployment_type").(string)
 
-	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId)
+	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId, deploymentType)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -165,6 +172,9 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("credential_id", environment.Credential_Id); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("deployment_type", environment.DeploymentType); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -188,7 +198,8 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 		d.HasChange("project_id") ||
 		d.HasChange("type") ||
 		d.HasChange("custom_branch") ||
-		d.HasChange("use_custom_branch") {
+		d.HasChange("use_custom_branch") ||
+		d.HasChange("deployment_type") {
 
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
@@ -222,6 +233,14 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 		if d.HasChange("use_custom_branch") {
 			Use_Custom_Branch := d.Get("use_custom_branch").(bool)
 			environment.Use_Custom_Branch = Use_Custom_Branch
+		}
+		if d.HasChange("deployment_type") {
+			DeploymentType := d.Get("deployment_type").(string)
+			if DeploymentType != "" {
+				environment.DeploymentType = &DeploymentType
+			} else {
+				environment.DeploymentType = nil
+			}
 		}
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
 		if err != nil {

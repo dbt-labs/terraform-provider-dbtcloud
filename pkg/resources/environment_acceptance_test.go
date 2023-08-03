@@ -29,6 +29,7 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
 					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName),
+					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "deployment_type", "production"),
 				),
 			},
 			// RENAME
@@ -49,6 +50,7 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "custom_branch", ""),
 					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "use_custom_branch", "false"),
 					resource.TestCheckResourceAttrSet("dbtcloud_environment.test_env", "credential_id"),
+					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "deployment_type", ""),
 				),
 			},
 			// MODIFY CUSTOM BRANCH
@@ -85,6 +87,7 @@ resource "dbtcloud_environment" "test_env" {
   type = "deployment"
   dbt_version = "1.0.1"
   project_id = dbtcloud_project.test_project.id
+  deployment_type = "production"
 }
 `, projectName, environmentName)
 }

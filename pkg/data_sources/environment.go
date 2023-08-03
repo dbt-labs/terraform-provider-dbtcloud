@@ -55,6 +55,11 @@ var environmentSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Which custom branch to use in this environment",
 	},
+	"deployment_type": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The type of deployment environment (currently 'production' or empty)",
+	},
 }
 
 func DatasourceEnvironment() *schema.Resource {
@@ -102,6 +107,9 @@ func datasourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	if err := d.Set("environment_id", environment.Environment_Id); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("deployment_type", environment.DeploymentType); err != nil {
 		return diag.FromErr(err)
 	}
 
