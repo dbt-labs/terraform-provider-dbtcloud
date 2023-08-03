@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.2...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.4...HEAD)
+
+## [0.2.4](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.3...v0.2.4)
+
+## Fixes
+
+- More update to docs
+
+## Changes
+
+- [171](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/171) Add the ability to define which environment is the production one (to be used with cross project references in dbt Cloud)
+- Add guide on how to use the Hashicorp HTTP provider
+- [174](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/174) Add the ability to assign User groups to dbt Cloud users.
 
 ## [0.2.3](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.2...v0.2.3)
 
