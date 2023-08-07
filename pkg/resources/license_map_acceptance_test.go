@@ -27,8 +27,8 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudLicenseMapExists("dbtcloud_group.test_license_map"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "license_type", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_mapping_groups.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_mapping_groups.0", groupName),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_license_mapping_groups.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_license_mapping_groups.0", groupName),
 				),
 			},
 			// MODIFY
@@ -37,8 +37,8 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudLicenseMapExists("dbtcloud_group.test_license_map"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "license_type", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_mapping_groups.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_mapping_groups.0", groupName2),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_license_mapping_groups.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_license_map", "sso_license_mapping_groups.0", groupName2),
 				),
 			},
 			// IMPORT
@@ -57,7 +57,7 @@ func testAccDbtCloudLicenseMapResourceBasicConfig(licenseType string, groupName 
 
 resource "dbtcloud_license_map" "test_license_map" {
     license_type       = "%s"
-    sso_mapping_groups = ["%s"]
+    sso_license_mapping_groups = ["%s"]
 }
 `, licenseType, groupName)
 }

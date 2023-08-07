@@ -7,12 +7,15 @@ description: |-
 
 # dbtcloud_license_map (Resource)
 
+
+
+
 ## Example Usage
 
 ```terraform
 resource "dbtcloud_license_map" "test_license_map" {
   license_type = "developer"
-  sso_mapping_groups = ["TEST-GROUP"]
+  sso_license_mapping_groups = ["TEST-GROUP"]
 }
 ```
 
@@ -25,7 +28,7 @@ resource "dbtcloud_license_map" "test_license_map" {
 
 ### Optional
 
-- `sso_mapping_groups` (List of String) SSO mapping group names for this group
+- `sso_license_mapping_groups` (List of String) SSO license mapping group names for this group
 
 ### Read-Only
 

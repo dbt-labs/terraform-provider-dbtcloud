@@ -9,11 +9,11 @@ import (
 )
 
 type LicenseMap struct {
-	ID               *int     `json:"id"`
-	LicenseType      string   `json:"license_type"`
-	AccountID        int      `json:"account_id"`
-	State            int      `json:"state"`
-	SSOMappingGroups []string `json:"sso_mapping_groups"`
+	ID                      *int     `json:"id"`
+	LicenseType             string   `json:"license_type"`
+	AccountID               int      `json:"account_id"`
+	State                   int      `json:"state"`
+	SSOLicenseMappingGroups []string `json:"sso_license_mapping_groups"`
 }
 
 type LicenseMapResponse struct {
@@ -41,12 +41,12 @@ func (c *Client) GetLicenseMap(licenseMapId int) (*LicenseMap, error) {
 	return &licenseMapResponse.Data, nil
 }
 
-func (c *Client) CreateLicenseMap(licenseType string, ssoMappingGroups []string) (*LicenseMap, error) {
+func (c *Client) CreateLicenseMap(licenseType string, ssoLicenseMappingGroups []string) (*LicenseMap, error) {
 	newLicenseMap := LicenseMap{
-		AccountID:        c.AccountID,
-		LicenseType:      licenseType,
-		SSOMappingGroups: ssoMappingGroups,
-		State:            STATE_ACTIVE,
+		AccountID:               c.AccountID,
+		LicenseType:             licenseType,
+		SSOLicenseMappingGroups: ssoLicenseMappingGroups,
+		State:                   STATE_ACTIVE,
 	}
 	newLicenseMapData, err := json.Marshal(newLicenseMap)
 	if err != nil {
