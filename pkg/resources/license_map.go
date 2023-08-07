@@ -56,9 +56,9 @@ func licenseMapCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	licenseType := d.Get("license_type").(string)
 	ssoLicenseMappingGroupsRaw := d.Get("sso_license_mapping_groups").([]interface{})
-	ssoLicenseMappingGroups := make([]string, len(ssoLicenseMappingGroupsRaw))
-	for i, _ := range ssoLicenseMappingGroupsRaw {
-		ssoLicenseMappingGroups[i] = ssoLicenseMappingGroupsRaw[i].(string)
+	ssoLicenseMappingGroups := []string{}
+	for _, g := range ssoLicenseMappingGroupsRaw {
+		ssoLicenseMappingGroups = append(ssoLicenseMappingGroups, g.(string))
 	}
 
 	licenseMap, err := c.CreateLicenseMap(licenseType, ssoLicenseMappingGroups)
@@ -123,7 +123,10 @@ func licenseMapUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 			licenseMap.LicenseType = licenseType
 		}
 		if d.HasChange("sso_license_mapping_groups") {
-			ssoLicenseMappingGroups := d.Get("sso_license_mapping_groups").([]string)
+			ssoLicenseMappingGroups := make([]string, len(d.Get("sso_license_mapping_groups").([]interface{})))
+			for i, g := range d.Get("sso_license_mapping_groups").([]interface{}) {
+				ssoLicenseMappingGroups[i] = g.(string)
+			}
 			licenseMap.SSOLicenseMappingGroups = ssoLicenseMappingGroups
 		}
 		_, err = c.UpdateLicenseMap(licenseMapID, *licenseMap)
