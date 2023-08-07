@@ -2,7 +2,6 @@ package dbt_cloud
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -52,15 +51,16 @@ type ConnectionResponse struct {
 }
 
 type Adapter struct {
-	ID             *int            `json:"id,omitempty"`
-	AccountID      int             `json:"account_id"`
-	ProjectID      int             `json:"project_id"`
-	CreatedByID    int             `json:"created_by_id"`
-	Metadata       AdapterMetadata `json:"metadata_json"`
-	State          int             `json:"state"`
-	AdapterVersion string          `json:"adapter_version"`
-	CreatedAt      *string         `json:"created_at,omitempty"`
-	UpdatedAt      *string         `json:"updated_at,omitempty"`
+	ID                      *int            `json:"id,omitempty"`
+	AccountID               int             `json:"account_id"`
+	ProjectID               int             `json:"project_id"`
+	CreatedByID             *int            `json:"created_by_id,omitempty"`
+	CreatedByServiceTokenID *int            `json:"created_by_service_token_id,omitempty"`
+	Metadata                AdapterMetadata `json:"metadata_json"`
+	State                   int             `json:"state"`
+	AdapterVersion          string          `json:"adapter_version"`
+	CreatedAt               *string         `json:"created_at,omitempty"`
+	UpdatedAt               *string         `json:"updated_at,omitempty"`
 }
 
 type AdapterMetadata struct {
@@ -104,9 +104,6 @@ func (c *Client) CreateConnection(projectID int, name string, connectionType str
 	if connectionType == "adapter" {
 		adapterId, err := c.createDatabricksAdapter(projectID, state)
 		if err != nil {
-			if strings.Contains(err.Error(), "This endpoint cannot be accessed with a service token") {
-				return nil, errors.New("to create an adapter typed connection, you need to use a user token. A service token can not be used to create adapters")
-			}
 			return nil, err
 		}
 
@@ -211,23 +208,34 @@ func (c *Client) DeleteConnection(connectionID, projectID string) (string, error
 }
 
 func (c *Client) createDatabricksAdapter(projectID int, state int) (*int, error) {
-	currentUser, err := c.GetConnectedUser()
-	if err != nil {
-		return nil, err
-	}
 
 	newAdapter := Adapter{
 		ID:             nil,
 		AdapterVersion: "databricks_v0",
 		ProjectID:      projectID,
 		AccountID:      c.AccountID,
-		CreatedByID:    currentUser.ID,
 		State:          state,
 		Metadata: AdapterMetadata{
 			Title:     "Databricks",
 			DocsLink:  "https://docs.getdbt.com/reference/warehouse-setups/databricks-setup",
 			ImageLink: "https://upload.wikimedia.org/wikipedia/commons/6/63/Databricks_Logo.png",
 		},
+	}
+
+	currentUser, err := c.GetConnectedUser()
+	if err != nil {
+		// if GetConnectedUser is the following specific error, it means that the user is using a service token
+		// as there is no way to get the current token ID, we always use 1
+		if strings.Contains(err.Error(), "This endpoint cannot be accessed with a service token") {
+			serviceTokenID := 1
+			newAdapter.CreatedByServiceTokenID = &serviceTokenID
+		} else {
+			// if the error is different, return it
+			return nil, err
+		}
+	} else {
+		// if there is no error, the user is using a user token
+		newAdapter.CreatedByID = &currentUser.ID
 	}
 
 	newAdapterData, err := json.Marshal(newAdapter)
