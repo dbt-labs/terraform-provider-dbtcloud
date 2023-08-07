@@ -8,6 +8,15 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	licenseTypes = []string{
+		"developer",
+		"read_only",
+		"it",
+	}
 )
 
 func ResourceLicenseMap() *schema.Resource {
@@ -19,9 +28,10 @@ func ResourceLicenseMap() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"license_type": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "License type",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "License type",
+				ValidateFunc: validation.StringInSlice(licenseTypes, false),
 			},
 			"sso_license_mapping_groups": &schema.Schema{
 				Type:        schema.TypeList,
