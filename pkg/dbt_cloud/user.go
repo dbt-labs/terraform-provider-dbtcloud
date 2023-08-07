@@ -53,7 +53,7 @@ func (c *Client) GetUser(email string) (*User, error) {
 }
 
 func (c *Client) GetConnectedUser() (*User, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/whoami", c.HostURL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/whoami/", c.HostURL), nil)
 	if err != nil {
 		return nil, err
 	}
