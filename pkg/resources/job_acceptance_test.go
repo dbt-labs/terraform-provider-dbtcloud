@@ -122,10 +122,17 @@ resource "dbtcloud_environment" "test_job_environment" {
     type = "development"
 }
 
+resource "dbtcloud_environment" "test_job_environment_new" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "DEPL %s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
 resource "dbtcloud_job" "test_job" {
   name        = "%s"
   project_id = dbtcloud_project.test_job_project.id
-  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  environment_id = dbtcloud_environment.test_job_environment_new.environment_id
   dbt_version = "%s"
   execute_steps = [
     "dbt test"
@@ -145,7 +152,7 @@ resource "dbtcloud_job" "test_job" {
   schedule_hours = [9, 17]
   timeout_seconds = 180
 }
-`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION)
 }
 
 func testAccDbtCloudJobResourceDeferringJobConfig(jobName, jobName2, jobName3, projectName, environmentName string, selfDeferring bool) string {
@@ -158,17 +165,17 @@ resource "dbtcloud_project" "test_job_project" {
     name = "%s"
 }
 
-resource "dbtcloud_environment" "test_job_environment" {
+resource "dbtcloud_environment" "test_job_environment_new" {
     project_id = dbtcloud_project.test_job_project.id
-    name = "%s"
+    name = "DEPL %s"
     dbt_version = "%s"
-    type = "development"
+    type = "deployment"
 }
 
 resource "dbtcloud_job" "test_job" {
   name        = "%s"
   project_id = dbtcloud_project.test_job_project.id
-  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  environment_id = dbtcloud_environment.test_job_environment_new.environment_id
   dbt_version = "%s"
   execute_steps = [
     "dbt test"
@@ -191,7 +198,7 @@ resource "dbtcloud_job" "test_job" {
 resource "dbtcloud_job" "test_job_2" {
   name        = "%s"
   project_id = dbtcloud_project.test_job_project.id
-  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  environment_id = dbtcloud_environment.test_job_environment_new.environment_id
   execute_steps = [
     "dbt test"
   ]
@@ -207,7 +214,7 @@ resource "dbtcloud_job" "test_job_2" {
 resource "dbtcloud_job" "test_job_3" {
 	name        = "%s"
 	project_id = dbtcloud_project.test_job_project.id
-	environment_id = dbtcloud_environment.test_job_environment.environment_id
+	environment_id = dbtcloud_environment.test_job_environment_new.environment_id
 	execute_steps = [
 	  "dbt test"
 	]

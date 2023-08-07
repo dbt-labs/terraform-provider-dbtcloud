@@ -310,17 +310,37 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
 
-	if d.HasChange("name") || d.HasChange("dbt_version") || d.HasChange("num_threads") ||
-		d.HasChange("target_name") || d.HasChange("execute_steps") || d.HasChange("run_generate_sources") ||
-		d.HasChange("generate_docs") || d.HasChange("triggers") || d.HasChange("schedule_type") ||
-		d.HasChange("schedule_interval") || d.HasChange("schedule_hours") || d.HasChange("schedule_days") ||
-		d.HasChange("schedule_cron") || d.HasChange("deferring_job_id") || d.HasChange("self_deferring") ||
+	if d.HasChange("project_id") ||
+		d.HasChange("environment_id") ||
+		d.HasChange("name") ||
+		d.HasChange("dbt_version") ||
+		d.HasChange("num_threads") ||
+		d.HasChange("target_name") ||
+		d.HasChange("execute_steps") ||
+		d.HasChange("run_generate_sources") ||
+		d.HasChange("generate_docs") ||
+		d.HasChange("triggers") ||
+		d.HasChange("schedule_type") ||
+		d.HasChange("schedule_interval") ||
+		d.HasChange("schedule_hours") ||
+		d.HasChange("schedule_days") ||
+		d.HasChange("schedule_cron") ||
+		d.HasChange("deferring_job_id") ||
+		d.HasChange("self_deferring") ||
 		d.HasChange("timeout_seconds") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
+		if d.HasChange("project_id") {
+			projectID := d.Get("project_id").(int)
+			job.Project_Id = projectID
+		}
+		if d.HasChange("environment_id") {
+			envID := d.Get("environment_id").(int)
+			job.Environment_Id = envID
+		}
 		if d.HasChange("name") {
 			name := d.Get("name").(string)
 			job.Name = name
