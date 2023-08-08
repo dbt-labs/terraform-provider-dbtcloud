@@ -33,12 +33,13 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudLicenseMapResourceBasicConfig("developer", groupName2),
+				Config: testAccDbtCloudLicenseMapResourceBasicConfig("developer", fmt.Sprintf(`%s","%s`, groupName, groupName2)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudLicenseMapExists("dbtcloud_license_map.test_license_map"),
 					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "license_type", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.#", "1"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.0", groupName2),
+					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.#", "2"),
+					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.0", groupName),
+					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.1", groupName2),
 				),
 			},
 			// IMPORT
