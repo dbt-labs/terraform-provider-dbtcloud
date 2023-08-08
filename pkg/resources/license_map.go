@@ -34,7 +34,7 @@ func ResourceLicenseMap() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(licenseTypes, false),
 			},
 			"sso_license_mapping_groups": &schema.Schema{
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "SSO license mapping group names for this group",
 				Elem: &schema.Schema{
@@ -55,7 +55,7 @@ func licenseMapCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	var diags diag.Diagnostics
 
 	licenseType := d.Get("license_type").(string)
-	ssoLicenseMappingGroupsRaw := d.Get("sso_license_mapping_groups").([]interface{})
+	ssoLicenseMappingGroupsRaw := d.Get("sso_license_mapping_groups").(*schema.Set).List()
 	ssoLicenseMappingGroups := []string{}
 	for _, g := range ssoLicenseMappingGroupsRaw {
 		ssoLicenseMappingGroups = append(ssoLicenseMappingGroups, g.(string))
@@ -123,8 +123,8 @@ func licenseMapUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 			licenseMap.LicenseType = licenseType
 		}
 		if d.HasChange("sso_license_mapping_groups") {
-			ssoLicenseMappingGroups := make([]string, len(d.Get("sso_license_mapping_groups").([]interface{})))
-			for i, g := range d.Get("sso_license_mapping_groups").([]interface{}) {
+			ssoLicenseMappingGroups := make([]string, len(d.Get("sso_license_mapping_groups").(*schema.Set).List()))
+			for i, g := range d.Get("sso_license_mapping_groups").(*schema.Set).List() {
 				ssoLicenseMappingGroups[i] = g.(string)
 			}
 			licenseMap.SSOLicenseMappingGroups = ssoLicenseMappingGroups

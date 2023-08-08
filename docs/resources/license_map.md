@@ -28,7 +28,7 @@ resource "dbtcloud_license_map" "test_license_map" {
 
 ### Optional
 
-- `sso_license_mapping_groups` (List of String) SSO license mapping group names for this group
+- `sso_license_mapping_groups` (Set of String) SSO license mapping group names for this group
 
 ### Read-Only
 
