@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.5...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.6...HEAD)
+
+## [0.2.6](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.5...v0.2.6)
+
+## Changes
+
+- [#178](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/178) and [#179](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/179): Add support for [dbtcloud_license_map](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/resources/license_map), allowing the assignment of SSO groups to different dbt Cloud license types
 
 ## [0.2.5](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.4...v0.2.5)
 
