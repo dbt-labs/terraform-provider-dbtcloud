@@ -90,6 +90,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_webhook":               resources.ResourceWebhook(),
 			"dbtcloud_notification":          resources.ResourceNotification(),
 			"dbtcloud_user_groups":           resources.ResourceUserGroups(),
+			"dbtcloud_license_map":           resources.ResourceLicenseMap(),
 			// legacy resources to remove from 0.3
 			"dbt_cloud_job":                   resources.ResourceJob(),
 			"dbt_cloud_project":               resources.ResourceProject(),

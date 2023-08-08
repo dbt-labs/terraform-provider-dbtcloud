@@ -61,3 +61,4 @@ own account
 
 Thanks to Gary James [[GtheSheep](https://github.com/GtheSheep)], for all the effort put in creating this provider originally
 and for being a great dbt community member!
+
