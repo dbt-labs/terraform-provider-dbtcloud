@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.6...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.7...HEAD)
+
+## [0.2.7](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.6...v0.2.7)
+
+## Fix
+
+- [#184](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/184) - Fix issue when updating SSO groups for a given RBAC group
 
 ## [0.2.6](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.5...v0.2.6)
 
