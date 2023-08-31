@@ -34,6 +34,7 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.permission_set", "developer"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.all_projects", "false"),
 					resource.TestCheckResourceAttrSet("dbtcloud_group.test_group", "group_permissions.0.project_id"),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "sso_mapping_groups.0", "group1"),
 				),
 			},
 			// MODIFY
@@ -49,6 +50,7 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("dbtcloud_group.test_group", "group_permissions.0.project_id"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.all_projects", "true"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.permission_set", "developer"),
+					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "sso_mapping_groups.#", "2"),
 				),
 			},
 			// IMPORT
@@ -78,6 +80,7 @@ resource "dbtcloud_group" "test_group" {
         all_projects = false
         project_id = dbtcloud_project.test_project.id
     }
+	sso_mapping_groups = ["group1"]
 }
 `, projectName, groupName)
 }
@@ -99,6 +102,7 @@ resource "dbtcloud_group" "test_group" {
         permission_set = "developer"
         all_projects = true
     }
+	sso_mapping_groups = ["group1", "group2"]
 }
 `, projectName, groupName)
 }

@@ -211,7 +211,11 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 			group.AssignByDefault = assignByDefault
 		}
 		if d.HasChange("sso_mapping_groups") {
-			ssoMappingGroups := d.Get("sso_mapping_groups").([]string)
+			ssoMappingGroupsRaw := d.Get("sso_mapping_groups").([]interface{})
+			ssoMappingGroups := make([]string, len(ssoMappingGroupsRaw))
+			for i := range ssoMappingGroupsRaw {
+				ssoMappingGroups[i] = ssoMappingGroupsRaw[i].(string)
+			}
 			group.SSOMappingGroups = ssoMappingGroups
 		}
 		_, err = c.UpdateGroup(groupID, *group)
