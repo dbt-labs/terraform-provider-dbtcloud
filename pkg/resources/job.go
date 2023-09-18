@@ -132,8 +132,14 @@ var jobSchema = map[string]*schema.Schema{
 	"deferring_job_id": &schema.Schema{
 		Type:          schema.TypeInt,
 		Optional:      true,
-		Description:   "Job identifier that this job defers to",
-		ConflictsWith: []string{"self_deferring"},
+		Description:   "Job identifier that this job defers to (legacy deferring approach)",
+		ConflictsWith: []string{"self_deferring", "deferring_environment_id"},
+	},
+	"deferring_environment_id": &schema.Schema{
+		Type:          schema.TypeInt,
+		Optional:      true,
+		Description:   "Environment identifier that this job defers to (new deferring approach)",
+		ConflictsWith: []string{"self_deferring", "deferring_job_id"},
 	},
 	"self_deferring": &schema.Schema{
 		Type:          schema.TypeBool,
@@ -237,6 +243,9 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 			return diag.FromErr(err)
 		}
 	}
+	if err := d.Set("deferring_environment_id", job.DeferringEnvironmentId); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("self_deferring", selfDeferring); err != nil {
 		return diag.FromErr(err)
 	}
@@ -278,6 +287,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	scheduleDays := d.Get("schedule_days").([]interface{})
 	scheduleCron := d.Get("schedule_cron").(string)
 	deferringJobId := d.Get("deferring_job_id").(int)
+	deferringEnvironmentID := d.Get("deferring_environment_id").(int)
 	selfDeferring := d.Get("self_deferring").(bool)
 	timeoutSeconds := d.Get("timeout_seconds").(int)
 
@@ -294,7 +304,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, selfDeferring, timeoutSeconds)
+	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -326,6 +336,7 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		d.HasChange("schedule_days") ||
 		d.HasChange("schedule_cron") ||
 		d.HasChange("deferring_job_id") ||
+		d.HasChange("deferring_environment_id") ||
 		d.HasChange("self_deferring") ||
 		d.HasChange("timeout_seconds") {
 		job, err := c.GetJob(jobId)
@@ -417,7 +428,19 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		}
 		if d.HasChange("deferring_job_id") {
 			deferringJobId := d.Get("deferring_job_id").(int)
-			job.Deferring_Job_Id = &deferringJobId
+			if deferringJobId != 0 {
+				job.Deferring_Job_Id = &deferringJobId
+			} else {
+				job.Deferring_Job_Id = nil
+			}
+		}
+		if d.HasChange("deferring_environment_id") {
+			deferringEnvironmentId := d.Get("deferring_environment_id").(int)
+			if deferringEnvironmentId != 0 {
+				job.DeferringEnvironmentId = &deferringEnvironmentId
+			} else {
+				job.DeferringEnvironmentId = nil
+			}
 		}
 		// If self_deferring has been toggled to true, set deferring_job_id as own ID
 		// Otherwise, set it back to what deferring_job_id specifies it to be
@@ -427,7 +450,11 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 				job.Deferring_Job_Id = &deferringJobID
 			} else {
 				deferringJobId := d.Get("deferring_job_id").(int)
-				job.Deferring_Job_Id = &deferringJobId
+				if deferringJobId != 0 {
+					job.Deferring_Job_Id = &deferringJobId
+				} else {
+					job.Deferring_Job_Id = nil
+				}
 			}
 		}
 		if d.HasChange("timeout_seconds") {
