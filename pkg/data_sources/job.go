@@ -36,6 +36,11 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "ID of the job this job defers to",
 	},
+	"deferring_environment_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "ID of the environment this job defers to",
+	},
 	"self_deferring": &schema.Schema{
 		Type:        schema.TypeBool,
 		Computed:    true,
@@ -94,6 +99,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
 			return diag.FromErr(err)
 		}
+	}
+	if err := d.Set("deferring_environment_id", job.DeferringEnvironmentId); err != nil {
+		return diag.FromErr(err)
 	}
 	if err := d.Set("self_deferring", selfDeferring); err != nil {
 		return diag.FromErr(err)

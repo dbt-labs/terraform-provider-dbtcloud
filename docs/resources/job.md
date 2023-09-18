@@ -7,8 +7,11 @@ description: |-
 
 # dbtcloud_job (Resource)
 
-
-
+~> As of September 2023, some CI improvements are being rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
+<br/>
+<br/>
+Those improvements include modifications to deferral which was historically set at the job level and will now be set at the environment level. 
+Deferral can still be set to "self" by setting `self_deferring` to `true` but with the new approach, deferral to other runs need to be done with `deferring_environment_id` instead of `deferring_job_id`.
 
 ## Example Usage
 
@@ -54,7 +57,8 @@ resource "dbtcloud_job" "test" {
 ### Optional
 
 - `dbt_version` (String) Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions
-- `deferring_job_id` (Number) Job identifier that this job defers to
+- `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
+- `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Flag for whether the job is marked active or deleted
 - `num_threads` (Number) Number of threads to use in the job

@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.7...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.8...HEAD)
+
+## [0.2.8](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.7...v0.2.8)
+
+## Fix
+
+- [#190](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/190) - Allow setting deferral for jobs at the environment level rather than at the job level. This is due to changes in CI in dbt Cloud. Add docs about those changes on the dbtcloud_job resource page
 
 ## [0.2.7](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.6...v0.2.7)
 

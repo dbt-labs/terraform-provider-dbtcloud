@@ -22,6 +22,7 @@ description: |-
 
 ### Read-Only
 
+- `deferring_environment_id` (Number) ID of the environment this job defers to
 - `deferring_job_id` (Number) ID of the job this job defers to
 - `environment_id` (Number) ID of the environment the job is in
 - `id` (String) The ID of this resource.
