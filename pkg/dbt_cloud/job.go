@@ -213,7 +213,6 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 		return nil, err
 	}
 
-	// return nil, fmt.Errorf("%s", job)
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobId), strings.NewReader(string(jobData)))
 	if err != nil {
 		return nil, err

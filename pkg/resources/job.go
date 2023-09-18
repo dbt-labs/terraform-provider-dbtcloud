@@ -246,8 +246,6 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("deferring_environment_id", job.DeferringEnvironmentId); err != nil {
 		return diag.FromErr(err)
 	}
-	// return diag.FromErr(fmt.Errorf("BPER3: %s", strconv.Itoa(*job.Deferring_Job_Id) == jobId))
-	// return diag.FromErr(fmt.Errorf("error setting self_deferring: %s - %s", job.Deferring_Job_Id, job.Name))
 	if err := d.Set("self_deferring", selfDeferring); err != nil {
 		return diag.FromErr(err)
 	}
