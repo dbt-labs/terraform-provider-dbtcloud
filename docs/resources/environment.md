@@ -51,6 +51,7 @@ resource "dbtcloud_environment" "prod_environment" {
 - `credential_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
 - `custom_branch` (String) Which custom branch to use in this environment
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be empty or set to 'production'
+- `extended_attributes_id` (Number) ID of the extended attributes for the environment
 - `is_active` (Boolean) Whether the environment is active
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
 

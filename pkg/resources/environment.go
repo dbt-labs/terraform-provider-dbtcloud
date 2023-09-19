@@ -86,6 +86,11 @@ func ResourceEnvironment() *schema.Resource {
 				Computed:    true,
 				Description: "Environment ID within the project",
 			},
+			"extended_attributes_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "ID of the extended attributes for the environment",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -108,8 +113,9 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 	useCustomBranch := d.Get("use_custom_branch").(bool)
 	customBranch := d.Get("custom_branch").(string)
 	deploymentType := d.Get("deployment_type").(string)
+	extendedAttributesID := d.Get("extended_attributes_id").(int)
 
-	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId, deploymentType)
+	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId, deploymentType, extendedAttributesID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -175,6 +181,9 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("deployment_type", environment.DeploymentType); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("extended_attributes_id", environment.ExtendedAttributesID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -199,7 +208,8 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 		d.HasChange("type") ||
 		d.HasChange("custom_branch") ||
 		d.HasChange("use_custom_branch") ||
-		d.HasChange("deployment_type") {
+		d.HasChange("deployment_type") ||
+		d.HasChange("extended_attributes_id") {
 
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
@@ -240,6 +250,14 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 				environment.DeploymentType = &DeploymentType
 			} else {
 				environment.DeploymentType = nil
+			}
+		}
+		if d.HasChange("extended_attributes_id") {
+			extendedAttributesID := d.Get("extended_attributes_id").(int)
+			if extendedAttributesID != 0 {
+				environment.ExtendedAttributesID = &extendedAttributesID
+			} else {
+				environment.ExtendedAttributesID = nil
 			}
 		}
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)

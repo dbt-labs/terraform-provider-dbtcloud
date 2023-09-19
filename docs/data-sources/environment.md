@@ -26,6 +26,7 @@ description: |-
 - `custom_branch` (String) Which custom branch to use in this environment
 - `dbt_version` (String) Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions
 - `deployment_type` (String) The type of deployment environment (currently 'production' or empty)
+- `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the environment is active
 - `name` (String) Environment name

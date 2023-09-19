@@ -32,6 +32,7 @@ type Environment struct {
 	Credentials                  *SnowflakeCredential `json:"credentials"`
 	Custom_Environment_Variables *string              `json:"custom_environment_variables"`
 	DeploymentType               *string              `json:"deployment_type,omitempty"`
+	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -55,7 +56,17 @@ func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment,
 	return &environmentResponse.Data, nil
 }
 
-func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, dbtVersion string, type_ string, useCustomBranch bool, customBranch string, credentialId int, deploymentType string) (*Environment, error) {
+func (c *Client) CreateEnvironment(
+	isActive bool,
+	projectId int,
+	name string,
+	dbtVersion string,
+	type_ string,
+	useCustomBranch bool,
+	customBranch string,
+	credentialId int,
+	deploymentType string,
+	extendedAttributesID int) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -78,6 +89,9 @@ func (c *Client) CreateEnvironment(isActive bool, projectId int, name string, db
 	}
 	if deploymentType != "" {
 		newEnvironment.DeploymentType = &deploymentType
+	}
+	if extendedAttributesID != 0 {
+		newEnvironment.ExtendedAttributesID = &extendedAttributesID
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
