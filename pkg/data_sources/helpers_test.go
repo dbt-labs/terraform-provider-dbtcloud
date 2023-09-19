@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DBT_CLOUD_VERSION = "1.0.0"
+	DBT_CLOUD_VERSION = "1.6.0-latest"
 )
 
 func providers() map[string]*schema.Provider {

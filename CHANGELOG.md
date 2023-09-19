@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.8...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.9...HEAD)
+
+## [0.2.9](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.8...v0.2.9)
+
+## Changes
+
+- Add support for extended attributes for environments [(docs)](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes-beta), allowing people to add connection attributes available in dbt-core but not in the dbt Cloud interface
+- [#191](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/191) - Allow setting a description for jobs
 
 ## [0.2.8](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.7...v0.2.8)
 

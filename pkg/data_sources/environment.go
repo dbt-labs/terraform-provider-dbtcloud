@@ -60,6 +60,11 @@ var environmentSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "The type of deployment environment (currently 'production' or empty)",
 	},
+	"extended_attributes_id": &schema.Schema{
+		Type:        schema.TypeInt,
+		Computed:    true,
+		Description: "The ID of the extended attributes applied",
+	},
 }
 
 func DatasourceEnvironment() *schema.Resource {
@@ -110,6 +115,9 @@ func datasourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	if err := d.Set("deployment_type", environment.DeploymentType); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("extended_attributes_id", environment.ExtendedAttributesID); err != nil {
 		return diag.FromErr(err)
 	}
 

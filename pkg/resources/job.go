@@ -36,6 +36,12 @@ var jobSchema = map[string]*schema.Schema{
 		Required:    true,
 		Description: "Job name",
 	},
+	"description": &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Default:     "",
+		Description: "Description for the job",
+	},
 	"execute_steps": &schema.Schema{
 		Type:     schema.TypeList,
 		MinItems: 1,
@@ -195,6 +201,9 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("name", job.Name); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("description", job.Description); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("execute_steps", job.Execute_Steps); err != nil {
 		return diag.FromErr(err)
 	}
@@ -273,6 +282,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	projectId := d.Get("project_id").(int)
 	environmentId := d.Get("environment_id").(int)
 	name := d.Get("name").(string)
+	description := d.Get("description").(string)
 	executeSteps := d.Get("execute_steps").([]interface{})
 	dbtVersion := d.Get("dbt_version").(string)
 	isActive := d.Get("is_active").(bool)
@@ -304,7 +314,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds)
+	j, err := c.CreateJob(projectId, environmentId, name, description, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -323,6 +333,7 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	if d.HasChange("project_id") ||
 		d.HasChange("environment_id") ||
 		d.HasChange("name") ||
+		d.HasChange("description") ||
 		d.HasChange("dbt_version") ||
 		d.HasChange("num_threads") ||
 		d.HasChange("target_name") ||
@@ -355,6 +366,10 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		if d.HasChange("name") {
 			name := d.Get("name").(string)
 			job.Name = name
+		}
+		if d.HasChange("description") {
+			description := d.Get("description").(string)
+			job.Description = description
 		}
 		if d.HasChange("dbt_version") {
 			dbtVersion := d.Get("dbt_version").(string)
