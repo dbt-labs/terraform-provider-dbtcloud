@@ -52,6 +52,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_privatelink_endpoint":  data_sources.DatasourcePrivatelinkEndpoint(),
 			"dbtcloud_notification":          data_sources.DatasourceNotification(),
 			"dbtcloud_user_groups":           data_sources.DatasourceUserGroups(),
+			"dbtcloud_extended_attributes":   data_sources.DatasourceExtendedAttributes(),
 			// legacy data sources to remove from 0.3
 			"dbt_cloud_group":                 data_sources.DatasourceGroup(),
 			"dbt_cloud_job":                   data_sources.DatasourceJob(),
@@ -91,6 +92,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_notification":          resources.ResourceNotification(),
 			"dbtcloud_user_groups":           resources.ResourceUserGroups(),
 			"dbtcloud_license_map":           resources.ResourceLicenseMap(),
+			"dbtcloud_extended_attributes":   resources.ResourceExtendedAttributes(),
 			// legacy resources to remove from 0.3
 			"dbt_cloud_job":                   resources.ResourceJob(),
 			"dbt_cloud_project":               resources.ResourceProject(),
