@@ -26,6 +26,11 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Given name for the job",
 	},
+	"description": &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "Long description for the job",
+	},
 	"job_id": &schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
@@ -89,6 +94,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", job.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("description", job.Description); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("job_id", job.ID); err != nil {

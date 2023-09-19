@@ -53,6 +53,7 @@ type Job struct {
 	Project_Id             int          `json:"project_id"`
 	Environment_Id         int          `json:"environment_id"`
 	Name                   string       `json:"name"`
+	Description            string       `json:"description"`
 	Execute_Steps          []string     `json:"execute_steps"`
 	Dbt_Version            *string      `json:"dbt_version"`
 	Triggers               JobTrigger   `json:"triggers"`
@@ -86,7 +87,7 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int, deferringEnvironmentID int, selfDeferring bool, timeoutSeconds int) (*Job, error) {
+func (c *Client) CreateJob(projectId int, environmentId int, name, description string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int, deferringEnvironmentID int, selfDeferring bool, timeoutSeconds int) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -152,6 +153,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name string, execut
 		Project_Id:           projectId,
 		Environment_Id:       environmentId,
 		Name:                 name,
+		Description:          description,
 		Execute_Steps:        executeSteps,
 		State:                state,
 		Triggers:             jobTriggers,
