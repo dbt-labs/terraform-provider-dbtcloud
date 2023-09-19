@@ -26,7 +26,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 
 	// this logic is used as not all accounts are on the new CI approach of deferring at the env level
 	if os.Getenv("DBT_LEGACY_JOB_DEFERRAL") != "" {
-		configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "self")
+		configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "job")
 		checkDeferral = resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
@@ -192,8 +192,10 @@ resource "dbtcloud_job" "test_job" {
 
 func testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName string, deferring string) string {
 	deferParam := ""
-	if deferring == "self" {
-		deferParam = "self_deferring = true"
+	selfDefer := ""
+	if deferring == "job" {
+		deferParam = "deferring_job_id = dbtcloud_job.test_job.id"
+		selfDefer = "self_deferring = true"
 	} else if deferring == "env" {
 		deferParam = "deferring_environment_id = dbtcloud_environment.test_job_environment_new.environment_id"
 	}
@@ -263,7 +265,7 @@ resource "dbtcloud_job" "test_job_3" {
 	}
 	%s
   }
-`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, deferParam)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, selfDefer)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
