@@ -45,7 +45,7 @@ type GroupPermissionListResponse struct {
 }
 
 func (c *Client) GetGroup(groupID int) (*Group, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/groups/", c.HostURL, strconv.Itoa(c.AccountID)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/groups/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(groupID)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -55,19 +55,13 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 		return nil, err
 	}
 
-	groupListResponse := GroupListResponse{}
-	err = json.Unmarshal(body, &groupListResponse)
+	groupResponse := GroupResponse{}
+	err = json.Unmarshal(body, &groupResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, group := range groupListResponse.Data {
-		if *group.ID == groupID {
-			return &groupListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("resource-not-found: Group with ID %d not found", groupID)
+	return &groupResponse.Data, nil
 }
 
 func (c *Client) CreateGroup(name string, assignByDefault bool, ssoMappingGroups []string) (*Group, error) {
