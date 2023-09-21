@@ -34,11 +34,6 @@ type GroupResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-type GroupListResponse struct {
-	Data   []Group        `json:"data"`
-	Status ResponseStatus `json:"status"`
-}
-
 type GroupPermissionListResponse struct {
 	Data   []GroupPermission `json:"data"`
 	Status ResponseStatus    `json:"status"`
