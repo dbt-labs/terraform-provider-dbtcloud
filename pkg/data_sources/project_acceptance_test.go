@@ -20,6 +20,12 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "connection_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "repository_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "state"),
+
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "project_id"),
+		resource.TestCheckResourceAttr("data.dbtcloud_project.test_with_name", "name", randomProjectName),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "connection_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "repository_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "state"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,6 +48,10 @@ func project(projectName string) string {
 
     data "dbtcloud_project" "test" {
 		project_id = dbtcloud_project.test.id
+	}
+
+	data "dbtcloud_project" "test_with_name" {
+		name = dbtcloud_project.test.name
 	}
     `, projectName)
 }

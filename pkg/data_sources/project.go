@@ -2,6 +2,7 @@ package data_sources
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -12,12 +13,13 @@ import (
 var projectSchema = map[string]*schema.Schema{
 	"project_id": &schema.Schema{
 		Type:        schema.TypeInt,
-		Required:    true,
+		Optional:    true,
 		Description: "ID of the project to represent",
 	},
 	"name": &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
+		Optional:    true,
 		Description: "Given name for project",
 	},
 	"connection_id": &schema.Schema{
@@ -58,12 +60,32 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
+	var project *dbt_cloud.Project
 
-	projectId := strconv.Itoa(d.Get("project_id").(int))
+	if _, ok := d.GetOk("project_id"); ok {
+		projectId := strconv.Itoa(d.Get("project_id").(int))
 
-	project, err := c.GetProject(projectId)
-	if err != nil {
-		return diag.FromErr(err)
+		if _, ok := d.GetOk("name"); ok {
+			return diag.FromErr(fmt.Errorf("Both project_id and name were provided, only one is allowed"))
+		}
+
+		var err error
+		project, err = c.GetProject(projectId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+	} else if _, ok := d.GetOk("name"); ok {
+		projectName := d.Get("name").(string)
+
+		var err error
+		project, err = c.GetProjectByName(projectName)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+	} else {
+		return diag.FromErr(fmt.Errorf("Either project_id or name must be provided"))
 	}
 
 	if err := d.Set("project_id", project.ID); err != nil {
@@ -88,7 +110,7 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	d.SetId(projectId)
+	d.SetId(strconv.Itoa(*project.ID))
 
 	return diags
 }
