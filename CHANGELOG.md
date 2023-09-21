@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.9...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.10...HEAD)
+
+
+## [0.2.10](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.9...v0.2.10)
+
+## Fix
+
+- [#197](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/197) - Community contribution to handle cases where more than 100 groups are created in dbt Cloud
+- [#199](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/199) - Update logic to allow finding users by their email addresses in a cases insensitive way
+- [#198](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/198) - Update some internal logic to call endpoints by their unique IDs instead of looping through answers to avoid issues like #199 and paginate through results for endpoints where we can't query the ID directly
+
+## Changes
+
+- [#189](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/189) - Allow users to retrieve project data sources by providing project names instead of project IDs. This will return an error if more than 1 project has the given name and takes care of the pagination required for handling more than 100 projects
 
 ## [0.2.9](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.8...v0.2.9)
 

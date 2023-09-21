@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-type SnowflakeCredentialListResponse struct {
-	Data   []SnowflakeCredential `json:"data"`
-	Status ResponseStatus        `json:"status"`
-}
-
 type SnowflakeCredentialResponse struct {
 	Data   SnowflakeCredential `json:"data"`
 	Status ResponseStatus      `json:"status"`
@@ -36,7 +31,7 @@ type SnowflakeCredential struct {
 }
 
 func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*SnowflakeCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -46,19 +41,13 @@ func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*Snowf
 		return nil, err
 	}
 
-	snowflakeCredentialListResponse := SnowflakeCredentialListResponse{}
-	err = json.Unmarshal(body, &snowflakeCredentialListResponse)
+	snowflakeCredentialResponse := SnowflakeCredentialResponse{}
+	err = json.Unmarshal(body, &snowflakeCredentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, credential := range snowflakeCredentialListResponse.Data {
-		if *credential.ID == credentialId {
-			return &snowflakeCredentialListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
+	return &snowflakeCredentialResponse.Data, nil
 }
 
 func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, database string, role string, warehouse string, schema string, user string, password string, privateKey string, privateKeyPassphrase string, authType string, numThreads int) (*SnowflakeCredential, error) {

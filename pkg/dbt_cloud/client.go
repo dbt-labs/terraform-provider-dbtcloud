@@ -24,6 +24,21 @@ type ResponseStatus struct {
 	Developer_Message string `json:"developer_message"`
 }
 
+type ResponseExtraFilters struct {
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+}
+
+type ResponseExtraPagination struct {
+	Count      int `json:"count"`
+	TotalCount int `json:"total_count"`
+}
+
+type ResponseExtra struct {
+	Pagination ResponseExtraPagination `json:"pagination"`
+	Filters    ResponseExtraFilters    `json:"filters"`
+}
+
 type AuthResponseData struct {
 	DocsJobId                      int    `json:"docs_job_id"`
 	FreshnessJobId                 int    `json:"freshness_job_id"`

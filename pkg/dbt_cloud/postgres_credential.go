@@ -20,11 +20,6 @@ type PostgresCredential struct {
 	Password       string `json:"password,omitempty"`
 }
 
-type PostgresCredentialListResponse struct {
-	Data   []PostgresCredential `json:"data"`
-	Status ResponseStatus       `json:"status"`
-}
-
 type PostgresCredentialResponse struct {
 	Data   PostgresCredential `json:"data"`
 	Status ResponseStatus     `json:"status"`
@@ -32,7 +27,7 @@ type PostgresCredentialResponse struct {
 
 // GetPostgresCredential retrieves a specific Postgres credential by its ID
 func (c *Client) GetPostgresCredential(projectId int, credentialId int) (*PostgresCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -42,19 +37,13 @@ func (c *Client) GetPostgresCredential(projectId int, credentialId int) (*Postgr
 		return nil, err
 	}
 
-	PostgresCredentialListResponse := PostgresCredentialListResponse{}
-	err = json.Unmarshal(body, &PostgresCredentialListResponse)
+	PostgresCredentialResponse := PostgresCredentialResponse{}
+	err = json.Unmarshal(body, &PostgresCredentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, credential := range PostgresCredentialListResponse.Data {
-		if *credential.ID == credentialId {
-			return &PostgresCredentialListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
+	return &PostgresCredentialResponse.Data, nil
 }
 
 // CreatePostgresCredential creates a new Postgres credential

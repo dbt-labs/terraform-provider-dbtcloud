@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-type BigQueryCredentialListResponse struct {
-	Data   []BigQueryCredential `json:"data"`
-	Status ResponseStatus       `json:"status"`
-}
-
 type BigQueryCredentialResponse struct {
 	Data   BigQueryCredential `json:"data"`
 	Status ResponseStatus     `json:"status"`
@@ -28,7 +23,7 @@ type BigQueryCredential struct {
 }
 
 func (c *Client) GetBigQueryCredential(projectId int, credentialId int) (*BigQueryCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -38,19 +33,13 @@ func (c *Client) GetBigQueryCredential(projectId int, credentialId int) (*BigQue
 		return nil, err
 	}
 
-	BigQueryCredentialListResponse := BigQueryCredentialListResponse{}
-	err = json.Unmarshal(body, &BigQueryCredentialListResponse)
+	BigQueryCredentialResponse := BigQueryCredentialResponse{}
+	err = json.Unmarshal(body, &BigQueryCredentialResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, credential := range BigQueryCredentialListResponse.Data {
-		if *credential.ID == credentialId {
-			return &BigQueryCredentialListResponse.Data[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf("resource-not-found: did not find credential ID %d in project ID %d", credentialId, projectId)
+	return &BigQueryCredentialResponse.Data, nil
 }
 
 func (c *Client) CreateBigQueryCredential(projectId int, type_ string, isActive bool, dataset string, numThreads int) (*BigQueryCredential, error) {
