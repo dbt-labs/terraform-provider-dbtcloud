@@ -36,7 +36,7 @@ provider "dbtcloud" {
   // required
   account_id = ...
   token      = "..."
-  // optional
+  // optional - defaults to the US Multi Tenant URL "https://cloud.getdbt.com/api"
   host_url   = "..."
 }
 ```
@@ -46,11 +46,12 @@ You can also set them via environment variables:
 `DBT_CLOUD_TOKEN` for the `token`.  
 `DBT_CLOUD_HOST_URL` (Optional) for the `host_url`.
 
-## Examples
+## Getting started and Examples
 
-Check out the `examples/` folder for some usage options, these are intended to
-simply showcase what this module can do rather than be best practices for any
-given use case.
+The provider documentation is directly available [on the Terraform Registry](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs).
+
+- Under [Guides](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/guides/1_getting_started), you will find a simple example of how to use the provider
+- Each resource ([example for jobs](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/resources/job)) has some usage examples and contains the list of parameters available
 
 ## Running Acceptance Tests
 
@@ -61,4 +62,3 @@ own account
 
 Thanks to Gary James [[GtheSheep](https://github.com/GtheSheep)], for all the effort put in creating this provider originally
 and for being a great dbt community member!
-
