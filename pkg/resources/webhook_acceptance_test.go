@@ -83,7 +83,7 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 resource "dbtcloud_environment" "test_environment" {
-	dbt_version   = "1.0.1"
+	dbt_version   = "%s"
 	name          = "test"
 	project_id    = dbtcloud_project.test_project.id
 	type          = "deployment"
@@ -116,7 +116,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 	]
 	job_ids = [dbtcloud_job.test.id]
   }
-`, projectName, webhookName)
+`, projectName, DBT_CLOUD_VERSION, webhookName)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {
