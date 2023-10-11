@@ -159,57 +159,54 @@ func TestAccDbtCloudPostgresConnectionResource(t *testing.T) {
 
 func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 
-	testDatabricks := os.Getenv("TEST_DATABRICKS")
-	if testDatabricks == "true" {
-		connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-		connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-		projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-		databricksHost := "databricks.com"
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	databricksHost := "databricks.com"
 
-		resource.Test(t, resource.TestCase{
-			PreCheck:     func() { testAccPreCheck(t) },
-			Providers:    testAccProviders,
-			CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName, projectName, databricksHost, "/my/databricks", "moo"),
-					Check: resource.ComposeTestCheckFunc(
-						testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "host_name", databricksHost),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "http_path", "/my/databricks"),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "catalog", "moo"),
-						resource.TestCheckResourceAttrSet("dbtcloud_connection.test_databricks_connection", "adapter_id"),
-					),
-				},
-				// RENAME
-				{
-					Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName2, projectName, databricksHost, "/my/databricks", "moo"),
-					Check: resource.ComposeTestCheckFunc(
-						testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName2),
-					),
-				},
-				// MODIFY
-				{
-					Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName2, projectName, databricksHost, "/my/databricks_new", "moo2"),
-					Check: resource.ComposeTestCheckFunc(
-						testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName2),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "http_path", "/my/databricks_new"),
-						resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "catalog", "moo2"),
-					),
-				},
-				// IMPORT
-				{
-					ResourceName:            "dbtcloud_connection.test_databricks_connection",
-					ImportState:             true,
-					ImportStateVerify:       true,
-					ImportStateVerifyIgnore: []string{},
-				},
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName, projectName, databricksHost, "/my/databricks", "moo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "host_name", databricksHost),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "http_path", "/my/databricks"),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "catalog", "moo"),
+					resource.TestCheckResourceAttrSet("dbtcloud_connection.test_databricks_connection", "adapter_id"),
+				),
 			},
-		})
-	}
+			// RENAME
+			{
+				Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName2, projectName, databricksHost, "/my/databricks", "moo"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName2),
+				),
+			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudConnectionResourceDatabricksConfig(connectionName2, projectName, databricksHost, "/my/databricks_new", "moo2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_databricks_connection"),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "name", connectionName2),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "http_path", "/my/databricks_new"),
+					resource.TestCheckResourceAttr("dbtcloud_connection.test_databricks_connection", "catalog", "moo2"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_connection.test_databricks_connection",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
 }
 
 func TestAccDbtCloudConnectionPrivateLinkResource(t *testing.T) {

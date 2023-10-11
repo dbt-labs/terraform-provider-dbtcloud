@@ -50,7 +50,6 @@ func ResourceRepository() *schema.Resource {
 			"repository_credentials_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Credentials ID for the repository (From the repository side not the dbt Cloud ID)",
 			},
 			"gitlab_project_id": &schema.Schema{
@@ -184,7 +183,7 @@ func resourceRepositoryUpdate(ctx context.Context, d *schema.ResourceData, m int
 			gitCloneStrategy := d.Get("git_clone_strategy").(string)
 			repository.GitCloneStrategy = gitCloneStrategy
 		}
-		if d.HasChange("repository_credentials_id") {
+		if d.HasChange("repository_credentials_id") && d.Get("repository_credentials_id") != nil {
 			repositoryCredentialsID := d.Get("repository_credentials_id").(int)
 			repository.RepositoryCredentialsID = &repositoryCredentialsID
 		}

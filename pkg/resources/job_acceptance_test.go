@@ -2,7 +2,6 @@ package resources_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -24,25 +23,13 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 	var configDeferral string
 	var checkDeferral resource.TestCheckFunc
 
-	// this logic is used as not all accounts are on the new CI approach of deferring at the env level
-	if os.Getenv("DBT_LEGACY_JOB_DEFERRAL") != "" {
-		configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "job")
-		checkDeferral = resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_job_id"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_3", "self_deferring"),
-		)
-	} else {
-		configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "env")
-		checkDeferral = resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_environment_id"),
-		)
-	}
+	configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "env")
+	checkDeferral = resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
+		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
+		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_environment_id"),
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
