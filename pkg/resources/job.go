@@ -70,7 +70,7 @@ var jobSchema = map[string]*schema.Schema{
 			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
+		Description: "Flags for which types of triggers to use, possible values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment.",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -158,6 +158,12 @@ var jobSchema = map[string]*schema.Schema{
 		Optional:    true,
 		Default:     0,
 		Description: "Number of seconds to allow the job to run before timing out",
+	},
+	"triggers_on_draft_pr": &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Whether the CI job should be automatically triggered on draft PRs",
 	},
 }
 
@@ -270,6 +276,10 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 
+	if err := d.Set("triggers_on_draft_pr", job.TriggersOnDraftPR); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -300,6 +310,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	deferringEnvironmentID := d.Get("deferring_environment_id").(int)
 	selfDeferring := d.Get("self_deferring").(bool)
 	timeoutSeconds := d.Get("timeout_seconds").(int)
+	triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
 
 	steps := []string{}
 	for _, step := range executeSteps {
@@ -314,7 +325,7 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, description, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds)
+	j, err := c.CreateJob(projectId, environmentId, name, description, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds, triggersOnDraftPR)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -349,7 +360,8 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		d.HasChange("deferring_job_id") ||
 		d.HasChange("deferring_environment_id") ||
 		d.HasChange("self_deferring") ||
-		d.HasChange("timeout_seconds") {
+		d.HasChange("timeout_seconds") ||
+		d.HasChange("triggers_on_drat_pr") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -475,6 +487,10 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		if d.HasChange("timeout_seconds") {
 			timeoutSeconds := d.Get("timeout_seconds").(int)
 			job.Execution.Timeout_Seconds = timeoutSeconds
+		}
+		if d.HasChange("triggers_on_draft_pr") {
+			triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
+			job.TriggersOnDraftPR = triggersOnDraftPR
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

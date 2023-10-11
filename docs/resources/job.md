@@ -7,7 +7,7 @@ description: |-
 
 # dbtcloud_job (Resource)
 
-~> As of September 2023, some CI improvements are being rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
+~> As of October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
 <br/>
 <br/>
 Those improvements include modifications to deferral which was historically set at the job level and will now be set at the environment level. 
@@ -19,25 +19,54 @@ Deferral can still be set to "self" by setting `self_deferring` to `true` but wi
 // use dbt_cloud_job instead of dbtcloud_job for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
+# a job that has github_webhook and git_provider_webhook 
+# set to false will be categorized as a "Deploy Job"
 resource "dbtcloud_job" "test" {
   environment_id = var.dbt_cloud_environment_id
   execute_steps = [
-    "dbt test"
+    "dbt build"
   ]
-  generate_docs        = false
+  generate_docs        = true
   is_active            = true
-  name                 = "Test"
+  name                 = "Daily job"
   num_threads          = 64
   project_id           = data.dbtcloud_project.test_project.id
-  run_generate_sources = false
+  run_generate_sources = true
   target_name          = "default"
   triggers = {
-    "custom_branch_only" : true,
+    "custom_branch_only" : false,
     "github_webhook" : false,
     "git_provider_webhook" : false,
+    "schedule" : true
+  }
+  # this is the default that gets set up when modifying jobs in the UI
+  schedule_days = [0, 1, 2, 3, 4, 5, 6]
+  schedule_type = "days_of_week"
+  schedule_hours = [0]
+}
+
+
+# a job that has github_webhook and git_provider_webhook set 
+# to true will be categorized as a "Continuous Integration Job"
+resource "dbtcloud_job" "ci_job" {
+  environment_id = var.my_ci_environment_id
+  execute_steps = [
+    "dbt build -s state:modified+ --fail-fast"
+  ]
+  generate_docs            = false
+  deferring_environment_id = dbtcloud_environment.my_prod_env.environment_id
+  name                     = "CI Job"
+  num_threads              = 32
+  project_id               = data.dbtcloud_project.test_project.id
+  run_generate_sources     = false
+  triggers = {
+    "custom_branch_only" : true,
+    "github_webhook" : true,
+    "git_provider_webhook" : true,
     "schedule" : false
   }
   # this is the default that gets set up when modifying jobs in the UI
+  # this is not going to be used when schedule is set to false
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
 }
@@ -52,7 +81,7 @@ resource "dbtcloud_job" "test" {
 - `execute_steps` (List of String) List of commands to execute for the job
 - `name` (String) Job name
 - `project_id` (Number) Project ID to create the job in
-- `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
+- `triggers` (Map of Boolean) Flags for which types of triggers to use, possible values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment.
 
 ### Optional
 
@@ -72,6 +101,7 @@ resource "dbtcloud_job" "test" {
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
 - `timeout_seconds` (Number) Number of seconds to allow the job to run before timing out
+- `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
 ### Read-Only
 

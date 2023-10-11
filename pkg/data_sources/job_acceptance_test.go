@@ -20,6 +20,7 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "environment_id"),
 		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "name", randomJobName),
 		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "timeout_seconds", "180"),
+		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "triggers_on_draft_pr", "false"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

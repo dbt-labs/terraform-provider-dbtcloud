@@ -44,23 +44,27 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 	})
 }
 
-// TODO: revisit when adapters can be created with a service token
-// In CI, the Adapter 123 is of type "spark", but locally, for me it is databricks
-// We can't create adapters right now with service tokens but should revisit when this is updated
-
 func testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
+resource "dbtcloud_connection" "databricks" {
+	project_id = dbtcloud_project.test_project.id
+	type       = "adapter"
+	name       = "Databricks"
+	database   = ""
+	host_name  = "databricks.com"
+	http_path  = "/my/path"
+	catalog    = "moo"
+  }
 resource "dbtcloud_databricks_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = 123
+    adapter_id = dbtcloud_connection.databricks.adapter_id
     target_name = "%s"
     token = "%s"
     schema = "my_schema"
-	# adapter_type = "databricks"
-	adapter_type = "spark"
+	adapter_type = "databricks"
 }
 `, projectName, targetName, token)
 }

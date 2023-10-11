@@ -65,6 +65,7 @@ type Job struct {
 	Deferring_Job_Id       *int         `json:"deferring_job_definition_id"`
 	DeferringEnvironmentId *int         `json:"deferring_environment_id"`
 	Execution              JobExecution `json:"execution"`
+	TriggersOnDraftPR      bool         `json:"triggers_on_draft_pr"`
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
@@ -87,7 +88,30 @@ func (c *Client) GetJob(jobID string) (*Job, error) {
 	return &jobResponse.Data, nil
 }
 
-func (c *Client) CreateJob(projectId int, environmentId int, name, description string, executeSteps []string, dbtVersion string, isActive bool, triggers map[string]interface{}, numThreads int, targetName string, generateDocs bool, runGenerateSources bool, scheduleType string, scheduleInterval int, scheduleHours []int, scheduleDays []int, scheduleCron string, deferringJobId int, deferringEnvironmentID int, selfDeferring bool, timeoutSeconds int) (*Job, error) {
+func (c *Client) CreateJob(
+	projectId int,
+	environmentId int,
+	name string,
+	description string,
+	executeSteps []string,
+	dbtVersion string,
+	isActive bool,
+	triggers map[string]interface{},
+	numThreads int,
+	targetName string,
+	generateDocs bool,
+	runGenerateSources bool,
+	scheduleType string,
+	scheduleInterval int,
+	scheduleHours []int,
+	scheduleDays []int,
+	scheduleCron string,
+	deferringJobId int,
+	deferringEnvironmentID int,
+	selfDeferring bool,
+	timeoutSeconds int,
+	triggersOnDraftPR bool,
+) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -162,6 +186,7 @@ func (c *Client) CreateJob(projectId int, environmentId int, name, description s
 		Generate_Docs:        generateDocs,
 		Run_Generate_Sources: runGenerateSources,
 		Execution:            jobExecution,
+		TriggersOnDraftPR:    triggersOnDraftPR,
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion
