@@ -232,6 +232,7 @@ resource "dbtcloud_job" "test_job" {
   generate_docs = true
   schedule_type = "every_day"
   schedule_hours = [9, 17]
+  triggers_on_draft_pr = true
 }
 
 resource "dbtcloud_job" "test_job_2" {

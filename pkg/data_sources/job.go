@@ -66,6 +66,11 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Number of seconds before the job times out",
 	},
+	"triggers_on_draft_pr": &schema.Schema{
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether the CI job should be automatically triggered on draft PRs",
+	},
 }
 
 func DatasourceJob() *schema.Resource {
@@ -121,6 +126,9 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 	triggersInput, _ := json.Marshal(job.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
 	if err := d.Set("triggers", triggers); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("triggers_on_draft_pr", job.TriggersOnDraftPR); err != nil {
 		return diag.FromErr(err)
 	}
 
