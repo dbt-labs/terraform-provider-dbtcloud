@@ -50,7 +50,7 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 resource "dbtcloud_connection" "databricks" {
-	project_id = dbtcloud_project.test_credential_project.id
+	project_id = dbtcloud_project.test_project.id
 	type       = "adapter"
 	name       = "Databricks"
 	database   = ""
