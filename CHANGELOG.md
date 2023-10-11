@@ -2,8 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.10...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.11...HEAD)
 
+## [0.2.11](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.10...v0.2.11)
+
+## Changes
+
+- Update docs and examples for jobs and add the ability to set/unset running CI jobs on Draft PRs
 
 ## [0.2.10](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.9...v0.2.10)
 
