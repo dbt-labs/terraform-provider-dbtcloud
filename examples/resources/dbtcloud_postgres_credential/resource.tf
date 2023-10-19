@@ -1,3 +1,4 @@
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_postgres_credential instead of dbtcloud_postgres_credential for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 

@@ -1,3 +1,4 @@
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_group instead of dbtcloud_group for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 

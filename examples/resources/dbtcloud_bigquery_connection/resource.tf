@@ -1,3 +1,4 @@
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_bigquery_connection instead of dbtcloud_bigquery_connection for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
