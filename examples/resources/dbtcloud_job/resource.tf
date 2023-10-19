@@ -3,8 +3,8 @@
 
 # a job that has github_webhook and git_provider_webhook 
 # set to false will be categorized as a "Deploy Job"
-resource "dbtcloud_job" "test" {
-  environment_id = var.dbt_cloud_environment_id
+resource "dbtcloud_job" "daily_job" {
+  environment_id = dbtcloud_environment.prod_environment.environment_id
   execute_steps = [
     "dbt build"
   ]
@@ -12,7 +12,7 @@ resource "dbtcloud_job" "test" {
   is_active            = true
   name                 = "Daily job"
   num_threads          = 64
-  project_id           = data.dbtcloud_project.test_project.id
+  project_id           = dbtcloud_project.dbt_project.id
   run_generate_sources = true
   target_name          = "default"
   triggers = {
@@ -31,15 +31,15 @@ resource "dbtcloud_job" "test" {
 # a job that has github_webhook and git_provider_webhook set 
 # to true will be categorized as a "Continuous Integration Job"
 resource "dbtcloud_job" "ci_job" {
-  environment_id = var.my_ci_environment_id
+  environment_id = dbtcloud_environment.ci_environment.environment_id
   execute_steps = [
     "dbt build -s state:modified+ --fail-fast"
   ]
   generate_docs            = false
-  deferring_environment_id = dbtcloud_environment.my_prod_env.environment_id
+  deferring_environment_id = dbtcloud_environment.prod_environment.environment_id
   name                     = "CI Job"
   num_threads              = 32
-  project_id               = data.dbtcloud_project.test_project.id
+  project_id               = dbtcloud_project.dbt_project.id
   run_generate_sources     = false
   triggers = {
     "custom_branch_only" : true,
