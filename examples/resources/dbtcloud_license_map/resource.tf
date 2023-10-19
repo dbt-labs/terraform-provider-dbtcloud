@@ -6,7 +6,7 @@ resource "dbtcloud_license_map" "dev_license_map" {
 
 # Read-only license mapping
 resource "dbtcloud_license_map" "read_only_license_map" {
-  license_type = "read-only"
+  license_type = "read_only"
   sso_license_mapping_groups = ["READ-ONLY-SSO-GROUP"]
 }
 
