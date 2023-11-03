@@ -24,12 +24,13 @@ value of `id`  or use the `http` provider to retrieve it automatically like in t
 ## Example Usage
 
 ```terraform
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_repository instead of dbtcloud_repository for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
 # repo cloned via the GitHub integration, manually entering the `github_installation_id`
 resource "dbtcloud_repository" "github_repo" {
-  project_id             = dbtcloud_project.my_project.id
+  project_id             = dbtcloud_project.dbt_project.id
   remote_url             = "git@github.com:<github_org>/<github_repo>.git"
   github_installation_id = 9876
   git_clone_strategy     = "github_app"
@@ -50,7 +51,7 @@ locals {
 }
 
 resource "dbtcloud_repository" "github_repo_other" {
-  project_id             = dbtcloud_project.my_project.id
+  project_id             = dbtcloud_project.dbt_project.id
   remote_url             = "git@github.com:<github_org>/<github_repo>.git"
   github_installation_id = local.github_installation_id
   git_clone_strategy     = "github_app"
@@ -60,7 +61,7 @@ resource "dbtcloud_repository" "github_repo_other" {
 # repo cloned via the GitLab integration
 # as of 15 Sept 2023 this resource requires using a user token and can't be set with a service token
 resource "dbtcloud_repository" "gitlab_repo" {
-  project_id        = dbtcloud_project.my_project_2.id
+  project_id        = dbtcloud_project.dbt_project.id
   remote_url        = "<gitlab-group>/<gitlab-project>"
   gitlab_project_id = 8765
 }
@@ -68,7 +69,7 @@ resource "dbtcloud_repository" "gitlab_repo" {
 
 # repo cloned via the deploy token strategy
 resource "dbtcloud_repository" "deploy_repo" {
-  project_id         = dbtcloud_project.my_project_3.id
+  project_id         = dbtcloud_project.dbt_project.id
   remote_url         = "git://github.com/<github_org>/<github_repo>.git"
   git_clone_strategy = "deploy_key"
 }

@@ -13,12 +13,13 @@ description: |-
 ## Example Usage
 
 ```terraform
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_databricks_credential instead of dbtcloud_databricks_credential for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
 # when using the Databricks adapter
-resource "dbtcloud_databricks_credential" "databricks_cred" {
-  project_id   = dbtcloud_project.my_project.id
+resource "dbtcloud_databricks_credential" "my_databricks_cred" {
+  project_id   = dbtcloud_project.dbt_project.id
   adapter_id   = 123
   target_name  = "prod"
   token        = "abcdefgh"
@@ -27,8 +28,8 @@ resource "dbtcloud_databricks_credential" "databricks_cred" {
 }
 
 # when using the Spark adapter
-resource "dbtcloud_databricks_credential" "spark_cred" {
-  project_id   = dbtcloud_project.my_other_project.id
+resource "dbtcloud_databricks_credential" "my_spark_cred" {
+  project_id   = dbtcloud_project.dbt_project.id
   adapter_id   = 456
   target_name  = "prod"
   token        = "abcdefgh"
@@ -64,6 +65,6 @@ Import is supported using the following syntax:
 
 ```shell
 # Import using a project ID and credential ID found in the URL or via the API.
-terraform import dbtcloud_databricks_credential.test_databricks_credential "project_id:credential_id"
-terraform import dbtcloud_databricks_credential.test_databricks_credential 12345:6789
+terraform import dbtcloud_databricks_credential.my_databricks_credential "project_id:credential_id"
+terraform import dbtcloud_databricks_credential.my_databricks_credential 12345:6789
 ```

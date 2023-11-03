@@ -1,8 +1,9 @@
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_connection instead of dbtcloud_connection for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_connection" "databricks" {
-  project_id = dbtcloud_project.my_project_1.id
+  project_id = dbtcloud_project.dbt_project.id
   type       = "adapter"
   name       = "Databricks"
   database   = "" // currenyly need to be empty for databricks
@@ -12,7 +13,7 @@ resource "dbtcloud_connection" "databricks" {
 }
 
 resource "dbtcloud_connection" "redshift" {
-  project_id = dbtcloud_project.my_project_2.id
+  project_id = dbtcloud_project.dbt_project.id
   type       = "redshift"
   name       = "My Redshift Warehouse"
   database   = "my-database"
@@ -21,7 +22,7 @@ resource "dbtcloud_connection" "redshift" {
 }
 
 resource "dbtcloud_connection" "snowflake" {
-  project_id = dbtcloud_project.my_project_3.id
+  project_id = dbtcloud_project.dbt_project.id
   type       = "snowflake"
   name       = "My Snowflake warehouse"
   account    = "my-snowflake-account"

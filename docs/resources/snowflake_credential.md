@@ -13,11 +13,12 @@ description: |-
 ## Example Usage
 
 ```terraform
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_snowflake_credential instead of dbtcloud_snowflake_credential for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
-resource "dbtcloud_snowflake_credential" "new_credential" {
-  project_id  = data.dbtcloud_project.test_project.id
+resource "dbtcloud_snowflake_credential" "prod_credential" {
+  project_id  = data.dbtcloud_project.dbt_project.id
   auth_type   = "password"
   num_threads = 16
   schema      = "SCHEMA"
@@ -58,6 +59,6 @@ Import is supported using the following syntax:
 
 ```shell
 # Import using a project ID and credential ID found in the URL or via the API.
-terraform import dbtcloud_snowflake_credential.test_snowflake_credential "project_id:credential_id"
-terraform import dbtcloud_snowflake_credential.test_snowflake_credential 12345:6789
+terraform import dbtcloud_snowflake_credential.prod_snowflake_credential "project_id:credential_id"
+terraform import dbtcloud_snowflake_credential.prod_snowflake_credential 12345:6789
 ```

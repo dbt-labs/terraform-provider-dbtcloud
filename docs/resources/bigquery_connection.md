@@ -13,11 +13,12 @@ Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth fo
 ## Example Usage
 
 ```terraform
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_bigquery_connection instead of dbtcloud_bigquery_connection for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
-resource "dbtcloud_bigquery_connection" "test_connection" {
-  project_id                  = dbtcloud_project.test_project.id
+resource "dbtcloud_bigquery_connection" "my_connection" {
+  project_id                  = dbtcloud_project.dbt_project.id
   name                        = "Project Name"
   type                        = "bigquery"
   is_active                   = true
@@ -35,8 +36,8 @@ resource "dbtcloud_bigquery_connection" "test_connection" {
 }
 
 # it is also possible to set the connection to use OAuth by filling in `application_id` and `application_secret`
-resource "dbtcloud_bigquery_connection" "test_connection_with_oauth" {
-  project_id                  = dbtcloud_project.test_project.id
+resource "dbtcloud_bigquery_connection" "my_connection_with_oauth" {
+  project_id                  = dbtcloud_project.dbt_project.id
   name                        = "Project Name"
   type                        = "bigquery"
   is_active                   = true
