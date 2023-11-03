@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 ## Changes
 
 - Update connections to force new one when the project changes
-- Add support for the Datasource dbtcloud_user_groups to get the list of users assigned to a given project
+- Add support for the Datasource dbtcloud_group_users to get the list of users assigned to a given project
 
 ## Documentation
 
