@@ -27,9 +27,12 @@ func Provider() *schema.Provider {
 				Description: "Account identifier for your dbt Cloud implementation",
 			},
 			"host_url": &schema.Schema{
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DBT_CLOUD_HOST_URL", "https://cloud.getdbt.com/api"),
+				Type:     schema.TypeString,
+				Optional: true,
+				DefaultFunc: schema.EnvDefaultFunc(
+					"DBT_CLOUD_HOST_URL",
+					"https://cloud.getdbt.com/api",
+				),
 				Description: "URL for your dbt Cloud deployment - Defaults to https://cloud.getdbt.com/api",
 			},
 		},
@@ -53,6 +56,7 @@ func Provider() *schema.Provider {
 			"dbtcloud_notification":          data_sources.DatasourceNotification(),
 			"dbtcloud_user_groups":           data_sources.DatasourceUserGroups(),
 			"dbtcloud_extended_attributes":   data_sources.DatasourceExtendedAttributes(),
+			"dbtcloud_group_users":           data_sources.DatasourceGroupUsers(),
 			// legacy data sources to remove from 0.3
 			"dbt_cloud_group":                 data_sources.DatasourceGroup(),
 			"dbt_cloud_job":                   data_sources.DatasourceJob(),
@@ -116,7 +120,10 @@ func Provider() *schema.Provider {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func providerConfigure(
+	ctx context.Context,
+	d *schema.ResourceData,
+) (interface{}, diag.Diagnostics) {
 
 	token := d.Get("token").(string)
 	account_id := d.Get("account_id").(int)
