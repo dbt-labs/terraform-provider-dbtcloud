@@ -36,6 +36,7 @@ func ResourcePostgresCredential() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the Postgres/Redshift/AlloyDB credential in",
 			},
 			"credential_id": &schema.Schema{
@@ -84,7 +85,11 @@ func ResourcePostgresCredential() *schema.Resource {
 	}
 }
 
-func resourcePostgresCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePostgresCredentialCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -99,19 +104,39 @@ func resourcePostgresCredentialCreate(ctx context.Context, d *schema.ResourceDat
 	password := d.Get("password").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	postgresCredential, err := c.CreatePostgresCredential(projectId, isActive, type_, defaultSchema, targetName, username, password, numThreads)
+	postgresCredential, err := c.CreatePostgresCredential(
+		projectId,
+		isActive,
+		type_,
+		defaultSchema,
+		targetName,
+		username,
+		password,
+		numThreads,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%d", postgresCredential.Project_Id, dbt_cloud.ID_DELIMITER, *postgresCredential.ID))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			postgresCredential.Project_Id,
+			dbt_cloud.ID_DELIMITER,
+			*postgresCredential.ID,
+		),
+	)
 
 	resourcePostgresCredentialRead(ctx, d, m)
 
 	return diags
 }
 
-func resourcePostgresCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePostgresCredentialRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -169,7 +194,11 @@ func resourcePostgresCredentialRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourcePostgresCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePostgresCredentialUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -182,7 +211,10 @@ func resourcePostgresCredentialUpdate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("type") || d.HasChange("default_schema") || d.HasChange("target_name") || d.HasChange("username") || d.HasChange("password") || d.HasChange("num_threads") {
+	if d.HasChange("type") || d.HasChange("default_schema") || d.HasChange("target_name") ||
+		d.HasChange("username") ||
+		d.HasChange("password") ||
+		d.HasChange("num_threads") {
 		postgresCredential, err := c.GetPostgresCredential(projectId, postgresCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -221,7 +253,11 @@ func resourcePostgresCredentialUpdate(ctx context.Context, d *schema.ResourceDat
 	return resourcePostgresCredentialRead(ctx, d, m)
 }
 
-func resourcePostgresCredentialDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourcePostgresCredentialDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
