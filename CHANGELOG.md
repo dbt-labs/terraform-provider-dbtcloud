@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.11...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.13...HEAD)
+
+## [0.2.13](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.11...v0.2.13)
+
+## Changes
+
+- Update connections to force new one when the project changes
+- Add support for the Datasource dbtcloud_group_users to get the list of users assigned to a given project
+
+## Documentation
+
+- Use d2 for showing the different resources
+- Update examples in docs
 
 ## [0.2.11](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.10...v0.2.11)
 

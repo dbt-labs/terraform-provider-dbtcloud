@@ -11,6 +11,12 @@ import (
 type User struct {
 	ID    int    `json:"id"`
 	Email string `json:"email"`
+	// only the first permission is filled id, it is a list with  1 element
+	Permissions []struct {
+		Groups []struct {
+			ID int `json:"id"`
+		} `json:"groups"`
+	} `json:"permissions"`
 }
 
 type UserListResponse struct {
@@ -28,8 +34,12 @@ type CurrentUserResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-func (c *Client) GetUser(email string) (*User, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/", c.HostURL, strconv.Itoa(c.AccountID)), nil)
+func (c *Client) GetUsers() ([]User, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("%s/v2/accounts/%s/users/", c.HostURL, strconv.Itoa(c.AccountID)),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +62,16 @@ func (c *Client) GetUser(email string) (*User, error) {
 		numUsers := userListResponse.Extra.Pagination.Count
 		for numUsers < userListResponse.Extra.Pagination.TotalCount {
 
-			req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/?offset=%d", c.HostURL, strconv.Itoa(c.AccountID), numUsers), nil)
+			req, err := http.NewRequest(
+				"GET",
+				fmt.Sprintf(
+					"%s/v2/accounts/%s/users/?offset=%d",
+					c.HostURL,
+					strconv.Itoa(c.AccountID),
+					numUsers,
+				),
+				nil,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -79,6 +98,16 @@ func (c *Client) GetUser(email string) (*User, error) {
 			}
 
 		}
+	}
+
+	return listAllUsers, nil
+}
+
+func (c *Client) GetUser(email string) (*User, error) {
+
+	listAllUsers, err := c.GetUsers()
+	if err != nil {
+		return nil, err
 	}
 
 	for i, user := range listAllUsers {

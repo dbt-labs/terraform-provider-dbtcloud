@@ -36,6 +36,7 @@ func ResourceSnowflakeCredential() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the Snowflake credential in",
 			},
 			"credential_id": &schema.Schema{
@@ -108,7 +109,11 @@ func ResourceSnowflakeCredential() *schema.Resource {
 	}
 }
 
-func resourceSnowflakeCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeCredentialCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -127,19 +132,44 @@ func resourceSnowflakeCredentialCreate(ctx context.Context, d *schema.ResourceDa
 	privateKeyPassphrase := d.Get("private_key_passphrase").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	snowflakeCredential, err := c.CreateSnowflakeCredential(projectId, "snowflake", isActive, database, role, warehouse, schema, user, password, privateKey, privateKeyPassphrase, authType, numThreads)
+	snowflakeCredential, err := c.CreateSnowflakeCredential(
+		projectId,
+		"snowflake",
+		isActive,
+		database,
+		role,
+		warehouse,
+		schema,
+		user,
+		password,
+		privateKey,
+		privateKeyPassphrase,
+		authType,
+		numThreads,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%d", snowflakeCredential.Project_Id, dbt_cloud.ID_DELIMITER, *snowflakeCredential.ID))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			snowflakeCredential.Project_Id,
+			dbt_cloud.ID_DELIMITER,
+			*snowflakeCredential.ID,
+		),
+	)
 
 	resourceSnowflakeCredentialRead(ctx, d, m)
 
 	return diags
 }
 
-func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeCredentialRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -215,7 +245,11 @@ func resourceSnowflakeCredentialRead(ctx context.Context, d *schema.ResourceData
 	return diags
 }
 
-func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeCredentialUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -228,7 +262,14 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("auth_type") || d.HasChange("database") || d.HasChange("role") || d.HasChange("warehouse") || d.HasChange("schema") || d.HasChange("user") || d.HasChange("password") || d.HasChange("num_threads") || d.HasChange("private_key") || d.HasChange("private_key_passphrase") {
+	if d.HasChange("auth_type") || d.HasChange("database") || d.HasChange("role") ||
+		d.HasChange("warehouse") ||
+		d.HasChange("schema") ||
+		d.HasChange("user") ||
+		d.HasChange("password") ||
+		d.HasChange("num_threads") ||
+		d.HasChange("private_key") ||
+		d.HasChange("private_key_passphrase") {
 		snowflakeCredential, err := c.GetSnowflakeCredential(projectId, snowflakeCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -284,7 +325,11 @@ func resourceSnowflakeCredentialUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceSnowflakeCredentialRead(ctx, d, m)
 }
 
-func resourceSnowflakeCredentialDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceSnowflakeCredentialDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
