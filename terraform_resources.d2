@@ -1,0 +1,65 @@
+*.style.font-size: 22
+*.*.style.font-size: 22
+
+title: |md
+  # Terraform resources (v0.2.12)
+| {near: top-center}
+
+direction: right
+
+
+license_map
+
+privatelink_endpoint: {tooltip: Datasource only}
+group: {tooltip: Group permissions as well}
+service_token: {tooltip: Permissions as well}
+project_artefacts: {tooltip: For setting the project docs and source freshness}
+job: {
+  style: {
+    fill: "#ACE1AF"
+    stroke: green
+  }
+}
+
+conns: Connections {
+  bigquery_connection
+  connection: {tooltip: Works for Snowflake, Redshift, Postgres and Databricks}
+}
+
+env_creds: Environment Credentials {
+  grid-columns: 2
+  databricks_credential
+  snowflake_credential
+  bigquery_credential
+  postgres_credential: {tooltip: Is used for Redshift as well}
+}
+
+service_token -- project: can scope to {
+  style: {
+    stroke-dash: 3
+  }
+}
+group -- project
+user_groups -- group
+project -- environment
+job -- environment
+notifications -- job
+project_artefacts -- job
+
+project_artefacts -- project
+webhook -- job: triggered by {
+  style: {
+    stroke-dash: 3
+  }
+}
+environment -- env_creds
+project -- project_connection
+project_connection -- conns
+conns -- privatelink_endpoint
+project -- project_repository
+project_repository -- repository
+environment -- environment_variable
+environment -- extended_attributes
+
+(job -- *)[*].style.stroke: green
+(* -- job)[*].style.stroke: green

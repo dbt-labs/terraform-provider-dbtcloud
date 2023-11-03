@@ -28,6 +28,7 @@ func ResourceBigQueryCredential() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the BigQuery credential in",
 			},
 			"credential_id": &schema.Schema{
@@ -53,7 +54,11 @@ func ResourceBigQueryCredential() *schema.Resource {
 	}
 }
 
-func resourceBigQueryCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryCredentialCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -64,19 +69,36 @@ func resourceBigQueryCredentialCreate(ctx context.Context, d *schema.ResourceDat
 	dataset := d.Get("dataset").(string)
 	numThreads := d.Get("num_threads").(int)
 
-	BigQueryCredential, err := c.CreateBigQueryCredential(projectId, "bigquery", isActive, dataset, numThreads)
+	BigQueryCredential, err := c.CreateBigQueryCredential(
+		projectId,
+		"bigquery",
+		isActive,
+		dataset,
+		numThreads,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%d", BigQueryCredential.Project_Id, dbt_cloud.ID_DELIMITER, *BigQueryCredential.ID))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			BigQueryCredential.Project_Id,
+			dbt_cloud.ID_DELIMITER,
+			*BigQueryCredential.ID,
+		),
+	)
 
 	resourceBigQueryCredentialRead(ctx, d, m)
 
 	return diags
 }
 
-func resourceBigQueryCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryCredentialRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -120,7 +142,11 @@ func resourceBigQueryCredentialRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceBigQueryCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryCredentialUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -157,7 +183,11 @@ func resourceBigQueryCredentialUpdate(ctx context.Context, d *schema.ResourceDat
 	return resourceBigQueryCredentialRead(ctx, d, m)
 }
 
-func resourceBigQueryCredentialDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryCredentialDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics

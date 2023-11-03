@@ -30,6 +30,7 @@ func ResourceDatabricksCredential() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the Databricks credential in",
 			},
 			"adapter_id": &schema.Schema{
@@ -79,7 +80,11 @@ func ResourceDatabricksCredential() *schema.Resource {
 	}
 }
 
-func resourceDatabricksCredentialCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceDatabricksCredentialCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -93,19 +98,39 @@ func resourceDatabricksCredentialCreate(ctx context.Context, d *schema.ResourceD
 	schema := d.Get("schema").(string)
 	adapterType := d.Get("adapter_type").(string)
 
-	databricksCredential, err := c.CreateDatabricksCredential(projectId, "adapter", targetName, adapterId, token, catalog, schema, adapterType)
+	databricksCredential, err := c.CreateDatabricksCredential(
+		projectId,
+		"adapter",
+		targetName,
+		adapterId,
+		token,
+		catalog,
+		schema,
+		adapterType,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%d", databricksCredential.Project_Id, dbt_cloud.ID_DELIMITER, *databricksCredential.ID))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			databricksCredential.Project_Id,
+			dbt_cloud.ID_DELIMITER,
+			*databricksCredential.ID,
+		),
+	)
 
 	resourceDatabricksCredentialRead(ctx, d, m)
 
 	return diags
 }
 
-func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceDatabricksCredentialRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -158,7 +183,11 @@ func resourceDatabricksCredentialRead(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceDatabricksCredentialUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -171,7 +200,10 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("adapter_id") || d.HasChange("token") || d.HasChange("target_name") || d.HasChange("catalog") || d.HasChange("schema") || d.HasChange("adapter_type") {
+	if d.HasChange("adapter_id") || d.HasChange("token") || d.HasChange("target_name") ||
+		d.HasChange("catalog") ||
+		d.HasChange("schema") ||
+		d.HasChange("adapter_type") {
 		databricksCredential, err := c.GetDatabricksCredential(projectId, databricksCredentialId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -263,7 +295,11 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 
 		databricksCredential.Credential_Details = credentialDetails
 
-		_, err = c.UpdateDatabricksCredential(projectId, databricksCredentialId, *databricksCredential)
+		_, err = c.UpdateDatabricksCredential(
+			projectId,
+			databricksCredentialId,
+			*databricksCredential,
+		)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -272,7 +308,11 @@ func resourceDatabricksCredentialUpdate(ctx context.Context, d *schema.ResourceD
 	return resourceDatabricksCredentialRead(ctx, d, m)
 }
 
-func resourceDatabricksCredentialDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceDatabricksCredentialDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
