@@ -13,12 +13,13 @@ description: |-
 ## Example Usage
 
 ```terraform
+// NOTE for customers using the LEGACY dbt_cloud provider:
 // use dbt_cloud_webhook instead of dbtcloud_webhook for the legacy resource names
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_webhook" "test_webhook" {
-  name        = "my-webhook"
-  description = "My webhook"
+  name        = "test-webhook"
+  description = "Test webhook"
   client_url  = "http://localhost/nothing"
   event_types = [
     "job.run.started",
