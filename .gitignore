@@ -4,3 +4,5 @@ terraform-provider*
 .idea
 .vscode
 autogen
+TODO.md
+NOTES.md

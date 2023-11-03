@@ -9,4 +9,4 @@ The image below shows the different resources available in the provider and thei
 
 Click on it to be redirected to a larger version of the image.
 
-[![Terraform resources](https://github.com/dbt-labs/terraform-provider-dbtcloud/blob/main/terraform_resources.excalidraw.png?raw=true)](https://github.com/dbt-labs/terraform-provider-dbtcloud/blob/main/terraform_resources.excalidraw.png)
+[![Terraform resources](https://github.com/dbt-labs/terraform-provider-dbtcloud/blob/main/terraform_resources.png?raw=true)](https://github.com/dbt-labs/terraform-provider-dbtcloud/blob/main/terraform_resources.png)
