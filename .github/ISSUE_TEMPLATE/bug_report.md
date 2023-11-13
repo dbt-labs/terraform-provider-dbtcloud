@@ -7,20 +7,21 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+## Describe the bug
 A clear and concise description of what the bug is.
 
-**Error message**
+## Error message
 The error message from running terraform.
 
-**Resource configuration**
-The relevant resource configuration (sanitised so it doesn't contain sensitive data)
+## Resource configuration
+The relevant resource configuration (sanitized so it doesn't contain sensitive data)
 
-**Expected behavior**
+## Expected behavior
 A clear and concise description of what you expected to happen.
 
-**Config (please complete the following information):**
- - Provider version [e.g. 0.2.12]
+## Config (please complete the following information):
+( the version can be retreived running the command `terraform providers` )
+ - dbt Cloud provider version [e.g. 0.2.12]
 
-**Additional context**
+## Additional context
 Add any other context about the problem here.
