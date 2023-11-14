@@ -16,6 +16,8 @@ var (
 		"owner",
 		"member",
 		"account_admin",
+		"security_admin",
+		"billing_admin",
 		"admin",
 		"database_admin",
 		"git_admin",
@@ -29,6 +31,7 @@ var (
 		"project_creator",
 		"account_viewer",
 		"metadata_only",
+		"semantic_layer_only",
 		"webhooks_only",
 	}
 )
@@ -98,7 +101,11 @@ func ResourceGroup() *schema.Resource {
 	}
 }
 
-func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGroupCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -142,7 +149,11 @@ func resourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
-func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGroupRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -188,7 +199,11 @@ func resourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 	return diags
 }
 
-func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGroupUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	groupID, err := strconv.Atoi(d.Id())
@@ -196,7 +211,9 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange("name") || d.HasChange("assign_by_default") || d.HasChange("sso_mapping_groups") {
+	if d.HasChange("name") ||
+		d.HasChange("assign_by_default") ||
+		d.HasChange("sso_mapping_groups") {
 		group, err := c.GetGroup(groupID)
 		if err != nil {
 			return diag.FromErr(err)
@@ -247,7 +264,11 @@ func resourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 	return resourceGroupRead(ctx, d, m)
 }
 
-func resourceGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceGroupDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	groupID, err := strconv.Atoi(d.Id())

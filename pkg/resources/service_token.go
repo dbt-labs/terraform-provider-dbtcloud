@@ -13,7 +13,11 @@ import (
 
 var (
 	servicetokenPermissionSets = []string{
+		"owner",
+		"member",
 		"account_admin",
+		"security_admin",
+		"billing_admin",
 		"admin",
 		"database_admin",
 		"git_admin",
@@ -27,6 +31,8 @@ var (
 		"project_creator",
 		"account_viewer",
 		"metadata_only",
+		"semantic_layer_only",
+		"webhooks_only",
 	}
 )
 
@@ -68,10 +74,13 @@ func ResourceServiceToken() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"permission_set": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Description:  "Set of permissions to apply",
-							ValidateFunc: validation.StringInSlice(servicetokenPermissionSets, false),
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Set of permissions to apply",
+							ValidateFunc: validation.StringInSlice(
+								servicetokenPermissionSets,
+								false,
+							),
 						},
 						"project_id": {
 							Type:        schema.TypeInt,
@@ -94,7 +103,11 @@ func ResourceServiceToken() *schema.Resource {
 	}
 }
 
-func resourceServiceTokenCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServiceTokenCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -108,7 +121,10 @@ func resourceServiceTokenCreate(ctx context.Context, d *schema.ResourceData, m i
 	}
 
 	serviceTokenPermissionsRaw := d.Get("service_token_permissions").(*schema.Set).List()
-	serviceTokenPermissions := make([]dbt_cloud.ServiceTokenPermission, len(serviceTokenPermissionsRaw))
+	serviceTokenPermissions := make(
+		[]dbt_cloud.ServiceTokenPermission,
+		len(serviceTokenPermissionsRaw),
+	)
 	for i, p := range serviceTokenPermissionsRaw {
 		permission := p.(map[string]interface{})
 		serviceTokenPermission := dbt_cloud.ServiceTokenPermission{
@@ -136,7 +152,11 @@ func resourceServiceTokenCreate(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-func resourceServiceTokenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServiceTokenRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -185,7 +205,11 @@ func resourceServiceTokenRead(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceServiceTokenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServiceTokenUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	serviceTokenID, err := strconv.Atoi(d.Id())
@@ -221,7 +245,10 @@ func resourceServiceTokenUpdate(ctx context.Context, d *schema.ResourceData, m i
 
 	if d.HasChange("service_token_permissions") {
 		serviceTokenPermissionsRaw := d.Get("service_token_permissions").(*schema.Set).List()
-		serviceTokenPermissions := make([]dbt_cloud.ServiceTokenPermission, len(serviceTokenPermissionsRaw))
+		serviceTokenPermissions := make(
+			[]dbt_cloud.ServiceTokenPermission,
+			len(serviceTokenPermissionsRaw),
+		)
 		for i, p := range serviceTokenPermissionsRaw {
 			permission := p.(map[string]interface{})
 			serviceTokenPermission := dbt_cloud.ServiceTokenPermission{
@@ -242,7 +269,11 @@ func resourceServiceTokenUpdate(ctx context.Context, d *schema.ResourceData, m i
 	return resourceServiceTokenRead(ctx, d, m)
 }
 
-func resourceServiceTokenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceServiceTokenDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
