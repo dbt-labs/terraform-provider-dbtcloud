@@ -76,9 +76,9 @@ provider "dbt" {
 
 ### Required
 
-- `account_id` (Number) Account identifier for your dbt Cloud implementation
-- `token` (String) API token for your dbt Cloud
+- `account_id` (Number) Account identifier for your dbt Cloud implementation. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_ACCOUNT_ID`
+- `token` (String) API token for your dbt Cloud. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_TOKEN`
 
 ### Optional
 
-- `host_url` (String) URL for your dbt Cloud deployment - Defaults to https://cloud.getdbt.com/api
+- `host_url` (String) URL for your dbt Cloud deployment. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_HOST_URL` - Defaults to https://cloud.getdbt.com/api
