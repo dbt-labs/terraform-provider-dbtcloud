@@ -37,9 +37,10 @@ resource "dbtcloud_repository" "github_repo_other" {
 ### repo cloned via the GitLab integration
 # as of 15 Sept 2023 this resource requires using a user token and can't be set with a service token - CC-791
 resource "dbtcloud_repository" "gitlab_repo" {
-  project_id        = dbtcloud_project.dbt_project.id
-  remote_url        = "<gitlab-group>/<gitlab-project>"
-  gitlab_project_id = 8765
+  project_id         = dbtcloud_project.dbt_project.id
+  remote_url         = "<gitlab-group>/<gitlab-project>"
+  gitlab_project_id  = 8765
+  git_clone_strategy = "deploy_token"
 }
 
 
