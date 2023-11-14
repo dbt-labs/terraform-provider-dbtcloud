@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.14...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.15...HEAD)
+
+## [0.2.15](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.14...v0.2.15)
+
+## Changes
+
+- Update list of permissions for groups and service tokens
 
 ## [0.2.14](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.13...v0.2.14)
 
