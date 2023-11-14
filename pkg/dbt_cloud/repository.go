@@ -9,16 +9,19 @@ import (
 )
 
 type Repository struct {
-	ID                      *int      `json:"id,omitempty"`
-	AccountID               int       `json:"account_id"`
-	ProjectID               int       `json:"project_id"`
-	RemoteUrl               string    `json:"remote_url"`
-	State                   int       `json:"state"`
-	GitCloneStrategy        string    `json:"git_clone_strategy"`
-	RepositoryCredentialsID *int      `json:"repository_credentials_id"`
-	GitlabProjectID         *int      `json:"gitlab_project_id"`
-	GithubInstallationID    *int      `json:"github_installation_id"`
-	DeployKey               DeployKey `json:"deploy_key,omitempty"`
+	ID                                    *int      `json:"id,omitempty"`
+	AccountID                             int       `json:"account_id"`
+	ProjectID                             int       `json:"project_id"`
+	RemoteUrl                             string    `json:"remote_url"`
+	State                                 int       `json:"state"`
+	AzureActiveDirectoryProjectID         *string   `json:"azure_active_directory_project_id,omitempty"`
+	AzureActiveDirectoryRepositoryID      *string   `json:"azure_active_directory_repository_id,omitempty"`
+	AzureBypassWebhookRegistrationFailure *bool     `json:"azure_bypass_webhook_registration_failure,omitempty"`
+	GitCloneStrategy                      string    `json:"git_clone_strategy"`
+	RepositoryCredentialsID               *int      `json:"repository_credentials_id,omitempty"`
+	GitlabProjectID                       *int      `json:"gitlab_project_id"`
+	GithubInstallationID                  *int      `json:"github_installation_id"`
+	DeployKey                             DeployKey `json:"deploy_key,omitempty"`
 }
 
 type DeployKey struct {
@@ -38,9 +41,18 @@ type RepositoryResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-func (c *Client) GetRepository(repositoryID, projectID string, fetch_deploy_key bool) (*Repository, error) {
+func (c *Client) GetRepository(
+	repositoryID, projectID string,
+	fetch_deploy_key bool,
+) (*Repository, error) {
 
-	repositoryUrl := fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID)
+	repositoryUrl := fmt.Sprintf(
+		"%s/v3/accounts/%s/projects/%s/repositories/%s/",
+		c.HostURL,
+		strconv.Itoa(c.AccountID),
+		projectID,
+		repositoryID,
+	)
 	if fetch_deploy_key {
 		repositoryUrl += "?include_related['deploy_key']"
 	}
@@ -64,7 +76,17 @@ func (c *Client) GetRepository(repositoryID, projectID string, fetch_deploy_key 
 	return &repositoryResponse.Data, nil
 }
 
-func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool, gitCloneStrategy string, repositoryCredentialsID int, gitlabProjectID int, githubInstallationID int) (*Repository, error) {
+func (c *Client) CreateRepository(
+	projectID int,
+	remoteUrl string,
+	isActive bool,
+	gitCloneStrategy string,
+	gitlabProjectID int,
+	githubInstallationID int,
+	azureActiveDirectoryProjectID string,
+	azureActiveDirectoryRepositoryID string,
+	azureBypassWebhookRegistrationFailure bool,
+) (*Repository, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -77,21 +99,32 @@ func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool
 		State:            state,
 		GitCloneStrategy: gitCloneStrategy,
 	}
-	if repositoryCredentialsID != 0 {
-		newRepository.RepositoryCredentialsID = &repositoryCredentialsID
-	}
 	if gitlabProjectID != 0 {
 		newRepository.GitlabProjectID = &gitlabProjectID
 	}
 	if githubInstallationID != 0 {
 		newRepository.GithubInstallationID = &githubInstallationID
 	}
+	if azureActiveDirectoryProjectID != "" {
+		newRepository.AzureActiveDirectoryProjectID = &azureActiveDirectoryProjectID
+		newRepository.AzureActiveDirectoryRepositoryID = &azureActiveDirectoryRepositoryID
+		newRepository.AzureBypassWebhookRegistrationFailure = &azureBypassWebhookRegistrationFailure
+	}
 	newRepositoryData, err := json.Marshal(newRepository)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(projectID)), strings.NewReader(string(newRepositoryData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/repositories/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			strconv.Itoa(projectID),
+		),
+		strings.NewReader(string(newRepositoryData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -110,13 +143,26 @@ func (c *Client) CreateRepository(projectID int, remoteUrl string, isActive bool
 	return &repositoryResponse.Data, nil
 }
 
-func (c *Client) UpdateRepository(repositoryID, projectID string, repository Repository) (*Repository, error) {
+func (c *Client) UpdateRepository(
+	repositoryID, projectID string,
+	repository Repository,
+) (*Repository, error) {
 	repositoryData, err := json.Marshal(repository)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), strings.NewReader(string(repositoryData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+			repositoryID,
+		),
+		strings.NewReader(string(repositoryData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +182,17 @@ func (c *Client) UpdateRepository(repositoryID, projectID string, repository Rep
 }
 
 func (c *Client) DeleteRepository(repositoryID, projectID string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/repositories/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, repositoryID), nil)
+	req, err := http.NewRequest(
+		"DELETE",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+			repositoryID,
+		),
+		nil,
+	)
 	if err != nil {
 		return "", err
 	}
