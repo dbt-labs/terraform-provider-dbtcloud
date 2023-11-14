@@ -12,10 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+// TODO: Add more tests
+// we are currently testing in CI the SSH cloning and GH native cloning but not GitLab native and ADO native
+// this would require having the GitLab and ADO native integrations set up in the dbt Cloud account used for CI
+
 func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
 	repoUrlGithub := "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
-	// 	repoUrlGitlab := "GtheSheep/test"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -27,9 +30,18 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudRepositoryResourceGithubConfig(repoUrlGithub, projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists("dbtcloud_repository.test_repository_github"),
-					resource.TestCheckResourceAttr("dbtcloud_repository.test_repository_github", "remote_url", repoUrlGithub),
-					resource.TestCheckResourceAttrSet("dbtcloud_repository.test_repository_github", "deploy_key"),
+					testAccCheckDbtCloudRepositoryExists(
+						"dbtcloud_repository.test_repository_github",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_repository.test_repository_github",
+						"remote_url",
+						repoUrlGithub,
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_repository.test_repository_github",
+						"deploy_key",
+					),
 				),
 			},
 			// MODIFY
@@ -44,7 +56,9 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 	})
 
 	repoUrlGithubApplication := "git://github.com/dbt-labs/jaffle_shop.git"
-	projectNameGithubApplication := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectNameGithubApplication := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,11 +67,24 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create Github repository via the GithUb Application
 			{
-				Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(repoUrlGithubApplication, projectNameGithubApplication),
+				Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(
+					repoUrlGithubApplication,
+					projectNameGithubApplication,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists("dbtcloud_repository.test_repository_github_application"),
-					resource.TestCheckResourceAttr("dbtcloud_repository.test_repository_github_application", "remote_url", repoUrlGithubApplication),
-					resource.TestCheckResourceAttr("dbtcloud_repository.test_repository_github_application", "git_clone_strategy", "github_app"),
+					testAccCheckDbtCloudRepositoryExists(
+						"dbtcloud_repository.test_repository_github_application",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_repository.test_repository_github_application",
+						"remote_url",
+						repoUrlGithubApplication,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_repository.test_repository_github_application",
+						"git_clone_strategy",
+						"github_app",
+					),
 				),
 			},
 			// MODIFY

@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.13...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.14...HEAD)
+
+## [0.2.14](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.13...v0.2.14)
+
+## Changes
+
+- Fix issues with the repositories connected via GitLab native integration
+- Add ability to configure repositories using the native ADO integration
+- Add data sources for retrieving ADO projects and repositories ID and information
+
+## Documentation
+
+- Show in the main page that provider parameters can be set with env vars
+- Update examples and field descriptions for the repositories
 
 ## [0.2.13](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.11...v0.2.13)
 
