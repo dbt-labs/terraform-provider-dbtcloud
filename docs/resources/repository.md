@@ -63,9 +63,10 @@ resource "dbtcloud_repository" "github_repo_other" {
 ### repo cloned via the GitLab integration
 # as of 15 Sept 2023 this resource requires using a user token and can't be set with a service token - CC-791
 resource "dbtcloud_repository" "gitlab_repo" {
-  project_id        = dbtcloud_project.dbt_project.id
-  remote_url        = "<gitlab-group>/<gitlab-project>"
-  gitlab_project_id = 8765
+  project_id         = dbtcloud_project.dbt_project.id
+  remote_url         = "<gitlab-group>/<gitlab-project>"
+  gitlab_project_id  = 8765
+  git_clone_strategy = "deploy_token"
 }
 
 
@@ -77,7 +78,7 @@ resource "dbtcloud_repository" "deploy_repo" {
 }
 
 
-### repo cloned via the Azure Dev Ops native integration
+### repo cloned via the Azure Dev Ops integration
 resource "dbtcloud_repository" "ado_repo" {
   project_id = dbtcloud_project.dbt_project.id
   # the following values can be added manually (IDs can be retrieved from the ADO API) or via data sources
