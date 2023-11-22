@@ -34,5 +34,3 @@ data "dbtcloud_azure_dev_ops_project" "my_ado_project" {
 
 - `id` (String) The internal Azure Dev Ops ID of the ADO Project
 - `url` (String) The URL of the ADO project
-
-

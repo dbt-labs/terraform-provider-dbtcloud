@@ -45,5 +45,3 @@ data "dbtcloud_privatelink_endpoint" "test_with_name_and_url" {
 - `id` (String) The internal ID of the PrivateLink Endpoint
 - `state` (Number) PrivatelinkEndpoint state should be 1 = active, as 2 = deleted
 - `type` (String) Type of the PrivateLink Endpoint
-
-

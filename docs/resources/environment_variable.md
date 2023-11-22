@@ -24,7 +24,7 @@ resource "dbtcloud_environment_variable" "dbt_my_env_var" {
     "project" : "my_project_level_value",
     "Dev" : "my_env_level_value",
     "CI" : "my_ci_override_value",
-    "Prod" "my_prod_override_value"
+    "Prod" : "my_prod_override_value"
   }
   depends_on = [
     dbtcloud_project.dbt_project,

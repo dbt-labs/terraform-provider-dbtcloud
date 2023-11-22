@@ -24,5 +24,3 @@ description: |-
 
 - `environment_values` (Map of String) Map containing the environment variables
 - `id` (String) The ID of this resource.
-
-

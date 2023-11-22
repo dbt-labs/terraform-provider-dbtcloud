@@ -28,5 +28,3 @@ data "dbtcloud_user" "my_user" {
 ### Read-Only
 
 - `id` (Number) ID of the user
-
-

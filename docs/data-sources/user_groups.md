@@ -29,5 +29,3 @@ data "dbtcloud_user_groups" "my_user_groups" {
 
 - `group_ids` (Set of Number) IDs of the groups assigned to the user
 - `id` (String) The ID of this resource.
-
-

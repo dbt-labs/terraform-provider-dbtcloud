@@ -26,5 +26,3 @@ description: |-
 - `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the BigQuery credential is active
 - `num_threads` (Number) Number of threads to use
-
-

@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.15...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.16...HEAD)
+
+## [0.2.16](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.15...v0.2.16)
+
+## Changes
+
+- #99 - add the resource `environment_variable_job_override` to allow environment variable override in jobs
+- Update the go version and packages versions
+
+## Fixes
+
+- #221 - removing the value for an env var scope was not removing it in dbt Cloud
+- add better messages and error handling for jobs
 
 ## [0.2.15](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.14...v0.2.15)
 

@@ -34,5 +34,3 @@ description: |-
 - `is_active` (Boolean) Whether the repository is active
 - `remote_url` (String) Connection name
 - `repository_credentials_id` (Number) Credentials ID for the repository (From the repository side not the dbt Cloud ID)
-
-

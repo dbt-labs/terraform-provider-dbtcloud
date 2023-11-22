@@ -38,8 +38,20 @@ type CreateEnvironmentVariableResponse struct {
 	Status ResponseStatus                           `json:"status"`
 }
 
-func (c *Client) GetEnvironmentVariable(projectID int, environmentVariableName string) (*EnvironmentVariable, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/environment", c.HostURL, c.AccountID, projectID), nil)
+func (c *Client) GetEnvironmentVariable(
+	projectID int,
+	environmentVariableName string,
+) (*EnvironmentVariable, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environment-variables/environment/",
+			c.HostURL,
+			c.AccountID,
+			projectID,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +69,11 @@ func (c *Client) GetEnvironmentVariable(projectID int, environmentVariableName s
 
 	environmentsVariables, _ := environmentVariableResponse.Data.Variables[environmentVariableName]
 	if environmentsVariables == nil {
-		return nil, fmt.Errorf("resource-not-found: Environment variables %s not found in project ID %d", environmentVariableName, projectID)
+		return nil, fmt.Errorf(
+			"resource-not-found: Environment variables %s not found in project ID %d",
+			environmentVariableName,
+			projectID,
+		)
 	}
 	environmentValues := make(map[string]string)
 	for environmentName, environmentVariableNameValue := range environmentsVariables {
@@ -73,7 +89,11 @@ func (c *Client) GetEnvironmentVariable(projectID int, environmentVariableName s
 	return &environmentVariable, nil
 }
 
-func (c *Client) CreateEnvironmentVariable(projectID int, name string, environmentValues map[string]string) (*EnvironmentVariable, error) {
+func (c *Client) CreateEnvironmentVariable(
+	projectID int,
+	name string,
+	environmentValues map[string]string,
+) (*EnvironmentVariable, error) {
 	environmentValues["new_name"] = name
 	newEnvironmentVariable := map[string]map[string]string{
 		"env_var": environmentValues,
@@ -84,7 +104,16 @@ func (c *Client) CreateEnvironmentVariable(projectID int, name string, environme
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(newEnvironmentVariableData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environment-variables/bulk/",
+			c.HostURL,
+			c.AccountID,
+			projectID,
+		),
+		strings.NewReader(string(newEnvironmentVariableData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +137,10 @@ func (c *Client) CreateEnvironmentVariable(projectID int, name string, environme
 	return &environmentVariable, nil
 }
 
-func (c *Client) UpdateEnvironmentVariable(projectID int, environmentVariable EnvironmentVariable) (*EnvironmentVariable, error) {
+func (c *Client) UpdateEnvironmentVariable(
+	projectID int,
+	environmentVariable EnvironmentVariable,
+) (*EnvironmentVariable, error) {
 	updateData := map[string]string{"name": environmentVariable.Name}
 	for environmentName, environmentVariableValue := range environmentVariable.EnvironmentNameValues {
 		updateData[environmentName] = environmentVariableValue
@@ -120,7 +152,16 @@ func (c *Client) UpdateEnvironmentVariable(projectID int, environmentVariable En
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(environmentVariableData)))
+	req, err := http.NewRequest(
+		"PUT",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environment-variables/bulk/",
+			c.HostURL,
+			c.AccountID,
+			projectID,
+		),
+		strings.NewReader(string(environmentVariableData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +191,21 @@ func (c *Client) UpdateEnvironmentVariable(projectID int, environmentVariable En
 	return &environmentVariable, nil
 }
 
-func (c *Client) DeleteEnvironmentVariable(environmentVariableName string, projectID int) (string, error) {
+func (c *Client) DeleteEnvironmentVariable(
+	environmentVariableName string,
+	projectID int,
+) (string, error) {
 	environmentVariableData, err := json.Marshal(map[string]string{"name": environmentVariableName})
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environment-variables/bulk/", c.HostURL, c.AccountID, projectID), strings.NewReader(string(environmentVariableData)))
+	req, err := http.NewRequest(
+		"DELETE",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environment-variables/bulk/",
+			c.HostURL,
+			c.AccountID,
+			projectID,
+		),
+		strings.NewReader(string(environmentVariableData)),
+	)
 	if err != nil {
 		return "", err
 	}

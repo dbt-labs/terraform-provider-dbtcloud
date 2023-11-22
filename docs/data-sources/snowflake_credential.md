@@ -28,5 +28,3 @@ description: |-
 - `num_threads` (Number) Number of threads to use
 - `schema` (String) Default schema name
 - `user` (String) Username for Snowflake
-
-

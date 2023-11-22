@@ -30,5 +30,3 @@ description: |-
 - `id` (String) The ID of this resource.
 - `job_ids` (List of Number) List of job IDs to trigger the webhook
 - `name` (String) Webhooks Name
-
-

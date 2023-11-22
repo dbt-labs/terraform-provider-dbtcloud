@@ -41,8 +41,8 @@ resource "dbtcloud_job" "daily_job" {
     "schedule" : true
   }
   # this is the default that gets set up when modifying jobs in the UI
-  schedule_days = [0, 1, 2, 3, 4, 5, 6]
-  schedule_type = "days_of_week"
+  schedule_days  = [0, 1, 2, 3, 4, 5, 6]
+  schedule_type  = "days_of_week"
   schedule_hours = [0]
 }
 

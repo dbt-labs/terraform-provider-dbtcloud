@@ -32,5 +32,3 @@ data "dbtcloud_extended_attributes" "my_extended_attributes" {
 - `extended_attributes` (String) A JSON string listing the extended attributes mapping
 - `id` (String) The ID of this resource.
 - `state` (Number) The state of the extended attributes (1 = active, 2 = inactive)
-
-

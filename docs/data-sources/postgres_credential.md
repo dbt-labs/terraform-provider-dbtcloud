@@ -27,5 +27,3 @@ description: |-
 - `is_active` (Boolean) Whether the Postgres credential is active
 - `num_threads` (Number) Number of threads to use
 - `username` (String) Username for Postgres
-
-

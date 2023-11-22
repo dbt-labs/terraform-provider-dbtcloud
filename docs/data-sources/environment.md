@@ -32,5 +32,3 @@ description: |-
 - `name` (String) Environment name
 - `type` (String) The type of environment (must be either development or deployment)
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
-
-
