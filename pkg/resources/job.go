@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -283,7 +284,11 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	return diags
 }
 
-func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceJobCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -325,7 +330,30 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		days = append(days, day.(int))
 	}
 
-	j, err := c.CreateJob(projectId, environmentId, name, description, steps, dbtVersion, isActive, triggers, numThreads, targetName, generateDocs, runGenerateSources, scheduleType, scheduleInterval, hours, days, scheduleCron, deferringJobId, deferringEnvironmentID, selfDeferring, timeoutSeconds, triggersOnDraftPR)
+	j, err := c.CreateJob(
+		projectId,
+		environmentId,
+		name,
+		description,
+		steps,
+		dbtVersion,
+		isActive,
+		triggers,
+		numThreads,
+		targetName,
+		generateDocs,
+		runGenerateSources,
+		scheduleType,
+		scheduleInterval,
+		hours,
+		days,
+		scheduleCron,
+		deferringJobId,
+		deferringEnvironmentID,
+		selfDeferring,
+		timeoutSeconds,
+		triggersOnDraftPR,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -337,7 +365,11 @@ func resourceJobCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	return diags
 }
 
-func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceJobUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
 
@@ -411,11 +443,24 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 			job.Execute_Steps = executeSteps
 		}
 		if d.HasChange("triggers") {
+			var ok bool
 			newTriggers := d.Get("triggers").(map[string]interface{})
-			job.Triggers.Github_Webhook = newTriggers["github_webhook"].(bool)
-			job.Triggers.GitProviderWebhook = newTriggers["git_provider_webhook"].(bool)
-			job.Triggers.Schedule = newTriggers["schedule"].(bool)
-			job.Triggers.Custom_Branch_Only = newTriggers["custom_branch_only"].(bool)
+			job.Triggers.Github_Webhook, ok = newTriggers["github_webhook"].(bool)
+			if !ok {
+				return diag.FromErr(fmt.Errorf("github_webhook was not provided"))
+			}
+			job.Triggers.GitProviderWebhook, ok = newTriggers["git_provider_webhook"].(bool)
+			if !ok {
+				return diag.FromErr(fmt.Errorf("git_provider_webhook was not provided"))
+			}
+			job.Triggers.Schedule, ok = newTriggers["schedule"].(bool)
+			if !ok {
+				return diag.FromErr(fmt.Errorf("schedule was not provided"))
+			}
+			job.Triggers.Custom_Branch_Only, ok = newTriggers["custom_branch_only"].(bool)
+			if !ok {
+				return diag.FromErr(fmt.Errorf("custom_branch_only was not provided"))
+			}
 		}
 		if d.HasChange("schedule_type") {
 			scheduleType := d.Get("schedule_type").(string)
@@ -502,7 +547,11 @@ func resourceJobUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 	return resourceJobRead(ctx, d, m)
 }
 
-func resourceJobDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceJobDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	jobId := d.Id()
 
