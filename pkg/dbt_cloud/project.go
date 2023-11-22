@@ -32,7 +32,15 @@ type ProjectResponse struct {
 }
 
 func (c *Client) GetProjectByName(projectName string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]", c.HostURL, strconv.Itoa(c.AccountID)), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +63,16 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 		numProjects := projectListResponse.Extra.Pagination.Count
 		for numProjects < projectListResponse.Extra.Pagination.TotalCount {
 
-			req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]&offset=%d", c.HostURL, strconv.Itoa(c.AccountID), numProjects), nil)
+			req, err := http.NewRequest(
+				"GET",
+				fmt.Sprintf(
+					"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]&offset=%d",
+					c.HostURL,
+					strconv.Itoa(c.AccountID),
+					numProjects,
+				),
+				nil,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -102,7 +119,16 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 }
 
 func (c *Client) GetProject(projectID string) (*Project, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/?include_related=[freshness_job_id,docs_job_id]", c.HostURL, strconv.Itoa(c.AccountID), projectID), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/?include_related=[freshness_job_id,docs_job_id]",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +162,11 @@ func (c *Client) CreateProject(name string, dbtProjectSubdirectory string) (*Pro
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newProjectData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)),
+		strings.NewReader(string(newProjectData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +191,16 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID), strings.NewReader(string(projectData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+		),
+		strings.NewReader(string(projectData)),
+	)
 	if err != nil {
 		return nil, err
 	}

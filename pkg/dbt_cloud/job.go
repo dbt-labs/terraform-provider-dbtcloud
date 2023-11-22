@@ -69,7 +69,11 @@ type Job struct {
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobID), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobID),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +100,7 @@ func (c *Client) CreateJob(
 	executeSteps []string,
 	dbtVersion string,
 	isActive bool,
-	triggers map[string]interface{},
+	triggers map[string]any,
 	numThreads int,
 	targetName string,
 	generateDocs bool,
@@ -206,7 +210,11 @@ func (c *Client) CreateJob(
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newJobData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.Itoa(c.AccountID)),
+		strings.NewReader(string(newJobData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +248,11 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobId), strings.NewReader(string(jobData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobId),
+		strings.NewReader(string(jobData)),
+	)
 	if err != nil {
 		return nil, err
 	}
