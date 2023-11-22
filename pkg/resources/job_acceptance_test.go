@@ -23,7 +23,14 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 	var configDeferral string
 	var checkDeferral resource.TestCheckFunc
 
-	configDeferral = testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName, "env")
+	configDeferral = testAccDbtCloudJobResourceDeferringConfig(
+		jobName,
+		jobName2,
+		jobName3,
+		projectName,
+		environmentName,
+		"env",
+	)
 	checkDeferral = resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
@@ -37,7 +44,11 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceBasicConfig(
+					jobName,
+					projectName,
+					environmentName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
@@ -45,7 +56,11 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// RENAME
 			{
-				Config: testAccDbtCloudJobResourceBasicConfig(jobName2, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceBasicConfig(
+					jobName2,
+					projectName,
+					environmentName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
@@ -53,18 +68,33 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudJobResourceFullConfig(jobName2, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceFullConfig(
+					jobName2,
+					projectName,
+					environmentName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "dbt_version", DBT_CLOUD_VERSION),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "timeout_seconds", "180"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"timeout_seconds",
+						"180",
+					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "run_generate_sources"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_job.test_job",
+						"run_generate_sources",
+					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
 				),
 			},
@@ -75,18 +105,33 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// REMOVE DEFERRAL
 			{
-				Config: testAccDbtCloudJobResourceFullConfig(jobName2, projectName, environmentName),
+				Config: testAccDbtCloudJobResourceFullConfig(
+					jobName2,
+					projectName,
+					environmentName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "dbt_version", DBT_CLOUD_VERSION),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "timeout_seconds", "180"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"timeout_seconds",
+						"180",
+					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "run_generate_sources"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_job.test_job",
+						"run_generate_sources",
+					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
 				),
 			},
@@ -177,7 +222,10 @@ resource "dbtcloud_job" "test_job" {
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION)
 }
 
-func testAccDbtCloudJobResourceDeferringConfig(jobName, jobName2, jobName3, projectName, environmentName string, deferring string) string {
+func testAccDbtCloudJobResourceDeferringConfig(
+	jobName, jobName2, jobName3, projectName, environmentName string,
+	deferring string,
+) string {
 	deferParam := ""
 	selfDefer := ""
 	if deferring == "job" {
