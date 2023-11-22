@@ -32,5 +32,3 @@ description: |-
 - `timeout_seconds` (Number) Number of seconds before the job times out
 - `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
-
-

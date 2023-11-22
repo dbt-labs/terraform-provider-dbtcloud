@@ -34,5 +34,3 @@ Read-Only:
 - `all_projects` (Boolean)
 - `permission_set` (String)
 - `project_id` (Number)
-
-

@@ -45,5 +45,3 @@ description: |-
 - `timeout_seconds` (Number) Timeout in seconds for queries
 - `token_uri` (String) Token URI for the Service Account
 - `type` (String) The type of connection
-
-

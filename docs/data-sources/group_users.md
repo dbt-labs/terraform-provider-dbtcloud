@@ -37,5 +37,3 @@ Read-Only:
 
 - `email` (String)
 - `id` (Number)
-
-

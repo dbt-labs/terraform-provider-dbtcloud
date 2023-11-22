@@ -39,5 +39,3 @@ data "dbtcloud_azure_dev_ops_repository" "my_ado_repository" {
 - `id` (String) The internal Azure Dev Ops ID of the ADO Repository
 - `remote_url` (String) The HTTP URL of the ADO repository used to connect to dbt Cloud
 - `web_url` (String) The URL of the ADO repository accessible in the browser
-
-

@@ -28,5 +28,3 @@ description: |-
 - `num_threads` (Number) Number of threads to use
 - `schema` (String) The schema where to create models
 - `target_name` (String) Target name
-
-

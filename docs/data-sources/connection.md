@@ -33,5 +33,3 @@ description: |-
 - `role` (String) Role name for the connection
 - `type` (String) Connection type
 - `warehouse` (String) Warehouse name for the connection
-
-

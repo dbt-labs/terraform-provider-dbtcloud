@@ -26,5 +26,3 @@ description: |-
 - `is_active` (Boolean) Whether the group is active
 - `name` (String) Group name
 - `sso_mapping_groups` (List of String) SSO mapping group names for this group
-
-

@@ -34,5 +34,3 @@ data "dbtcloud_notification" "my_notification" {
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success
 - `user_id` (Number) Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one
-
-
