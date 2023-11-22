@@ -14,7 +14,7 @@ resource "dbtcloud_extended_attributes" "my_attributes" {
   project_id = var.dbt_project.id
 }
 
-resource dbtcloud_environment issue_depl {
+resource "dbtcloud_environment" "issue_depl" {
   dbt_version            = "1.6.0-latest"
   name                   = "My environment"
   project_id             = var.dbt_project.id

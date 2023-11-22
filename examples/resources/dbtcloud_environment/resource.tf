@@ -20,11 +20,11 @@ resource "dbtcloud_environment" "prod_environment" {
   credential_id   = dbtcloud_snowflake_credential.prod_credential.credential_id
   deployment_type = "production"
 }
-  
+
 // Creating a development environment
 resource "dbtcloud_environment" "dev_environment" {
-  dbt_version     = "1.6.0-latest"
-  name            = "Dev"
-  project_id      = dbtcloud_project.dbt_project.id
-  type            = "development"
+  dbt_version = "1.6.0-latest"
+  name        = "Dev"
+  project_id  = dbtcloud_project.dbt_project.id
+  type        = "development"
 }
