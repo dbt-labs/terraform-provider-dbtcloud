@@ -8,6 +8,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -31,7 +32,10 @@ func ResourceEnvironmentVariable() *schema.Resource {
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if !(strings.HasPrefix(v, "DBT_")) {
-						errs = append(errs, fmt.Errorf("%q must be between 0 and 10 inclusive, got: %s", key, v))
+						errs = append(
+							errs,
+							fmt.Errorf("%q must be between 0 and 10 inclusive, got: %s", key, v),
+						)
 					}
 					return
 				},
@@ -43,13 +47,37 @@ func ResourceEnvironmentVariable() *schema.Resource {
 			},
 		},
 
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange(
+				"environment_values",
+				func(ctx context.Context, old, new, meta any) bool {
+					// if any key has been removed, we have to recreate the env var
+					oldMap := old.(map[string]any)
+					newMap := new.(map[string]any)
+
+					for key := range oldMap {
+						if _, exists := newMap[key]; !exists {
+							// Key from old is not present in new
+							return true
+						}
+					}
+
+					return false
+				},
+			),
+		),
+
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
 
-func resourceEnvironmentVariableCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentVariableCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -62,19 +90,34 @@ func resourceEnvironmentVariableCreate(ctx context.Context, d *schema.ResourceDa
 		environmentValuesStrings[envName] = value.(string)
 	}
 
-	environmentVariable, err := c.CreateEnvironmentVariable(projectID, name, environmentValuesStrings)
+	environmentVariable, err := c.CreateEnvironmentVariable(
+		projectID,
+		name,
+		environmentValuesStrings,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%s", environmentVariable.ProjectID, dbt_cloud.ID_DELIMITER, environmentVariable.Name))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%s",
+			environmentVariable.ProjectID,
+			dbt_cloud.ID_DELIMITER,
+			environmentVariable.Name,
+		),
+	)
 
 	resourceEnvironmentVariableRead(ctx, d, m)
 
 	return diags
 }
 
-func resourceEnvironmentVariableRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentVariableRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -108,7 +151,11 @@ func resourceEnvironmentVariableRead(ctx context.Context, d *schema.ResourceData
 	return diags
 }
 
-func resourceEnvironmentVariableUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentVariableUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectID, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -145,7 +192,11 @@ func resourceEnvironmentVariableUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceEnvironmentVariableRead(ctx, d, m)
 }
 
-func resourceEnvironmentVariableDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentVariableDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
