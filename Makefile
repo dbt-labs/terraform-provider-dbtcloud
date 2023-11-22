@@ -32,3 +32,6 @@ deps:
 release:
 	git tag "v$(VERSION)"
 	git push origin "v$(VERSION)"
+
+d2doc:
+	d2 terraform_resources.d2 terraform_resources.png -l elk
