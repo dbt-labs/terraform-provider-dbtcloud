@@ -52,12 +52,25 @@ var notificationSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Default:     1,
-		Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 4 = external email: requires setting an external_email)",
+		Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`)",
 	},
 	"external_email": &schema.Schema{
-		Type:        schema.TypeString,
-		Optional:    true,
-		Description: "The external email to receive the notification",
+		Type:          schema.TypeString,
+		Optional:      true,
+		Description:   "The external email to receive the notification",
+		ConflictsWith: []string{"slack_channel_id", "slack_channel_name"},
+	},
+	"slack_channel_id": &schema.Schema{
+		Type:          schema.TypeString,
+		Optional:      true,
+		Description:   "The ID of the Slack channel to receive the notification. It can be found at the bottom of the Slack channel settings",
+		ConflictsWith: []string{"external_email"},
+	},
+	"slack_channel_name": &schema.Schema{
+		Type:          schema.TypeString,
+		Optional:      true,
+		Description:   "The name of the slack channel",
+		ConflictsWith: []string{"external_email"},
 	},
 }
 
@@ -75,7 +88,11 @@ func ResourceNotification() *schema.Resource {
 	}
 }
 
-func resourceNotificationRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNotificationRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -113,10 +130,20 @@ func resourceNotificationRead(ctx context.Context, d *schema.ResourceData, m int
 	if err := d.Set("external_email", notification.ExternalEmail); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("slack_channel_id", notification.SlackChannelID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("slack_channel_name", notification.SlackChannelName); err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
 }
 
-func resourceNotificationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNotificationCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	// Warning or errors can be collected in a slice type
@@ -128,12 +155,29 @@ func resourceNotificationCreate(ctx context.Context, d *schema.ResourceData, m i
 	onSuccessRaw := d.Get("on_success").(*schema.Set).List()
 	state := d.Get("state").(int)
 	notificationType := d.Get("notification_type").(int)
+
 	var externalEmailVal *string
 	if d.Get("external_email").(string) == "" {
 		externalEmailVal = nil
 	} else {
 		externalEmail := d.Get("external_email").(string)
 		externalEmailVal = &externalEmail
+	}
+
+	var slackChannelIDVal *string
+	if d.Get("slack_channel_id").(string) == "" {
+		slackChannelIDVal = nil
+	} else {
+		slackChannelID := d.Get("slack_channel_id").(string)
+		slackChannelIDVal = &slackChannelID
+	}
+
+	var slackChannelNameVal *string
+	if d.Get("slack_channel_name").(string) == "" {
+		slackChannelNameVal = nil
+	} else {
+		slackChannelName := d.Get("slack_channel_name").(string)
+		slackChannelNameVal = &slackChannelName
 	}
 
 	// we need to loop through the values to convert them to ints
@@ -160,6 +204,8 @@ func resourceNotificationCreate(ctx context.Context, d *schema.ResourceData, m i
 		state,
 		notificationType,
 		externalEmailVal,
+		slackChannelIDVal,
+		slackChannelNameVal,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -172,7 +218,11 @@ func resourceNotificationCreate(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-func resourceNotificationUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNotificationUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	notificationId := d.Id()
 
@@ -182,7 +232,9 @@ func resourceNotificationUpdate(ctx context.Context, d *schema.ResourceData, m i
 		d.HasChange("on_success") ||
 		d.HasChange("state") ||
 		d.HasChange("notification_type") ||
-		d.HasChange("external_email") {
+		d.HasChange("external_email") ||
+		d.HasChange("slack_channel_id") ||
+		d.HasChange("slack_channel_name") {
 
 		notification, err := c.GetNotification(notificationId)
 
@@ -234,6 +286,22 @@ func resourceNotificationUpdate(ctx context.Context, d *schema.ResourceData, m i
 				notification.ExternalEmail = &externalEmail
 			}
 		}
+		if d.HasChange("slack_channel_id") {
+			slackChannelID := d.Get("slack_channel_id").(string)
+			if slackChannelID == "" {
+				notification.SlackChannelID = nil
+			} else {
+				notification.SlackChannelID = &slackChannelID
+			}
+		}
+		if d.HasChange("slack_channel_name") {
+			slackChannelName := d.Get("slack_channel_name").(string)
+			if slackChannelName == "" {
+				notification.SlackChannelName = nil
+			} else {
+				notification.SlackChannelName = &slackChannelName
+			}
+		}
 
 		_, err = c.UpdateNotification(notificationId, *notification)
 		if err != nil {
@@ -244,7 +312,11 @@ func resourceNotificationUpdate(ctx context.Context, d *schema.ResourceData, m i
 	return resourceNotificationRead(ctx, d, m)
 }
 
-func resourceNotificationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceNotificationDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	notificationId := d.Id()
 
