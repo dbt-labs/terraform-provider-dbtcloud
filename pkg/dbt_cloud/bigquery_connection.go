@@ -34,17 +34,8 @@ type BigQueryConnectionDetails struct {
 
 // maybe try interface here
 type BigQueryConnection struct {
-	ID                      *int                      `json:"id,omitempty"`
-	AccountID               int                       `json:"account_id"`
-	ProjectID               int                       `json:"project_id"`
-	Name                    string                    `json:"name"`
-	Type                    string                    `json:"type"`
-	CreatedByID             *int                      `json:"created_by_id,omitempty"`
-	CreatedByServiceTokenID *int                      `json:"created_by_service_token_id,omitempty"`
-	State                   int                       `json:"state"`
-	Created_At              *string                   `json:"created_at,omitempty"`
-	Updated_At              *string                   `json:"updated_at,omitempty"`
-	Details                 BigQueryConnectionDetails `json:"details"`
+	BaseConnection
+	Details BigQueryConnectionDetails `json:"details"`
 }
 
 type BigQueryConnectionResponse struct {
@@ -52,8 +43,20 @@ type BigQueryConnectionResponse struct {
 	Status ResponseStatus     `json:"status"`
 }
 
-func (c *Client) GetBigQueryConnection(connectionID, projectID string) (*BigQueryConnection, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/connections/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, connectionID), nil)
+func (c *Client) GetBigQueryConnection(
+	connectionID, projectID string,
+) (*BigQueryConnection, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/connections/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+			connectionID,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +129,14 @@ func (c *Client) CreateBigQueryConnection(
 	}
 
 	newConnection := BigQueryConnection{
-		AccountID: c.AccountID,
-		ProjectID: projectID,
-		Name:      name,
-		Type:      connectionType,
-		State:     state,
-		Details:   connectionDetails,
+		BaseConnection: BaseConnection{
+			AccountID: c.AccountID,
+			ProjectID: projectID,
+			Name:      name,
+			Type:      connectionType,
+			State:     state,
+		},
+		Details: connectionDetails,
 	}
 
 	newConnectionData, err := json.Marshal(newConnection)
@@ -139,7 +144,16 @@ func (c *Client) CreateBigQueryConnection(
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/connections/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(projectID)), strings.NewReader(string(newConnectionData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/connections/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			strconv.Itoa(projectID),
+		),
+		strings.NewReader(string(newConnectionData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -158,13 +172,26 @@ func (c *Client) CreateBigQueryConnection(
 	return &connectionResponse.Data, nil
 }
 
-func (c *Client) UpdateBigQueryConnection(connectionID, projectID string, connection BigQueryConnection) (*BigQueryConnection, error) {
+func (c *Client) UpdateBigQueryConnection(
+	connectionID, projectID string,
+	connection BigQueryConnection,
+) (*BigQueryConnection, error) {
 	connectionData, err := json.Marshal(connection)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/projects/%s/connections/%s/", c.HostURL, strconv.Itoa(c.AccountID), projectID, connectionID), strings.NewReader(string(connectionData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/projects/%s/connections/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			projectID,
+			connectionID,
+		),
+		strings.NewReader(string(connectionData)),
+	)
 	if err != nil {
 		return nil, err
 	}
