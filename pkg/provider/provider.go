@@ -100,6 +100,8 @@ func Provider() *schema.Provider {
 			"dbtcloud_license_map":                       resources.ResourceLicenseMap(),
 			"dbtcloud_extended_attributes":               resources.ResourceExtendedAttributes(),
 			"dbtcloud_environment_variable_job_override": resources.ResourceEnvironmentVariableJobOverride(),
+			"dbtcloud_fabric_connection":                 resources.ResourceFabricConnection(),
+			"dbtcloud_fabric_credential":                 resources.ResourceFabricCredential(),
 			// legacy resources to remove from 0.3
 			"dbt_cloud_job":                   resources.ResourceJob(),
 			"dbt_cloud_project":               resources.ResourceProject(),
