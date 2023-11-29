@@ -3,7 +3,7 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -126,7 +126,10 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 			}
 		}
 
-		return nil, fmt.Errorf("the token is valid but does not have access to the account id %d", *account_id)
+		return nil, fmt.Errorf(
+			"the token is valid but does not have access to the account id %d",
+			*account_id,
+		)
 
 	}
 
@@ -144,7 +147,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +164,13 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	if (res.StatusCode != http.StatusOK) && (res.StatusCode != 201) {
-		return nil, fmt.Errorf("%s url: %s, status: %d, body: %s", req.Method, req.URL, res.StatusCode, body)
+		return nil, fmt.Errorf(
+			"%s url: %s, status: %d, body: %s",
+			req.Method,
+			req.URL,
+			res.StatusCode,
+			body,
+		)
 	}
 
 	return body, err
