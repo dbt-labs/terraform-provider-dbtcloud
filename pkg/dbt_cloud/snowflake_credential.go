@@ -30,8 +30,21 @@ type SnowflakeCredential struct {
 	PrivateKeyPassphrase string `json:"private_key_passphrase,omitempty"`
 }
 
-func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*SnowflakeCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
+func (c *Client) GetSnowflakeCredential(
+	projectId int,
+	credentialId int,
+) (*SnowflakeCredential, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +63,21 @@ func (c *Client) GetSnowflakeCredential(projectId int, credentialId int) (*Snowf
 	return &snowflakeCredentialResponse.Data, nil
 }
 
-func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive bool, database string, role string, warehouse string, schema string, user string, password string, privateKey string, privateKeyPassphrase string, authType string, numThreads int) (*SnowflakeCredential, error) {
+func (c *Client) CreateSnowflakeCredential(
+	projectId int,
+	type_ string,
+	isActive bool,
+	database string,
+	role string,
+	warehouse string,
+	schema string,
+	user string,
+	password string,
+	privateKey string,
+	privateKeyPassphrase string,
+	authType string,
+	numThreads int,
+) (*SnowflakeCredential, error) {
 	newSnowflakeCredential := SnowflakeCredential{
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
@@ -76,7 +103,16 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newSnowflakeCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+		),
+		strings.NewReader(string(newSnowflakeCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +138,27 @@ func (c *Client) CreateSnowflakeCredential(projectId int, type_ string, isActive
 	return &snowflakeCredentialResponse.Data, nil
 }
 
-func (c *Client) UpdateSnowflakeCredential(projectId int, credentialId int, snowflakeCredential SnowflakeCredential) (*SnowflakeCredential, error) {
+func (c *Client) UpdateSnowflakeCredential(
+	projectId int,
+	credentialId int,
+	snowflakeCredential SnowflakeCredential,
+) (*SnowflakeCredential, error) {
 	snowflakeCredentialData, err := json.Marshal(snowflakeCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(snowflakeCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(snowflakeCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -125,18 +175,4 @@ func (c *Client) UpdateSnowflakeCredential(projectId int, credentialId int, snow
 	}
 
 	return &snowflakeCredentialResponse.Data, nil
-}
-
-func (c *Client) DeleteSnowflakeCredential(credentialId, projectId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%s/credentials/%s/", c.HostURL, c.AccountID, projectId, credentialId), nil)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.doRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	return "", err
 }

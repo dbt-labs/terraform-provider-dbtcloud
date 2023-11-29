@@ -265,7 +265,7 @@ func resourcePostgresCredentialDelete(
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	postgresCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	_, err := c.DeletePostgresCredential(postgresCredentialIdString, projectIdString)
+	_, err := c.DeleteCredential(postgresCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

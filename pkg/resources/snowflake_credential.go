@@ -337,7 +337,7 @@ func resourceSnowflakeCredentialDelete(
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	snowflakeCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	_, err := c.DeleteSnowflakeCredential(snowflakeCredentialIdString, projectIdString)
+	_, err := c.DeleteCredential(snowflakeCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

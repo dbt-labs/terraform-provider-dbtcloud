@@ -22,8 +22,21 @@ type BigQueryCredential struct {
 	Dataset    string `json:"schema"`
 }
 
-func (c *Client) GetBigQueryCredential(projectId int, credentialId int) (*BigQueryCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
+func (c *Client) GetBigQueryCredential(
+	projectId int,
+	credentialId int,
+) (*BigQueryCredential, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +55,13 @@ func (c *Client) GetBigQueryCredential(projectId int, credentialId int) (*BigQue
 	return &BigQueryCredentialResponse.Data, nil
 }
 
-func (c *Client) CreateBigQueryCredential(projectId int, type_ string, isActive bool, dataset string, numThreads int) (*BigQueryCredential, error) {
+func (c *Client) CreateBigQueryCredential(
+	projectId int,
+	type_ string,
+	isActive bool,
+	dataset string,
+	numThreads int,
+) (*BigQueryCredential, error) {
 	newBigQueryCredential := BigQueryCredential{
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
@@ -56,7 +75,16 @@ func (c *Client) CreateBigQueryCredential(projectId int, type_ string, isActive 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newBigQueryCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+		),
+		strings.NewReader(string(newBigQueryCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +103,27 @@ func (c *Client) CreateBigQueryCredential(projectId int, type_ string, isActive 
 	return &BigQueryCredentialResponse.Data, nil
 }
 
-func (c *Client) UpdateBigQueryCredential(projectId int, credentialId int, BigQueryCredential BigQueryCredential) (*BigQueryCredential, error) {
+func (c *Client) UpdateBigQueryCredential(
+	projectId int,
+	credentialId int,
+	BigQueryCredential BigQueryCredential,
+) (*BigQueryCredential, error) {
 	BigQueryCredentialData, err := json.Marshal(BigQueryCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(BigQueryCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(BigQueryCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +140,4 @@ func (c *Client) UpdateBigQueryCredential(projectId int, credentialId int, BigQu
 	}
 
 	return &BigQueryCredentialResponse.Data, nil
-}
-
-func (c *Client) DeleteBigQueryCredential(credentialId, projectId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%s/credentials/%s/", c.HostURL, c.AccountID, projectId, credentialId), nil)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.doRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	return "", err
 }
