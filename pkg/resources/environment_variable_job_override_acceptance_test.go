@@ -155,12 +155,12 @@ resource dbtcloud_job test_job_sched {
 resource dbtcloud_environment_variable_job_override test_env_var_job_override {
 	job_definition_id = dbtcloud_job.test_job_sched.id
 	project_id = dbtcloud_project.test_project.id
-	name = "DBT_%s"
+	name = dbtcloud_environment_variable.test_env_var.name
 	raw_value = "%s"
 }
 
 
-`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName, jobName, environmentVariableName, environmentVariableJobOverrideValue)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName, jobName, environmentVariableJobOverrideValue)
 }
 
 func testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
