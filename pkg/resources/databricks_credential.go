@@ -218,31 +218,31 @@ func resourceDatabricksCredentialUpdate(
 		}
 
 		// we need to fill in the DatabricksCredentialFieldMetadata for all fields, except token if it was not changed
-		validation := dbt_cloud.DatabricksCredentialFieldMetadataValidation{
+		validation := dbt_cloud.AdapterCredentialFieldMetadataValidation{
 			Required: false,
 		}
-		tokenMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		tokenMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 			Label:       "Token",
 			Description: "Personalized user token.",
 			Field_Type:  "text",
 			Encrypt:     true,
 			Validation:  validation,
 		}
-		catalogMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		catalogMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 			Label:       "Catalog",
 			Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
 			Field_Type:  "text",
 			Encrypt:     false,
 			Validation:  validation,
 		}
-		schemaMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		schemaMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 			Label:       "Schema",
 			Description: "User schema.",
 			Field_Type:  "text",
 			Encrypt:     false,
 			Validation:  validation,
 		}
-		threadsMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+		threadsMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 			Label:       "Threads",
 			Description: "The number of threads to use for your jobs.",
 			Field_Type:  "number",
@@ -250,24 +250,24 @@ func resourceDatabricksCredentialUpdate(
 			Validation:  validation,
 		}
 
-		credentialsFieldToken := dbt_cloud.DatabricksCredentialField{
+		credentialsFieldToken := dbt_cloud.AdapterCredentialField{
 			Metadata: tokenMetadata,
 			Value:    d.Get("token").(string),
 		}
-		credentialsFieldCatalog := dbt_cloud.DatabricksCredentialField{
+		credentialsFieldCatalog := dbt_cloud.AdapterCredentialField{
 			Metadata: catalogMetadata,
 			Value:    d.Get("catalog").(string),
 		}
-		credentialsFieldSchema := dbt_cloud.DatabricksCredentialField{
+		credentialsFieldSchema := dbt_cloud.AdapterCredentialField{
 			Metadata: schemaMetadata,
 			Value:    d.Get("schema").(string),
 		}
-		credentialsFieldThreads := dbt_cloud.DatabricksCredentialField{
+		credentialsFieldThreads := dbt_cloud.AdapterCredentialField{
 			Metadata: threadsMetadata,
 			Value:    dbt_cloud.NUM_THREADS_CREDENTIAL,
 		}
 
-		credentialFields := map[string]dbt_cloud.DatabricksCredentialField{}
+		credentialFields := map[string]dbt_cloud.AdapterCredentialField{}
 
 		// only databricks accepts a catalog, not spark
 		if d.Get("adapter_type").(string) == "databricks" {
@@ -288,7 +288,7 @@ func resourceDatabricksCredentialUpdate(
 
 		credentialFields["schema"] = credentialsFieldSchema
 
-		credentialDetails := dbt_cloud.DatabricksCredentialDetails{
+		credentialDetails := dbt_cloud.AdapterCredentialDetails{
 			Fields:      credentialFields,
 			Field_Order: []string{},
 		}
@@ -334,36 +334,36 @@ func resourceDatabricksCredentialDelete(
 	databricksCredential.State = dbt_cloud.STATE_DELETED
 
 	// those values don't mean anything for delete operation but they are required by the API
-	validation := dbt_cloud.DatabricksCredentialFieldMetadataValidation{
+	validation := dbt_cloud.AdapterCredentialFieldMetadataValidation{
 		Required: false,
 	}
-	catalogMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+	catalogMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 		Label:       "Catalog",
 		Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
 		Field_Type:  "text",
 		Encrypt:     false,
 		Validation:  validation,
 	}
-	schemaMetadata := dbt_cloud.DatabricksCredentialFieldMetadata{
+	schemaMetadata := dbt_cloud.AdapterCredentialFieldMetadata{
 		Label:       "Schema",
 		Description: "User schema.",
 		Field_Type:  "text",
 		Encrypt:     false,
 		Validation:  validation,
 	}
-	credentialsFieldCatalog := dbt_cloud.DatabricksCredentialField{
+	credentialsFieldCatalog := dbt_cloud.AdapterCredentialField{
 		Metadata: catalogMetadata,
 		Value:    "NA",
 	}
-	credentialsFieldSchema := dbt_cloud.DatabricksCredentialField{
+	credentialsFieldSchema := dbt_cloud.AdapterCredentialField{
 		Metadata: schemaMetadata,
 		Value:    "NA",
 	}
-	credentialFields := map[string]dbt_cloud.DatabricksCredentialField{}
+	credentialFields := map[string]dbt_cloud.AdapterCredentialField{}
 	credentialFields["catalog"] = credentialsFieldCatalog
 	credentialFields["schema"] = credentialsFieldSchema
 
-	credentialDetails := dbt_cloud.DatabricksCredentialDetails{
+	credentialDetails := dbt_cloud.AdapterCredentialDetails{
 		Fields:      credentialFields,
 		Field_Order: []string{},
 	}

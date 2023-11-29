@@ -17,30 +17,6 @@ type DatabricksCredentialResponse struct {
 	Status ResponseStatus       `json:"status"`
 }
 
-type DatabricksCredentialFieldMetadataValidation struct {
-	Required bool `json:"required"`
-}
-
-type DatabricksCredentialFieldMetadata struct {
-	Label        string                                      `json:"label"`
-	Description  string                                      `json:"description"`
-	Field_Type   string                                      `json:"field_type"`
-	Encrypt      bool                                        `json:"encrypt"`
-	Overrideable bool                                        `json:"overrideable"`
-	Validation   DatabricksCredentialFieldMetadataValidation `json:"validation"`
-}
-
-// Value can actually be a string or an int (for threads)
-type DatabricksCredentialField struct {
-	Metadata DatabricksCredentialFieldMetadata `json:"metadata"`
-	Value    interface{}                       `json:"value"`
-}
-
-type DatabricksCredentialDetails struct {
-	Fields      map[string]DatabricksCredentialField `json:"fields"`
-	Field_Order []string                             `json:"field_order"`
-}
-
 type DatabricksUnencryptedCredentialDetails struct {
 	Catalog    string `json:"catalog"`
 	Schema     string `json:"schema"`
@@ -58,12 +34,25 @@ type DatabricksCredential struct {
 	Threads                      int                                    `json:"threads"`
 	Target_Name                  string                                 `json:"target_name"`
 	Adapter_Id                   int                                    `json:"adapter_id"`
-	Credential_Details           DatabricksCredentialDetails            `json:"credential_details"`
+	Credential_Details           AdapterCredentialDetails               `json:"credential_details"`
 	UnencryptedCredentialDetails DatabricksUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
 
-func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*DatabricksCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/?include_related=[adapter]", c.HostURL, c.AccountID, projectId, credentialId), nil)
+func (c *Client) GetDatabricksCredential(
+	projectId int,
+	credentialId int,
+) (*DatabricksCredential, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/?include_related=[adapter]",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -82,32 +71,41 @@ func (c *Client) GetDatabricksCredential(projectId int, credentialId int) (*Data
 	return &credentialResponse.Data, nil
 }
 
-func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetName string, adapterId int, token string, catalog string, schema string, adapterType string) (*DatabricksCredential, error) {
-	validation := DatabricksCredentialFieldMetadataValidation{
+func (c *Client) CreateDatabricksCredential(
+	projectId int,
+	type_ string,
+	targetName string,
+	adapterId int,
+	token string,
+	catalog string,
+	schema string,
+	adapterType string,
+) (*DatabricksCredential, error) {
+	validation := AdapterCredentialFieldMetadataValidation{
 		Required: false,
 	}
-	tokenMetadata := DatabricksCredentialFieldMetadata{
+	tokenMetadata := AdapterCredentialFieldMetadata{
 		Label:       "Token",
 		Description: "Personalized user token.",
 		Field_Type:  "text",
 		Encrypt:     true,
 		Validation:  validation,
 	}
-	catalogMetadata := DatabricksCredentialFieldMetadata{
+	catalogMetadata := AdapterCredentialFieldMetadata{
 		Label:       "Catalog",
 		Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.  Only available in dbt version 1.1 and later.",
 		Field_Type:  "text",
 		Encrypt:     false,
 		Validation:  validation,
 	}
-	schemaMetadata := DatabricksCredentialFieldMetadata{
+	schemaMetadata := AdapterCredentialFieldMetadata{
 		Label:       "Schema",
 		Description: "User schema.",
 		Field_Type:  "text",
 		Encrypt:     false,
 		Validation:  validation,
 	}
-	threadsMetadata := DatabricksCredentialFieldMetadata{
+	threadsMetadata := AdapterCredentialFieldMetadata{
 		Label:       "Threads",
 		Description: "The number of threads to use for your jobs.",
 		Field_Type:  "number",
@@ -115,24 +113,24 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		Validation:  validation,
 	}
 
-	credentialsFieldToken := DatabricksCredentialField{
+	credentialsFieldToken := AdapterCredentialField{
 		Metadata: tokenMetadata,
 		Value:    token,
 	}
-	credentialsFieldCatalog := DatabricksCredentialField{
+	credentialsFieldCatalog := AdapterCredentialField{
 		Metadata: catalogMetadata,
 		Value:    catalog,
 	}
-	credentialsFieldSchema := DatabricksCredentialField{
+	credentialsFieldSchema := AdapterCredentialField{
 		Metadata: schemaMetadata,
 		Value:    schema,
 	}
-	credentialsFieldThreads := DatabricksCredentialField{
+	credentialsFieldThreads := AdapterCredentialField{
 		Metadata: threadsMetadata,
 		Value:    NUM_THREADS_CREDENTIAL,
 	}
 
-	credentialFields := map[string]DatabricksCredentialField{}
+	credentialFields := map[string]AdapterCredentialField{}
 
 	// the catalog field is only available for databricks adapter type
 	// there is an issue if we provide the number of threads at the creation
@@ -149,7 +147,7 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		credentialFields["threads"] = credentialsFieldThreads
 	}
 
-	credentialDetails := DatabricksCredentialDetails{
+	credentialDetails := AdapterCredentialDetails{
 		Fields:      credentialFields,
 		Field_Order: []string{},
 	}
@@ -169,7 +167,16 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newDatabricksCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+		),
+		strings.NewReader(string(newDatabricksCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -188,13 +195,27 @@ func (c *Client) CreateDatabricksCredential(projectId int, type_ string, targetN
 	return &databricksCredentialResponse.Data, nil
 }
 
-func (c *Client) UpdateDatabricksCredential(projectId int, credentialId int, databricksCredential DatabricksCredential) (*DatabricksCredential, error) {
+func (c *Client) UpdateDatabricksCredential(
+	projectId int,
+	credentialId int,
+	databricksCredential DatabricksCredential,
+) (*DatabricksCredential, error) {
 	databricksCredentialData, err := json.Marshal(databricksCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(databricksCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(databricksCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -211,18 +232,4 @@ func (c *Client) UpdateDatabricksCredential(projectId int, credentialId int, dat
 	}
 
 	return &databricksCredentialResponse.Data, nil
-}
-
-func (c *Client) DeleteDatabricksCredential(credentialId, projectId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%s/credentials/%s/", c.HostURL, c.AccountID, projectId, credentialId), nil)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = c.doRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	return "", err
 }
