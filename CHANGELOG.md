@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.16...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.17...HEAD)
+
+## [0.2.17](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.16...v0.2.17)
+
+## Changes
+
+- #224 - add the resources `dbtcloud_fabric_connection` and `dbtcloud_fabric_credential` to allow using dbt Cloud along with Microsoft Fabric
+- #222 - allow users to set Slack notifications from Terraform
+
+## Behind the scenes
+
+- Refactor some of the shared code for Adapters and connections
 
 ## [0.2.16](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.15...v0.2.16)
 

@@ -1,0 +1,2 @@
+terraform import dbtcloud_fabric_connection.my_connection "project_id:connection_id"
+terraform import dbtcloud_fabric_connection.my_connection 12345:6789

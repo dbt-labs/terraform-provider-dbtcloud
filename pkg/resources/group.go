@@ -114,7 +114,7 @@ func resourceGroupCreate(
 	assignByDefault := d.Get("assign_by_default").(bool)
 	ssoMappingGroupsRaw := d.Get("sso_mapping_groups").([]interface{})
 	ssoMappingGroups := make([]string, len(ssoMappingGroupsRaw))
-	for i, _ := range ssoMappingGroupsRaw {
+	for i := range ssoMappingGroupsRaw {
 		ssoMappingGroups[i] = ssoMappingGroupsRaw[i].(string)
 	}
 

@@ -195,7 +195,7 @@ func resourceBigQueryCredentialDelete(
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	BigQueryCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
 
-	_, err := c.DeleteBigQueryCredential(BigQueryCredentialIdString, projectIdString)
+	_, err := c.DeleteCredential(BigQueryCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

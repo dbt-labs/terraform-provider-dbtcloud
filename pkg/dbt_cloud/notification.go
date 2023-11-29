@@ -23,10 +23,21 @@ type Notification struct {
 	State            int     `json:"state"`
 	NotificationType int     `json:"type"`
 	ExternalEmail    *string `json:"external_email"`
+	SlackChannelID   *string `json:"slack_channel_id"`
+	SlackChannelName *string `json:"slack_channel_name"`
 }
 
 func (c *Client) GetNotification(notificationID string) (*Notification, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/notifications/%s/", c.HostURL, strconv.Itoa(c.AccountID), notificationID), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v2/accounts/%s/notifications/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			notificationID,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +63,9 @@ func (c *Client) CreateNotification(
 	onSuccess []int,
 	state int,
 	notificationType int,
-	externalEmail *string) (*Notification, error) {
+	externalEmail *string,
+	slackChannelID *string,
+	slackChannelName *string) (*Notification, error) {
 
 	newNotification := Notification{
 		AccountId:        c.AccountID,
@@ -63,6 +76,8 @@ func (c *Client) CreateNotification(
 		State:            state,
 		NotificationType: notificationType,
 		ExternalEmail:    externalEmail,
+		SlackChannelID:   slackChannelID,
+		SlackChannelName: slackChannelName,
 	}
 
 	newNotificationData, err := json.Marshal(newNotification)
@@ -70,7 +85,11 @@ func (c *Client) CreateNotification(
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newNotificationData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.Itoa(c.AccountID)),
+		strings.NewReader(string(newNotificationData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -89,13 +108,25 @@ func (c *Client) CreateNotification(
 	return &notificationResponse.Data, nil
 }
 
-func (c *Client) UpdateNotification(notificationId string, notification Notification) (*Notification, error) {
+func (c *Client) UpdateNotification(
+	notificationId string,
+	notification Notification,
+) (*Notification, error) {
 	notificationData, err := json.Marshal(notification)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/accounts/%s/notifications/%s/", c.HostURL, strconv.Itoa(c.AccountID), notificationId), strings.NewReader(string(notificationData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v2/accounts/%s/notifications/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			notificationId,
+		),
+		strings.NewReader(string(notificationData)),
+	)
 	if err != nil {
 		return nil, err
 	}
