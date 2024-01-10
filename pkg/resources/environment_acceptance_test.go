@@ -28,41 +28,108 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "deployment_type", "production"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"deployment_type",
+						"production",
+					),
 				),
 			},
 			// RENAME
 			{
-				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName2),
+				Config: testAccDbtCloudEnvironmentResourceBasicConfig(
+					projectName,
+					environmentName2,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName2),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
 				),
 			},
 			// MODIFY ADDING CRED
 			{
-				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, environmentName2, "", "false"),
+				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(
+					projectName,
+					environmentName2,
+					"",
+					"false",
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName2),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "dbt_version", DBT_CLOUD_VERSION),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "custom_branch", ""),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "use_custom_branch", "false"),
-					resource.TestCheckResourceAttrSet("dbtcloud_environment.test_env", "credential_id"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "deployment_type", ""),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"custom_branch",
+						"",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"use_custom_branch",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_environment.test_env",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"deployment_type",
+						"production",
+					),
 				),
 			},
 			// MODIFY CUSTOM BRANCH
 			{
-				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, environmentName2, "main", "true"),
+				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(
+					projectName,
+					environmentName2,
+					"main",
+					"true",
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "name", environmentName2),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "dbt_version", DBT_CLOUD_VERSION),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "custom_branch", "main"),
-					resource.TestCheckResourceAttr("dbtcloud_environment.test_env", "use_custom_branch", "true"),
-					resource.TestCheckResourceAttrSet("dbtcloud_environment.test_env", "credential_id"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"custom_branch",
+						"main",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"use_custom_branch",
+						"true",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_environment.test_env",
+						"credential_id",
+					),
 				),
 			},
 			// IMPORT
@@ -92,7 +159,9 @@ resource "dbtcloud_environment" "test_env" {
 `, projectName, environmentName, DBT_CLOUD_VERSION)
 }
 
-func testAccDbtCloudEnvironmentResourceModifiedConfig(projectName, environmentName, customBranch, useCustomBranch string) string {
+func testAccDbtCloudEnvironmentResourceModifiedConfig(
+	projectName, environmentName, customBranch, useCustomBranch string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -106,6 +175,7 @@ resource "dbtcloud_environment" "test_env" {
   use_custom_branch = %s
   project_id = dbtcloud_project.test_project.id
   credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
+  deployment_type = "production"
 }
 
 resource "dbtcloud_bigquery_credential" "test_credential" {
