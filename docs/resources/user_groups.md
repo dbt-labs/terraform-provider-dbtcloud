@@ -25,7 +25,7 @@ If you would like a different behavior, please open an issue on GitHub. To remov
 ```terraform
 // we can assign groups to users
 resource "dbtcloud_user_groups" "my_user_groups" {
-  user_id = dbtcloud_user.my_user.id
+  user_id = data.dbtcloud_user.my_user.id
   group_ids = [
     // the group_id can be written directly
     1234,

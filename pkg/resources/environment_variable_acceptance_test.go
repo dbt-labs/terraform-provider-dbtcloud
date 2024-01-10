@@ -17,33 +17,112 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentVariableName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
+			// SECRET ENV VAR
 			{
-				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(projectName, environmentName, environmentVariableName),
+				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(
+					projectName,
+					environmentName,
+					fmt.Sprintf("ENV_SECRET_%s", environmentVariableName),
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableExists("dbtcloud_environment_variable.test_env_var"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.%", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.project", "Baa"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
+					testAccCheckDbtCloudEnvironmentVariableExists(
+						"dbtcloud_environment_variable.test_env_var",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"name",
+						fmt.Sprintf("DBT_ENV_SECRET_%s", environmentVariableName),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.%",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.project",
+						"Baa",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						fmt.Sprintf("environment_values.%s", environmentName),
+						"Moo",
+					),
 				),
 			},
-			// RENAME
+			// NON SECRET ENV VAR
+			{
+				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(
+					projectName,
+					environmentName,
+					environmentVariableName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentVariableExists(
+						"dbtcloud_environment_variable.test_env_var",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"name",
+						fmt.Sprintf("DBT_%s", environmentVariableName),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.%",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.project",
+						"Baa",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						fmt.Sprintf("environment_values.%s", environmentName),
+						"Moo",
+					),
+				),
+			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName),
+				Config: testAccDbtCloudEnvironmentVariableResourceModifiedConfig(
+					projectName,
+					environmentName,
+					environmentVariableName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableExists("dbtcloud_environment_variable.test_env_var"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.%", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", "environment_values.project", "Oink"),
-					resource.TestCheckResourceAttr("dbtcloud_environment_variable.test_env_var", fmt.Sprintf("environment_values.%s", environmentName), "Neigh"),
+					testAccCheckDbtCloudEnvironmentVariableExists(
+						"dbtcloud_environment_variable.test_env_var",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"name",
+						fmt.Sprintf("DBT_%s", environmentVariableName),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.%",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						"environment_values.project",
+						"Oink",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment_variable.test_env_var",
+						fmt.Sprintf("environment_values.%s", environmentName),
+						"Neigh",
+					),
 				),
 			},
 			// IMPORT
@@ -57,7 +136,9 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudEnvironmentVariableResourceBasicConfig(projectName, environmentName, environmentVariableName string) string {
+func testAccDbtCloudEnvironmentVariableResourceBasicConfig(
+	projectName, environmentName, environmentVariableName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -85,7 +166,9 @@ resource "dbtcloud_environment_variable" "test_env_var" {
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }
 
-func testAccDbtCloudEnvironmentVariableResourceModifiedConfig(projectName, environmentName, environmentVariableName string) string {
+func testAccDbtCloudEnvironmentVariableResourceModifiedConfig(
+	projectName, environmentName, environmentVariableName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
