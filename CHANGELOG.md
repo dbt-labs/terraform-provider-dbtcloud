@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.17...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.18...HEAD)
+
+## [0.2.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.17...v0.2.18)
+
+## Changes
+
+- #229 - fix logic for secret environment variables
+
+## Documentations
+
+- #228 - update docs to replace the non existing `dbtcloud_user` resource by the existing `data.dbtcloud_user` data source
+
+## Behind the scenes
+
+- update third party module version following security report
 
 ## [0.2.17](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.16...v0.2.17)
 
