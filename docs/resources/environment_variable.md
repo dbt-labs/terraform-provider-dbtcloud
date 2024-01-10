@@ -40,7 +40,7 @@ resource "dbtcloud_environment_variable" "dbt_my_env_var" {
 
 ### Required
 
-- `environment_values` (Map of String) Map from environment names to respective variable value, a special key `project` should be set for the project default variable value
+- `environment_values` (Map of String) Map from environment names to respective variable value, a special key `project` should be set for the project default variable value. This field is not set as sensitive so take precautions when using secret environment variables.
 - `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
 - `project_id` (Number) Project for the variable to be created in
 

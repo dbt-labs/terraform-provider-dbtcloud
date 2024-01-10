@@ -26,15 +26,17 @@ func ResourceEnvironmentVariable() *schema.Resource {
 				Description: "Project for the variable to be created in",
 			},
 			"name": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
+				Type:     schema.TypeString,
+				Required: true,
+				// as the name is used as the ID, we need to force a new resource if the name changes
+				ForceNew:    true,
 				Description: "Name for the variable, must be unique within a project, must be prefixed with 'DBT_'",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(string)
 					if !(strings.HasPrefix(v, "DBT_")) {
 						errs = append(
 							errs,
-							fmt.Errorf("%q must be between 0 and 10 inclusive, got: %s", key, v),
+							fmt.Errorf("The env var must start with DBT_ , got: %s", v),
 						)
 					}
 					return
@@ -43,7 +45,7 @@ func ResourceEnvironmentVariable() *schema.Resource {
 			"environment_values": &schema.Schema{
 				Type:        schema.TypeMap,
 				Required:    true,
-				Description: "Map from environment names to respective variable value, a special key `project` should be set for the project default variable value",
+				Description: "Map from environment names to respective variable value, a special key `project` should be set for the project default variable value. This field is not set as sensitive so take precautions when using secret environment variables.",
 			},
 		},
 
@@ -137,15 +139,21 @@ func resourceEnvironmentVariableRead(
 		}
 		return diag.FromErr(err)
 	}
-
 	if err := d.Set("project_id", environmentVariable.ProjectID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", environmentVariable.Name); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("environment_values", environmentVariable.EnvironmentNameValues); err != nil {
-		return diag.FromErr(err)
+
+	if !strings.HasPrefix(environmentVariable.Name, "DBT_ENV_SECRET_") {
+		if err := d.Set("environment_values", environmentVariable.EnvironmentNameValues); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err := d.Set("environment_values", d.Get("environment_values")); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return diags
