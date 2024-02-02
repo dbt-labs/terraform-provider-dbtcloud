@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.18...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.19...HEAD)
+
+
+## [0.2.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.18...v0.2.19)
+
+## Changes
+
+- Update permissions allowed for groups and token to include `job_runner`
+
+## Documentations
+
+- Add guide on `dbtcloud-terraforming` to import existing resources
 
 ## [0.2.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.17...v0.2.18)
 
