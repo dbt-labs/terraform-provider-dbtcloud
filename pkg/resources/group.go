@@ -23,6 +23,7 @@ var (
 		"git_admin",
 		"team_admin",
 		"job_admin",
+		"job_runner",
 		"job_viewer",
 		"analyst",
 		"developer",
