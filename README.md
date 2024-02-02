@@ -53,6 +53,10 @@ The provider documentation is directly available [on the Terraform Registry](htt
 - Under [Guides](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/guides/1_getting_started), you will find a simple example of how to use the provider
 - Each resource ([example for jobs](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/resources/job)) has some usage examples and contains the list of parameters available
 
+## Importing existing dbt Cloud configuration
+
+The CLI [dbtcloud-terraforming](https://github.com/dbt-labs/dbtcloud-terraforming) can be used to generate the Terraform configuration and import statements based on your existing dbt Cloud configuration.
+
 ## Running Acceptance Tests
 
 Currently, acceptance tests, run via `make test-acceptance` must be done on your

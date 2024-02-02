@@ -18,7 +18,7 @@ func TestAccDbtCloudFabricConnectionResource(t *testing.T) {
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	server := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	server := "example.com"
 	port := 1337
 
 	resource.Test(t, resource.TestCase{

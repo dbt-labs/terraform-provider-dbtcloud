@@ -99,7 +99,7 @@ resource "dbtcloud_fabric_connection" "fabric" {
 	project_id = dbtcloud_project.test_project.id
 	name = "Fabric"
 	database = "testdb"
-	server = "testserver"
+	server = "example.com"
 	port = 1234
   }
 
@@ -126,7 +126,7 @@ resource "dbtcloud_fabric_connection" "fabric" {
 	project_id = dbtcloud_project.test_project.id
 	name = "Fabric"
 	database = "testdb"
-	server = "testserver"
+	server = "example.com"
 	port = 1234
   }
 
