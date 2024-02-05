@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/samber/lo"
 )
 
 var (
@@ -61,7 +63,7 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     true,
-		Description: "Flag for whether the job is marked active or deleted",
+		Description: "Flag for whether the job is marked active or deleted. To create/keep a job in a 'deactivated' state, check  the `triggers` config.",
 	},
 	"triggers": &schema.Schema{
 		Type:     schema.TypeMap,
@@ -71,7 +73,7 @@ var jobSchema = map[string]*schema.Schema{
 			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, possible values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment.",
+		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment. To create a job in a 'deactivated' state, set all to `false`.",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -95,7 +97,7 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
-		Description: "Flag for whether the job should run generate sources",
+		Description: "Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.",
 	},
 	"schedule_type": &schema.Schema{
 		Type:         schema.TypeString,
@@ -165,6 +167,33 @@ var jobSchema = map[string]*schema.Schema{
 		Optional:    true,
 		Default:     false,
 		Description: "Whether the CI job should be automatically triggered on draft PRs",
+	},
+	"job_completion_trigger_condition": &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		// using  a set or a list with 1 item is the way in the SDKv2 to define nested objects
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"job_id": {
+					Type:        schema.TypeInt,
+					Required:    true,
+					Description: "The ID of the job that would trigger this job after completion.",
+				},
+				"project_id": {
+					Type:        schema.TypeInt,
+					Required:    true,
+					Description: "The ID of the project where the trigger job is running in.",
+				},
+				"statuses": {
+					Type:        schema.TypeSet,
+					Required:    true,
+					Elem:        &schema.Schema{Type: schema.TypeString},
+					Description: "List of statuses to trigger the job on. Possible values are `success`, `error` and `canceled`.",
+				},
+			},
+		},
+		Description: "Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining').",
 	},
 }
 
@@ -281,6 +310,27 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 
+	if job.JobCompletionTrigger == nil {
+		if err := d.Set("job_completion_trigger_condition", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		triggerCondition := job.JobCompletionTrigger.Condition
+		statusesNames := lo.Map(triggerCondition.Statuses, func(status int, idx int) any {
+			return utils.JobCompletionTriggerConditionsMappingCodeHuman[status]
+		})
+		triggerConditionMap := map[string]any{
+			"job_id":     triggerCondition.JobID,
+			"project_id": triggerCondition.ProjectID,
+			"statuses":   statusesNames,
+		}
+		triggerConditionSet := utils.JobConditionMapToSet(triggerConditionMap)
+
+		if err := d.Set("job_completion_trigger_condition", triggerConditionSet); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	return diags
 }
 
@@ -316,6 +366,18 @@ func resourceJobCreate(
 	selfDeferring := d.Get("self_deferring").(bool)
 	timeoutSeconds := d.Get("timeout_seconds").(int)
 	triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
+
+	var jobCompletionTrigger map[string]any
+	empty, completionJobID, completionProjectID, completionStatuses := utils.ExtractJobConditionSet(
+		d,
+	)
+	if !empty {
+		jobCompletionTrigger = map[string]any{
+			"job_id":     completionJobID,
+			"project_id": completionProjectID,
+			"statuses":   completionStatuses,
+		}
+	}
 
 	steps := []string{}
 	for _, step := range executeSteps {
@@ -353,6 +415,7 @@ func resourceJobCreate(
 		selfDeferring,
 		timeoutSeconds,
 		triggersOnDraftPR,
+		jobCompletionTrigger,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -393,7 +456,8 @@ func resourceJobUpdate(
 		d.HasChange("deferring_environment_id") ||
 		d.HasChange("self_deferring") ||
 		d.HasChange("timeout_seconds") ||
-		d.HasChange("triggers_on_drat_pr") {
+		d.HasChange("triggers_on_drat_pr") ||
+		d.HasChange("job_completion_trigger_condition") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -536,6 +600,24 @@ func resourceJobUpdate(
 		if d.HasChange("triggers_on_draft_pr") {
 			triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
 			job.TriggersOnDraftPR = triggersOnDraftPR
+		}
+		if d.HasChange("job_completion_trigger_condition") {
+
+			empty, completionJobID, completionProjectID, completionStatuses := utils.ExtractJobConditionSet(
+				d,
+			)
+			if empty {
+				job.JobCompletionTrigger = nil
+			} else {
+				jobCondTrigger := dbt_cloud.JobCompletionTrigger{
+					Condition: dbt_cloud.JobCompletionTriggerCondition{
+						JobID:     completionJobID,
+						ProjectID: completionProjectID,
+						Statuses:  completionStatuses,
+					},
+				}
+				job.JobCompletionTrigger = &jobCondTrigger
+			}
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

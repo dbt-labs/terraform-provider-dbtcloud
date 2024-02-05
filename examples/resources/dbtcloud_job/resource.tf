@@ -53,3 +53,30 @@ resource "dbtcloud_job" "ci_job" {
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
 }
+
+# a job that is set to be triggered after another job finishes
+# this is sometimes referred as 'job chaining'
+resource "dbtcloud_job" "downstream_job" {
+  environment_id = dbtcloud_environment.project2_prod_environment.environment_id
+  execute_steps = [
+    "dbt build -s +my_model"
+  ]
+  generate_docs            = true
+  name                     = "Downstream job in project 2"
+  num_threads              = 32
+  project_id               = dbtcloud_project.dbt_project2.id
+  run_generate_sources     = true
+  triggers = {
+    "custom_branch_only" : false,
+    "github_webhook" : false,
+    "git_provider_webhook" : false,
+    "schedule" : false
+  }
+  schedule_days = [0, 1, 2, 3, 4, 5, 6]
+  schedule_type = "days_of_week"
+  job_completion_trigger_condition {
+    job_id = dbtcloud_job.daily_job.id
+    project_id = dbtcloud_project.dbt_project.id
+    statuses = ["success"]
+  }
+}

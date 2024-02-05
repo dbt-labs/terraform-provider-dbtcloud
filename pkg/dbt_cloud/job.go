@@ -47,25 +47,36 @@ type JobExecution struct {
 	Timeout_Seconds int `json:"timeout_seconds"`
 }
 
+type JobCompletionTrigger struct {
+	Condition JobCompletionTriggerCondition `json:"condition"`
+}
+
+type JobCompletionTriggerCondition struct {
+	JobID     int   `json:"job_id"`
+	ProjectID int   `json:"project_id"`
+	Statuses  []int `json:"statuses"`
+}
+
 type Job struct {
-	ID                     *int         `json:"id"`
-	Account_Id             int          `json:"account_id"`
-	Project_Id             int          `json:"project_id"`
-	Environment_Id         int          `json:"environment_id"`
-	Name                   string       `json:"name"`
-	Description            string       `json:"description"`
-	Execute_Steps          []string     `json:"execute_steps"`
-	Dbt_Version            *string      `json:"dbt_version"`
-	Triggers               JobTrigger   `json:"triggers"`
-	Settings               JobSettings  `json:"settings"`
-	State                  int          `json:"state"`
-	Generate_Docs          bool         `json:"generate_docs"`
-	Schedule               JobSchedule  `json:"schedule"`
-	Run_Generate_Sources   bool         `json:"run_generate_sources"`
-	Deferring_Job_Id       *int         `json:"deferring_job_definition_id"`
-	DeferringEnvironmentId *int         `json:"deferring_environment_id"`
-	Execution              JobExecution `json:"execution"`
-	TriggersOnDraftPR      bool         `json:"triggers_on_draft_pr"`
+	ID                     *int                  `json:"id"`
+	Account_Id             int                   `json:"account_id"`
+	Project_Id             int                   `json:"project_id"`
+	Environment_Id         int                   `json:"environment_id"`
+	Name                   string                `json:"name"`
+	Description            string                `json:"description"`
+	Execute_Steps          []string              `json:"execute_steps"`
+	Dbt_Version            *string               `json:"dbt_version"`
+	Triggers               JobTrigger            `json:"triggers"`
+	Settings               JobSettings           `json:"settings"`
+	State                  int                   `json:"state"`
+	Generate_Docs          bool                  `json:"generate_docs"`
+	Schedule               JobSchedule           `json:"schedule"`
+	Run_Generate_Sources   bool                  `json:"run_generate_sources"`
+	Deferring_Job_Id       *int                  `json:"deferring_job_definition_id"`
+	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
+	Execution              JobExecution          `json:"execution"`
+	TriggersOnDraftPR      bool                  `json:"triggers_on_draft_pr"`
+	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
@@ -115,6 +126,7 @@ func (c *Client) CreateJob(
 	selfDeferring bool,
 	timeoutSeconds int,
 	triggersOnDraftPR bool,
+	jobCompletionTriggerCondition map[string]any,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -176,6 +188,19 @@ func (c *Client) CreateJob(
 		Timeout_Seconds: timeoutSeconds,
 	}
 
+	jobCompletionTrigger := &JobCompletionTrigger{}
+	if len(jobCompletionTriggerCondition) == 0 {
+		jobCompletionTrigger = nil
+	} else {
+		jobCompletionTrigger = &JobCompletionTrigger{
+			Condition: JobCompletionTriggerCondition{
+				JobID:     jobCompletionTriggerCondition["job_id"].(int),
+				ProjectID: jobCompletionTriggerCondition["project_id"].(int),
+				Statuses:  jobCompletionTriggerCondition["statuses"].([]int),
+			},
+		}
+	}
+
 	newJob := Job{
 		Account_Id:           c.AccountID,
 		Project_Id:           projectId,
@@ -191,6 +216,7 @@ func (c *Client) CreateJob(
 		Run_Generate_Sources: runGenerateSources,
 		Execution:            jobExecution,
 		TriggersOnDraftPR:    triggersOnDraftPR,
+		JobCompletionTrigger: jobCompletionTrigger,
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion
