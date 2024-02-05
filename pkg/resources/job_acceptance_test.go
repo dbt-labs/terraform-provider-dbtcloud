@@ -16,7 +16,10 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// for deferral
 	jobName3 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// for job chaining
+	jobName4 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -96,6 +99,42 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 						"run_generate_sources",
 					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
+				),
+			},
+			// JOB CHAINING
+			{
+				Config: testAccDbtCloudJobResourceJobChaining(
+					jobName2,
+					projectName,
+					environmentName,
+					jobName4,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job_4",
+						"job_completion_trigger_condition.#",
+						"1",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_job.test_job_4",
+						"job_completion_trigger_condition.0.job_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_job.test_job_4",
+						"job_completion_trigger_condition.0.project_id",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job_4",
+						"job_completion_trigger_condition.0.statuses.*",
+						"error",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job_4",
+						"job_completion_trigger_condition.0.statuses.*",
+						"success",
+					),
 				),
 			},
 			// DEFERRING JOBS (depends on whether DBT_LEGACY_JOB_DEFERRAL is set, e.g. whether the new CI is set)
@@ -220,6 +259,74 @@ resource "dbtcloud_job" "test_job" {
   timeout_seconds = 180
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION)
+}
+
+func testAccDbtCloudJobResourceJobChaining(
+	jobName, projectName, environmentName, jobName4 string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "development"
+}
+
+resource "dbtcloud_environment" "test_job_environment_new" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "DEPL %s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment_new.environment_id
+  dbt_version = "%s"
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": true,
+    "custom_branch_only": false,
+  }
+  is_active = true
+  num_threads = 37
+  target_name = "test"
+  run_generate_sources = true
+  generate_docs = true
+  schedule_type = "every_day"
+  schedule_hours = [9, 17]
+  timeout_seconds = 180
+}
+
+resource "dbtcloud_job" "test_job_4" {
+	name        = "%s"
+	project_id = dbtcloud_project.test_job_project.id
+	environment_id = dbtcloud_environment.test_job_environment.environment_id
+	execute_steps = [
+	  "dbt build +my_model"
+	]
+	triggers = {
+	  "github_webhook": false,
+	  "git_provider_webhook": false,
+	  "schedule": false,
+	  "custom_branch_only": false,
+	}
+	job_completion_trigger_condition {
+		job_id = dbtcloud_job.test_job.id
+		project_id = dbtcloud_project.test_job_project.id
+		statuses = ["error", "success"]
+	}
+  }
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName4)
 }
 
 func testAccDbtCloudJobResourceDeferringConfig(

@@ -6,8 +6,10 @@ import (
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/samber/lo"
 )
 
 var jobSchema = map[string]*schema.Schema{
@@ -71,6 +73,31 @@ var jobSchema = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "Whether the CI job should be automatically triggered on draft PRs",
 	},
+	"job_completion_trigger_condition": &schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"job_id": {
+					Type:        schema.TypeInt,
+					Computed:    true,
+					Description: "The ID of the job that would trigger this job after completion.",
+				},
+				"project_id": {
+					Type:        schema.TypeInt,
+					Computed:    true,
+					Description: "The ID of the project where the trigger job is running in.",
+				},
+				"statuses": {
+					Type:        schema.TypeSet,
+					Elem:        &schema.Schema{Type: schema.TypeString},
+					Computed:    true,
+					Description: "List of statuses to trigger the job on.",
+				},
+			},
+		},
+		Description: "Which other job should trigger this job when it finishes, and on which conditions.",
+	},
 }
 
 func DatasourceJob() *schema.Resource {
@@ -80,7 +107,11 @@ func DatasourceJob() *schema.Resource {
 	}
 }
 
-func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func datasourceJobRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -130,6 +161,28 @@ func datasourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 	if err := d.Set("triggers_on_draft_pr", job.TriggersOnDraftPR); err != nil {
 		return diag.FromErr(err)
+	}
+
+	if job.JobCompletionTrigger == nil {
+		if err := d.Set("job_completion_trigger_condition", nil); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		triggerCondition := job.JobCompletionTrigger.Condition
+		// we convert the statuses from ID to human-readable strings
+		statusesNames := lo.Map(triggerCondition.Statuses, func(status int, idx int) any {
+			return utils.JobCompletionTriggerConditionsMappingCodeHuman[status]
+		})
+		triggerConditionMap := map[string]any{
+			"job_id":     triggerCondition.JobID,
+			"project_id": triggerCondition.ProjectID,
+			"statuses":   statusesNames,
+		}
+		triggerConditionSet := utils.JobConditionMapToSet(triggerConditionMap)
+
+		if err := d.Set("job_completion_trigger_condition", triggerConditionSet); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	d.SetId(jobId)
