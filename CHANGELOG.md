@@ -2,10 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.19...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.20...HEAD)
 
+## [0.2.20](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.19...v0.2.20)
 
-## [0.2.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.18...v0.2.19)
+## Changes
+
+- Add support for job chaining and `job_completion_trigger_condition` (feature is in closed Beta in dbt Cloud as of 5 FEB 2024)
+
+## Documentations
+
+- Improve docs for jobs
+
+## [0.2.19](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.18...v0.2.19)
 
 ## Changes
 
