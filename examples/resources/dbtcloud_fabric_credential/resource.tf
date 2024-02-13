@@ -1,5 +1,5 @@
 # when using AD authentication
-resource "dbtcloud_databricks_credential" "my_databricks_cred" {
+resource "dbtcloud_fabric_credential" "my_fabric_cred_ad" {
   project_id           = dbtcloud_project.dbt_project.id
   adapter_id           = dbtcloud_fabric_connection.my_fabric_connection.adapter_id
   schema               = "my_schema"
@@ -9,7 +9,7 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
 }
 
 # when using service principal authentication
-resource "dbtcloud_databricks_credential" "my_spark_cred" {
+resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ" {
   project_id           = dbtcloud_project.dbt_project.id
   adapter_id           = dbtcloud_fabric_connection.my_fabric_connection.adapter_id
   schema               = "my_schema"

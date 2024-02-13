@@ -13,7 +13,6 @@ description: |-
 Those improvements include modifications to deferral which was historically set at the job level and will now be set at the environment level. 
 Deferral can still be set to "self" by setting `self_deferring` to `true` but with the new approach, deferral to other runs need to be done with `deferring_environment_id` instead of `deferring_job_id`.
 
-
 ~> As of beginning of February 2024, job chaining with `job_completion_trigger_condition` is in private beta and not available to all users.
 <br/>
 <br/>
@@ -116,7 +115,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `execute_steps` (List of String) List of commands to execute for the job
 - `name` (String) Job name
 - `project_id` (Number) Project ID to create the job in
-- `triggers` (Map of Boolean) Flags for which types of triggers to use, possible values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment. To create a job in a 'deactivated' state, set all to `false`.
+- `triggers` (Map of Boolean) Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment. To create a job in a 'deactivated' state, set all to `false`.
 
 ### Optional
 
