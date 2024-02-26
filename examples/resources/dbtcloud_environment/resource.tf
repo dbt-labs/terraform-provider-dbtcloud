@@ -3,7 +3,7 @@
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_environment" "ci_environment" {
-  // the dbt_version is always major.minor.0-latest or major.minor.0-pre
+  // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (Beta on 15 Feb 2024, to always be on the latest dbt version)
   dbt_version   = "1.6.0-latest"
   name          = "CI"
   project_id    = dbtcloud_project.dbt_project.id

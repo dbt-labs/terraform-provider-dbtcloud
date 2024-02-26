@@ -18,7 +18,7 @@ description: |-
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_environment" "ci_environment" {
-  // the dbt_version is always major.minor.0-latest or major.minor.0-pre
+  // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (Beta on 15 Feb 2024, to always be on the latest dbt version)
   dbt_version   = "1.6.0-latest"
   name          = "CI"
   project_id    = dbtcloud_project.dbt_project.id
@@ -50,7 +50,7 @@ resource "dbtcloud_environment" "dev_environment" {
 
 ### Required
 
-- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` or `major.minor.0-pre`, e.g. `1.5.0-latest`
+- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. In a future version of the provider `versionless` will be the default if no version is provided
 - `name` (String) Environment name
 - `project_id` (Number) Project ID to create the environment in
 - `type` (String) The type of environment (must be either development or deployment)

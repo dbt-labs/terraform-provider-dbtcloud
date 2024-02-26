@@ -44,7 +44,7 @@ func ResourceEnvironment() *schema.Resource {
 			"dbt_version": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` or `major.minor.0-pre`, e.g. `1.5.0-latest`",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. In a future version of the provider `versionless` will be the default if no version is provided",
 			},
 			"type": &schema.Schema{
 				Type:        schema.TypeString,
@@ -59,7 +59,14 @@ func ResourceEnvironment() *schema.Resource {
 						"deployment":
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either development or deployment, got: %q", key, type_))
+					errs = append(
+						errs,
+						fmt.Errorf(
+							"%q must be either development or deployment, got: %q",
+							key,
+							type_,
+						),
+					)
 					return
 				},
 			},
@@ -99,7 +106,11 @@ func ResourceEnvironment() *schema.Resource {
 	}
 }
 
-func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -115,7 +126,18 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 	deploymentType := d.Get("deployment_type").(string)
 	extendedAttributesID := d.Get("extended_attributes_id").(int)
 
-	environment, err := c.CreateEnvironment(isActive, projectId, name, dbtVersion, type_, useCustomBranch, customBranch, credentialId, deploymentType, extendedAttributesID)
+	environment, err := c.CreateEnvironment(
+		isActive,
+		projectId,
+		name,
+		dbtVersion,
+		type_,
+		useCustomBranch,
+		customBranch,
+		credentialId,
+		deploymentType,
+		extendedAttributesID,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -127,7 +149,11 @@ func resourceEnvironmentCreate(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
-func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -188,7 +214,11 @@ func resourceEnvironmentRead(ctx context.Context, d *schema.ResourceData, m inte
 	return diags
 }
 
-func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -269,7 +299,11 @@ func resourceEnvironmentUpdate(ctx context.Context, d *schema.ResourceData, m in
 	return resourceEnvironmentRead(ctx, d, m)
 }
 
-func resourceEnvironmentDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceEnvironmentDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
