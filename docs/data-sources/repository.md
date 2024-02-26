@@ -22,7 +22,7 @@ description: |-
 
 ### Optional
 
-- `fetch_deploy_key` (Boolean) Whether we should return the public deploy key
+- `fetch_deploy_key` (Boolean, Deprecated) Whether we should return the public deploy key
 
 ### Read-Only
 
