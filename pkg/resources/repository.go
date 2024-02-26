@@ -91,6 +91,7 @@ func ResourceRepository() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 				Description: "Whether we should return the public deploy key - (for the `deploy_key` strategy)",
+				Deprecated:  "This field is deprecated and will be removed in a future version of the provider, please remove it from your configuration. The key is always fetched when the clone strategy is `deploy_key`",
 			},
 			"deploy_key": &schema.Schema{
 				Type:        schema.TypeString,
@@ -157,9 +158,8 @@ func resourceRepositoryRead(
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
-	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
-	repository, err := c.GetRepository(repositoryIdString, projectIdString, fetchDeployKey)
+	repository, err := c.GetRepository(repositoryIdString, projectIdString)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			d.SetId("")
@@ -219,10 +219,9 @@ func resourceRepositoryUpdate(
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
 	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
-	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
 	if d.HasChange("is_active") {
-		repository, err := c.GetRepository(repositoryIdString, projectIdString, fetchDeployKey)
+		repository, err := c.GetRepository(repositoryIdString, projectIdString)
 		if err != nil {
 			return diag.FromErr(err)
 		}

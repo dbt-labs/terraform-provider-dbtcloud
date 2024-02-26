@@ -134,6 +134,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
+  fetch_deploy_key = true
   depends_on = [dbtcloud_project.test_project]
 }
 `, projectName, repoUrl)
@@ -182,7 +183,7 @@ func testAccCheckDbtCloudRepositoryExists(resource string) resource.TestCheckFun
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
 		repositoryId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
 
-		_, err := apiClient.GetRepository(repositoryId, projectId, false)
+		_, err := apiClient.GetRepository(repositoryId, projectId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -200,7 +201,7 @@ func testAccCheckDbtCloudRepositoryDestroy(s *terraform.State) error {
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
 		repositoryId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
 
-		_, err := apiClient.GetRepository(repositoryId, projectId, false)
+		_, err := apiClient.GetRepository(repositoryId, projectId)
 		if err == nil {
 			return fmt.Errorf("Repository still exists")
 		}

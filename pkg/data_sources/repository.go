@@ -25,6 +25,7 @@ var repositorySchema = map[string]*schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
+		Deprecated:  "This field is deprecated and will be removed in a future version of the provider. The key is always fetched when the clone strategy is `deploy_key`",
 		Description: "Whether we should return the public deploy key",
 	},
 	"is_active": &schema.Schema{
@@ -71,16 +72,22 @@ func DatasourceRepository() *schema.Resource {
 	}
 }
 
-func datasourceRepositoryRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func datasourceRepositoryRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
 
 	repositoryID := d.Get("repository_id").(int)
 	projectID := d.Get("project_id").(int)
-	fetchDeployKey := d.Get("fetch_deploy_key").(bool)
 
-	repository, err := c.GetRepository(strconv.Itoa(repositoryID), strconv.Itoa(projectID), fetchDeployKey)
+	repository, err := c.GetRepository(
+		strconv.Itoa(repositoryID),
+		strconv.Itoa(projectID),
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}

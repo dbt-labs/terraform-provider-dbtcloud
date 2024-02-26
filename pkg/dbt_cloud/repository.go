@@ -43,7 +43,6 @@ type RepositoryResponse struct {
 
 func (c *Client) GetRepository(
 	repositoryID, projectID string,
-	fetch_deploy_key bool,
 ) (*Repository, error) {
 
 	repositoryUrl := fmt.Sprintf(
@@ -53,9 +52,6 @@ func (c *Client) GetRepository(
 		projectID,
 		repositoryID,
 	)
-	if fetch_deploy_key {
-		repositoryUrl += "?include_related['deploy_key']"
-	}
 
 	req, err := http.NewRequest("GET", repositoryUrl, nil)
 	if err != nil {
