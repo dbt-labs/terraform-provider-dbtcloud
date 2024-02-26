@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.20...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.21...HEAD)
+
+## [0.2.21](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.20...v0.2.21)
+
+## Changes
+
+- Flag `fetch_deploy_key` as deprecated for `dbtcloud_repository`. The key is always fetched for the genetic git clone approach
+
+## Documentations
+
+- Add info about `versionless` dbt environment (Private Beta)
+- [#235](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/235) Fix docs on the examples for Fabric credentials
 
 ## [0.2.20](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.19...v0.2.20)
 
