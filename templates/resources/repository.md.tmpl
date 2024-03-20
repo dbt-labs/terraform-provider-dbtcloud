@@ -7,8 +7,10 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-*Note*: Some upstream resources can be slow to create, so if creating a project at
-the same time as the repository, it's recommended to use the `depends_on` meta argument.
+This resource allows you to manage connections to git repositories in dbt Cloud.
+
+By itself, this resource won't show you the repository in the dbt Cloud UI. 
+You will need to also set up a [`dbtcloud_project_repository` resource](https://registry.terraform.io/providers/dbt-labs/dbtcloud/latest/docs/resources/project_repository) as well to link your dbt Cloud project and the git repository.
 
 In order to find the `github_installation_id`, you can log in to dbt Cloud, replace `<dbt_cloud_url>` by your dbt Cloud
 URL and run the following commands in the Google Chrome console:

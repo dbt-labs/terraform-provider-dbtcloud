@@ -36,10 +36,15 @@ func ResourceProjectRepository() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Description: "This resource allows you to link a dbt Cloud project to a git repository.",
 	}
 }
 
-func resourceProjectRepositoryCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectRepositoryCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -67,7 +72,11 @@ func resourceProjectRepositoryCreate(ctx context.Context, d *schema.ResourceData
 	return diags
 }
 
-func resourceProjectRepositoryRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectRepositoryRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -97,7 +106,11 @@ func resourceProjectRepositoryRead(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-func resourceProjectRepositoryDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectRepositoryDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
