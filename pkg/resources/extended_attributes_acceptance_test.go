@@ -26,33 +26,78 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step1"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists("dbtcloud_extended_attributes.test_extended_attributes"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "project_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes"),
-					resource.TestCheckResourceAttr("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes", "{\"catalog\":\"dbt_catalog\",\"http_path\":\"/sql/your/http/path\",\"my_nested_field\":{\"subfield\":\"my_value\"},\"type\":\"databricks\"}"),
+					testAccCheckDbtCloudExtendedAttributesExists(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"project_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+						"{\"catalog\":\"dbt_catalog\",\"http_path\":\"/sql/your/http/path\",\"my_nested_field\":{\"subfield\":\"my_value\"},\"type\":\"databricks\"}",
+					),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists("dbtcloud_extended_attributes.test_extended_attributes"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "project_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes"),
-					resource.TestCheckResourceAttr("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes", "{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}"),
+					testAccCheckDbtCloudExtendedAttributesExists(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"project_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+						"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
+					),
 				),
 			},
 			// REMOVE FROM ENVIRONMENT
 			{
 				Config: testAccDbtCloudExtendedAttributesResourceUnlinked(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists("dbtcloud_extended_attributes.test_extended_attributes"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "project_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes"),
-					resource.TestCheckResourceAttr("dbtcloud_extended_attributes.test_extended_attributes", "extended_attributes", "{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}"),
+					testAccCheckDbtCloudExtendedAttributesExists(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"project_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_extended_attributes.test_extended_attributes",
+						"extended_attributes",
+						"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
+					),
 				),
 			},
 			// IMPORT
@@ -83,13 +128,13 @@ func testAccDbtCloudExtendedAttributesResourceConfig(projectName, step string) s
 		  )
 		`
 	} else if step == "step2" {
-		extendedAttributes = `jsonencode(
-			{
-			  type      = "databricks"
-			  catalog   = "dbt_catalog_new"
-			}
-		  )
-		`
+		// try the "Heredoc" syntax instead of the jsonencode function
+		extendedAttributes = `<<EOF
+		{
+		  "catalog": "dbt_catalog_new",
+		  "type": "databricks"
+		}
+		EOF`
 	}
 
 	return fmt.Sprintf(`
@@ -153,7 +198,9 @@ func testAccCheckDbtCloudExtendedAttributesExists(resource string) resource.Test
 		if err != nil {
 			return fmt.Errorf("Can't get projectID")
 		}
-		extendedAttributesID, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
+		extendedAttributesID, err := strconv.Atoi(
+			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1],
+		)
 		if err != nil {
 			return fmt.Errorf("Can't get extendedAttributesID")
 		}
@@ -177,7 +224,9 @@ func testAccCheckDbtCloudExtendedAttributesDestroy(s *terraform.State) error {
 		if err != nil {
 			return fmt.Errorf("Can't get projectID")
 		}
-		extendedAttributesID, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
+		extendedAttributesID, err := strconv.Atoi(
+			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1],
+		)
 		if err != nil {
 			return fmt.Errorf("Can't get extendedAttributesID")
 		}

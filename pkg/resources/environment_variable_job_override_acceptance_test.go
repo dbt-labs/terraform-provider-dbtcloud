@@ -141,7 +141,6 @@ resource dbtcloud_job test_job_sched {
   name = "%s"
   project_id = dbtcloud_project.test_project.id
   triggers = {
-    "custom_branch_only" : false,
     "github_webhook" : false,
     "git_provider_webhook" : false,
     "schedule" : false

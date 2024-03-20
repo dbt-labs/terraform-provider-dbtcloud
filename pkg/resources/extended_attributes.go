@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -40,6 +41,16 @@ func ResourceExtendedAttributes() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "A JSON string listing the extended attributes mapping. The keys are the connections attributes available in the `profiles.yml` for a given adapter. Any fields entered will override connection details or credentials set on the environment or project. To avoid incorrect Terraform diffs, it is recommended to create this string using `jsonencode` in your Terraform code. (see example)",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					var oldJSON, newJSON map[string]interface{}
+					if err := json.Unmarshal([]byte(old), &oldJSON); err != nil {
+						return false
+					}
+					if err := json.Unmarshal([]byte(new), &newJSON); err != nil {
+						return false
+					}
+					return reflect.DeepEqual(oldJSON, newJSON)
+				},
 			},
 		},
 
@@ -51,7 +62,11 @@ func ResourceExtendedAttributes() *schema.Resource {
 	}
 }
 
-func resourceExtendedAttributesCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceExtendedAttributesCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -66,14 +81,25 @@ func resourceExtendedAttributesCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	d.SetId(fmt.Sprintf("%d%s%d", extendedAttributes.ProjectID, dbt_cloud.ID_DELIMITER, *extendedAttributes.ID))
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			extendedAttributes.ProjectID,
+			dbt_cloud.ID_DELIMITER,
+			*extendedAttributes.ID,
+		),
+	)
 
 	resourceExtendedAttributesRead(ctx, d, m)
 
 	return diags
 }
 
-func resourceExtendedAttributesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceExtendedAttributesRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -98,7 +124,6 @@ func resourceExtendedAttributesRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if err := d.Set("extended_attributes_id", &extendedAttributes.ID); err != nil {
-		// return diag.FromErr(fmt.Errorf("BPER: %s", &extendedAttributes.ID))
 		return diag.FromErr(err)
 	}
 	if err := d.Set("state", extendedAttributes.State); err != nil {
@@ -131,7 +156,11 @@ func resourceExtendedAttributesRead(ctx context.Context, d *schema.ResourceData,
 // 	return !reflect.DeepEqual(objOld, objNew)
 // }
 
-func resourceExtendedAttributesUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceExtendedAttributesUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
@@ -148,7 +177,7 @@ func resourceExtendedAttributesUpdate(ctx context.Context, d *schema.ResourceDat
 
 	if d.HasChange("state") ||
 		d.HasChange("project_id") ||
-		d.HasChange("extended_attributes") { //BPER - update logic here
+		d.HasChange("extended_attributes") {
 
 		extendedAttributes, err := c.GetExtendedAttributes(projectId, extendedAttributesId)
 		if err != nil {
@@ -177,7 +206,11 @@ func resourceExtendedAttributesUpdate(ctx context.Context, d *schema.ResourceDat
 	return resourceExtendedAttributesRead(ctx, d, m)
 }
 
-func resourceExtendedAttributesDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceExtendedAttributesDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics

@@ -176,10 +176,14 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbtcloud_job.test_job",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
+				ImportStateVerifyIgnore: []string{
+					"triggers.%",
+					"triggers.custom_branch_only",
+				},
 			},
 		},
 	})
@@ -209,7 +213,6 @@ resource "dbtcloud_job" "test_job" {
     "github_webhook": false,
     "git_provider_webhook": false,
     "schedule": false,
-    "custom_branch_only": false,
   }
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
@@ -295,7 +298,7 @@ resource "dbtcloud_job" "test_job" {
     "github_webhook": false,
     "git_provider_webhook": false,
     "schedule": true,
-    "custom_branch_only": false,
+    "custom_branch_only": true,
   }
   is_active = true
   num_threads = 37
@@ -318,7 +321,6 @@ resource "dbtcloud_job" "test_job_4" {
 	  "github_webhook": false,
 	  "git_provider_webhook": false,
 	  "schedule": false,
-	  "custom_branch_only": false,
 	}
 	job_completion_trigger_condition {
 		job_id = dbtcloud_job.test_job.id
@@ -365,7 +367,6 @@ resource "dbtcloud_job" "test_job" {
     "github_webhook": false,
     "git_provider_webhook": false,
     "schedule": true,
-    "custom_branch_only": false,
   }
   is_active = true
   num_threads = 37
@@ -388,7 +389,6 @@ resource "dbtcloud_job" "test_job_2" {
     "github_webhook": false,
     "git_provider_webhook": false,
     "schedule": false,
-    "custom_branch_only": false,
   }
   %s
 }
@@ -404,7 +404,6 @@ resource "dbtcloud_job" "test_job_3" {
 	  "github_webhook": false,
 	  "git_provider_webhook": false,
 	  "schedule": false,
-	  "custom_branch_only": false,
 	}
 	%s
   }

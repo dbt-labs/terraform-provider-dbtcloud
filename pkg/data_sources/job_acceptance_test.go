@@ -60,7 +60,6 @@ func jobs(jobName string) string {
             "dbt run"
         ]
         triggers = {
-          "custom_branch_only" : false,
           "github_webhook" : false,
           "schedule" : false,
           "git_provider_webhook": false

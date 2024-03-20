@@ -24,9 +24,15 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudProjectArtefactsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudProjectArtefactsResourceBasicConfig(projectName, environmentName, jobName),
+				Config: testAccDbtCloudProjectArtefactsResourceBasicConfig(
+					projectName,
+					environmentName,
+					jobName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectArtefactsExists("dbtcloud_project_artefacts.test_project_artefacts"),
+					testAccCheckDbtCloudProjectArtefactsExists(
+						"dbtcloud_project_artefacts.test_project_artefacts",
+					),
 				),
 			},
 			// IMPORT
@@ -47,7 +53,9 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudProjectArtefactsResourceBasicConfig(projectName, environmentName, jobName string) string {
+func testAccDbtCloudProjectArtefactsResourceBasicConfig(
+	projectName, environmentName, jobName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_artefacts_project" {
 	name = "%s"
@@ -71,7 +79,6 @@ resource "dbtcloud_job" "test_job" {
 	"github_webhook": false,
 	"git_provider_webhook": false,
 	"schedule": false,
-	"custom_branch_only": false,
 	}
 	run_generate_sources = true
 	generate_docs = true

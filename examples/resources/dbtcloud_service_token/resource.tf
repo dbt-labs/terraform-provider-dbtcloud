@@ -14,6 +14,3 @@ resource "dbtcloud_service_token" "test_service_token" {
     project_id     = dbtcloud_project.dbt_project.id
   }
 }
-
-// permission_set accepts one of the following values:
-// "account_admin","admin","database_admin","git_admin","team_admin","job_admin","job_viewer","analyst","developer","stakeholder","readonly","project_creator","account_viewer","metadata_only"

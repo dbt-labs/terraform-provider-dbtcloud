@@ -73,7 +73,7 @@ var jobSchema = map[string]*schema.Schema{
 			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `custom_branch_only`. <br>`custom_branch_only` is only relevant for CI jobs triggered automatically on PR creation to only trigger a job on a PR to the custom branch of the environment. To create a job in a 'deactivated' state, set all to `false`.",
+		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, and `schedule`. <br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -302,6 +302,15 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(job.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
+
+	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
+	// we set the state to the current config value, so it doesn't do anything
+	listedTriggers := d.Get("triggers").(map[string]interface{})
+	listedCustomBranchOnly, ok := listedTriggers["custom_branch_only"].(bool)
+	if ok {
+		triggers["custom_branch_only"] = listedCustomBranchOnly
+	}
+
 	if err := d.Set("triggers", triggers); err != nil {
 		return diag.FromErr(err)
 	}
@@ -520,10 +529,6 @@ func resourceJobUpdate(
 			job.Triggers.Schedule, ok = newTriggers["schedule"].(bool)
 			if !ok {
 				return diag.FromErr(fmt.Errorf("schedule was not provided"))
-			}
-			job.Triggers.Custom_Branch_Only, ok = newTriggers["custom_branch_only"].(bool)
-			if !ok {
-				return diag.FromErr(fmt.Errorf("custom_branch_only was not provided"))
 			}
 		}
 		if d.HasChange("schedule_type") {

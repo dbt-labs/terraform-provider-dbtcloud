@@ -15,9 +15,20 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 	config := notification(randomProjectName)
 
 	check := resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_notification.test_notification_external", "notification_type", "4"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_notification.test_notification_external", "on_failure.0"),
-		resource.TestCheckResourceAttr("data.dbtcloud_notification.test_notification_external", "external_email", "nomail@mail.com"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_notification.test_notification_external",
+			"notification_type",
+			"4",
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_notification.test_notification_external",
+			"on_failure.0",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_notification.test_notification_external",
+			"external_email",
+			"nomail@mail.com",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,7 +66,6 @@ func notification(projectName string) string {
 			"github_webhook" : false,
 			"git_provider_webhook" : false,
 			"schedule" : false,
-			"custom_branch_only" : false,
 		}
 	}
 
