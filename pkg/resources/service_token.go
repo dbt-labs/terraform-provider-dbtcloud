@@ -11,32 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-var (
-	servicetokenPermissionSets = []string{
-		"owner",
-		"member",
-		"account_admin",
-		"security_admin",
-		"billing_admin",
-		"admin",
-		"database_admin",
-		"git_admin",
-		"team_admin",
-		"job_admin",
-		"job_runner",
-		"job_viewer",
-		"analyst",
-		"developer",
-		"stakeholder",
-		"readonly",
-		"project_creator",
-		"account_viewer",
-		"metadata_only",
-		"semantic_layer_only",
-		"webhooks_only",
-	}
-)
-
 func ResourceServiceToken() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceServiceTokenCreate,
@@ -79,7 +53,7 @@ func ResourceServiceToken() *schema.Resource {
 							Required:    true,
 							Description: "Set of permissions to apply",
 							ValidateFunc: validation.StringInSlice(
-								servicetokenPermissionSets,
+								dbt_cloud.PermissionSets,
 								false,
 							),
 						},

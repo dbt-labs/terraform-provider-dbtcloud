@@ -7,7 +7,34 @@ description: |-
 
 # dbtcloud_group (Resource)
 
-*Note*: Groups currently do not support updates, as per both the API and the UI.
+The mapping of permission names [from the docs](https://docs.getdbt.com/docs/cloud/manage-access/enterprise-permissions) to the permissions to set in Terraform is the following:
+
+|Permission name......... | Permission code|
+|-- | --|
+|Account Admin | account_admin|
+|Account Viewer | account_viewer|
+|Admin | admin|
+|Analyst | analyst|
+|Billing Admin | billing_admin|
+|Database Admin | database_admin|
+|Developer | developer|
+|Git Admin | git_admin|
+|Job Admin | job_admin|
+|Job Runner | job_runner|
+|Job Viewer | job_viewer|
+|Member | member|
+|Metadata Only | metadata_only|
+|Owner | owner|
+|Project Creator | project_creator|
+|Read-Only | readonly|
+|Security Admin | security_admin|
+|Semantic Layer Only | semantic_layer_only|
+|Stakeholder | stakeholder|
+|Team Admin | team_admin|
+|Webhooks Only | webhooks_only|
+
+
+
 
 ## Example Usage
 

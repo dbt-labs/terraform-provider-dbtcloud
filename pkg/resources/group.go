@@ -11,32 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-var (
-	permissionSets = []string{
-		"owner",
-		"member",
-		"account_admin",
-		"security_admin",
-		"billing_admin",
-		"admin",
-		"database_admin",
-		"git_admin",
-		"team_admin",
-		"job_admin",
-		"job_runner",
-		"job_viewer",
-		"analyst",
-		"developer",
-		"stakeholder",
-		"readonly",
-		"project_creator",
-		"account_viewer",
-		"metadata_only",
-		"semantic_layer_only",
-		"webhooks_only",
-	}
-)
-
 func ResourceGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceGroupCreate,
@@ -79,7 +53,7 @@ func ResourceGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							Description:  "Set of permissions to apply",
-							ValidateFunc: validation.StringInSlice(permissionSets, false),
+							ValidateFunc: validation.StringInSlice(dbt_cloud.PermissionSets, false),
 						},
 						"project_id": {
 							Type:        schema.TypeInt,
