@@ -24,28 +24,69 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudNotificationResourceCreateNotifications(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudNotificationExists("dbtcloud_notification.test_notification_internal"),
-					resource.TestCheckResourceAttr("dbtcloud_notification.test_notification_internal", "notification_type", "1"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_internal", "on_success.0"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_internal", "on_cancel.0"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_internal", "on_cancel.1"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_internal", "on_failure.0"),
+					testAccCheckDbtCloudNotificationExists(
+						"dbtcloud_notification.test_notification_internal",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_notification.test_notification_internal",
+						"notification_type",
+						"1",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_success.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_cancel.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_cancel.1",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_failure.0",
+					),
 
-					testAccCheckDbtCloudNotificationExists("dbtcloud_notification.test_notification_external"),
-					resource.TestCheckResourceAttr("dbtcloud_notification.test_notification_external", "notification_type", "4"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_external", "on_failure.0"),
-					resource.TestCheckResourceAttr("dbtcloud_notification.test_notification_external", "external_email", "nomail@mail.com"),
+					testAccCheckDbtCloudNotificationExists(
+						"dbtcloud_notification.test_notification_external",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_notification.test_notification_external",
+						"notification_type",
+						"4",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_external",
+						"on_failure.0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_notification.test_notification_external",
+						"external_email",
+						"nomail@mail.com",
+					),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudNotificationResourceModifyNotifications(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudNotificationExists("dbtcloud_notification.test_notification_internal"),
-					resource.TestCheckNoResourceAttr("dbtcloud_notification.test_notification_internal", "on_cancel.0"),
+					testAccCheckDbtCloudNotificationExists(
+						"dbtcloud_notification.test_notification_internal",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_notification.test_notification_internal",
+						"on_cancel.0",
+					),
 
-					testAccCheckDbtCloudNotificationExists("dbtcloud_notification.test_notification_external"),
-					resource.TestCheckResourceAttrSet("dbtcloud_notification.test_notification_external", "on_cancel.0"),
+					testAccCheckDbtCloudNotificationExists(
+						"dbtcloud_notification.test_notification_external",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_external",
+						"on_cancel.0",
+					),
 				),
 			},
 			// IMPORT
@@ -89,7 +130,6 @@ resource "dbtcloud_job" "test_notification_job_1" {
 		"github_webhook" : false,
 		"git_provider_webhook" : false,
 		"schedule" : false,
-		"custom_branch_only" : false,
 	}
 }
 	
@@ -104,7 +144,6 @@ resource "dbtcloud_job" "test_notification_job_2" {
 		"github_webhook" : false,
 		"git_provider_webhook" : false,
 		"schedule" : false,
-		"custom_branch_only" : false,
 	}
 }
 `, projectName, DBT_CLOUD_VERSION)

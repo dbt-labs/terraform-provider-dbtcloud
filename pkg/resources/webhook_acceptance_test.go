@@ -26,12 +26,34 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 				Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "name", webhookName),
-					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "hmac_secret"),
-					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "account_identifier"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "event_types.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "job_ids.#", "0"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "client_url", "http://localhost/nothing"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"name",
+						webhookName,
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_webhook.test_webhook",
+						"hmac_secret",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_webhook.test_webhook",
+						"account_identifier",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"event_types.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"job_ids.#",
+						"0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"client_url",
+						"http://localhost/nothing",
+					),
 				),
 			},
 			// MODIFY
@@ -39,12 +61,34 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 				Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "name", webhookName2),
-					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "hmac_secret"),
-					resource.TestCheckResourceAttrSet("dbtcloud_webhook.test_webhook", "account_identifier"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "event_types.#", "1"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "job_ids.#", "1"),
-					resource.TestCheckResourceAttr("dbtcloud_webhook.test_webhook", "client_url", "http://localhost/new-nothing"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"name",
+						webhookName2,
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_webhook.test_webhook",
+						"hmac_secret",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_webhook.test_webhook",
+						"account_identifier",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"event_types.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"job_ids.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_webhook.test_webhook",
+						"client_url",
+						"http://localhost/new-nothing",
+					),
 				),
 			},
 			// IMPORT
@@ -101,7 +145,6 @@ resource "dbtcloud_job" "test" {
 	run_generate_sources = false
 	target_name          = "default"
 	triggers = {
-	  "custom_branch_only" : false,
 	  "github_webhook" : false,
 	  "git_provider_webhook" : false,
 	  "schedule" : false

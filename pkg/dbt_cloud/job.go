@@ -11,7 +11,6 @@ import (
 type JobTrigger struct {
 	Github_Webhook     bool `json:"github_webhook"`
 	Schedule           bool `json:"schedule"`
-	Custom_Branch_Only bool `json:"custom_branch_only"`
 	GitProviderWebhook bool `json:"git_provider_webhook"`
 }
 
@@ -140,10 +139,6 @@ func (c *Client) CreateJob(
 	if !s_found {
 		schedule = false
 	}
-	custom_branch_only, cbo_found := triggers["custom_branch_only"]
-	if !cbo_found {
-		custom_branch_only = false
-	}
 	git_provider_webhook, gpw_found := triggers["git_provider_webhook"]
 	if !gpw_found {
 		git_provider_webhook = false
@@ -151,7 +146,6 @@ func (c *Client) CreateJob(
 	jobTriggers := JobTrigger{
 		Github_Webhook:     github_webhook.(bool),
 		Schedule:           schedule.(bool),
-		Custom_Branch_Only: custom_branch_only.(bool),
 		GitProviderWebhook: git_provider_webhook.(bool),
 	}
 	jobSettings := JobSettings{
