@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.21...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.22...HEAD)
+
+## [0.2.22](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.21...v0.2.22)
+
+## Changes
+
+- [#240](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/240) Add notice of deprecation for `triggers.custom_branch_only` for jobs and update logic to make it work even though people have it to true or false in their config. We might raise an error if the field is still there in the future.
+- Update diff calculation for Extended Attributes, allowing strings which are not set with `jsonencode()`
+- [#241](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/241) Force recreation of env vars when values change to work with the recent changes in the dbt Cloud API
+
+## Documentation
+
+- Add list of permission names and permission codes in the docs of the `service_token` and `group`
+- Add info in `dbtcloud_repository` about the need to also create a `dbtcloud_project_repository`
 
 ## [0.2.21](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.20...v0.2.21)
 
