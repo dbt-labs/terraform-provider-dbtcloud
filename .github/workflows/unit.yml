@@ -5,6 +5,9 @@ on:
   merge_group:
     branches:
       - main
+  schedule:
+    # every sunday at 2:45 AM so we catch up issues that might not have been raised yet
+    - cron: '45 2 * * 0'
 
 name: dbt Cloud Integration Tests
 
