@@ -64,6 +64,7 @@ resource "dbtcloud_repository" "github_repo_other" {
 
 ### repo cloned via the GitLab integration
 # as of 15 Sept 2023 this resource requires using a user token and can't be set with a service token - CC-791
+# for better clarity, you can add a null_resource with precondition to throw an error during apply if the repository is created with a service token
 resource "dbtcloud_repository" "gitlab_repo" {
   project_id         = dbtcloud_project.dbt_project.id
   remote_url         = "<gitlab-group>/<gitlab-project>"
@@ -71,6 +72,14 @@ resource "dbtcloud_repository" "gitlab_repo" {
   git_clone_strategy = "deploy_token"
 }
 
+resource "null_resource" "check_repository" {
+  lifecycle {
+    precondition {
+      condition     = dbtcloud_repository.gitlab_repo.repository_credentials_id != 0
+      error_message = "Repositories created with a service token are currently not working properly (https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/192)"
+    }
+  }
+}
 
 ### repo cloned via the deploy token strategy
 resource "dbtcloud_repository" "deploy_repo" {
