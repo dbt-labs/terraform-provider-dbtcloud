@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.22...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.23...HEAD)
+
+## [0.2.23](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.22...v0.2.23)
+
+## Changes
+
+- [#244](https://github.com/dbt-labs/terraform-provider-dbtcloud/pull/244) Better error handling when GitLab repositories are created with a User Token
+
+## Fixes
+
+- [#245](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/245) Issues on `dbtcloud_job` when modifying an existing job schedule
 
 ## [0.2.22](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.21...v0.2.22)
 

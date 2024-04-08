@@ -112,7 +112,7 @@ var jobSchema = map[string]*schema.Schema{
 		Default:       1,
 		Description:   "Number of hours between job executions if running on a schedule",
 		ValidateFunc:  validation.IntBetween(1, 23),
-		ConflictsWith: []string{"schedule_hours"},
+		ConflictsWith: []string{"schedule_hours", "schedule_cron"},
 	},
 	"schedule_hours": &schema.Schema{
 		Type:     schema.TypeList,
@@ -122,7 +122,7 @@ var jobSchema = map[string]*schema.Schema{
 			Type: schema.TypeInt,
 		},
 		Description:   "List of hours to execute the job at if running on a schedule",
-		ConflictsWith: []string{"schedule_interval"},
+		ConflictsWith: []string{"schedule_interval", "schedule_cron"},
 	},
 	"schedule_days": &schema.Schema{
 		Type:     schema.TypeList,
@@ -134,9 +134,10 @@ var jobSchema = map[string]*schema.Schema{
 		Description: "List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule",
 	},
 	"schedule_cron": &schema.Schema{
-		Type:        schema.TypeString,
-		Optional:    true,
-		Description: "Custom cron expression for schedule",
+		Type:          schema.TypeString,
+		Optional:      true,
+		Description:   "Custom cron expression for schedule",
+		ConflictsWith: []string{"schedule_interval", "schedule_hours"},
 	},
 	"deferring_job_id": &schema.Schema{
 		Type:          schema.TypeInt,
@@ -531,10 +532,7 @@ func resourceJobUpdate(
 				return diag.FromErr(fmt.Errorf("schedule was not provided"))
 			}
 		}
-		if d.HasChange("schedule_type") {
-			scheduleType := d.Get("schedule_type").(string)
-			job.Schedule.Date.Type = scheduleType
-		}
+
 		if d.HasChange("schedule_interval") {
 			scheduleInterval := d.Get("schedule_interval").(int)
 			job.Schedule.Time.Interval = scheduleInterval
@@ -551,6 +549,7 @@ func resourceJobUpdate(
 				job.Schedule.Time.Interval = 0
 			} else {
 				job.Schedule.Time.Hours = nil
+				job.Schedule.Time.Interval = d.Get("schedule_interval").(int)
 				job.Schedule.Time.Type = "every_hour"
 			}
 		}
@@ -567,6 +566,21 @@ func resourceJobUpdate(
 			scheduleCron := d.Get("schedule_cron").(string)
 			job.Schedule.Date.Cron = &scheduleCron
 		}
+
+		// we set this after the subfields to remove the fields not matching the schedule type
+		// if it was before, some of those fields would be set again
+		if d.HasChange("schedule_type") {
+			scheduleType := d.Get("schedule_type").(string)
+			job.Schedule.Date.Type = scheduleType
+
+			if scheduleType == "days_of_week" || scheduleType == "every_day" {
+				job.Schedule.Date.Cron = nil
+			}
+			if scheduleType == "custom_cron" || scheduleType == "every_day" {
+				job.Schedule.Date.Days = nil
+			}
+		}
+
 		if d.HasChange("deferring_job_id") {
 			deferringJobId := d.Get("deferring_job_id").(int)
 			if deferringJobId != 0 {

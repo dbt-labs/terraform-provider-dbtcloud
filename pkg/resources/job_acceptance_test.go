@@ -410,6 +410,122 @@ resource "dbtcloud_job" "test_job_3" {
 `, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, selfDefer)
 }
 
+func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudJobResourceScheduleConfig(
+					jobName,
+					projectName,
+					environmentName,
+					"every_day",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+			// MODIFY SCHEDULE
+			{
+				Config: testAccDbtCloudJobResourceScheduleConfig(
+					jobName,
+					projectName,
+					environmentName,
+					"days_of_week",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+			// MODIFY SCHEDULE
+			{
+				Config: testAccDbtCloudJobResourceScheduleConfig(
+					jobName,
+					projectName,
+					environmentName,
+					"custom_cron",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
+				ImportStateVerifyIgnore: []string{
+					"triggers.%",
+					"triggers.custom_branch_only",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobResourceScheduleConfig(
+	jobName, projectName, environmentName, scheduleType string,
+) string {
+
+	scheduleConfig := ""
+	if scheduleType == "every_day" {
+		scheduleConfig = `
+		schedule_type = "every_day"
+		schedule_hours = [1,2,3]`
+	} else if scheduleType == "days_of_week" {
+		scheduleConfig = `
+		schedule_type = "days_of_week"
+		schedule_interval = 2
+  		schedule_days = [1,4]`
+	} else if scheduleType == "custom_cron" {
+		scheduleConfig = `	
+		schedule_cron = "0 21 * * *"
+		schedule_type = "custom_cron"`
+	} else {
+		panic("Incorrect schedule type")
+	}
+
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "development"
+}
+
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+  %s
+}
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, scheduleConfig)
+}
+
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]

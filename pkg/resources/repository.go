@@ -140,6 +140,23 @@ func resourceRepositoryCreate(
 		return diag.FromErr(err)
 	}
 
+	// checking potential issues with the creation of GitLab repositories with service tokens
+	if repository.RepositoryCredentialsID == nil && gitlabProjectID != 0 {
+
+		repositoryIDString := fmt.Sprintf("%d", *repository.ID)
+		projectIDString := fmt.Sprintf("%d", repository.ProjectID)
+		_, err := c.DeleteRepository(repositoryIDString, projectIDString)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		return diag.FromErr(
+			fmt.Errorf(
+				"`repository_credentials_id` is not set after creating the repository. This is likely due to creating the repository with a service token. Only user tokens / personal access tokens are supported for GitLab at the moment",
+			),
+		)
+	}
+
 	d.SetId(fmt.Sprintf("%d%s%d", repository.ProjectID, dbt_cloud.ID_DELIMITER, *repository.ID))
 
 	resourceRepositoryRead(ctx, d, m)
