@@ -171,6 +171,7 @@ func (c *Client) CreateJob(
 	}
 	if scheduleType == "days_of_week" {
 		date.Days = &scheduleDays
+		date.Cron = nil
 	} else if scheduleCron != "" {
 		date.Cron = &scheduleCron
 	}
@@ -263,6 +264,7 @@ func (c *Client) CreateJob(
 }
 
 func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
+
 	jobData, err := json.Marshal(job)
 	if err != nil {
 		return nil, err
