@@ -91,6 +91,11 @@ type APIError struct {
 
 // NewClient -
 func NewClient(account_id *int, token *string, host_url *string) (*Client, error) {
+
+	if (token == nil) || (*token == "") {
+		return nil, fmt.Errorf("token is set but it is empty")
+	}
+
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 30 * time.Second},
 		HostURL:    *host_url,
@@ -98,7 +103,7 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 		AccountID:  *account_id,
 	}
 
-	if (account_id != nil) && (token != nil) {
+	if account_id != nil {
 		url := fmt.Sprintf("%s/v2/accounts/", *host_url)
 
 		// authenticate
