@@ -19,7 +19,7 @@ type WebhookRead struct {
 	Description       string   `json:"description,omitempty"`
 	ClientUrl         string   `json:"client_url"`
 	EventTypes        []string `json:"event_types,omitempty"`
-	JobIds            []string `json:"job_ids,omitempty"`
+	JobIds            []string `json:"job_ids"`
 	Active            bool     `json:"active,omitempty"`
 	HmacSecret        *string  `json:"hmac_secret,omitempty"`
 	HttpStatusCode    *string  `json:"http_status_code,omitempty"`
@@ -32,12 +32,21 @@ type WebhookWrite struct {
 	Description string   `json:"description,omitempty"`
 	ClientUrl   string   `json:"client_url"`
 	EventTypes  []string `json:"event_types,omitempty"`
-	JobIds      []int    `json:"job_ids,omitempty"`
+	JobIds      []int    `json:"job_ids"`
 	Active      bool     `json:"active,omitempty"`
 }
 
 func (c *Client) GetWebhook(webhookID string) (*WebhookRead, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/webhooks/subscription/%s", c.HostURL, strconv.Itoa(c.AccountID), webhookID), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/webhooks/subscription/%s",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			webhookID,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +90,15 @@ func (c *Client) CreateWebhook(
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/webhooks/subscriptions", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(newWebhookData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/webhooks/subscriptions",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+		),
+		strings.NewReader(string(newWebhookData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +123,16 @@ func (c *Client) UpdateWebhook(webhookId string, webhook WebhookWrite) (*Webhook
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v3/accounts/%s/webhooks/subscription/%s", c.HostURL, strconv.Itoa(c.AccountID), webhookId), strings.NewReader(string(webhookData)))
+	req, err := http.NewRequest(
+		"PUT",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/webhooks/subscription/%s",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			webhookId,
+		),
+		strings.NewReader(string(webhookData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +152,16 @@ func (c *Client) UpdateWebhook(webhookId string, webhook WebhookWrite) (*Webhook
 }
 
 func (c *Client) DeleteWebhook(webhookId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/webhooks/subscription/%s", c.HostURL, strconv.Itoa(c.AccountID), webhookId), nil)
+	req, err := http.NewRequest(
+		"DELETE",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/webhooks/subscription/%s",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			webhookId,
+		),
+		nil,
+	)
 	if err != nil {
 		return "", err
 	}
