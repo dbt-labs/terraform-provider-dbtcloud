@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.23...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.24...HEAD)
+
+## [0.2.24](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.23...v0.2.24)
+
+## Fixes
+
+- [#247](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/247) Segfault when the env var for the token is empty
+- [Internal] Issue with `job_ids` required to be set going forward, even if it is empty
 
 ## [0.2.23](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.22...v0.2.23)
 
