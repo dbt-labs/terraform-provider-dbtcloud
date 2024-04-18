@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.24...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.25...HEAD)
+
+## [0.2.25](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.24...v0.2.25)
+
+## Changes
+
+- Enable OAuth configuration for Databricks connections + update docs accordingly
 
 ## [0.2.24](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.23...v0.2.24)
 

@@ -75,7 +75,7 @@ func ResourceConnection() *schema.Resource {
 			"account": &schema.Schema{
 				Type:          schema.TypeString,
 				Optional:      true,
-				Description:   "Account name for the connection",
+				Description:   "Account name for the connection (for Snowflake)",
 				ConflictsWith: []string{"host_name"},
 			},
 			"host_name": &schema.Schema{
@@ -98,37 +98,37 @@ func ResourceConnection() *schema.Resource {
 			"warehouse": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Warehouse name for the connection",
+				Description: "Warehouse name for the connection (for Snowflake)",
 			},
 			"role": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Role name for the connection",
+				Description: "Role name for the connection (for Snowflake)",
 			},
 			"allow_sso": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Whether or not the connection should allow SSO",
+				Description: "Whether or not the connection should allow SSO (for Snowflake)",
 			},
 			"allow_keep_alive": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "Whether or not the connection should allow client session keep alive",
+				Description: "Whether or not the connection should allow client session keep alive (for Snowflake)",
 			},
 			"oauth_client_id": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "OAuth client identifier",
+				Description: "OAuth client identifier (for Snowflake and Databricks)",
 			},
 			"oauth_client_secret": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "OAuth client secret",
+				Description: "OAuth client secret (for Snowflake and Databricks)",
 			},
 			"tunnel_enabled": &schema.Schema{
 				Type:        schema.TypeBool,
@@ -139,17 +139,17 @@ func ResourceConnection() *schema.Resource {
 			"http_path": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The HTTP path of the Databricks cluster or SQL warehouse",
+				Description: "The HTTP path of the Databricks cluster or SQL warehouse (for Databricks)",
 			},
 			"catalog": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace",
+				Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace (for Databricks)",
 			},
 			"adapter_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "Adapter id created for the Databricks connection",
+				Description: "Adapter id created for the Databricks connection (for Databricks)",
 			},
 		},
 
@@ -159,7 +159,11 @@ func ResourceConnection() *schema.Resource {
 	}
 }
 
-func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConnectionCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -183,7 +187,26 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	httpPath := d.Get("http_path").(string)
 	catalog := d.Get("catalog").(string)
 
-	connection, err := c.CreateConnection(projectId, name, connectionType, privatelinkEndpointID, isActive, account, database, warehouse, role, &allowSSO, &allowKeepAlive, oAuthClientID, oAuthClientSecret, hostName, port, &tunnelEnabled, httpPath, catalog)
+	connection, err := c.CreateConnection(
+		projectId,
+		name,
+		connectionType,
+		privatelinkEndpointID,
+		isActive,
+		account,
+		database,
+		warehouse,
+		role,
+		&allowSSO,
+		&allowKeepAlive,
+		oAuthClientID,
+		oAuthClientSecret,
+		hostName,
+		port,
+		&tunnelEnabled,
+		httpPath,
+		catalog,
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -195,7 +218,11 @@ func resourceConnectionCreate(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConnectionRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -257,11 +284,13 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("allow_keep_alive", connection.Details.ClientSessionKeepAlive); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("oauth_client_id", connection.Details.OAuthClientID); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("oauth_client_secret", connection.Details.OAuthClientSecret); err != nil {
-		return diag.FromErr(err)
+	if d.Get("type") == "snowflake" {
+		if err := d.Set("oauth_client_id", connection.Details.OAuthClientID); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("oauth_client_secret", connection.Details.OAuthClientSecret); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	if err := d.Set("port", connection.Details.Port); err != nil {
 		return diag.FromErr(err)
@@ -272,10 +301,14 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	httpPath := ""
 	catalog := ""
 	hostName := connection.Details.Host
+	clientID := ""
+	clientSecret := ""
 	if connection.Details.AdapterDetails != nil {
 		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value.(string)
 		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value.(string)
 		hostName = connection.Details.AdapterDetails.Fields["host"].Value.(string)
+		clientID = d.Get("oauth_client_id").(string)
+		clientSecret = d.Get("oauth_client_secret").(string)
 	}
 	if err := d.Set("host_name", hostName); err != nil {
 		return diag.FromErr(err)
@@ -286,6 +319,15 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("catalog", catalog); err != nil {
 		return diag.FromErr(err)
 	}
+	// we set those just for the adapter as the logic for Snowflake is up in this function
+	if d.Get("type") == "adapter" {
+		if err := d.Set("oauth_client_id", clientID); err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("oauth_client_secret", clientSecret); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	if err := d.Set("adapter_id", connection.Details.AdapterId); err != nil {
 		return diag.FromErr(err)
 	}
@@ -293,7 +335,11 @@ func resourceConnectionRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConnectionUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
@@ -369,11 +415,11 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 			allowKeepAlive := d.Get("allow_keep_alive").(bool)
 			connection.Details.ClientSessionKeepAlive = &allowKeepAlive
 		}
-		if d.HasChange("oauth_client_id") {
+		if d.HasChange("oauth_client_id") && d.Get("type") == "snowflake" {
 			oAuthClientID := d.Get("oauth_client_id").(string)
 			connection.Details.OAuthClientID = oAuthClientID
 		}
-		if d.HasChange("oauth_client_secret") {
+		if d.HasChange("oauth_client_secret") && d.Get("type") == "snowflake" {
 			oAuthClientSecret := d.Get("oauth_client_secret").(string)
 			connection.Details.OAuthClientSecret = oAuthClientSecret
 		}
@@ -381,8 +427,17 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 			tunnelEnabled := d.Get("tunnel_enabled").(bool)
 			connection.Details.TunnelEnabled = &tunnelEnabled
 		}
-		if d.HasChange("http_path") || d.HasChange("host_name") || d.HasChange("catalog") {
-			connection.Details.AdapterDetails = dbt_cloud.GetDatabricksConnectionDetails(d.Get("host_name").(string), d.Get("http_path").(string), d.Get("catalog").(string))
+		if d.Get("type") == "adapter" &&
+			(d.HasChange("http_path") || d.HasChange("host_name") || d.HasChange("catalog") ||
+				d.HasChange("oauth_client_id") ||
+				d.HasChange("oauth_client_secret")) {
+			connection.Details.AdapterDetails = dbt_cloud.GetDatabricksConnectionDetails(
+				d.Get("host_name").(string),
+				d.Get("http_path").(string),
+				d.Get("catalog").(string),
+				d.Get("oauth_client_id").(string),
+				d.Get("oauth_client_secret").(string),
+			)
 		}
 		if d.HasChange("adapter_id") {
 			adapterId := d.Get("adapter_id").(int)
@@ -398,7 +453,11 @@ func resourceConnectionUpdate(ctx context.Context, d *schema.ResourceData, m int
 	return resourceConnectionRead(ctx, d, m)
 }
 
-func resourceConnectionDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceConnectionDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics

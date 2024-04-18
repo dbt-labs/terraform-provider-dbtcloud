@@ -23,13 +23,16 @@ For BigQuery, due to the list of fields being very different, you can use the `d
 // legacy names will be removed from 0.3 onwards
 
 resource "dbtcloud_connection" "databricks" {
-  project_id = dbtcloud_project.dbt_project.id
-  type       = "adapter"
-  name       = "Databricks"
-  database   = "" // currenyly need to be empty for databricks
-  host_name  = "my-databricks-host.cloud.databricks.com"
-  http_path  = "/my/path"
-  catalog    = "moo"
+  project_id          = dbtcloud_project.dbt_project.id
+  type                = "adapter"
+  name                = "Databricks"
+  database            = "" // currenyly need to be empty for databricks
+  host_name           = "my-databricks-host.cloud.databricks.com"
+  http_path           = "/my/path"
+  catalog             = "moo"
+  // add the following for OAuth 
+  oauth_client_id     = "yourclientid"
+  oauth_client_secret = "yourclientsecret"
 }
 
 resource "dbtcloud_connection" "redshift" {
@@ -42,13 +45,17 @@ resource "dbtcloud_connection" "redshift" {
 }
 
 resource "dbtcloud_connection" "snowflake" {
-  project_id = dbtcloud_project.dbt_project.id
-  type       = "snowflake"
-  name       = "My Snowflake warehouse"
-  account    = "my-snowflake-account"
-  database   = "MY_DATABASE"
-  role       = "MY_ROLE"
-  warehouse  = "MY_WAREHOUSE"
+  project_id          = dbtcloud_project.dbt_project.id
+  type                = "snowflake"
+  name                = "My Snowflake warehouse"
+  account             = "my-snowflake-account"
+  database            = "MY_DATABASE"
+  role                = "MY_ROLE"
+  warehouse           = "MY_WAREHOUSE"
+  // add the following for OAuth 
+  oauth_client_id     = "yourclientid"
+  oauth_client_secret = "yourclientsecret"
+  allow_sso           = true
 }
 ```
 
@@ -64,24 +71,24 @@ resource "dbtcloud_connection" "snowflake" {
 
 ### Optional
 
-- `account` (String) Account name for the connection
-- `allow_keep_alive` (Boolean) Whether or not the connection should allow client session keep alive
-- `allow_sso` (Boolean) Whether or not the connection should allow SSO
-- `catalog` (String) Catalog name if Unity Catalog is enabled in your Databricks workspace
+- `account` (String) Account name for the connection (for Snowflake)
+- `allow_keep_alive` (Boolean) Whether or not the connection should allow client session keep alive (for Snowflake)
+- `allow_sso` (Boolean) Whether or not the connection should allow SSO (for Snowflake)
+- `catalog` (String) Catalog name if Unity Catalog is enabled in your Databricks workspace (for Databricks)
 - `host_name` (String) Host name for the connection, including Databricks cluster
-- `http_path` (String) The HTTP path of the Databricks cluster or SQL warehouse
+- `http_path` (String) The HTTP path of the Databricks cluster or SQL warehouse (for Databricks)
 - `is_active` (Boolean) Whether the connection is active
-- `oauth_client_id` (String) OAuth client identifier
-- `oauth_client_secret` (String) OAuth client secret
+- `oauth_client_id` (String) OAuth client identifier (for Snowflake and Databricks)
+- `oauth_client_secret` (String) OAuth client secret (for Snowflake and Databricks)
 - `port` (Number) Port number to connect via
 - `private_link_endpoint_id` (String) The ID of the PrivateLink connection. This ID can be found using the `privatelink_endpoint` data source
-- `role` (String) Role name for the connection
+- `role` (String) Role name for the connection (for Snowflake)
 - `tunnel_enabled` (Boolean) Whether or not tunneling should be enabled on your database connection
-- `warehouse` (String) Warehouse name for the connection
+- `warehouse` (String) Warehouse name for the connection (for Snowflake)
 
 ### Read-Only
 
-- `adapter_id` (Number) Adapter id created for the Databricks connection
+- `adapter_id` (Number) Adapter id created for the Databricks connection (for Databricks)
 - `connection_id` (Number) Connection Identifier
 - `id` (String) The ID of this resource.
 
