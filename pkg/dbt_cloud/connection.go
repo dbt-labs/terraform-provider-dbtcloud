@@ -122,6 +122,8 @@ func (c *Client) CreateConnection(
 			hostName,
 			httpPath,
 			catalog,
+			oAuthClientID,
+			oAuthClientSecret,
 		)
 	} else {
 		connectionDetails.Account = account
@@ -185,7 +187,8 @@ func (c *Client) CreateConnection(
 		return nil, err
 	}
 
-	if (oAuthClientID != "") && (oAuthClientSecret != "") {
+	// those are secrets and not given back by the API
+	if (oAuthClientID != "") && (oAuthClientSecret != "") && (connectionType != "adapter") {
 		connectionResponse.Data.Details.OAuthClientID = oAuthClientID
 		connectionResponse.Data.Details.OAuthClientSecret = oAuthClientSecret
 	}
@@ -277,6 +280,8 @@ func GetDatabricksConnectionDetails(
 	hostName string,
 	httpPath string,
 	catalog string,
+	clientID string,
+	clientSecret string,
 ) *AdapterCredentialDetails {
 	noValidation := AdapterCredentialFieldMetadataValidation{
 		Required: false,
@@ -321,11 +326,39 @@ func GetDatabricksConnectionDetails(
 		Value:    httpPath,
 	}
 
-	fieldOrder := []string{"type", "host", "http_path"}
+	clientIDMetadata := AdapterCredentialFieldMetadata{
+		Label:        "OAuth Client ID",
+		Description:  "Required to enable Databricks OAuth authentication for IDE developers.",
+		Field_Type:   "text",
+		Encrypt:      true,
+		Overrideable: false,
+		Validation:   noValidation,
+	}
+	clientIDField := AdapterCredentialField{
+		Metadata: clientIDMetadata,
+		Value:    clientID,
+	}
+
+	clientSecretMetadata := AdapterCredentialFieldMetadata{
+		Label:        "OAuth Client Secret",
+		Description:  "Required to enable Databricks OAuth authentication for IDE developers.",
+		Field_Type:   "text",
+		Encrypt:      true,
+		Overrideable: false,
+		Validation:   noValidation,
+	}
+	clientSecretField := AdapterCredentialField{
+		Metadata: clientSecretMetadata,
+		Value:    clientSecret,
+	}
+
+	fieldOrder := []string{"type", "host", "http_path", "client_id", "client_secret"}
 	fields := map[string]AdapterCredentialField{
-		"type":      typeField,
-		"host":      hostField,
-		"http_path": httpPathField,
+		"type":          typeField,
+		"host":          hostField,
+		"http_path":     httpPathField,
+		"client_id":     clientIDField,
+		"client_secret": clientSecretField,
 	}
 
 	if catalog != "" {
