@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.25...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.0...HEAD)
+
+## [0.3.0](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.25...v0.3.0)
+
+## Changes
+
+- Implements muxing to allow both SDKv2 and Plugin Framework resources to work at the same time. This change a bit the internals but shouldn't have any regression.
+- Move some resources / datasources to the plugin Framework
+- Remove legacy `dbt_cloud_xxx` resources
 
 ## [0.2.25](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.24...v0.2.25)
 
