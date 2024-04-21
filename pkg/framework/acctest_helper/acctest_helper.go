@@ -21,6 +21,10 @@ func SharedClient() (*dbt_cloud.Client, error) {
 	token := os.Getenv("DBT_CLOUD_TOKEN")
 	hostURL := os.Getenv("DBT_CLOUD_HOST_URL")
 
+	if hostURL == "" {
+		hostURL = "https://cloud.getdbt.com/api"
+	}
+
 	client, err := dbt_cloud.NewClient(
 		&accountID,
 		&token,
