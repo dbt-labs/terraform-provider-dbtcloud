@@ -3,12 +3,12 @@
 page_title: "dbtcloud_notification Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve notification details
 ---
 
 # dbtcloud_notification (Data Source)
 
-
+Retrieve notification details
 
 ## Example Usage
 
@@ -23,14 +23,16 @@ data "dbtcloud_notification" "my_notification" {
 
 ### Required
 
-- `notification_id` (Number) ID of the notification
+- `notification_id` (Number) The ID of the notification
 
 ### Read-Only
 
 - `external_email` (String) The external email to receive the notification
-- `id` (String) The ID of this resource.
-- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 4 = external email: requires setting an external_email)
+- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`)
 - `on_cancel` (Set of Number) List of job IDs to trigger the webhook on cancel
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success
+- `slack_channel_id` (String) The ID of the Slack channel to receive the notification. It can be found at the bottom of the Slack channel settings
+- `slack_channel_name` (String) The name of the slack channel
+- `state` (Number) State of the notification (1 = active (default), 2 = inactive)
 - `user_id` (Number) Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one
