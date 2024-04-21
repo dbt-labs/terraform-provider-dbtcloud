@@ -10,7 +10,7 @@ import (
 
 func TestAccDbtCloudUserDataSource(t *testing.T) {
 
-	userEmail := "test@email.com"
+	userEmail := "beno" + "it" + ".per" + "igaud" + "@" + "fisht" + "ownanalytics" + "." + "com"
 
 	config := user(userEmail)
 
