@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	types = []string{
+	warehouseTypes = []string{
 		"postgres",
 		"redshift",
 	}
@@ -48,7 +48,7 @@ func ResourcePostgresCredential() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Type of connection. One of (postgres/redshift). Use postgres for alloydb connections",
-				ValidateFunc: validation.StringInSlice(types, false),
+				ValidateFunc: validation.StringInSlice(warehouseTypes, false),
 			},
 			"default_schema": &schema.Schema{
 				Type:        schema.TypeString,
