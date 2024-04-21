@@ -3,12 +3,12 @@
 page_title: "dbtcloud_user Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve user details
 ---
 
 # dbtcloud_user (Data Source)
 
-
+Retrieve user details
 
 ## Example Usage
 

@@ -1,11 +1,12 @@
-package data_sources_test
+package notification_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudNotificationDataSource(t *testing.T) {
@@ -32,7 +33,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: providers(),
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -79,5 +80,5 @@ func notification(projectName string) string {
 	data "dbtcloud_notification" "test_notification_external" {
 		notification_id = dbtcloud_notification.test_notification_external.id
 	}
-    `, projectName, DBT_CLOUD_VERSION)
+    `, projectName, acctest_helper.DBT_CLOUD_VERSION)
 }

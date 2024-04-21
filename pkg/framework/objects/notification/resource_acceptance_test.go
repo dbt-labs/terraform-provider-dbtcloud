@@ -1,15 +1,16 @@
-package resources_test
+package notification_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudNotificationResource(t *testing.T) {
@@ -17,9 +18,9 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudNotificationDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudNotificationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudNotificationResourceCreateNotifications(projectName),
@@ -146,7 +147,7 @@ resource "dbtcloud_job" "test_notification_job_2" {
 		"schedule" : false,
 	}
 }
-`, projectName, DBT_CLOUD_VERSION)
+`, projectName, acctest_helper.DBT_CLOUD_VERSION)
 }
 
 func testAccDbtCloudNotificationResourceCreateNotifications(projectName string) string {
@@ -202,8 +203,12 @@ func testAccCheckDbtCloudNotificationExists(resource string) resource.TestCheckF
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
-		_, err := apiClient.GetNotification(rs.Primary.ID)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
+
+		_, err = apiClient.GetNotification(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -212,7 +217,11 @@ func testAccCheckDbtCloudNotificationExists(resource string) resource.TestCheckF
 }
 
 func testAccCheckDbtCloudNotificationDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_notification" {
@@ -230,4 +239,13 @@ func testAccCheckDbtCloudNotificationDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccPreCheck(t *testing.T) {
+	if v := os.Getenv("DBT_CLOUD_ACCOUNT_ID"); v == "" {
+		t.Fatal("DBT_CLOUD_ACCOUNT_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
+		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
+	}
 }

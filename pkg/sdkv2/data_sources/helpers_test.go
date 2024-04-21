@@ -10,7 +10,7 @@ const (
 )
 
 func providers() map[string]*schema.Provider {
-	p := provider.Provider()
+	p := provider.SDKProvider("test")()
 	return map[string]*schema.Provider{
 		"dbtcloud": p,
 	}

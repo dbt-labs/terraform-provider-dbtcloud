@@ -13,7 +13,7 @@ const (
 )
 
 func providers() map[string]*schema.Provider {
-	p := provider.Provider()
+	p := provider.SDKProvider("test")()
 	return map[string]*schema.Provider{
 		"dbtcloud": p,
 	}
@@ -23,7 +23,7 @@ var testAccProviders map[string]*schema.Provider
 var testAccProvider *schema.Provider
 
 func init() {
-	testAccProvider = provider.Provider()
+	testAccProvider = provider.SDKProvider("test")()
 	testAccProviders = map[string]*schema.Provider{
 		"dbtcloud": testAccProvider,
 	}

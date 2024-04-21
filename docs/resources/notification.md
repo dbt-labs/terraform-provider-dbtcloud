@@ -2,13 +2,13 @@
 page_title: "dbtcloud_notification Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Setup notifications on jobs success/failure to internal users, external email addresses or Slack channels
 ---
 
 # dbtcloud_notification (Resource)
 
 
-
+Setup notifications on jobs success/failure to internal users, external email addresses or Slack channels
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ resource "dbtcloud_notification" "prod_job_slack_notifications" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the notification
 
 ## Import
 
