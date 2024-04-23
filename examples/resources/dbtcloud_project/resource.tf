@@ -1,7 +1,3 @@
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_project instead of dbtcloud_project for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 resource "dbtcloud_project" "dbt_project" {
   name = "Analytics"
 }

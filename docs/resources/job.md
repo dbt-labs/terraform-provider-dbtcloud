@@ -7,20 +7,20 @@ description: |-
 
 # dbtcloud_job (Resource)
 
-~> As of October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
+~> In October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
 <br/>
 <br/>
 Those improvements include modifications to deferral which was historically set at the job level and will now be set at the environment level. 
 Deferral can still be set to "self" by setting `self_deferring` to `true` but with the new approach, deferral to other runs need to be done with `deferring_environment_id` instead of `deferring_job_id`.
 
+~> New with 0.3.1, `triggers` now accepts a `on_merge` value to trigger jobs when code is merged in git. If `on_merge` is `true` all other triggers need to be `false`.
+<br/>
+<br/>
+For now, it is not a mandatory field, but it will be in a future version. Please add `on_merge` in your config or modules. 
 
 ## Example Usage
 
 ```terraform
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_job instead of dbtcloud_job for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 # a job that has github_webhook and git_provider_webhook 
 # set to false will be categorized as a "Deploy Job"
 resource "dbtcloud_job" "daily_job" {
@@ -39,6 +39,7 @@ resource "dbtcloud_job" "daily_job" {
     "github_webhook" : false,
     "git_provider_webhook" : false,
     "schedule" : true
+    "on_merge" : false
   }
   # this is the default that gets set up when modifying jobs in the UI
   schedule_days  = [0, 1, 2, 3, 4, 5, 6]
@@ -64,6 +65,7 @@ resource "dbtcloud_job" "ci_job" {
     "github_webhook" : true,
     "git_provider_webhook" : true,
     "schedule" : false
+    "on_merge" : false
   }
   # this is the default that gets set up when modifying jobs in the UI
   # this is not going to be used when schedule is set to false
@@ -87,6 +89,7 @@ resource "dbtcloud_job" "downstream_job" {
     "github_webhook" : false,
     "git_provider_webhook" : false,
     "schedule" : false
+    "on_merge" : false
   }
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
@@ -107,7 +110,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `execute_steps` (List of String) List of commands to execute for the job
 - `name` (String) Job name
 - `project_id` (Number) Project ID to create the job in
-- `triggers` (Map of Boolean) Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, and `schedule`. <br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.
+- `triggers` (Map of Boolean) Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `on_merge`. All flags should be listed and set with `true` or `false`. When `on_merge` is `true`, all the other values must be false.<br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.
 
 ### Optional
 

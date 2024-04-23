@@ -39,10 +39,6 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 ## Example Usage
 
 ```terraform
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_service_token instead of dbtcloud_service_token for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 resource "dbtcloud_service_token" "test_service_token" {
   name = "Test Service Token"
   service_token_permissions {

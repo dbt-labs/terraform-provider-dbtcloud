@@ -58,7 +58,7 @@ func ResourceExtendedAttributes() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 
-		Description: "This resource allows setting extended attributes which can be assigned to a given environment ([see docs](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes-beta)).<br/><br/>In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).",
+		Description: "This resource allows setting extended attributes which can be assigned to a given environment ([see docs](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes)).<br/><br/>In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).",
 	}
 }
 

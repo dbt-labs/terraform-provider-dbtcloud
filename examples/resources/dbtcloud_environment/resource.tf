@@ -1,7 +1,3 @@
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_environment instead of dbtcloud_environment for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 resource "dbtcloud_environment" "ci_environment" {
   // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (Beta on 15 Feb 2024, to always be on the latest dbt version)
   dbt_version   = "1.6.0-latest"
