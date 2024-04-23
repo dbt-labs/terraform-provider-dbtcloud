@@ -1,7 +1,3 @@
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_job instead of dbtcloud_job for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 # a job that has github_webhook and git_provider_webhook 
 # set to false will be categorized as a "Deploy Job"
 resource "dbtcloud_job" "daily_job" {
@@ -20,6 +16,7 @@ resource "dbtcloud_job" "daily_job" {
     "github_webhook" : false,
     "git_provider_webhook" : false,
     "schedule" : true
+    "on_merge" : false
   }
   # this is the default that gets set up when modifying jobs in the UI
   schedule_days  = [0, 1, 2, 3, 4, 5, 6]
@@ -45,6 +42,7 @@ resource "dbtcloud_job" "ci_job" {
     "github_webhook" : true,
     "git_provider_webhook" : true,
     "schedule" : false
+    "on_merge" : false
   }
   # this is the default that gets set up when modifying jobs in the UI
   # this is not going to be used when schedule is set to false
@@ -68,6 +66,7 @@ resource "dbtcloud_job" "downstream_job" {
     "github_webhook" : false,
     "git_provider_webhook" : false,
     "schedule" : false
+    "on_merge" : false
   }
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"

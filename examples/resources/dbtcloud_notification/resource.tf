@@ -1,5 +1,5 @@
 // dbt Cloud allows us to create internal and external notifications
-
+//
 // an internal notification will send emails to the user mentioned in `user_id`
 //
 // NOTE: If internal notification settings already exist for a user, currently you MUST import
@@ -7,6 +7,7 @@
 // Failure to do so, will result in the user losing access to existing notifications and dbt
 // support will need to be contacted to restore access.
 // cmd: terraform import dbtcloud_notification.prod_job_internal_notification <user_id>
+
 resource "dbtcloud_notification" "prod_job_internal_notification" {
   // user_id is the internal ID of a given user in dbt Cloud
   user_id    = 100

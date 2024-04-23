@@ -2,13 +2,13 @@
 page_title: "dbtcloud_extended_attributes Resource - dbtcloud"
 subcategory: ""
 description: |-
-  This resource allows setting extended attributes which can be assigned to a given environment (see docs https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes-beta).In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
+  This resource allows setting extended attributes which can be assigned to a given environment (see docs https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes).In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
 ---
 
 # dbtcloud_extended_attributes (Resource)
 
 
-This resource allows setting extended attributes which can be assigned to a given environment ([see docs](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes-beta)).<br/><br/>In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
+This resource allows setting extended attributes which can be assigned to a given environment ([see docs](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes)).<br/><br/>In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
 
 ## Example Usage
 

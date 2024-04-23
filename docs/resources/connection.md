@@ -18,10 +18,6 @@ For BigQuery, due to the list of fields being very different, you can use the `d
 ## Example Usage
 
 ```terraform
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_connection instead of dbtcloud_connection for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 resource "dbtcloud_connection" "databricks" {
   project_id          = dbtcloud_project.dbt_project.id
   type                = "adapter"

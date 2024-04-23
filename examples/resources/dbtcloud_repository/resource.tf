@@ -1,7 +1,3 @@
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_repository instead of dbtcloud_repository for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 
 ### repo cloned via the GitHub integration, manually entering the `github_installation_id`
 resource "dbtcloud_repository" "github_repo" {

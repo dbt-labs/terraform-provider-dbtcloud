@@ -13,10 +13,6 @@ the same time as the environment variables, it's recommended to use the `depends
 ## Example Usage
 
 ```terraform
-// NOTE for customers using the LEGACY dbt_cloud provider:
-// use dbt_cloud_environment_variable instead of dbtcloud_environment_variable for the legacy resource names
-// legacy names will be removed from 0.3 onwards
-
 resource "dbtcloud_environment_variable" "dbt_my_env_var" {
   name       = "DBT_MY_ENV_VAR"
   project_id = dbtcloud_project.dbt_project.id
