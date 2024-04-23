@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.0...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.1...HEAD)
+
+## [0.3.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.0...v0.3.1)
+
+## Changes
+
+- Add `on_merge` trigger for jobs. The trigger is optional for now but will be required in the future. 
+
+## Documentation
+
+- Remove mention of `dbt_cloud_xxx` resources in the docs
 
 ## [0.3.0](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.2.25...v0.3.0)
 
