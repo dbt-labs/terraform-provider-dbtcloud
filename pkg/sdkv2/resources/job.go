@@ -10,6 +10,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/samber/lo"
@@ -73,7 +74,7 @@ var jobSchema = map[string]*schema.Schema{
 			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, and `schedule`. <br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.",
+		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `on_merge`. All flags should be listed and set with `true` or `false`. When `on_merge` is `true`, all the other values must be false.<br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.",
 	},
 	"num_threads": &schema.Schema{
 		Type:        schema.TypeInt,
@@ -209,6 +210,43 @@ func ResourceJob() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+
+		CustomizeDiff: customdiff.All(
+			// if we change the job type (CI, merge or "empty"), we need to recreate the job as dbt Cloud doesn't allow updating them
+			// the job type is determined by the triggers
+
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				oldValue, newValue := d.GetChange("triggers")
+
+				oldValueMap := oldValue.(map[string]interface{})
+				newValueMap := newValue.(map[string]interface{})
+
+				oldCI, _ := oldValueMap["github_webhook"].(bool)
+				oldOnMerge, _ := oldValueMap["on_merge"].(bool)
+
+				oldType := ""
+				if oldCI {
+					oldType = "ci"
+				} else if oldOnMerge {
+					oldType = "merge"
+				}
+
+				newCI, _ := newValueMap["github_webhook"].(bool)
+				newOnMerge, _ := newValueMap["on_merge"].(bool)
+
+				newType := ""
+				if newCI {
+					newType = "ci"
+				} else if newOnMerge {
+					newType = "merge"
+				}
+
+				if oldType != newType {
+					d.ForceNew("triggers")
+				}
+				return nil
+			},
+		),
 	}
 }
 
@@ -310,6 +348,17 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	listedCustomBranchOnly, ok := listedTriggers["custom_branch_only"].(bool)
 	if ok {
 		triggers["custom_branch_only"] = listedCustomBranchOnly
+	}
+
+	// we remove triggers.on_merge if it is not set in the config and it is set to false in the remote
+	// that way it works if people don't define it, but also works to import jobs that have it set to true
+	// TODO: remove this when we make on_merge mandatory
+	_, ok = listedTriggers["on_merge"].(bool)
+	noOnMergeConfig := !ok
+	onMergeRemoteVal, _ := triggers["on_merge"].(bool)
+	onMergeRemoteFalse := !onMergeRemoteVal
+	if noOnMergeConfig && onMergeRemoteFalse {
+		delete(triggers, "on_merge")
 	}
 
 	if err := d.Set("triggers", triggers); err != nil {
@@ -531,6 +580,8 @@ func resourceJobUpdate(
 			if !ok {
 				return diag.FromErr(fmt.Errorf("schedule was not provided"))
 			}
+			job.Triggers.OnMerge, _ = newTriggers["on_merge"].(bool)
+			// should work without on_merge for now, so we don't need to test if it was provided
 		}
 
 		if d.HasChange("schedule_interval") {

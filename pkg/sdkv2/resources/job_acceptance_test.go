@@ -189,6 +189,57 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudJobResourceTriggers(t *testing.T) {
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudJobResourceBasicConfigTriggers(
+					jobName,
+					projectName,
+					environmentName,
+					"git",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+			// MODIFY TRIGGERS
+			{
+				Config: testAccDbtCloudJobResourceBasicConfigTriggers(
+					jobName,
+					projectName,
+					environmentName,
+					"on_merge",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// we don't check triggers.on_merge as it is currently not enforced
+				ImportStateVerifyIgnore: []string{
+					// "triggers.%",
+					// "triggers.on_merge",
+				},
+			},
+		},
+	})
+}
+
 func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_job_project" {
@@ -524,6 +575,53 @@ resource "dbtcloud_job" "test_job" {
   %s
 }
 `, projectName, environmentName, DBT_CLOUD_VERSION, jobName, scheduleConfig)
+}
+
+func testAccDbtCloudJobResourceBasicConfigTriggers(
+	jobName, projectName, environmentName, trigger string,
+) string {
+
+	git_trigger := "false"
+	schedule_trigger := "false"
+	on_merge_trigger := "false"
+
+	if trigger == "git" {
+		git_trigger = "true"
+	}
+	if trigger == "schedule" {
+		schedule_trigger = "true"
+	}
+	if trigger == "on_merge" {
+		on_merge_trigger = "true"
+	}
+
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "development"
+}
+
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": %s,
+    "git_provider_webhook": %s,
+    "schedule": %s,
+	"on_merge": %s
+  }
+}
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {

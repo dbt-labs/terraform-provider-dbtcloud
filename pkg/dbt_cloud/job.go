@@ -12,6 +12,7 @@ type JobTrigger struct {
 	Github_Webhook     bool `json:"github_webhook"`
 	Schedule           bool `json:"schedule"`
 	GitProviderWebhook bool `json:"git_provider_webhook"`
+	OnMerge            bool `json:"on_merge"`
 }
 
 type JobSettings struct {
@@ -65,6 +66,7 @@ type Job struct {
 	Description            string                `json:"description"`
 	Execute_Steps          []string              `json:"execute_steps"`
 	Dbt_Version            *string               `json:"dbt_version"`
+	JobType                string                `json:"job_type,omitempty"`
 	Triggers               JobTrigger            `json:"triggers"`
 	Settings               JobSettings           `json:"settings"`
 	State                  int                   `json:"state"`
@@ -131,6 +133,7 @@ func (c *Client) CreateJob(
 	if !isActive {
 		state = STATE_DELETED
 	}
+	jobType := ""
 	github_webhook, gw_found := triggers["github_webhook"]
 	if !gw_found {
 		github_webhook = false
@@ -139,14 +142,25 @@ func (c *Client) CreateJob(
 	if !s_found {
 		schedule = false
 	}
+	onMerge, s_found := triggers["on_merge"]
+	if !s_found {
+		onMerge = false
+	}
+	if onMerge.(bool) {
+		jobType = "merge"
+	}
 	git_provider_webhook, gpw_found := triggers["git_provider_webhook"]
 	if !gpw_found {
 		git_provider_webhook = false
+	}
+	if git_provider_webhook.(bool) {
+		jobType = "ci"
 	}
 	jobTriggers := JobTrigger{
 		Github_Webhook:     github_webhook.(bool),
 		Schedule:           schedule.(bool),
 		GitProviderWebhook: git_provider_webhook.(bool),
+		OnMerge:            onMerge.(bool),
 	}
 	jobSettings := JobSettings{
 		Threads:     numThreads,
@@ -212,6 +226,7 @@ func (c *Client) CreateJob(
 		Execution:            jobExecution,
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
+		JobType:              jobType,
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion

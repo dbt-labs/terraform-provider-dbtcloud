@@ -61,7 +61,7 @@ var jobSchema = map[string]*schema.Schema{
 			Optional: false,
 			Default:  false,
 		},
-		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, custom_branch_only",
+		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge",
 	},
 	"timeout_seconds": &schema.Schema{
 		Type:        schema.TypeInt,
