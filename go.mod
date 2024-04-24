@@ -1,6 +1,8 @@
 module github.com/dbt-labs/terraform-provider-dbtcloud
 
-go 1.21
+go 1.21.0
+
+toolchain go1.21.4
 
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
@@ -12,6 +14,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
 	github.com/hashicorp/terraform-plugin-testing v1.7.0
 	github.com/samber/lo v1.39.0
+	github.com/sirupsen/logrus v1.9.3
 )
 
 require (
@@ -59,7 +62,8 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/cast v1.5.1 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
