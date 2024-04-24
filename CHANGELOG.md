@@ -2,9 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.1...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.3...HEAD)
 
-## [0.3.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.0...v0.3.1)
+## [0.3.3](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.2...v0.3.3)
+
+## Changes
+
+- [#250](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/250) - [Experimental] Create a new resource called `dbtcloud_group_partial_permissions` to manage permissions of a single group from different resources which can be set across different Terraform projects/workspaces. The dbt Cloud API doesn't provide endpoints for adding/removing single permissions, so the logic in the provider is more complex than other resources. If the resource works as expected for the provider users we could create similar ones for "partial" notifications and "partial" license mappings.
+
+## [0.3.2](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.0...v0.3.2)
 
 ## Changes
 
