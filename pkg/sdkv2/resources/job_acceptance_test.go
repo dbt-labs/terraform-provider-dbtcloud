@@ -227,14 +227,10 @@ func TestAccDbtCloudJobResourceTriggers(t *testing.T) {
 			},
 			// IMPORT
 			{
-				ResourceName:      "dbtcloud_job.test_job",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// we don't check triggers.on_merge as it is currently not enforced
-				ImportStateVerifyIgnore: []string{
-					// "triggers.%",
-					// "triggers.on_merge",
-				},
+				ResourceName:            "dbtcloud_job.test_job",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
 			},
 		},
 	})

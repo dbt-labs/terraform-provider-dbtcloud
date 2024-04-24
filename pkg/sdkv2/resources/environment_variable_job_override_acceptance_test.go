@@ -58,7 +58,7 @@ func TestAccDbtCloudEnvironmentVariableJobOverrideResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
 						"raw_value",
-						fmt.Sprintf("%s", environmentVariableJobOverrideValue),
+						environmentVariableJobOverrideValue,
 					),
 					resource.TestCheckResourceAttrSet(
 						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
@@ -88,7 +88,7 @@ func TestAccDbtCloudEnvironmentVariableJobOverrideResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
 						"raw_value",
-						fmt.Sprintf("%s", environmentVariableJobOverrideValueNew),
+						environmentVariableJobOverrideValueNew,
 					),
 					resource.TestCheckResourceAttrSet(
 						"dbtcloud_environment_variable_job_override.test_env_var_job_override",

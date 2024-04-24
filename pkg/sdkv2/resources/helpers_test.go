@@ -12,13 +12,6 @@ const (
 	DBT_CLOUD_VERSION = "1.6.0-latest"
 )
 
-func providers() map[string]*schema.Provider {
-	p := provider.SDKProvider("test")()
-	return map[string]*schema.Provider{
-		"dbtcloud": p,
-	}
-}
-
 var testAccProviders map[string]*schema.Provider
 var testAccProvider *schema.Provider
 
