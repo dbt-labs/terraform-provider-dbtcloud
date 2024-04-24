@@ -36,8 +36,8 @@ resource "dbtcloud_job" "daily_job" {
   run_generate_sources = true
   target_name          = "default"
   triggers = {
-    "github_webhook" : false,
-    "git_provider_webhook" : false,
+    "github_webhook" : false
+    "git_provider_webhook" : false
     "schedule" : true
     "on_merge" : false
   }
@@ -62,8 +62,8 @@ resource "dbtcloud_job" "ci_job" {
   project_id               = dbtcloud_project.dbt_project.id
   run_generate_sources     = false
   triggers = {
-    "github_webhook" : true,
-    "git_provider_webhook" : true,
+    "github_webhook" : true
+    "git_provider_webhook" : true
     "schedule" : false
     "on_merge" : false
   }
@@ -86,8 +86,8 @@ resource "dbtcloud_job" "downstream_job" {
   project_id               = dbtcloud_project.dbt_project2.id
   run_generate_sources     = true
   triggers = {
-    "github_webhook" : false,
-    "git_provider_webhook" : false,
+    "github_webhook" : false
+    "git_provider_webhook" : false
     "schedule" : false
     "on_merge" : false
   }
