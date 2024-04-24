@@ -11,17 +11,24 @@ import (
 func TestAccDbtCloudDatabricksCredentialDataSource(t *testing.T) {
 
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	config := databricks_credential(randomProjectName, "moo", "baa", "maa", 64)
+	config := databricks_credential(randomProjectName)
 
-	var check resource.TestCheckFunc
-
-	check = resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "credential_id"),
+	check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_databricks_credential.test",
+			"credential_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "adapter_id"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "target_name"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_databricks_credential.test",
+			"target_name",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "schema"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "num_threads"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_databricks_credential.test",
+			"num_threads",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "catalog"),
 	)
 
@@ -36,7 +43,9 @@ func TestAccDbtCloudDatabricksCredentialDataSource(t *testing.T) {
 	})
 }
 
-func databricks_credential(projectName string, defaultSchema string, username string, password string, numThreads int) string {
+func databricks_credential(
+	projectName string,
+) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_credential_project" {
         name = "%s"

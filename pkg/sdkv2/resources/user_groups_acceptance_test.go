@@ -31,19 +31,39 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudUserGroupsResourceAddRole(userID, GroupName, groupIDs),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("dbtcloud_user_groups.test_user_groups", "user_id", strconv.Itoa(userID)),
-					resource.TestCheckResourceAttrSet("dbtcloud_user_groups.test_user_groups", "group_ids.0"),
-					resource.TestCheckResourceAttrSet("dbtcloud_user_groups.test_user_groups", "group_ids.3"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_user_groups.test_user_groups",
+						"user_id",
+						strconv.Itoa(userID),
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_user_groups.test_user_groups",
+						"group_ids.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_user_groups.test_user_groups",
+						"group_ids.3",
+					),
 				),
 			},
 			// MODIFY
 			{
 				Config: testAccDbtCloudUserGroupsResourceRemoveRole(userID, GroupName, groupIDs),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("dbtcloud_user_groups.test_user_groups", "user_id", strconv.Itoa(userID)),
-					resource.TestCheckResourceAttrSet("dbtcloud_user_groups.test_user_groups", "group_ids.0"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_user_groups.test_user_groups",
+						"user_id",
+						strconv.Itoa(userID),
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_user_groups.test_user_groups",
+						"group_ids.0",
+					),
 					// we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
-					resource.TestCheckNoResourceAttr("dbtcloud_user_groups.test_user_groups", "group_ids.3"),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_user_groups.test_user_groups",
+						"group_ids.3",
+					),
 				),
 			},
 			// IMPORT
@@ -57,7 +77,11 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudUserGroupsResourceAddRole(userID int, GroupName string, GroupIDs string) string {
+func testAccDbtCloudUserGroupsResourceAddRole(
+	userID int,
+	groupName string,
+	groupIDs string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_group" "test_group" {
 	name = "%s"
@@ -76,10 +100,14 @@ resource "dbtcloud_user_groups" "test_user_groups" {
 	user_id = %d
 	group_ids = local.new_groups
   }
-`, GroupName, GroupIDs, userID)
+`, groupName, groupIDs, userID)
 }
 
-func testAccDbtCloudUserGroupsResourceRemoveRole(userID int, GroupName string, GroupIDs string) string {
+func testAccDbtCloudUserGroupsResourceRemoveRole(
+	userID int,
+	groupName string,
+	groupIDs string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_group" "test_group" {
 	name = "%s"
@@ -93,5 +121,5 @@ resource "dbtcloud_user_groups" "test_user_groups" {
 	user_id = %d
 	group_ids = %s
   }
-`, GroupName, userID, GroupIDs)
+`, groupName, userID, groupIDs)
 }
