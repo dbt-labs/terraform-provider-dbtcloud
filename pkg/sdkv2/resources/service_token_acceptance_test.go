@@ -129,6 +129,9 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"token_string",
+					// being a set, we need to ignore all the project_id as we don't know which one is the one with 0
+					"service_token_permissions.0.project_id",
+					"service_token_permissions.1.project_id",
 				},
 			},
 		},

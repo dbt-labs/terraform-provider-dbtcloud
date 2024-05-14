@@ -113,10 +113,14 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbtcloud_group.test_group",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ResourceName:      "dbtcloud_group.test_group",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// being a set we need to ignore all, but * doesn't work
+					"group_permissions.0.project_id",
+					"group_permissions.1.project_id",
+				},
 			},
 		},
 	})
