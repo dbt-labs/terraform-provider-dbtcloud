@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
@@ -171,6 +172,8 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		user.UserDataSource,
 		notification.NotificationDataSource,
+		environment.EnvironmentDataSource,
+		environment.EnvironmentsDataSources,
 	}
 }
 

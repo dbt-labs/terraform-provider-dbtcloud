@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.3...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.4...HEAD)
+
+## [0.3.4](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.3...v0.3.4)
+
+## Changes
+
+- [#255](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/255) - Add new datasource `dbtcloud_environments` to return all environments across an account, or all environments for a give project ID
+
+## Behind the scenes
+
+- Move the `dbtcloud_environment` datasource to the Terraform Plugin Framework
 
 ## [0.3.3](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.2...v0.3.3)
 

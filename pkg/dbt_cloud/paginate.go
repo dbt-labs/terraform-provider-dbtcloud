@@ -105,3 +105,26 @@ func (c *Client) GetAllGroupIDsByName(groupName string) []int {
 		return 0, false
 	})
 }
+
+func (c *Client) GetAllEnvironments(projectID int) ([]Environment, error) {
+	url := fmt.Sprintf("%s/v3/accounts/%d/environments/", c.HostURL, c.AccountID)
+
+	if projectID != 0 {
+		url = fmt.Sprintf("%s?project_id=%d", url, projectID)
+	}
+
+	allEnvironmentsRaw := c.GetData(url)
+
+	allEnvs := []Environment{}
+	for _, env := range allEnvironmentsRaw {
+
+		data, _ := json.Marshal(env)
+		currentEnv := Environment{}
+		err := json.Unmarshal(data, &currentEnv)
+		if err != nil {
+			return nil, err
+		}
+		allEnvs = append(allEnvs, currentEnv)
+	}
+	return allEnvs, nil
+}

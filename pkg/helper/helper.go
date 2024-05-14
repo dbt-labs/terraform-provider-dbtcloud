@@ -30,3 +30,11 @@ func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(newString, "")
 }
+
+func IntPointerToInt64Pointer(value *int) *int64 {
+	if value == nil {
+		return nil
+	}
+	ret := int64(*value)
+	return &ret
+}
