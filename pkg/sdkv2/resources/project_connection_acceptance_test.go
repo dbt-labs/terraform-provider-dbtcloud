@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
@@ -23,9 +23,14 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudProjectConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudProjectConnectionResourceBasicConfig(projectName, connectionName),
+				Config: testAccDbtCloudProjectConnectionResourceBasicConfig(
+					projectName,
+					connectionName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectConnectionExists("dbtcloud_project_connection.test_project_connection"),
+					testAccCheckDbtCloudProjectConnectionExists(
+						"dbtcloud_project_connection.test_project_connection",
+					),
 				),
 			},
 			// IMPORT
@@ -37,7 +42,10 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 			},
 			// EMPTY
 			{
-				Config: testAccDbtCloudProjectConnectionResourceEmptyConfig(projectName, connectionName),
+				Config: testAccDbtCloudProjectConnectionResourceEmptyConfig(
+					projectName,
+					connectionName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectConnectionEmpty("dbtcloud_project.test_project"),
 				),
@@ -46,7 +54,9 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudProjectConnectionResourceBasicConfig(projectName, connectionName string) string {
+func testAccDbtCloudProjectConnectionResourceBasicConfig(
+	projectName, connectionName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -71,7 +81,9 @@ resource "dbtcloud_project_connection" "test_project_connection" {
 `, projectName, connectionName)
 }
 
-func testAccDbtCloudProjectConnectionResourceEmptyConfig(projectName, connectionName string) string {
+func testAccDbtCloudProjectConnectionResourceEmptyConfig(
+	projectName, connectionName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"

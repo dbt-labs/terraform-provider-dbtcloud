@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudServiceTokenResource(t *testing.T) {
@@ -24,32 +24,102 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudServiceTokenDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudServiceTokenResourceBasicConfig(serviceTokenName, projectName),
+				Config: testAccDbtCloudServiceTokenResourceBasicConfig(
+					serviceTokenName,
+					projectName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudServiceTokenExists("dbtcloud_service_token.test_service_token"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "name", serviceTokenName),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "git_admin"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "job_admin"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
-					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "token_string"),
+					testAccCheckDbtCloudServiceTokenExists(
+						"dbtcloud_service_token.test_service_token",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"name",
+						serviceTokenName,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.permission_set",
+						"git_admin",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.permission_set",
+						"job_admin",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.all_projects",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.project_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"token_string",
+					),
 				),
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudServiceTokenResourceFullConfig(serviceTokenName2, projectName),
+				Config: testAccDbtCloudServiceTokenResourceFullConfig(
+					serviceTokenName2,
+					projectName,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudServiceTokenExists("dbtcloud_service_token.test_service_token"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "name", serviceTokenName2),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.permission_set", "git_admin"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "service_token_permissions.0.project_id"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_service_token.test_service_token", "service_token_permissions.1.permission_set", "job_admin"),
-					resource.TestCheckResourceAttrSet("dbtcloud_service_token.test_service_token", "token_string"),
+					testAccCheckDbtCloudServiceTokenExists(
+						"dbtcloud_service_token.test_service_token",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"name",
+						serviceTokenName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.permission_set",
+						"git_admin",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.all_projects",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.project_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.permission_set",
+						"job_admin",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"token_string",
+					),
 				),
 			},
 			// IMPORT

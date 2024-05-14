@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudBigQueryCredentialDataSource(t *testing.T) {
@@ -15,7 +15,10 @@ func TestAccDbtCloudBigQueryCredentialDataSource(t *testing.T) {
 	config := bigquery_credential(randomProjectName, "moo", 64)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_credential.test", "credential_id"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_bigquery_credential.test",
+			"credential_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_credential.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_credential.test", "dataset"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_credential.test", "num_threads"),

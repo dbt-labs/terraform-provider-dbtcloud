@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestDbtCloudWebhookDataSource(t *testing.T) {
@@ -18,7 +18,11 @@ func TestDbtCloudWebhookDataSource(t *testing.T) {
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "webhook_id"),
 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "name", randomWebhookName),
-		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "description", randomWebhookDescription),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_webhook.test",
+			"description",
+			randomWebhookDescription,
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "client_url"),
 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "event_types.#", "2"),
 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "job_ids.#", "0"),

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudProjectDataSource(t *testing.T) {
@@ -22,7 +22,11 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "state"),
 
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "project_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_project.test_with_name", "name", randomProjectName),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_project.test_with_name",
+			"name",
+			randomProjectName,
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "connection_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "repository_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "state"),

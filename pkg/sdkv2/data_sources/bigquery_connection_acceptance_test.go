@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudBigQueryConnectionDataSource(t *testing.T) {
@@ -16,30 +16,101 @@ func TestAccDbtCloudBigQueryConnectionDataSource(t *testing.T) {
 	config := bigQueryConnection(randomProjectName, randomConnectionName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "name", randomConnectionName),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_connection.test", "connection_id"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"name",
+			randomConnectionName,
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_bigquery_connection.test",
+			"connection_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_connection.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_connection.test", "is_active"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_bigquery_connection.test", "type"),
 
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "gcp_project_id", "test_gcp_project_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "timeout_seconds", "100"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "private_key_id", "test_private_key_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "client_email", "test_client_email"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "client_id", "test_client_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "auth_uri", "test_auth_uri"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "token_uri", "test_token_uri"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "auth_provider_x509_cert_url", "test_auth_provider_x509_cert_url"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "client_x509_cert_url", "test_client_x509_cert_url"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"gcp_project_id",
+			"test_gcp_project_id",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"timeout_seconds",
+			"100",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"private_key_id",
+			"test_private_key_id",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"client_email",
+			"test_client_email",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"client_id",
+			"test_client_id",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"auth_uri",
+			"test_auth_uri",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"token_uri",
+			"test_token_uri",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"auth_provider_x509_cert_url",
+			"test_auth_provider_x509_cert_url",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"client_x509_cert_url",
+			"test_client_x509_cert_url",
+		),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "retries", "3"),
 		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "location", "EU"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "maximum_bytes_billed", "100000"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "execution_project", "test_gcp_project_id2"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "priority", "batch"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "gcs_bucket", "test_gcs_bucket"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "dataproc_region", "test_dataproc_region"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "dataproc_cluster_name", "test_dataproc_cluster_name"),
-		resource.TestCheckResourceAttr("data.dbtcloud_bigquery_connection.test", "is_configured_for_oauth", "false"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"maximum_bytes_billed",
+			"100000",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"execution_project",
+			"test_gcp_project_id2",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"priority",
+			"batch",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"gcs_bucket",
+			"test_gcs_bucket",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"dataproc_region",
+			"test_dataproc_region",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"dataproc_cluster_name",
+			"test_dataproc_cluster_name",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_bigquery_connection.test",
+			"is_configured_for_oauth",
+			"false",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
@@ -26,13 +26,36 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(projectName, default_schema, username, password),
+				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(
+					projectName,
+					default_schema,
+					username,
+					password,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudPostgresCredentialExists("dbtcloud_postgres_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbtcloud_postgres_credential.test_credential", "default_schema", default_schema),
-					resource.TestCheckResourceAttr("dbtcloud_postgres_credential.test_credential", "username", username),
-					resource.TestCheckResourceAttr("dbtcloud_postgres_credential.test_credential", "target_name", "default"),
-					resource.TestCheckResourceAttr("dbtcloud_postgres_credential.test_credential", "type", "postgres"),
+					testAccCheckDbtCloudPostgresCredentialExists(
+						"dbtcloud_postgres_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential",
+						"default_schema",
+						default_schema,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential",
+						"username",
+						username,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential",
+						"target_name",
+						"default",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential",
+						"type",
+						"postgres",
+					),
 				),
 			},
 			// RENAME
@@ -48,7 +71,9 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudPostgresCredentialResourceBasicConfig(projectName, default_schema, username, password string) string {
+func testAccDbtCloudPostgresCredentialResourceBasicConfig(
+	projectName, default_schema, username, password string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"

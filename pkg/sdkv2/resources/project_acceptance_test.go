@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudProjectResource(t *testing.T) {
@@ -26,7 +26,11 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 				Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_project.test_project",
+						"name",
+						projectName,
+					),
 				),
 			},
 			// RENAME
@@ -34,7 +38,11 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName2),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_project.test_project",
+						"name",
+						projectName2,
+					),
 				),
 			},
 			// MODIFY
@@ -42,8 +50,16 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "name", projectName2),
-					resource.TestCheckResourceAttr("dbtcloud_project.test_project", "dbt_project_subdirectory", "/project/subdirectory_where/dbt-is"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_project.test_project",
+						"name",
+						projectName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_project.test_project",
+						"dbt_project_subdirectory",
+						"/project/subdirectory_where/dbt-is",
+					),
 				),
 			},
 			// IMPORT

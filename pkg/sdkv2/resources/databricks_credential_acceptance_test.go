@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
@@ -25,10 +25,20 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token),
+				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(
+					projectName,
+					targetName,
+					token,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudDatabricksCredentialExists("dbtcloud_databricks_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbtcloud_databricks_credential.test_credential", "target_name", targetName),
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"target_name",
+						targetName,
+					),
 				),
 			},
 			// RENAME
@@ -44,7 +54,9 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudDatabricksCredentialResourceBasicConfig(projectName, targetName, token string) string {
+func testAccDbtCloudDatabricksCredentialResourceBasicConfig(
+	projectName, targetName, token string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"

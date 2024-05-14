@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudGroupResource(t *testing.T) {
@@ -28,13 +28,40 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudGroupExists("dbtcloud_group.test_group"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "name", groupName),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.permission_set", "member"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.permission_set", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbtcloud_group.test_group", "group_permissions.0.project_id"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "sso_mapping_groups.0", "group1"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.1.permission_set",
+						"member",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.permission_set",
+						"developer",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.all_projects",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.project_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"sso_mapping_groups.0",
+						"group1",
+					),
 				),
 			},
 			// MODIFY
@@ -43,14 +70,45 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudGroupExists("dbtcloud_group.test_group"),
 					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "name", groupName2),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "assign_by_default", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.#", "2"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.permission_set", "member"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.0.all_projects", "false"),
-					resource.TestCheckResourceAttrSet("dbtcloud_group.test_group", "group_permissions.0.project_id"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.all_projects", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "group_permissions.1.permission_set", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_group.test_group", "sso_mapping_groups.#", "2"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"assign_by_default",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.permission_set",
+						"member",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.all_projects",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_group.test_group",
+						"group_permissions.0.project_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"group_permissions.1.permission_set",
+						"developer",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group.test_group",
+						"sso_mapping_groups.#",
+						"2",
+					),
 				),
 			},
 			// IMPORT

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudPostgresCredentialDataSource(t *testing.T) {
@@ -15,9 +15,15 @@ func TestAccDbtCloudPostgresCredentialDataSource(t *testing.T) {
 	config := postgres_credential(randomProjectName, "moo", "baa", "maa", 64)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_postgres_credential.test", "credential_id"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_postgres_credential.test",
+			"credential_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_postgres_credential.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_postgres_credential.test", "default_schema"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_postgres_credential.test",
+			"default_schema",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_postgres_credential.test", "username"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_postgres_credential.test", "num_threads"),
 	)
@@ -33,7 +39,13 @@ func TestAccDbtCloudPostgresCredentialDataSource(t *testing.T) {
 	})
 }
 
-func postgres_credential(projectName string, defaultSchema string, username string, password string, numThreads int) string {
+func postgres_credential(
+	projectName string,
+	defaultSchema string,
+	username string,
+	password string,
+	numThreads int,
+) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_credential_project" {
         name = "%s"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
@@ -15,7 +15,10 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 	config := snowflake_credential(randomProjectName, "moo", "baa", "maa", 64)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "credential_id"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_snowflake_credential.test",
+			"credential_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "auth_type"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_snowflake_credential.test", "is_active"),
@@ -35,7 +38,13 @@ func TestAccDbtCloudSnowflakeCredentialDataSource(t *testing.T) {
 	})
 }
 
-func snowflake_credential(projectName string, schema string, username string, password string, numThreads int) string {
+func snowflake_credential(
+	projectName string,
+	schema string,
+	username string,
+	password string,
+	numThreads int,
+) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_credential_project" {
         name = "%s"
