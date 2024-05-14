@@ -35,7 +35,7 @@ func (r *groupPartialPermissionsResource) Schema(
 			- when defining a new ~~~dbt_cloud_group_partial_permissions~~~
 			  - if the group doesn't exist with the given ~~~name~~~, it will be created
 			  - if a group exists with the given ~~~name~~~, permissions will be added in the dbt Cloud group if they are not present yet
-			- in a given Terraform project/workspace, avoid having different ~~dbt_cloud_group_partial_permissions~~~ for the same group name to prevent sync issues. Add all the permissions in the same resource. 
+			- in a given Terraform project/workspace, avoid having different ~~~dbt_cloud_group_partial_permissions~~~ for the same group name to prevent sync issues. Add all the permissions in the same resource. 
 			- all resources for the same group name need to have the same values for ~~~assign_by_default~~~ and ~~~sso_mapping_groups~~~. Those fields are not considered "partial". (Please raise feedback in GitHub if you think that ~~~sso_mapping_groups~~~ should be "partial" as well)
 			- when a resource is updated, the dbt Cloud group will be updated accordingly, removing and adding permissions
 			- when the resource is deleted/destroyed, if the resulting permission sets is empty, the group will be deleted ; otherwise, the group will be updated, removing the permissions from the deleted resource

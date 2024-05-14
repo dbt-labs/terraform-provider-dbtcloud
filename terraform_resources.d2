@@ -2,7 +2,7 @@
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v0.2.17)
+  # Terraform resources (v0.3.3)
 | {near: top-center}
 
 direction: right
@@ -12,6 +12,7 @@ license_map
 
 privatelink_endpoint: {tooltip: Datasource only}
 group: {tooltip: Group permissions as well}
+group_partial_permissions
 service_token: {tooltip: Permissions as well}
 project_artefacts: {tooltip: For setting the project docs and source freshness}
 job: {
@@ -42,7 +43,9 @@ service_token -- project: can scope to {
   }
 }
 group -- project
+group_partial_permissions -- project
 user_groups -- group
+user_groups -- group_partial_permissions
 project -- environment
 job -- environment
 job -- environemnt_variable_job_override
