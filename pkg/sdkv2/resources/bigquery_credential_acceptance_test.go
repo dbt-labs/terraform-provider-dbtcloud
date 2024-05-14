@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
@@ -26,8 +26,14 @@ func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudBigQueryCredentialResourceBasicConfig(projectName, dataset),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudBigQueryCredentialExists("dbtcloud_bigquery_credential.test_credential"),
-					resource.TestCheckResourceAttr("dbtcloud_bigquery_credential.test_credential", "dataset", dataset),
+					testAccCheckDbtCloudBigQueryCredentialExists(
+						"dbtcloud_bigquery_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_credential.test_credential",
+						"dataset",
+						dataset,
+					),
 				),
 			},
 			// RENAME

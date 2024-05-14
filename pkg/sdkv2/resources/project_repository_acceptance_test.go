@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
@@ -23,9 +23,14 @@ func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 		CheckDestroy: testAccCheckDbtCloudProjectRepositoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudProjectRepositoryResourceBasicConfig(projectName, repoUrlGithub),
+				Config: testAccDbtCloudProjectRepositoryResourceBasicConfig(
+					projectName,
+					repoUrlGithub,
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectRepositoryExists("dbtcloud_project_repository.test_project_repository"),
+					testAccCheckDbtCloudProjectRepositoryExists(
+						"dbtcloud_project_repository.test_project_repository",
+					),
 				),
 			},
 			// IMPORT
@@ -37,7 +42,10 @@ func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 			},
 			// EMPTY
 			{
-				Config: testAccDbtCloudProjectRepositoryResourceEmptyConfig(projectName, repoUrlGithub),
+				Config: testAccDbtCloudProjectRepositoryResourceEmptyConfig(
+					projectName,
+					repoUrlGithub,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectRepositoryEmpty("dbtcloud_project.test_project"),
 				),

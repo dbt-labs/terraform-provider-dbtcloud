@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudServiceTokenDataSource(t *testing.T) {
@@ -15,9 +15,19 @@ func TestAccDbtCloudServiceTokenDataSource(t *testing.T) {
 	config := serviceToken(serviceTokenName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_service_token.test_service_token_read", "name", serviceTokenName),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_service_token.test_service_token_read", "uid"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_service_token.test_service_token_read", "service_token_id"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_service_token.test_service_token_read",
+			"name",
+			serviceTokenName,
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_service_token.test_service_token_read",
+			"uid",
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_service_token.test_service_token_read",
+			"service_token_id",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudPrivatelinkEndpointDataSource(t *testing.T) {
@@ -24,10 +24,21 @@ func TestAccDbtCloudPrivatelinkEndpointDataSource(t *testing.T) {
 		configNoName := privatelinkEndpoint("", endpointURL)
 
 		check := resource.ComposeAggregateTestCheckFunc(
-			resource.TestCheckResourceAttr("data.dbtcloud_privatelink_endpoint.test", "name", endpointName),
-			resource.TestCheckResourceAttr("data.dbtcloud_privatelink_endpoint.test", "private_link_endpoint_url", endpointURL),
+			resource.TestCheckResourceAttr(
+				"data.dbtcloud_privatelink_endpoint.test",
+				"name",
+				endpointName,
+			),
+			resource.TestCheckResourceAttr(
+				"data.dbtcloud_privatelink_endpoint.test",
+				"private_link_endpoint_url",
+				endpointURL,
+			),
 			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "id"),
-			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "cidr_range"),
+			resource.TestCheckResourceAttrSet(
+				"data.dbtcloud_privatelink_endpoint.test",
+				"cidr_range",
+			),
 			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "type"),
 			resource.TestCheckResourceAttrSet("data.dbtcloud_privatelink_endpoint.test", "state"),
 		)

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudConnectionDataSource(t *testing.T) {
@@ -16,7 +16,11 @@ func TestAccDbtCloudConnectionDataSource(t *testing.T) {
 	config := connection(randomProjectName, randomConnectionName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_connection.test", "name", randomConnectionName),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_connection.test",
+			"name",
+			randomConnectionName,
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "connection_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_connection.test", "is_active"),

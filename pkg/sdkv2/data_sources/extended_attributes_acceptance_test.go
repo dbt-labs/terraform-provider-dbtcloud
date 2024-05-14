@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestDbtCloudExtendedAttributesDataSource(t *testing.T) {
@@ -12,14 +13,23 @@ func TestDbtCloudExtendedAttributesDataSource(t *testing.T) {
 	config := extendedAttributes()
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_extended_attributes.test", "extended_attributes_id"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_extended_attributes.test",
+			"extended_attributes_id",
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_extended_attributes.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_extended_attributes.test", "extended_attributes"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "extended_attributes_id"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_extended_attributes.test",
+			"extended_attributes",
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_environment.test",
+			"extended_attributes_id",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: providers(),
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

@@ -1,11 +1,12 @@
-package data_sources_test
+package environment_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudEnvironmentDataSource(t *testing.T) {
@@ -16,19 +17,25 @@ func TestAccDbtCloudEnvironmentDataSource(t *testing.T) {
 	config := environment(randomProjectName, randomEnvironmentName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_environment.test", "name", randomEnvironmentName),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment.test",
+			"name",
+			randomEnvironmentName,
+		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "environment_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "credential_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "dbt_version"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "type"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_environment.test", "use_custom_branch"),
-		resource.TestCheckResourceAttr("data.dbtcloud_environment.test", "custom_branch", "customBranchName"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment.test",
+			"custom_branch",
+			"customBranchName",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: providers(),
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -57,5 +64,5 @@ func environment(projectName, environmentName string) string {
         project_id = dbtcloud_project.test_project.id
         environment_id = dbtcloud_environment.test_environment.environment_id
     }
-    `, projectName, environmentName, DBT_CLOUD_VERSION)
+    `, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION)
 }

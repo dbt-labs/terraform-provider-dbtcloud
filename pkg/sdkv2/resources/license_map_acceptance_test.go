@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccDbtCloudLicenseMapResource(t *testing.T) {
@@ -26,20 +26,51 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 				Config: testAccDbtCloudLicenseMapResourceBasicConfig("developer", groupName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudLicenseMapExists("dbtcloud_license_map.test_license_map"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "license_type", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.#", "1"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.0", groupName),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_license_map.test_license_map",
+						"license_type",
+						"developer",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_license_map.test_license_map",
+						"sso_license_mapping_groups.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_license_map.test_license_map",
+						"sso_license_mapping_groups.0",
+						groupName,
+					),
 				),
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudLicenseMapResourceBasicConfig("developer", fmt.Sprintf(`%s","%s`, groupName, groupName2)),
+				Config: testAccDbtCloudLicenseMapResourceBasicConfig(
+					"developer",
+					fmt.Sprintf(`%s","%s`, groupName, groupName2),
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudLicenseMapExists("dbtcloud_license_map.test_license_map"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "license_type", "developer"),
-					resource.TestCheckResourceAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.#", "2"),
-					resource.TestCheckTypeSetElemAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.*", groupName),
-					resource.TestCheckTypeSetElemAttr("dbtcloud_license_map.test_license_map", "sso_license_mapping_groups.*", groupName2),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_license_map.test_license_map",
+						"license_type",
+						"developer",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_license_map.test_license_map",
+						"sso_license_mapping_groups.#",
+						"2",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_license_map.test_license_map",
+						"sso_license_mapping_groups.*",
+						groupName,
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_license_map.test_license_map",
+						"sso_license_mapping_groups.*",
+						groupName2,
+					),
 				),
 			},
 			// IMPORT

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudGroupDataSource(t *testing.T) {
@@ -17,7 +17,10 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr("data.dbtcloud_group.test_group_read", "name", groupName),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "is_active"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "assign_by_default"),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_group.test_group_read",
+			"assign_by_default",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

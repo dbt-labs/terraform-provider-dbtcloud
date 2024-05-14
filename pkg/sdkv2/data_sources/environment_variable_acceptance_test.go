@@ -5,24 +5,45 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDbtCloudEnvironmentVariableDataSource(t *testing.T) {
 
 	projectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	environmentName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	environmentVariableName := strings.ToUpper(acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum),
+	)
 
 	config := environmentVariable(projectName, environmentName, environmentVariableName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "name", fmt.Sprintf("DBT_%s", environmentVariableName)),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_environment_variable.test_env_var_read", "project_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "environment_values.%", "2"),
-		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", "environment_values.project", "Baa"),
-		resource.TestCheckResourceAttr("data.dbtcloud_environment_variable.test_env_var_read", fmt.Sprintf("environment_values.%s", environmentName), "Moo"),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment_variable.test_env_var_read",
+			"name",
+			fmt.Sprintf("DBT_%s", environmentVariableName),
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_environment_variable.test_env_var_read",
+			"project_id",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment_variable.test_env_var_read",
+			"environment_values.%",
+			"2",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment_variable.test_env_var_read",
+			"environment_values.project",
+			"Baa",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment_variable.test_env_var_read",
+			fmt.Sprintf("environment_values.%s", environmentName),
+			"Moo",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
