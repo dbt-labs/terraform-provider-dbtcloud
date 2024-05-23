@@ -1,3 +1,14 @@
-# Import using a job ID found in the URL or via the API.
-terraform import dbtcloud_job.test_job "job_id"
-terraform import dbtcloud_job.test_job 12345
+# using  import blocks (requires Terraform >= 1.5)
+import {
+  to = dbtcloud_job.my_job
+  id = "job_id"
+}
+
+import {
+  to = dbtcloud_job.my_job
+  id = "12345"
+}
+
+# using the older import command
+terraform import dbtcloud_job.my_job "job_id"
+terraform import dbtcloud_job.my_job 12345

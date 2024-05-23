@@ -14,7 +14,7 @@ builds:
   flags:
     - -trimpath
   ldflags:
-    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud.versionString={{.Env.VERSION}}"'
   goos:
     - freebsd
     - windows
@@ -47,7 +47,7 @@ signs:
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
-release:
+# release:
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:

@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -181,5 +182,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		notification.NotificationResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
+		partial_notification.PartialNotificationResource,
 	}
 }

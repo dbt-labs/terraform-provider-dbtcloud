@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/provider"
@@ -60,4 +61,13 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 
 		return tf6muxserver.NewMuxServer(context.Background(), providers...)
 	},
+}
+
+func TestAccPreCheck(t *testing.T) {
+	if v := os.Getenv("DBT_CLOUD_ACCOUNT_ID"); v == "" {
+		t.Fatal("DBT_CLOUD_ACCOUNT_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
+		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
+	}
 }
