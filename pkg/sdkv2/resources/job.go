@@ -29,6 +29,7 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID to create the job in",
+		ForceNew:    true,
 	},
 	"environment_id": &schema.Schema{
 		Type:        schema.TypeInt,
