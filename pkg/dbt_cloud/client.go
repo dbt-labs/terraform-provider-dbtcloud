@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-// Client -
+var versionString = "dev"
+
 type Client struct {
 	HostURL    string
 	HTTPClient *http.Client
@@ -142,9 +143,16 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+
+	userAgentWithVersion := fmt.Sprintf(
+		"terraform-provider-dbtcloud/%s",
+		versionString,
+	)
+
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
+	req.Header.Set("User-Agent", userAgentWithVersion)
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
