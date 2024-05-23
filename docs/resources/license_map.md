@@ -52,7 +52,18 @@ resource "dbtcloud_license_map" "it_license_map" {
 Import is supported using the following syntax:
 
 ```shell
-# Import using a license map ID found in the URL or via the API.
-terraform import dbtcloud_license_map.test_license_map "license_map_id"
-terraform import dbtcloud_license_map.test_license_map 12345
+# using  import blocks (requires Terraform >= 1.5)
+import {
+  to = dbtcloud_license_map.my_license_map
+  id = "license_map_id"
+}
+
+import {
+  to = dbtcloud_license_map.my_license_map
+  id = "12345"
+}
+
+# using the older import command
+terraform import dbtcloud_license_map.my_license_map "license_map_id"
+terraform import dbtcloud_license_map.my_license_map 12345
 ```

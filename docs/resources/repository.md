@@ -121,7 +121,18 @@ resource "dbtcloud_repository" "ado_repo" {
 Import is supported using the following syntax:
 
 ```shell
-# Import using a project ID and repository ID found in the URL or via the API.
-terraform import dbtcloud_repository.test_repository "project_id:repository_id"
-terraform import dbtcloud_repository.test_repository 12345:6789
+# using  import blocks (requires Terraform >= 1.5)
+import {
+  to = dbtcloud_repository.my_repository
+  id = "project_id:repository_id"
+}
+
+import {
+  to = dbtcloud_repository.my_repository
+  id = "12345:6789"
+}
+
+# using the older import command
+terraform import dbtcloud_repository.my_repository "project_id:repository_id"
+terraform import dbtcloud_repository.my_repository 12345:6789
 ```

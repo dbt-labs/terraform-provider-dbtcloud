@@ -5,9 +5,9 @@ description: |-
   Provide a partial set of permissions for a group. This is different from dbt_cloud_group as it allows to have multiple resources updating the same dbt Cloud group and is useful for companies managing a single dbt Cloud Account configuration from different Terraform projects/workspaces.
   If a company uses only one Terraform project/workspace to manage all their dbt Cloud Account config, it is recommended to use dbt_cloud_group instead of dbt_cloud_group_partial_permissions.
   ~> This is currently an experimental resource and any feedback is welcome in the GitHub repository.
+  The resource currently requires a Service Token with Account Admin access.
   The current behavior of the resource is the following:
   when using dbt_cloud_group_partial_permissions, don't use dbt_cloud_group for the same group in any other project/workspace. Otherwise, the behavior is undefined and partial permissions might be removed.when defining a new dbt_cloud_group_partial_permissions
-  
   if the group doesn't exist with the given name, it will be createdif a group exists with the given name, permissions will be added in the dbt Cloud group if they are not present yetin a given Terraform project/workspace, avoid having different dbt_cloud_group_partial_permissions for the same group name to prevent sync issues. Add all the permissions in the same resource.all resources for the same group name need to have the same values for assign_by_default and sso_mapping_groups. Those fields are not considered "partial". (Please raise feedback in GitHub if you think that sso_mapping_groups should be "partial" as well)when a resource is updated, the dbt Cloud group will be updated accordingly, removing and adding permissionswhen the resource is deleted/destroyed, if the resulting permission sets is empty, the group will be deleted ; otherwise, the group will be updated, removing the permissions from the deleted resource
 ---
 
@@ -19,6 +19,8 @@ Provide a partial set of permissions for a group. This is different from `dbt_cl
 If a company uses only one Terraform project/workspace to manage all their dbt Cloud Account config, it is recommended to use `dbt_cloud_group` instead of `dbt_cloud_group_partial_permissions`.
 
 ~> This is currently an experimental resource and any feedback is welcome in the GitHub repository.
+
+The resource currently requires a Service Token with Account Admin access.
 
 The current behavior of the resource is the following:
 
