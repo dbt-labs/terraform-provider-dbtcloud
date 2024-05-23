@@ -41,6 +41,7 @@ func (r *groupPartialPermissionsResource) Read(
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	// check if the ID exists
 	groupIDFromState := state.ID.ValueInt64()
 	group, err := r.client.GetGroup(int(groupIDFromState))
 	if err != nil {
@@ -59,7 +60,9 @@ func (r *groupPartialPermissionsResource) Read(
 		return
 	}
 
+	// if the ID exists, make sure that it is the one we are looking for
 	if group.Name != state.Name.ValueString() {
+		// it doesn't match, we need to find the correct one
 		groupIDs := r.client.GetAllGroupIDsByName(state.Name.ValueString())
 		if len(groupIDs) > 1 {
 			resp.Diagnostics.AddError(
@@ -88,6 +91,7 @@ func (r *groupPartialPermissionsResource) Read(
 		}
 	}
 
+	// we set the "global" values
 	state.ID = types.Int64Value(int64(*group.ID))
 	state.Name = types.StringValue(group.Name)
 	state.AssignByDefault = types.BoolValue(group.AssignByDefault)
@@ -97,6 +101,7 @@ func (r *groupPartialPermissionsResource) Read(
 		group.SSOMappingGroups,
 	)
 
+	// we set the "partial" values
 	var remotePermissions []GroupPermission
 	for _, permission := range group.Permissions {
 		perm := GroupPermission{
@@ -304,6 +309,7 @@ func (r *groupPartialPermissionsResource) Update(
 			"Issue getting Group",
 			"Error: "+err.Error(),
 		)
+		return
 	}
 
 	planAssignByDefault := plan.AssignByDefault.ValueBool()

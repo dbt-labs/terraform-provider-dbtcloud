@@ -29,6 +29,8 @@ func (r *groupPartialPermissionsResource) Schema(
 
 			~> This is currently an experimental resource and any feedback is welcome in the GitHub repository.
 
+			The resource currently requires a Service Token with Account Admin access.
+
 			The current behavior of the resource is the following:
 
 			- when using ~~~dbt_cloud_group_partial_permissions~~~, don't use ~~~dbt_cloud_group~~~ for the same group in any other project/workspace. Otherwise, the behavior is undefined and partial permissions might be removed.

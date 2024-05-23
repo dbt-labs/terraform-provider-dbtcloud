@@ -2,7 +2,6 @@ package group_partial_permissions_test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -17,7 +16,7 @@ func TestAccDbtCloudGroupPartialPermissionsResource(t *testing.T) {
 	groupName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// 1. CREATE
@@ -369,13 +368,4 @@ resource "dbtcloud_group_partial_permissions" "test_group_partial_permission2" {
 }
 `, projectName, groupName)
 	return groupPartialPermissionConfig
-}
-
-func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("DBT_CLOUD_ACCOUNT_ID"); v == "" {
-		t.Fatal("DBT_CLOUD_ACCOUNT_ID must be set for acceptance tests")
-	}
-	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
-		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
-	}
 }
