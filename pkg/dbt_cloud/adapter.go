@@ -70,8 +70,12 @@ func createGenericAdapter(c *Client, newAdapter Adapter, projectID int) (*int, e
 		// as there is no way to get the current token ID, we always use 1
 		if strings.Contains(err.Error(), "This endpoint cannot be accessed with a service token") {
 
-			serviceTokenID := 1
-			newAdapter.CreatedByServiceTokenID = &serviceTokenID
+			// we just get the first service token ID from the list
+			allServiceTokens, err := c.GetAllServiceTokens()
+			if err != nil {
+				return nil, err
+			}
+			newAdapter.CreatedByServiceTokenID = allServiceTokens[0].ID
 		} else {
 			// if the error is different, return it
 			return nil, err

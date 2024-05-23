@@ -147,3 +147,22 @@ func (c *Client) GetAllNotifications() ([]Notification, error) {
 	}
 	return allNotifications, nil
 }
+
+func (c *Client) GetAllServiceTokens() ([]ServiceToken, error) {
+	url := fmt.Sprintf("%s/v3/accounts/%d/service-tokens/?state=1", c.HostURL, c.AccountID)
+
+	allServiceTokensRaw := c.GetData(url)
+
+	allServiceTokens := []ServiceToken{}
+	for _, notification := range allServiceTokensRaw {
+
+		data, _ := json.Marshal(notification)
+		currentServiceToken := ServiceToken{}
+		err := json.Unmarshal(data, &currentServiceToken)
+		if err != nil {
+			return nil, err
+		}
+		allServiceTokens = append(allServiceTokens, currentServiceToken)
+	}
+	return allServiceTokens, nil
+}
