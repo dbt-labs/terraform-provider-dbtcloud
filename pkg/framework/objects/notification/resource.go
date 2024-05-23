@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -116,7 +117,6 @@ func (r *notificationResource) Read(
 		notification.OnSuccess,
 	)
 	data.State = types.Int64Value(int64(notification.State))
-	data.NotificationType = types.Int64Value(int64(notification.NotificationType))
 	data.NotificationType = types.Int64Value(int64(notification.NotificationType))
 	data.ExternalEmail = types.StringPointerValue(notification.ExternalEmail)
 	data.SlackChannelID = types.StringPointerValue(notification.SlackChannelID)
@@ -258,7 +258,7 @@ func (r *notificationResource) Update(
 		state.SlackChannelName = plan.SlackChannelName
 	}
 
-	notification := convertStateToNotification(state)
+	notification := ConvertStateToNotification(state)
 	notification.AccountId = r.client.AccountID
 
 	// Update the notification
@@ -297,12 +297,12 @@ func (r *notificationResource) Configure(
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func convertStateToNotification(model NotificationResourceModel) dbt_cloud.Notification {
+func ConvertStateToNotification(model NotificationResourceModel) dbt_cloud.Notification {
 	notification := dbt_cloud.Notification{
 		UserId:           int(model.UserID.ValueInt64()),
-		OnCancel:         expandInt64SetToIntSlice(model.OnCancel),
-		OnFailure:        expandInt64SetToIntSlice(model.OnFailure),
-		OnSuccess:        expandInt64SetToIntSlice(model.OnSuccess),
+		OnCancel:         helper.Int64SetToIntSlice(model.OnCancel),
+		OnFailure:        helper.Int64SetToIntSlice(model.OnFailure),
+		OnSuccess:        helper.Int64SetToIntSlice(model.OnSuccess),
 		State:            int(model.State.ValueInt64()),
 		NotificationType: int(model.NotificationType.ValueInt64()),
 	}
@@ -331,13 +331,4 @@ func convertStateToNotification(model NotificationResourceModel) dbt_cloud.Notif
 	}
 
 	return notification
-}
-
-func expandInt64SetToIntSlice(set types.Set) []int {
-	elements := set.Elements()
-	result := make([]int, len(elements))
-	for i, el := range elements {
-		result[i] = int(el.(types.Int64).ValueInt64())
-	}
-	return result
 }

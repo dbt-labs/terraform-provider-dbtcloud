@@ -128,3 +128,22 @@ func (c *Client) GetAllEnvironments(projectID int) ([]Environment, error) {
 	}
 	return allEnvs, nil
 }
+
+func (c *Client) GetAllNotifications() ([]Notification, error) {
+	url := fmt.Sprintf("%s/v2/accounts/%d/notifications/", c.HostURL, c.AccountID)
+
+	allNotificationsRaw := c.GetData(url)
+
+	allNotifications := []Notification{}
+	for _, notification := range allNotificationsRaw {
+
+		data, _ := json.Marshal(notification)
+		currentNotification := Notification{}
+		err := json.Unmarshal(data, &currentNotification)
+		if err != nil {
+			return nil, err
+		}
+		allNotifications = append(allNotifications, currentNotification)
+	}
+	return allNotifications, nil
+}

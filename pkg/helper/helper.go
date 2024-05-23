@@ -26,6 +26,15 @@ func SetIntToInt64OrNull(value int) types.Int64 {
 	return types.Int64Value(int64(value))
 }
 
+func Int64SetToIntSlice(set types.Set) []int {
+	elements := set.Elements()
+	result := make([]int, len(elements))
+	for i, el := range elements {
+		result[i] = int(el.(types.Int64).ValueInt64())
+	}
+	return result
+}
+
 func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(newString, "")
