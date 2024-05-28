@@ -208,7 +208,7 @@ func (r *groupPartialPermissionsResource) Create(
 
 	} else {
 		// if the group with the name given doesn't exist , create it
-		// TODO: Move this to the group resources in the Framework
+		// TODO: Move this to the group resources once the resource is move to the Framework
 
 		group, err := r.client.CreateGroup(name, assignByDefault, ssoMappingGroups)
 		if err != nil {
