@@ -37,14 +37,20 @@ func ResourceProjectArtefacts() *schema.Resource {
 		UpdateContext: resourceProjectArtefactsUpdate,
 		DeleteContext: resourceProjectArtefactsDelete,
 
-		Schema: projectArtefactsSchema,
+		Schema:             projectArtefactsSchema,
+		DeprecationMessage: "Please remove this deprecated resource from your project. It will be deleted from the provider in a future version. dbt Explorer replaces the need for this config.",
+		Description:        "[Deprecated] Resource for mentioning what jobs are the source of truth for the legacy dbt Docs and dbt Source Freshness pages. dbt Explorer doesn't require this config anymore.",
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
 
-func resourceProjectArtefactsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectArtefactsCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -83,7 +89,11 @@ func resourceProjectArtefactsCreate(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceProjectArtefactsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectArtefactsRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -116,7 +126,11 @@ func resourceProjectArtefactsRead(ctx context.Context, d *schema.ResourceData, m
 	return diags
 }
 
-func resourceProjectArtefactsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectArtefactsUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 
 	c := m.(*dbt_cloud.Client)
 
@@ -155,7 +169,11 @@ func resourceProjectArtefactsUpdate(ctx context.Context, d *schema.ResourceData,
 	return resourceProjectArtefactsRead(ctx, d, m)
 }
 
-func resourceProjectArtefactsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectArtefactsDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
