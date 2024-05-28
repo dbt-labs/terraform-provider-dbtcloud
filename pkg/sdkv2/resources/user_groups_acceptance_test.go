@@ -14,7 +14,10 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 
 	var userID int
 	var groupIDs string
-	if value := os.Getenv("CI"); value != "" {
+	if isDbtCloudPR() {
+		userID = 1
+		groupIDs = "[]"
+	} else if value := os.Getenv("CI"); value != "" {
 		userID = 54461
 		groupIDs = "[531585, 531584, 531583]"
 	} else {

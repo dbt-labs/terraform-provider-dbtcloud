@@ -11,7 +11,9 @@ import (
 func TestDbtCloudUserGroupsDataSource(t *testing.T) {
 
 	var userID int
-	if value := os.Getenv("CI"); value != "" {
+	if isDbtCloudPR() {
+		userID = 1
+	} else if os.Getenv("CI") != "" {
 		userID = 54461
 	} else {
 		userID = 32

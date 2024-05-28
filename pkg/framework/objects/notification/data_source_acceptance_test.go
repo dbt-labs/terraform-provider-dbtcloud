@@ -11,9 +11,16 @@ import (
 
 func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 
+	var userID string
+	if acctest_helper.IsDbtCloudPR() {
+		userID = "1"
+	} else {
+		userID = "100"
+	}
+
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := notification(randomProjectName)
+	config := notification(randomProjectName, userID)
 
 	check := resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttr(
@@ -43,7 +50,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 	})
 }
 
-func notification(projectName string) string {
+func notification(projectName, userID string) string {
 	return fmt.Sprintf(`
 	resource "dbtcloud_project" "test_notification_project" {
 		name = "%s"
@@ -71,7 +78,7 @@ func notification(projectName string) string {
 	}
 
 	resource "dbtcloud_notification" "test_notification_external" {
-		user_id           = 100
+		user_id           = %s
 		on_failure        = [dbtcloud_job.test_notification_job_1.id]
 		notification_type = 4
 		external_email    = "nomail@mail.com"
@@ -80,5 +87,5 @@ func notification(projectName string) string {
 	data "dbtcloud_notification" "test_notification_external" {
 		notification_id = dbtcloud_notification.test_notification_external.id
 	}
-    `, projectName, acctest_helper.DBT_CLOUD_VERSION)
+    `, projectName, acctest_helper.DBT_CLOUD_VERSION, userID)
 }

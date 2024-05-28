@@ -13,6 +13,10 @@ import (
 
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 
+	if isDbtCloudPR() {
+		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
+	}
+
 	webhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	webhookName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
