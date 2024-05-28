@@ -26,8 +26,21 @@ type PostgresCredentialResponse struct {
 }
 
 // GetPostgresCredential retrieves a specific Postgres credential by its ID
-func (c *Client) GetPostgresCredential(projectId int, credentialId int) (*PostgresCredential, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), nil)
+func (c *Client) GetPostgresCredential(
+	projectId int,
+	credentialId int,
+) (*PostgresCredential, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +60,21 @@ func (c *Client) GetPostgresCredential(projectId int, credentialId int) (*Postgr
 }
 
 // CreatePostgresCredential creates a new Postgres credential
-func (c *Client) CreatePostgresCredential(projectId int, isActive bool, type_ string, defaultSchema string, targetName string, username string, password string, numThreads int) (*PostgresCredential, error) {
+func (c *Client) CreatePostgresCredential(
+	projectId int,
+	isActive bool,
+	type_ string,
+	defaultSchema string,
+	targetName string,
+	username string,
+	password string,
+	numThreads int,
+) (*PostgresCredential, error) {
 	newPostgresCredential := PostgresCredential{
 		Account_Id:     c.AccountID,
 		Project_Id:     projectId,
 		Type:           type_,
-		State:          STATE_ACTIVE, // TODO: make variable
+		State:          STATE_ACTIVE,
 		Threads:        numThreads,
 		Username:       username,
 		Default_Schema: defaultSchema,
@@ -64,7 +86,16 @@ func (c *Client) CreatePostgresCredential(projectId int, isActive bool, type_ st
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newPostgresCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+		),
+		strings.NewReader(string(newPostgresCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +115,27 @@ func (c *Client) CreatePostgresCredential(projectId int, isActive bool, type_ st
 }
 
 // UpdatePostgresCredential updates an existing Postgres credential
-func (c *Client) UpdatePostgresCredential(projectId int, credentialId int, postgresCredential PostgresCredential) (*PostgresCredential, error) {
+func (c *Client) UpdatePostgresCredential(
+	projectId int,
+	credentialId int,
+	postgresCredential PostgresCredential,
+) (*PostgresCredential, error) {
 	postgresCredentialData, err := json.Marshal(postgresCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/credentials/%d/", c.HostURL, c.AccountID, projectId, credentialId), strings.NewReader(string(postgresCredentialData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(postgresCredentialData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +156,17 @@ func (c *Client) UpdatePostgresCredential(projectId int, credentialId int, postg
 
 // DeletePostgresCredential deletes a Postgres credential by its ID
 func (c *Client) DeletePostgresCredential(credentialId, projectId string) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%s/credentials/%s/", c.HostURL, c.AccountID, projectId, credentialId), nil)
+	req, err := http.NewRequest(
+		"DELETE",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%s/credentials/%s/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		nil,
+	)
 	if err != nil {
 		return "", err
 	}

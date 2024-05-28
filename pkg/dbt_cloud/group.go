@@ -40,7 +40,16 @@ type GroupPermissionListResponse struct {
 }
 
 func (c *Client) GetGroup(groupID int) (*Group, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/groups/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(groupID)), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/groups/%s/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			strconv.Itoa(groupID),
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -59,20 +68,28 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 	return &groupResponse.Data, nil
 }
 
-func (c *Client) CreateGroup(name string, assignByDefault bool, ssoMappingGroups []string) (*Group, error) {
+func (c *Client) CreateGroup(
+	name string,
+	assignByDefault bool,
+	ssoMappingGroups []string,
+) (*Group, error) {
 	newGroup := Group{
 		AccountID:        c.AccountID,
 		Name:             name,
 		AssignByDefault:  assignByDefault,
 		SSOMappingGroups: ssoMappingGroups,
-		State:            STATE_ACTIVE, // TODO: make variable
+		State:            STATE_ACTIVE,
 	}
 	newGroupData, err := json.Marshal(newGroup)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/groups/", c.HostURL, c.AccountID), strings.NewReader(string(newGroupData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v3/accounts/%d/groups/", c.HostURL, c.AccountID),
+		strings.NewReader(string(newGroupData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +114,11 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID), strings.NewReader(string(groupData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID),
+		strings.NewReader(string(groupData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +137,25 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 	return &groupResponse.Data, nil
 }
 
-func (c *Client) UpdateGroupPermissions(groupID int, groupPermissions []GroupPermission) (*[]GroupPermission, error) {
+func (c *Client) UpdateGroupPermissions(
+	groupID int,
+	groupPermissions []GroupPermission,
+) (*[]GroupPermission, error) {
 	groupPermissionData, err := json.Marshal(groupPermissions)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/group-permissions/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID), strings.NewReader(string(groupPermissionData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/group-permissions/%d/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+			groupID,
+		),
+		strings.NewReader(string(groupPermissionData)),
+	)
 	if err != nil {
 		return nil, err
 	}
