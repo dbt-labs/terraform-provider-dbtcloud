@@ -166,3 +166,22 @@ func (c *Client) GetAllServiceTokens() ([]ServiceToken, error) {
 	}
 	return allServiceTokens, nil
 }
+
+func (c *Client) GetAllLicenseMaps() ([]LicenseMap, error) {
+	url := fmt.Sprintf("%s/v3/accounts/%d/license-maps/", c.HostURL, c.AccountID)
+
+	allLicenseMapsRaw := c.GetData(url)
+
+	allLicenseMaps := []LicenseMap{}
+	for _, notification := range allLicenseMapsRaw {
+
+		data, _ := json.Marshal(notification)
+		currentLicenseMap := LicenseMap{}
+		err := json.Unmarshal(data, &currentLicenseMap)
+		if err != nil {
+			return nil, err
+		}
+		allLicenseMaps = append(allLicenseMaps, currentLicenseMap)
+	}
+	return allLicenseMaps, nil
+}

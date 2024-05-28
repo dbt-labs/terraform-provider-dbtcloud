@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.5...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.6...HEAD)
+
+## [0.3.6](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.5...v0.3.6)
+
+### Changes
+
+- [#232](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/232) add deprecation notice for `dbtcloud_project_artefacts` as the resource is not required now that dbt Explorer is GA.
+- [#208](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/208) add new `dbtcloud_partial_license_map` for defining SSO group mapping to license types from different Terraform projects/resources
 
 ## [0.3.5](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.4...v0.3.5)
 

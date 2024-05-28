@@ -66,7 +66,7 @@ func (c *Client) CreateBigQueryCredential(
 		Account_Id: c.AccountID,
 		Project_Id: projectId,
 		Type:       type_,
-		State:      STATE_ACTIVE, // TODO: make variable
+		State:      STATE_ACTIVE,
 		Dataset:    dataset,
 		Threads:    numThreads,
 	}

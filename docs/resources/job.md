@@ -119,7 +119,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `description` (String) Description for the job
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
-- `is_active` (Boolean) Flag for whether the job is marked active or deleted. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
+- `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
 - `job_completion_trigger_condition` (Block Set, Max: 1) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `num_threads` (Number) Number of threads to use in the job
 - `run_generate_sources` (Boolean) Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.

@@ -2,13 +2,13 @@
 page_title: "dbtcloud_project_artefacts Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  [Deprecated] Resource for mentioning what jobs are the source of truth for the legacy dbt Docs and dbt Source Freshness pages. dbt Explorer doesn't require this config anymore.
 ---
 
 # dbtcloud_project_artefacts (Resource)
 
 
-
+[Deprecated] Resource for mentioning what jobs are the source of truth for the legacy dbt Docs and dbt Source Freshness pages. dbt Explorer doesn't require this config anymore.
 
 ## Example Usage
 
