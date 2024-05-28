@@ -15,6 +15,13 @@ import (
 
 func TestAccDbtCloudNotificationResource(t *testing.T) {
 
+	var userID string
+	if acctest_helper.IsDbtCloudPR() {
+		userID = "1"
+	} else {
+		userID = "100"
+	}
+
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -23,7 +30,7 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 		CheckDestroy:             testAccCheckDbtCloudNotificationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudNotificationResourceCreateNotifications(projectName),
+				Config: testAccDbtCloudNotificationResourceCreateNotifications(projectName, userID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudNotificationExists(
 						"dbtcloud_notification.test_notification_internal",
@@ -71,7 +78,7 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudNotificationResourceModifyNotifications(projectName),
+				Config: testAccDbtCloudNotificationResourceModifyNotifications(projectName, userID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudNotificationExists(
 						"dbtcloud_notification.test_notification_internal",
@@ -150,11 +157,11 @@ resource "dbtcloud_job" "test_notification_job_2" {
 `, projectName, acctest_helper.DBT_CLOUD_VERSION)
 }
 
-func testAccDbtCloudNotificationResourceCreateNotifications(projectName string) string {
+func testAccDbtCloudNotificationResourceCreateNotifications(projectName, userID string) string {
 
-	notificationsConfig := `
+	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_notification" "test_notification_internal" {
-	user_id           = 100
+	user_id           = %s
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
@@ -162,20 +169,20 @@ resource "dbtcloud_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_notification" "test_notification_external" {
-	user_id           = 100
+	user_id           = %s
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
 	external_email    = "nomail@mail.com"
 }
-`
+`, userID, userID)
 	return testAccDbtCloudNotificationResourceBasicConfig(projectName) + "\n" + notificationsConfig
 }
 
-func testAccDbtCloudNotificationResourceModifyNotifications(projectName string) string {
+func testAccDbtCloudNotificationResourceModifyNotifications(projectName, userID string) string {
 
-	notificationsConfig := `
+	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_notification" "test_notification_internal" {
-	user_id           = 100
+	user_id           = %s
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = []
@@ -183,13 +190,13 @@ resource "dbtcloud_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_notification" "test_notification_external" {
-	user_id           = 100
+	user_id           = %s
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id]
 	notification_type = 4
 	external_email    = "nomail@mail.com"
 }
-`
+`, userID, userID)
 	return testAccDbtCloudNotificationResourceBasicConfig(projectName) + "\n" + notificationsConfig
 }
 

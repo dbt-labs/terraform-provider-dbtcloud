@@ -10,6 +10,10 @@ import (
 
 func TestDbtCloudWebhookDataSource(t *testing.T) {
 
+	if isDbtCloudPR() {
+		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
+	}
+
 	randomWebhookName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	randomWebhookDescription := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
@@ -39,6 +43,7 @@ func TestDbtCloudWebhookDataSource(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func webhooks(webhookName string, webhookDesc string) string {

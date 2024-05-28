@@ -71,3 +71,7 @@ func TestAccPreCheck(t *testing.T) {
 		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
 	}
 }
+
+func IsDbtCloudPR() bool {
+	return os.Getenv("DBT_CLOUD_ACCOUNT_ID") == "1"
+}

@@ -385,48 +385,50 @@ func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 func TestAccDbtCloudConnectionPrivateLinkResource(t *testing.T) {
 
 	// we only test this explicitly as we can't create a PL connection and need to read from existing ones
-	if os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK") != "" {
-
-		endpointName := os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK_NAME")
-		endpointURL := os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK_URL")
-
-		connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-		projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-		resource.Test(t, resource.TestCase{
-			PreCheck:     func() { testAccPreCheck(t) },
-			Providers:    testAccProviders,
-			CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccDbtCloudConnectionResourcePrivateLinkConfig(
-						connectionName,
-						projectName,
-						endpointName,
-						endpointURL,
-					),
-					Check: resource.ComposeTestCheckFunc(
-						testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_connection"),
-						resource.TestCheckResourceAttr(
-							"dbtcloud_connection.test_connection",
-							"name",
-							connectionName,
-						),
-						resource.TestCheckResourceAttrSet(
-							"dbtcloud_connection.test_connection",
-							"private_link_endpoint_id",
-						),
-					),
-				},
-				// IMPORT
-				{
-					ResourceName:            "dbtcloud_connection.test_connection",
-					ImportState:             true,
-					ImportStateVerifyIgnore: []string{},
-				},
-			},
-		})
+	if os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK") == "" {
+		t.Skip("Skipping acceptance tests as DBT_ACCEPTANCE_TEST_PRIVATE_LINK is not set")
 	}
+
+	endpointName := os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK_NAME")
+	endpointURL := os.Getenv("DBT_ACCEPTANCE_TEST_PRIVATE_LINK_URL")
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudConnectionResourcePrivateLinkConfig(
+					connectionName,
+					projectName,
+					endpointName,
+					endpointURL,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudConnectionExists("dbtcloud_connection.test_connection"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_connection.test_connection",
+						"name",
+						connectionName,
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_connection.test_connection",
+						"private_link_endpoint_id",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_connection.test_connection",
+				ImportState:             true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+
 }
 
 func testAccDbtCloudConnectionResourceBasicConfig(
