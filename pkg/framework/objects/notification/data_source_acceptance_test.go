@@ -3,6 +3,7 @@ package notification_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -18,9 +19,12 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 		userID = "100"
 	}
 
+	currentTime := time.Now().Unix()
+	notificationEmail := fmt.Sprintf("%d-datasource@nomail.com", currentTime)
+
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := notification(randomProjectName, userID)
+	config := notification(randomProjectName, userID, notificationEmail)
 
 	check := resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttr(
@@ -35,7 +39,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 		resource.TestCheckResourceAttr(
 			"data.dbtcloud_notification.test_notification_external",
 			"external_email",
-			"nomail@mail.com",
+			notificationEmail,
 		),
 	)
 
@@ -50,7 +54,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 	})
 }
 
-func notification(projectName, userID string) string {
+func notification(projectName, userID, notificationEmail string) string {
 	return fmt.Sprintf(`
 	resource "dbtcloud_project" "test_notification_project" {
 		name = "%s"
@@ -81,11 +85,11 @@ func notification(projectName, userID string) string {
 		user_id           = %s
 		on_failure        = [dbtcloud_job.test_notification_job_1.id]
 		notification_type = 4
-		external_email    = "nomail@mail.com"
+		external_email    = "%s"
 	}
 
 	data "dbtcloud_notification" "test_notification_external" {
 		notification_id = dbtcloud_notification.test_notification_external.id
 	}
-    `, projectName, acctest_helper.DBT_CLOUD_VERSION, userID)
+    `, projectName, acctest_helper.DBT_CLOUD_VERSION, userID, notificationEmail)
 }
