@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -21,17 +22,20 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 		userID = "100"
 	}
 
+	currentTime := time.Now().Unix()
+	notificationEmail := fmt.Sprintf("%d-partial-resource@nomail.com", currentTime)
+
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudPartialNotificationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudPartialNotificationResourceCreatePartialNotifications(
 					projectName,
 					userID,
+					notificationEmail,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudPartialNotificationExists(
@@ -74,7 +78,7 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_notification.test_notification_external",
 						"external_email",
-						"nomail@mail.com",
+						notificationEmail,
 					),
 				),
 			},
@@ -83,6 +87,7 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 				Config: testAccDbtCloudPartialNotificationResourceModifyPartialNotifications(
 					projectName,
 					userID,
+					notificationEmail,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudPartialNotificationExists(
@@ -159,7 +164,7 @@ resource "dbtcloud_job" "test_notification_job_2" {
 }
 
 func testAccDbtCloudPartialNotificationResourceCreatePartialNotifications(
-	projectName, userID string,
+	projectName, userID, notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
@@ -175,16 +180,16 @@ resource "dbtcloud_partial_notification" "test_notification_external" {
 	user_id           = %s
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
-	external_email    = "nomail@mail.com"
+	external_email    = "%s"
 }
-`, userID, userID)
+`, userID, userID, notificationEmail)
 	return testAccDbtCloudPartialNotificationResourceBasicConfig(
 		projectName,
 	) + "\n" + notificationsConfig
 }
 
 func testAccDbtCloudPartialNotificationResourceModifyPartialNotifications(
-	projectName, userID string,
+	projectName, userID, notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
@@ -201,17 +206,17 @@ resource "dbtcloud_partial_notification" "test_notification_external" {
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id]
 	notification_type = 4
-	external_email    = "nomail@mail.com"
+	external_email    = "%s"
 }
 
 resource "dbtcloud_partial_notification" "test_notification_external2" {
 	user_id           = %s
 	on_success        = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
-	external_email    = "nomail@mail.com"
+	external_email    = "%s"
 	depends_on        = [dbtcloud_partial_notification.test_notification_external]
 }
-`, userID, userID, userID)
+`, userID, userID, notificationEmail, userID, notificationEmail)
 	return testAccDbtCloudPartialNotificationResourceBasicConfig(
 		projectName,
 	) + "\n" + notificationsConfig
