@@ -24,7 +24,7 @@ resource "dbtcloud_environment" "ci_environment" {
 
 // we can also set a deployment environment as being the production one
 resource "dbtcloud_environment" "prod_environment" {
-  dbt_version     = "versionless"
+  dbt_version     = "1.7.0-latest"
   name            = "Prod"
   project_id      = dbtcloud_project.dbt_project.id
   type            = "deployment"
