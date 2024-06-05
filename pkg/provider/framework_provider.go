@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
@@ -176,6 +177,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		notification.NotificationDataSource,
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSources,
+		group.GroupDataSource,
 	}
 }
 
@@ -185,5 +187,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		group_partial_permissions.GroupPartialPermissionsResource,
 		partial_notification.PartialNotificationResource,
 		partial_license_map.PartialLicenseMapResource,
+		group.GroupResource,
 	}
 }

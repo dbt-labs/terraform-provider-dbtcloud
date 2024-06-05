@@ -42,7 +42,6 @@ func SDKProvider(version string) func() *schema.Provider {
 			},
 		},
 			DataSourcesMap: map[string]*schema.Resource{
-				"dbtcloud_group":                    data_sources.DatasourceGroup(),
 				"dbtcloud_job":                      data_sources.DatasourceJob(),
 				"dbtcloud_project":                  data_sources.DatasourceProject(),
 				"dbtcloud_environment_variable":     data_sources.DatasourceEnvironmentVariable(),
@@ -77,7 +76,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_connection":                        resources.ResourceConnection(),
 				"dbtcloud_bigquery_connection":               resources.ResourceBigQueryConnection(),
 				"dbtcloud_repository":                        resources.ResourceRepository(),
-				"dbtcloud_group":                             resources.ResourceGroup(),
 				"dbtcloud_service_token":                     resources.ResourceServiceToken(),
 				"dbtcloud_webhook":                           resources.ResourceWebhook(),
 				"dbtcloud_user_groups":                       resources.ResourceUserGroups(),
