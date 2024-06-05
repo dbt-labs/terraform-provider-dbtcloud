@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -21,9 +22,9 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(
@@ -108,7 +109,10 @@ func testAccCheckDbtCloudPostgresCredentialExists(resource string) resource.Test
 			return fmt.Errorf("Can't get credentialId")
 		}
 
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		_, err = apiClient.GetPostgresCredential(projectId, credentialId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
@@ -118,7 +122,10 @@ func testAccCheckDbtCloudPostgresCredentialExists(resource string) resource.Test
 }
 
 func testAccCheckDbtCloudPostgresCredentialDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_postgres_credential" {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -28,7 +29,7 @@ func TestDbtCloudUserGroupsDataSource(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: providers(),
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

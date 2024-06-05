@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -19,9 +19,9 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudServiceTokenDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudServiceTokenDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudServiceTokenResourceBasicConfig(
@@ -187,7 +187,10 @@ func testAccCheckDbtCloudServiceTokenExists(resource string) resource.TestCheckF
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		ServiceTokenID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Can't get ServiceTokenID")
@@ -201,7 +204,10 @@ func testAccCheckDbtCloudServiceTokenExists(resource string) resource.TestCheckF
 }
 
 func testAccCheckDbtCloudServiceTokenDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_service_token" {
