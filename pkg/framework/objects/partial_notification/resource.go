@@ -222,15 +222,15 @@ func (r *partialNotificationResource) Create(
 		// the global ones are already set in the plan
 		configOnCancel := intOnCancel
 		remoteOnCancel := fullNotification.OnCancel
-		missingOnCancel := lo.Without(configOnCancel, remoteOnCancel...)
+		missingOnCancel, _ := lo.Difference(configOnCancel, remoteOnCancel)
 
 		configOnFailure := intOnFailure
 		remoteOnFailure := fullNotification.OnFailure
-		missingOnFailure := lo.Without(configOnFailure, remoteOnFailure...)
+		missingOnFailure, _ := lo.Difference(configOnFailure, remoteOnFailure)
 
 		configOnSuccess := intOnSuccess
 		remoteOnSuccess := fullNotification.OnSuccess
-		missingOnSuccess := lo.Without(configOnSuccess, remoteOnSuccess...)
+		missingOnSuccess, _ := lo.Difference(configOnSuccess, remoteOnSuccess)
 
 		// we only update if something global, but not part of the ID is different or if something partial needs to be added
 		if plan.State == types.Int64Value(int64(fullNotification.State)) &&
@@ -329,15 +329,15 @@ func (r *partialNotificationResource) Delete(
 
 	configOnCancel := intOnCancel
 	remoteOnCancel := notification.OnCancel
-	requiredOnCancel := lo.Without(remoteOnCancel, configOnCancel...)
+	requiredOnCancel, _ := lo.Difference(remoteOnCancel, configOnCancel)
 
 	configOnFailure := intOnFailure
 	remoteOnFailure := notification.OnFailure
-	requiredOnFailure := lo.Without(remoteOnFailure, configOnFailure...)
+	requiredOnFailure, _ := lo.Difference(remoteOnFailure, configOnFailure)
 
 	configOnSuccess := intOnSuccess
 	remoteOnSuccess := notification.OnSuccess
-	requiredOnSuccess := lo.Without(remoteOnSuccess, configOnSuccess...)
+	requiredOnSuccess, _ := lo.Difference(remoteOnSuccess, configOnSuccess)
 
 	if len(requiredOnCancel) > 0 || len(requiredOnFailure) > 0 || len(requiredOnSuccess) > 0 {
 		// we update the notification if there are some jobs left
@@ -413,19 +413,16 @@ func (r *partialNotificationResource) Update(
 	}
 
 	remoteOnCancel := notification.OnCancel
-	deletedOnCancel := lo.Without(intOnCancelState, intOnCancelPlan...)
-	newOnCancel := lo.Without(intOnCancelPlan, intOnCancelState...)
-	requiredOnCancel := lo.Without(lo.Union(remoteOnCancel, newOnCancel), deletedOnCancel...)
+	deletedOnCancel, newOnCancel := lo.Difference(intOnCancelState, intOnCancelPlan)
+	requiredOnCancel, _ := lo.Difference(lo.Union(remoteOnCancel, newOnCancel), deletedOnCancel)
 
 	remoteOnFailure := notification.OnFailure
-	deletedOnFailure := lo.Without(intOnFailureState, intOnFailurePlan...)
-	newOnFailure := lo.Without(intOnFailurePlan, intOnFailureState...)
-	requiredOnFailure := lo.Without(lo.Union(remoteOnFailure, newOnFailure), deletedOnFailure...)
+	deletedOnFailure, newOnFailure := lo.Difference(intOnFailureState, intOnFailurePlan)
+	requiredOnFailure, _ := lo.Difference(lo.Union(remoteOnFailure, newOnFailure), deletedOnFailure)
 
 	remoteOnSuccess := notification.OnSuccess
-	deletedOnSuccess := lo.Without(intOnSuccessState, intOnSuccessPlan...)
-	newOnSuccess := lo.Without(intOnSuccessPlan, intOnSuccessState...)
-	requiredOnSuccess := lo.Without(lo.Union(remoteOnSuccess, newOnSuccess), deletedOnSuccess...)
+	deletedOnSuccess, newOnSuccess := lo.Difference(intOnSuccessState, intOnSuccessPlan)
+	requiredOnSuccess, _ := lo.Difference(lo.Union(remoteOnSuccess, newOnSuccess), deletedOnSuccess)
 
 	// we check if there are changes to be sent, both global and local
 	if plan.UserID != state.UserID ||
