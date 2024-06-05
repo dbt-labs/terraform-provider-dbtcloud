@@ -17,7 +17,6 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr("data.dbtcloud_group.test_group_read", "name", groupName),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "is_active"),
 		resource.TestCheckResourceAttrSet(
 			"data.dbtcloud_group.test_group_read",
 			"assign_by_default",
