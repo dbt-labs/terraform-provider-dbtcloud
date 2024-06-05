@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changes
 
-- [#232](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/232) Add env level permissions for `dbtcloud_group` and `dbtcloud_group_partial_permissions`. As of June 5 this feature is not yet active for all customers.
+- [#266](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/266) Add env level permissions for `dbtcloud_group` and `dbtcloud_group_partial_permissions`. As of June 5 this feature is not yet active for all customers.
 
 ### Docs
 
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Move the `dbcloud_group` resource and datasource from the SDKv2 to the Framework
 - Create new helpers for comparing Go structs
+- Update all SDKv2 tests to run on the muxed provider to work when some resources have moved to the Plugin Framework
 
 ## [0.3.6](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.5...v0.3.6)
 
