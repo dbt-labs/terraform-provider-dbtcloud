@@ -36,7 +36,7 @@ type NotificationDataSourceModel struct {
 	SlackChannelName types.String `tfsdk:"slack_channel_name"`
 }
 
-func ConvertStateToNotification(model NotificationResourceModel) dbt_cloud.Notification {
+func ConvertNotificationModelToData(model NotificationResourceModel) dbt_cloud.Notification {
 	notification := dbt_cloud.Notification{
 		UserId:           int(model.UserID.ValueInt64()),
 		OnCancel:         helper.Int64SetToIntSlice(model.OnCancel),
