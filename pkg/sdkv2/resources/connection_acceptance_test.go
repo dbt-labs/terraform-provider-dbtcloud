@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -22,9 +23,9 @@ func TestAccDbtCloudConnectionResource(t *testing.T) {
 	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudConnectionResourceBasicConfig(
@@ -86,9 +87,9 @@ func TestAccDbtCloudRedshiftConnectionResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudConnectionResourceRedshiftConfig(
@@ -160,9 +161,9 @@ func TestAccDbtCloudPostgresConnectionResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudConnectionResourcePostgresConfig(
@@ -235,9 +236,9 @@ func TestAccDbtCloudDatabricksConnectionResource(t *testing.T) {
 	databricksHost := "databricks.com"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudConnectionResourceDatabricksConfig(
@@ -396,9 +397,9 @@ func TestAccDbtCloudConnectionPrivateLinkResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudConnectionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudConnectionResourcePrivateLinkConfig(
@@ -582,11 +583,14 @@ func testAccCheckDbtCloudConnectionExists(resource string) resource.TestCheckFun
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
 		connectionId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
 
-		_, err := apiClient.GetConnection(connectionId, projectId)
+		_, err = apiClient.GetConnection(connectionId, projectId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -595,7 +599,10 @@ func testAccCheckDbtCloudConnectionExists(resource string) resource.TestCheckFun
 }
 
 func testAccCheckDbtCloudConnectionDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_connection" {

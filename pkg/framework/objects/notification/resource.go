@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -176,7 +175,7 @@ func (r *notificationResource) Create(
 
 	data.ID = types.StringValue(strconv.Itoa(*notif.Id))
 
-	// TODO; Revise later maybe. We are saving the config instead of the value we get back from the notification call
+	// TODO Revise later maybe. We are saving the config instead of the value we get back from the notification call
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -258,7 +257,7 @@ func (r *notificationResource) Update(
 		state.SlackChannelName = plan.SlackChannelName
 	}
 
-	notification := ConvertStateToNotification(state)
+	notification := ConvertNotificationModelToData(state)
 	notification.AccountId = r.client.AccountID
 
 	// Update the notification
@@ -295,40 +294,4 @@ func (r *notificationResource) Configure(
 	}
 
 	r.client = req.ProviderData.(*dbt_cloud.Client)
-}
-
-func ConvertStateToNotification(model NotificationResourceModel) dbt_cloud.Notification {
-	notification := dbt_cloud.Notification{
-		UserId:           int(model.UserID.ValueInt64()),
-		OnCancel:         helper.Int64SetToIntSlice(model.OnCancel),
-		OnFailure:        helper.Int64SetToIntSlice(model.OnFailure),
-		OnSuccess:        helper.Int64SetToIntSlice(model.OnSuccess),
-		State:            int(model.State.ValueInt64()),
-		NotificationType: int(model.NotificationType.ValueInt64()),
-	}
-
-	if !model.ID.IsNull() {
-		idStr := model.ID.ValueString()
-		id, err := strconv.Atoi(idStr)
-		if err == nil {
-			notification.Id = &id
-		}
-	}
-
-	if !model.ExternalEmail.IsNull() {
-		externalEmail := model.ExternalEmail.ValueString()
-		notification.ExternalEmail = &externalEmail
-	}
-
-	if !model.SlackChannelID.IsNull() {
-		slackChannelID := model.SlackChannelID.ValueString()
-		notification.SlackChannelID = &slackChannelID
-	}
-
-	if !model.SlackChannelName.IsNull() {
-		slackChannelName := model.SlackChannelName.ValueString()
-		notification.SlackChannelName = &slackChannelName
-	}
-
-	return notification
 }

@@ -1,4 +1,4 @@
-package resources_test
+package group_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -19,9 +19,9 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudGroupDestroy,
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudGroupResourceBasicConfig(groupName, projectName),
@@ -116,11 +116,6 @@ func TestAccDbtCloudGroupResource(t *testing.T) {
 				ResourceName:      "dbtcloud_group.test_group",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// being a set we need to ignore all, but * doesn't work
-					"group_permissions.0.project_id",
-					"group_permissions.1.project_id",
-				},
 			},
 		},
 	})
@@ -141,6 +136,7 @@ resource "dbtcloud_group" "test_group" {
         permission_set = "developer"
         all_projects = false
         project_id = dbtcloud_project.test_project.id
+		writable_environment_categories = ["production", "other"]
     }
 	sso_mapping_groups = ["group1"]
 }
@@ -163,6 +159,7 @@ resource "dbtcloud_group" "test_group" {
     group_permissions {
         permission_set = "developer"
         all_projects = true
+		writable_environment_categories = ["development", "staging"]
     }
 	sso_mapping_groups = ["group1", "group2"]
 }
@@ -178,7 +175,10 @@ func testAccCheckDbtCloudGroupExists(resource string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		groupID, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Can't get groupID")
@@ -192,7 +192,10 @@ func testAccCheckDbtCloudGroupExists(resource string) resource.TestCheckFunc {
 }
 
 func testAccCheckDbtCloudGroupDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_group" {

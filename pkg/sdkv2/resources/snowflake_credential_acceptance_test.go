@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -34,9 +35,9 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudSnowflakeCredentialResourceBasicConfig(
@@ -138,9 +139,9 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	})
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudSnowflakeCredentialResourceBasicPrivateKeyConfig(
@@ -270,7 +271,10 @@ func testAccCheckDbtCloudSnowflakeCredentialExists(resource string) resource.Tes
 			return fmt.Errorf("Can't get projectId")
 		}
 
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		_, err = apiClient.GetSnowflakeCredential(projectId, credentialId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
@@ -280,7 +284,10 @@ func testAccCheckDbtCloudSnowflakeCredentialExists(resource string) resource.Tes
 }
 
 func testAccCheckDbtCloudSnowflakeCredentialDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_snowflake_credential" {

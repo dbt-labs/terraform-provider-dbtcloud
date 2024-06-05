@@ -171,7 +171,7 @@ func (r *partialLicenseMapResource) Create(
 		// and we calculate all the partial fields
 		// the global ones are already set in the plan
 		remoteSsoMapping := fullLicenseMap.SSOLicenseMappingGroups
-		missingSsoMapping := lo.Without(configSsoMapping, remoteSsoMapping...)
+		missingSsoMapping, _ := lo.Difference(configSsoMapping, remoteSsoMapping)
 
 		// we only update if something global, but not part of the ID is different or if something partial needs to be added
 		if len(missingSsoMapping) == 0 {
@@ -247,7 +247,7 @@ func (r *partialLicenseMapResource) Delete(
 	}
 
 	remoteSsoMapping := licenseMap.SSOLicenseMappingGroups
-	requiredSsoMapping := lo.Without(remoteSsoMapping, configSsoMapping...)
+	requiredSsoMapping, _ := lo.Difference(remoteSsoMapping, configSsoMapping)
 
 	if len(requiredSsoMapping) > 0 {
 		// we update the object if there are some partial values left
@@ -318,11 +318,10 @@ func (r *partialLicenseMapResource) Update(
 	}
 
 	remoteSsoMapping := licenseMap.SSOLicenseMappingGroups
-	deletedSsoMapping := lo.Without(stateSsoMapping, planSsoMapping...)
-	newSsoMapping := lo.Without(planSsoMapping, stateSsoMapping...)
-	requiredSsoMapping := lo.Without(
+	deletedSsoMapping, newSsoMapping := lo.Difference(stateSsoMapping, planSsoMapping)
+	requiredSsoMapping, _ := lo.Difference(
 		lo.Union(remoteSsoMapping, newSsoMapping),
-		deletedSsoMapping...)
+		deletedSsoMapping)
 
 	// we check if there are changes to be sent, both global and local
 	if len(deletedSsoMapping) > 0 ||

@@ -1,9 +1,10 @@
-package data_sources_test
+package group_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -16,7 +17,6 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr("data.dbtcloud_group.test_group_read", "name", groupName),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_group.test_group_read", "is_active"),
 		resource.TestCheckResourceAttrSet(
 			"data.dbtcloud_group.test_group_read",
 			"assign_by_default",
@@ -24,7 +24,7 @@ func TestAccDbtCloudGroupDataSource(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: providers(),
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

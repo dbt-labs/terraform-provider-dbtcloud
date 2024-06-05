@@ -35,6 +35,15 @@ func Int64SetToIntSlice(set types.Set) []int {
 	return result
 }
 
+func StringSetToStringSlice(set types.Set) []string {
+	elements := set.Elements()
+	result := make([]string, len(elements))
+	for i, el := range elements {
+		result[i] = el.(types.String).ValueString()
+	}
+	return result
+}
+
 func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(newString, "")

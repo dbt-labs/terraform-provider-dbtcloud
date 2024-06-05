@@ -2,7 +2,6 @@ package notification_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -29,7 +28,7 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudNotificationDestroy,
 		Steps: []resource.TestStep{
@@ -262,13 +261,4 @@ func testAccCheckDbtCloudNotificationDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("DBT_CLOUD_ACCOUNT_ID"); v == "" {
-		t.Fatal("DBT_CLOUD_ACCOUNT_ID must be set for acceptance tests")
-	}
-	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
-		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
-	}
 }

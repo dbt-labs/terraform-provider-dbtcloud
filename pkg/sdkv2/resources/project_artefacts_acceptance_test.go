@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -19,9 +20,9 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudProjectArtefactsDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudProjectArtefactsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudProjectArtefactsResourceBasicConfig(
@@ -115,7 +116,10 @@ func testAccCheckDbtCloudProjectArtefactsExists(resource string) resource.TestCh
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
 		project, err := apiClient.GetProject(projectId)
 		if err != nil {
@@ -140,7 +144,10 @@ func testAccCheckDbtCloudProjectArtefactsEmpty(resource string) resource.TestChe
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		project, err := apiClient.GetProject(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Can't get project")
@@ -156,7 +163,10 @@ func testAccCheckDbtCloudProjectArtefactsEmpty(resource string) resource.TestChe
 }
 
 func testAccCheckDbtCloudProjectArtefactsDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_project_artefacts" {

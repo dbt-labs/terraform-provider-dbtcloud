@@ -33,11 +33,11 @@ func (r *environmentDataSource) Schema(
 			},
 			"dbt_version": schema.StringAttribute{
 				Computed:    true,
-				Description: "Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions",
+				Description: "Version number of dbt to use in this environment.",
 			},
 			"type": schema.StringAttribute{
 				Computed:    true,
-				Description: "The name of the environment",
+				Description: "The type of environment (must be either development or deployment)",
 			},
 			"use_custom_branch": schema.BoolAttribute{
 				Computed:    true,
@@ -45,11 +45,11 @@ func (r *environmentDataSource) Schema(
 			},
 			"custom_branch": schema.StringAttribute{
 				Computed:    true,
-				Description: "The type of deployment environment (currently 'production', 'staging' or empty)",
+				Description: "The custom branch name to use",
 			},
 			"deployment_type": schema.StringAttribute{
 				Computed:    true,
-				Description: "The name of the environment",
+				Description: "The type of deployment environment (currently 'production', 'staging' or empty)",
 			},
 			"extended_attributes_id": schema.Int64Attribute{
 				Computed:    true,
@@ -86,7 +86,7 @@ func (r *environmentsDataSources) Schema(
 						},
 						"credentials_id": schema.Int64Attribute{
 							Computed:    true,
-							Description: "The project ID to which the environment belong",
+							Description: "Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,
@@ -94,11 +94,11 @@ func (r *environmentsDataSources) Schema(
 						},
 						"dbt_version": schema.StringAttribute{
 							Computed:    true,
-							Description: "Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions",
+							Description: "Version number of dbt to use in this environment.",
 						},
 						"type": schema.StringAttribute{
 							Computed:    true,
-							Description: "The name of the environment",
+							Description: "The type of environment (must be either development or deployment)",
 						},
 						"use_custom_branch": schema.BoolAttribute{
 							Computed:    true,
@@ -106,11 +106,11 @@ func (r *environmentsDataSources) Schema(
 						},
 						"custom_branch": schema.StringAttribute{
 							Computed:    true,
-							Description: "The type of deployment environment (currently 'production', 'staging' or empty)",
+							Description: "The custom branch name to use",
 						},
 						"deployment_type": schema.StringAttribute{
 							Computed:    true,
-							Description: "The name of the environment",
+							Description: "The type of deployment environment (currently 'production', 'staging' or empty)",
 						},
 						"extended_attributes_id": schema.Int64Attribute{
 							Computed:    true,

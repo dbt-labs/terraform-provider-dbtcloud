@@ -23,10 +23,10 @@ Retrieve data for a single environment
 ### Read-Only
 
 - `credentials_id` (Number) The project ID to which the environment belong
-- `custom_branch` (String) The type of deployment environment (currently 'production', 'staging' or empty)
-- `dbt_version` (String) Version number of dbt to use in this environment, usually in the format 1.2.0-latest rather than core versions
-- `deployment_type` (String) The name of the environment
+- `custom_branch` (String) The custom branch name to use
+- `dbt_version` (String) Version number of dbt to use in this environment.
+- `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `name` (String) The name of the environment
-- `type` (String) The name of the environment
+- `type` (String) The type of environment (must be either development or deployment)
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment

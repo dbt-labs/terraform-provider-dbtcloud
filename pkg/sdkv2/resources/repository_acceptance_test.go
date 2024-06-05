@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -22,9 +23,9 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
 		Steps: []resource.TestStep{
 			// Create Github repository
 			{
@@ -61,9 +62,9 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
 		Steps: []resource.TestStep{
 			// Create Github repository via the GithUb Application
 			{
@@ -97,32 +98,6 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 			},
 		},
 	})
-
-	//
-	// 		resource.Test(t, resource.TestCase{
-	// 			PreCheck:     func() { testAccPreCheck(t) },
-	// 			Providers:    testAccProviders,
-	// 			CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
-	// 			Steps: []resource.TestStep{
-	// 				// Create Gitlab repository
-	// 				{
-	// 					Config: testAccDbtCloudRepositoryResourceGitlabConfig(repoUrlGitlab, projectName),
-	// 					Check: resource.ComposeTestCheckFunc(
-	// 						testAccCheckDbtCloudRepositoryExists("dbtcloud_repository.test_repository_gitlab"),
-	// 						resource.TestCheckResourceAttr("dbtcloud_repository.test_repository_gitlab", "remote_url", repoUrlGitlab),
-	// 						resource.TestCheckResourceAttr("dbtcloud_repository.test_repository_gitlab", "git_clone_strategy", "deploy_token"),
-	// 					),
-	// 				},
-	// 				// 						MODIFY
-	// 				// 			IMPORT
-	// 				{
-	// 					ResourceName:            "dbtcloud_repository.test_repository_gitlab",
-	// 					ImportState:             true,
-	// 					ImportStateVerify:       true,
-	// 					ImportStateVerifyIgnore: []string{},
-	// 				},
-	// 			},
-	// 		})
 }
 
 func testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName string) string {
@@ -179,11 +154,14 @@ func testAccCheckDbtCloudRepositoryExists(resource string) resource.TestCheckFun
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
 		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
 		repositoryId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
 
-		_, err := apiClient.GetRepository(repositoryId, projectId)
+		_, err = apiClient.GetRepository(repositoryId, projectId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -192,7 +170,10 @@ func testAccCheckDbtCloudRepositoryExists(resource string) resource.TestCheckFun
 }
 
 func testAccCheckDbtCloudRepositoryDestroy(s *terraform.State) error {
-	apiClient := testAccProvider.Meta().(*dbt_cloud.Client)
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "dbtcloud_repository" {

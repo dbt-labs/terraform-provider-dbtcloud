@@ -66,8 +66,10 @@ func (r *groupPartialPermissionsResource) Schema(
 				Description: "Whether the group will be assigned by default to users. The value needs to be the same for all partial permissions for the same group.",
 			},
 			"sso_mapping_groups": schema.SetAttribute{
+				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
+				Default:     helper.EmptySetDefault(types.StringType),
 				Description: "Mapping groups from the IdP. At the moment the complete list needs to be provided in each partial permission for the same group.",
 			},
 			"group_permissions": schema.SetNestedAttribute{
@@ -88,6 +90,17 @@ func (r *groupPartialPermissionsResource) Schema(
 						"all_projects": schema.BoolAttribute{
 							Required:    true,
 							Description: "Whether access should be provided for all projects or not.",
+						},
+						"writable_environment_categories": schema.SetAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+							Description: helper.DocString(
+								`What types of environments to apply Write permissions to. 
+								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
+								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~. 
+								Not setting a value is the same as selecting ~~~all~~~. 
+								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
+							),
 						},
 					},
 				},

@@ -138,7 +138,7 @@ func TestAccDbtCloudGroupPartialPermissionsResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
 						"group_permissions.#",
-						"2",
+						"3",
 					),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
@@ -184,7 +184,7 @@ func TestAccDbtCloudGroupPartialPermissionsResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
 						"group_permissions.#",
-						"2",
+						"3",
 					),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
@@ -220,7 +220,12 @@ func TestAccDbtCloudGroupPartialPermissionsResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
 						"group_permissions.0.permission_set",
-						"admin",
+						"analyst",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_group_partial_permissions.test_group_partial_permission2",
+						"group_permissions.0.writable_environment_categories.#",
+						"2",
 					),
 				),
 			},
@@ -336,6 +341,11 @@ resource "dbtcloud_group_partial_permissions" "test_group_partial_permission2" {
 			permission_set 	= "job_viewer"
 			all_projects  	= true
 		},
+		{
+			permission_set 	= "developer"
+			all_projects  	= true
+			writable_environment_categories = ["development"]
+		},
 	]
 	depends_on = [
 		dbtcloud_group_partial_permissions.test_group_partial_permission
@@ -360,9 +370,10 @@ resource "dbtcloud_group_partial_permissions" "test_group_partial_permission2" {
 	sso_mapping_groups 	= ["group1", "group2"]
 	group_permissions = [
 		{
-			permission_set 	= "admin"
+			permission_set 	= "analyst"
 			project_id    	= dbtcloud_project.test_group_project.id 
 			all_projects  	= false
+			writable_environment_categories = ["other", "production"]
 		},
 	]
 }

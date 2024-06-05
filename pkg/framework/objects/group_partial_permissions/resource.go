@@ -2,12 +2,15 @@ package group_partial_permissions
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/samber/lo"
 )
 
@@ -37,13 +40,13 @@ func (r *groupPartialPermissionsResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state GroupPartialPermissionsResourceModel
+	var state group.GroupResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	// check if the ID exists
 	groupIDFromState := state.ID.ValueInt64()
-	group, err := r.client.GetGroup(int(groupIDFromState))
+	retrievedGroup, err := r.client.GetGroup(int(groupIDFromState))
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			resp.Diagnostics.AddWarning(
@@ -61,7 +64,7 @@ func (r *groupPartialPermissionsResource) Read(
 	}
 
 	// if the ID exists, make sure that it is the one we are looking for
-	if group.Name != state.Name.ValueString() {
+	if retrievedGroup.Name != state.Name.ValueString() {
 		// it doesn't match, we need to find the correct one
 		groupIDs := r.client.GetAllGroupIDsByName(state.Name.ValueString())
 		if len(groupIDs) > 1 {
@@ -81,7 +84,7 @@ func (r *groupPartialPermissionsResource) Read(
 		}
 
 		groupID := groupIDs[0]
-		group, err = r.client.GetGroup(groupID)
+		retrievedGroup, err = r.client.GetGroup(groupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Issue getting Group",
@@ -92,27 +95,34 @@ func (r *groupPartialPermissionsResource) Read(
 	}
 
 	// we set the "global" values
-	state.ID = types.Int64Value(int64(*group.ID))
-	state.Name = types.StringValue(group.Name)
-	state.AssignByDefault = types.BoolValue(group.AssignByDefault)
+	state.ID = types.Int64Value(int64(*retrievedGroup.ID))
+	state.Name = types.StringValue(retrievedGroup.Name)
+	state.AssignByDefault = types.BoolValue(retrievedGroup.AssignByDefault)
 	state.SSOMappingGroups, _ = types.SetValueFrom(
 		context.Background(),
 		types.StringType,
-		group.SSOMappingGroups,
+		retrievedGroup.SSOMappingGroups,
 	)
 
 	// we set the "partial" values
-	var remotePermissions []GroupPermission
-	for _, permission := range group.Permissions {
-		perm := GroupPermission{
-			PermissionSet: types.StringValue(permission.Set),
-			ProjectID:     helper.SetIntToInt64OrNull(permission.ProjectID),
-			AllProjects:   types.BoolValue(permission.AllProjects),
-		}
-		remotePermissions = append(remotePermissions, perm)
-	}
+	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
 
-	relevantPermissions := lo.Intersect(state.GroupPermissions, remotePermissions)
+	relevantPermissions := helper.IntersectBy(
+		state.GroupPermissions,
+		remotePermissions,
+		group.CompareGroupPermissions,
+	)
+
+	tflog.Info(
+		ctx,
+		"READ - Intersection of local and remote",
+		map[string]any{
+			"Relevant intersected Permissions": fmt.Sprintf("%+v", relevantPermissions),
+			"State Permissions":                fmt.Sprintf("%+v", state.GroupPermissions),
+			"Remote Permissions":               fmt.Sprintf("%+v", remotePermissions),
+		},
+	)
+
 	state.GroupPermissions = relevantPermissions
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -124,7 +134,7 @@ func (r *groupPartialPermissionsResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan GroupPartialPermissionsResourceModel
+	var plan group.GroupResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -155,7 +165,7 @@ func (r *groupPartialPermissionsResource) Create(
 		//   B. add the permission needed for the partial field
 		groupID := groupIDs[0]
 
-		group, err := r.client.GetGroup(groupID)
+		retrievedGroup, err := r.client.GetGroup(groupID)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Issue getting Group",
@@ -165,22 +175,26 @@ func (r *groupPartialPermissionsResource) Create(
 		}
 
 		// A. update the "global" fields if required
-		sameAssignByDefault := group.AssignByDefault == assignByDefault
-		sameSSOGroups := lo.Every(group.SSOMappingGroups, ssoMappingGroups) &&
-			lo.Every(ssoMappingGroups, group.SSOMappingGroups)
+		sameAssignByDefault := retrievedGroup.AssignByDefault == assignByDefault
+		sameSSOGroups := lo.Every(retrievedGroup.SSOMappingGroups, ssoMappingGroups) &&
+			lo.Every(ssoMappingGroups, retrievedGroup.SSOMappingGroups)
 
 		if !sameAssignByDefault || !sameSSOGroups {
-			group.AssignByDefault = assignByDefault
-			group.SSOMappingGroups = ssoMappingGroups
+			retrievedGroup.AssignByDefault = assignByDefault
+			retrievedGroup.SSOMappingGroups = ssoMappingGroups
 
-			r.client.UpdateGroup(groupID, *group)
+			r.client.UpdateGroup(groupID, *retrievedGroup)
 		}
 
 		// B. add the permissions that are missing
 		configPermissions := plan.GroupPermissions
-		remotePermissions := convertGroupPermissionDataToModel(group.Permissions)
+		remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
 
-		missingPermissions := lo.Without(configPermissions, remotePermissions...)
+		missingPermissions, _ := helper.DifferenceBy(
+			configPermissions,
+			remotePermissions,
+			group.CompareGroupPermissions,
+		)
 
 		if len(missingPermissions) == 0 {
 			plan.ID = types.Int64Value(int64(groupID))
@@ -189,13 +203,13 @@ func (r *groupPartialPermissionsResource) Create(
 		}
 
 		allPermissions := append(remotePermissions, missingPermissions...)
-		allPermissionsRequest := convertGroupPermissionModelToData(
+		allPermissionsRequest := group.ConvertGroupPermissionModelToData(
 			allPermissions,
 			groupID,
-			group.AccountID,
+			retrievedGroup.AccountID,
 		)
 
-		_, err = r.client.UpdateGroupPermissions(*group.ID, allPermissionsRequest)
+		_, err = r.client.UpdateGroupPermissions(*retrievedGroup.ID, allPermissionsRequest)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to assign permissions to the group",
@@ -208,9 +222,7 @@ func (r *groupPartialPermissionsResource) Create(
 
 	} else {
 		// if the group with the name given doesn't exist , create it
-		// TODO: Move this to the group resources once the resource is move to the Framework
-
-		group, err := r.client.CreateGroup(name, assignByDefault, ssoMappingGroups)
+		createdGroup, err := r.client.CreateGroup(name, assignByDefault, ssoMappingGroups)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create group",
@@ -219,9 +231,9 @@ func (r *groupPartialPermissionsResource) Create(
 			return
 		}
 
-		groupPermissions := convertGroupPermissionModelToData(plan.GroupPermissions, *group.ID, group.AccountID)
+		groupPermissions := group.ConvertGroupPermissionModelToData(plan.GroupPermissions, *createdGroup.ID, createdGroup.AccountID)
 
-		_, err = r.client.UpdateGroupPermissions(*group.ID, groupPermissions)
+		_, err = r.client.UpdateGroupPermissions(*createdGroup.ID, groupPermissions)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to assign permissions to the group",
@@ -229,7 +241,7 @@ func (r *groupPartialPermissionsResource) Create(
 			)
 			return
 		}
-		plan.ID = types.Int64Value(int64(*group.ID))
+		plan.ID = types.Int64Value(int64(*createdGroup.ID))
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	}
 
@@ -240,14 +252,14 @@ func (r *groupPartialPermissionsResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state GroupPartialPermissionsResourceModel
+	var state group.GroupResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	groupID := int(state.ID.ValueInt64())
-	group, err := r.client.GetGroup(groupID)
+	retrievedGroup, err := r.client.GetGroup(groupID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Issue getting Group",
@@ -255,16 +267,20 @@ func (r *groupPartialPermissionsResource) Delete(
 		)
 	}
 
-	remotePermissions := convertGroupPermissionDataToModel(group.Permissions)
-	requiredAllPermissions := lo.Without(remotePermissions, state.GroupPermissions...)
+	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
+	requiredAllPermissions, _ := helper.DifferenceBy(
+		remotePermissions,
+		state.GroupPermissions,
+		group.CompareGroupPermissions,
+	)
 
 	if len(requiredAllPermissions) > 0 {
 		// if there are permissions left, we delete the ones from the resource
 		// but we keep the remote group
-		allPermissionsRequest := convertGroupPermissionModelToData(
+		allPermissionsRequest := group.ConvertGroupPermissionModelToData(
 			requiredAllPermissions,
 			groupID,
-			group.AccountID,
+			retrievedGroup.AccountID,
 		)
 
 		_, err = r.client.UpdateGroupPermissions(groupID, allPermissionsRequest)
@@ -278,8 +294,8 @@ func (r *groupPartialPermissionsResource) Delete(
 
 	} else {
 		// otherwise, we delete the group entirely if there is no permission
-		group.State = dbt_cloud.STATE_DELETED
-		_, err = r.client.UpdateGroup(groupID, *group)
+		retrievedGroup.State = dbt_cloud.STATE_DELETED
+		_, err = r.client.UpdateGroup(groupID, *retrievedGroup)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to delete group",
@@ -296,14 +312,14 @@ func (r *groupPartialPermissionsResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state GroupPartialPermissionsResourceModel
+	var plan, state group.GroupResourceModel
 
 	// Read plan and state values into the models
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	groupID := int(state.ID.ValueInt64())
-	group, err := r.client.GetGroup(groupID)
+	retrievedGroup, err := r.client.GetGroup(groupID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Issue getting Group",
@@ -333,10 +349,10 @@ func (r *groupPartialPermissionsResource) Update(
 
 	if !sameAssignByDefault || !sameSSOGroups {
 
-		group.AssignByDefault = planAssignByDefault
-		group.SSOMappingGroups = planSsoMappingGroups
+		retrievedGroup.AssignByDefault = planAssignByDefault
+		retrievedGroup.SSOMappingGroups = planSsoMappingGroups
 
-		_, err = r.client.UpdateGroup(groupID, *group)
+		_, err = r.client.UpdateGroup(groupID, *retrievedGroup)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to update group",
@@ -353,21 +369,39 @@ func (r *groupPartialPermissionsResource) Update(
 	statePermissions := state.GroupPermissions
 	planPermissions := plan.GroupPermissions
 
-	remotePermissions := convertGroupPermissionDataToModel(group.Permissions)
+	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
 
-	deletedPermissions := lo.Without(statePermissions, planPermissions...)
-	newPermissions := lo.Without(planPermissions, statePermissions...)
+	deletedPermissions, newPermissions := helper.DifferenceBy(
+		statePermissions,
+		planPermissions,
+		group.CompareGroupPermissions,
+	)
 
-	requiredAllPermissions := lo.Without(
-		lo.Union(remotePermissions, newPermissions),
-		deletedPermissions...)
+	requiredAllPermissions, _ := helper.DifferenceBy(
+		helper.UnionBy(remotePermissions, newPermissions, group.CompareGroupPermissions),
+		deletedPermissions, group.CompareGroupPermissions)
+
+	tflog.Info(
+		ctx,
+		"UPDATE - Intersection of local and remote",
+		map[string]any{
+			"Deleted Permissions":     fmt.Sprintf("%+v", deletedPermissions),
+			"New Permissions":         fmt.Sprintf("%+v", newPermissions),
+			"Required all Permission": fmt.Sprintf("%+v", requiredAllPermissions),
+			"Remote Permissions":      fmt.Sprintf("%+v", remotePermissions),
+			"Remote Permissions and New Permissions": fmt.Sprintf(
+				"%+v",
+				helper.UnionBy(remotePermissions, newPermissions, group.CompareGroupPermissions),
+			),
+		},
+	)
 
 	if len(deletedPermissions) > 0 || len(newPermissions) > 0 {
 
-		allPermissionsRequest := convertGroupPermissionModelToData(
+		allPermissionsRequest := group.ConvertGroupPermissionModelToData(
 			requiredAllPermissions,
 			groupID,
-			group.AccountID,
+			retrievedGroup.AccountID,
 		)
 
 		_, err = r.client.UpdateGroupPermissions(groupID, allPermissionsRequest)
