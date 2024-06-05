@@ -2,7 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.6...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.7...HEAD)
+
+## [0.3.7](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.6...v0.3.7)
+
+### Changes
+
+- [#232](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/232) Add env level permissions for `dbtcloud_group` and `dbtcloud_group_partial_permissions`. As of June 5 this feature is not yet active for all customers.
+
+### Docs
+
+- Fix description of fields for some datasources
+
+### Internals
+
+- Move the `dbcloud_group` resource and datasource from the SDKv2 to the Framework
+- Create new helpers for comparing Go structs
 
 ## [0.3.6](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.5...v0.3.6)
 

@@ -3,12 +3,12 @@
 page_title: "dbtcloud_group Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve group details
 ---
 
 # dbtcloud_group (Data Source)
 
-
+Retrieve group details
 
 
 
@@ -17,12 +17,22 @@ description: |-
 
 ### Required
 
-- `group_id` (Number) ID of the group
+- `group_id` (Number) The ID of the group
 
 ### Read-Only
 
-- `assign_by_default` (Boolean) Whether or not to assign this group to users by default
-- `id` (String) The ID of this resource.
-- `is_active` (Boolean) Whether the group is active
+- `assign_by_default` (Boolean) Whether the group will be assigned by default to users. The value needs to be the same for all partial permissions for the same group.
+- `group_permissions` (Attributes Set) Partial permissions for the group. Those permissions will be added/removed when config is added/removed. (see [below for nested schema](#nestedatt--group_permissions))
+- `id` (Number) The ID of this resource
 - `name` (String) Group name
-- `sso_mapping_groups` (List of String) SSO mapping group names for this group
+- `sso_mapping_groups` (Set of String) SSO mapping group names for this group
+
+<a id="nestedatt--group_permissions"></a>
+### Nested Schema for `group_permissions`
+
+Read-Only:
+
+- `all_projects` (Boolean) Whether access should be provided for all projects or not.
+- `permission_set` (String) Set of permissions to apply. The permissions allowed are the same as the ones for the `dbtcloud_group` resource.
+- `project_id` (Number) Project ID to apply this permission to for this group.
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
