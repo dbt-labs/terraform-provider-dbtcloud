@@ -70,6 +70,13 @@ func (r *partialNotificationResource) Schema(
 				Default:     helper.EmptySetDefault(types.Int64Type),
 				Description: "List of job IDs to trigger the webhook on failure Those will be added/removed when config is added/removed.",
 			},
+			"on_warning": schema.SetAttribute{
+				ElementType: types.Int64Type,
+				Optional:    true,
+				Computed:    true,
+				Default:     helper.EmptySetDefault(types.Int64Type),
+				Description: "List of job IDs to trigger the webhook on warning Those will be added/removed when config is added/removed.",
+			},
 			"on_success": schema.SetAttribute{
 				ElementType: types.Int64Type,
 				Optional:    true,

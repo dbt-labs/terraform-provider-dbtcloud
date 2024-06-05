@@ -58,6 +58,11 @@ func (d *notificationDataSource) Schema(
 				Computed:    true,
 				Description: "List of job IDs to trigger the webhook on failure",
 			},
+			"on_warning": schema.SetAttribute{
+				ElementType: types.Int64Type,
+				Computed:    true,
+				Description: "List of job IDs to trigger the webhook on warning",
+			},
 			"on_success": schema.SetAttribute{
 				ElementType: types.Int64Type,
 				Computed:    true,
@@ -123,6 +128,11 @@ func (d *notificationDataSource) Read(
 		context.Background(),
 		types.Int64Type,
 		notification.OnFailure,
+	)
+	data.OnWarning, _ = types.SetValueFrom(
+		context.Background(),
+		types.Int64Type,
+		notification.OnWarning,
 	)
 	data.OnSuccess, _ = types.SetValueFrom(
 		context.Background(),

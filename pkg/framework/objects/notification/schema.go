@@ -53,6 +53,13 @@ func (r *notificationResource) Schema(
 				Default:     helper.EmptySetDefault(types.Int64Type),
 				Description: "List of job IDs to trigger the webhook on failure",
 			},
+			"on_warning": schema.SetAttribute{
+				ElementType: types.Int64Type,
+				Optional:    true,
+				Computed:    true,
+				Default:     helper.EmptySetDefault(types.Int64Type),
+				Description: "List of job IDs to trigger the webhook on warning",
+			},
 			"on_success": schema.SetAttribute{
 				ElementType: types.Int64Type,
 				Optional:    true,

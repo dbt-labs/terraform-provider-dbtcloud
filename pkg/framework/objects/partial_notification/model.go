@@ -42,26 +42,34 @@ func matchPartial(
 		)) {
 			return false
 		}
+
+		// TODO(cwalden): What happens with the other cases(i.e. the deprecated `3` type)?
 	}
 	return true
 }
 
 func extractModelJobLists(
 	data notification.NotificationResourceModel,
-) (intOnCancel, intOnFailure, intOnSuccess []int, ok bool) {
+) (intOnCancel, intOnFailure, intOnWarning, intOnSuccess []int, ok bool) {
 
 	diags := data.OnCancel.ElementsAs(context.Background(), &intOnCancel, false)
 	if diags.HasError() {
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
 	}
+
 	diags = data.OnFailure.ElementsAs(context.Background(), &intOnFailure, false)
 	if diags.HasError() {
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
+	}
+
+	diags = data.OnWarning.ElementsAs(context.Background(), &intOnWarning, false)
+	if diags.HasError() {
+		return nil, nil, nil, nil, false
 	}
 
 	diags = data.OnSuccess.ElementsAs(context.Background(), &intOnSuccess, false)
 	if diags.HasError() {
-		return nil, nil, nil, false
+		return nil, nil, nil, nil, false
 	}
-	return intOnCancel, intOnFailure, intOnSuccess, true
+	return intOnCancel, intOnFailure, intOnWarning, intOnSuccess, true
 }

@@ -13,6 +13,7 @@ type NotificationResourceModel struct {
 	UserID           types.Int64  `tfsdk:"user_id"`
 	OnCancel         types.Set    `tfsdk:"on_cancel"`
 	OnFailure        types.Set    `tfsdk:"on_failure"`
+	OnWarning        types.Set    `tfsdk:"on_warning"`
 	OnSuccess        types.Set    `tfsdk:"on_success"`
 	State            types.Int64  `tfsdk:"state"`
 	NotificationType types.Int64  `tfsdk:"notification_type"`
@@ -26,6 +27,7 @@ type NotificationDataSourceModel struct {
 	UserID           types.Int64  `tfsdk:"user_id"`
 	OnCancel         types.Set    `tfsdk:"on_cancel"`
 	OnFailure        types.Set    `tfsdk:"on_failure"`
+	OnWarning        types.Set    `tfsdk:"on_warning"`
 	OnSuccess        types.Set    `tfsdk:"on_success"`
 	State            types.Int64  `tfsdk:"state"`
 	NotificationType types.Int64  `tfsdk:"notification_type"`
@@ -34,11 +36,12 @@ type NotificationDataSourceModel struct {
 	SlackChannelName types.String `tfsdk:"slack_channel_name"`
 }
 
-func ConvertNotificationModelToData(model NotificationResourceModel) dbt_cloud.Notification {
+func ConvertStateToNotification(model NotificationResourceModel) dbt_cloud.Notification {
 	notification := dbt_cloud.Notification{
 		UserId:           int(model.UserID.ValueInt64()),
 		OnCancel:         helper.Int64SetToIntSlice(model.OnCancel),
 		OnFailure:        helper.Int64SetToIntSlice(model.OnFailure),
+		OnWarning:        helper.Int64SetToIntSlice(model.OnWarning),
 		OnSuccess:        helper.Int64SetToIntSlice(model.OnSuccess),
 		State:            int(model.State.ValueInt64()),
 		NotificationType: int(model.NotificationType.ValueInt64()),
