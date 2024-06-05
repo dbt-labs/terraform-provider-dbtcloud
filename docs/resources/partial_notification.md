@@ -86,6 +86,7 @@ resource "dbtcloud_partial_notification" "prod_job_slack_notifications" {
 - `on_cancel` (Set of Number) List of job IDs to trigger the webhook on cancel. Those will be added/removed when config is added/removed.
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure Those will be added/removed when config is added/removed.
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success Those will be added/removed when config is added/removed.
+- `on_warning` (Set of Number) List of job IDs to trigger the webhook on warning Those will be added/removed when config is added/removed.
 - `slack_channel_id` (String) The ID of the Slack channel to receive the notification. It can be found at the bottom of the Slack channel settings [global, used as identifier]
 - `slack_channel_name` (String) The name of the slack channel [global, used as identifier]
 - `state` (Number) State of the notification (1 = active (default), 2 = inactive) [global]
