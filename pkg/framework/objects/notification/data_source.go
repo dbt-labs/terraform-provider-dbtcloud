@@ -131,7 +131,6 @@ func (d *notificationDataSource) Read(
 	)
 	data.State = types.Int64Value(int64(notification.State))
 	data.NotificationType = types.Int64Value(int64(notification.NotificationType))
-	data.NotificationType = types.Int64Value(int64(notification.NotificationType))
 	data.ExternalEmail = types.StringPointerValue(notification.ExternalEmail)
 	data.SlackChannelID = types.StringPointerValue(notification.SlackChannelID)
 	data.SlackChannelName = types.StringPointerValue(notification.SlackChannelName)
