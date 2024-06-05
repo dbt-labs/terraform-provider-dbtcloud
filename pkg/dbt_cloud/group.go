@@ -9,14 +9,15 @@ import (
 )
 
 type GroupPermission struct {
-	ID          *int   `json:"id,omitempty"`
-	AccountID   int    `json:"account_id"`
-	GroupID     int    `json:"group_id"`
-	ProjectID   int    `json:"project_id,omitempty"`
-	AllProjects bool   `json:"all_projects"`
-	State       int    `json:"state,omitempty"`
-	Set         string `json:"permission_set,omitempty"`
-	Level       string `json:"permission_level,omitempty"`
+	ID                            *int     `json:"id,omitempty"`
+	AccountID                     int      `json:"account_id"`
+	GroupID                       int      `json:"group_id"`
+	ProjectID                     int      `json:"project_id,omitempty"`
+	AllProjects                   bool     `json:"all_projects"`
+	State                         int      `json:"state,omitempty"`
+	Set                           string   `json:"permission_set,omitempty"`
+	Level                         string   `json:"permission_level,omitempty"`
+	WritableEnvironmentCategories []string `json:"writable_environment_categories,omitempty"`
 }
 
 type Group struct {
