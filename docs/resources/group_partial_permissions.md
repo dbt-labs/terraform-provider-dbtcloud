@@ -44,6 +44,7 @@ resource "dbtcloud_group_partial_permissions" "tf_group_1" {
 			permission_set 	= "developer"
 			project_id    	= dbtcloud_project.dbt_project.id
 			all_projects  	= false
+			writable_environment_categories = ["development", "staging"]
 		},
 		{
 			permission_set 	= "git_admin"
