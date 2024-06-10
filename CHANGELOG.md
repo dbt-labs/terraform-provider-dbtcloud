@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.7...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.8...HEAD)
+
+## [0.3.8](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.7...v0.3.8)
 
 ### Changes
 
