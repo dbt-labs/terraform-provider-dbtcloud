@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.7...HEAD)
 
+### Changes
+
+- Added new `on_warning` field to `dbtcloud_notification` and `dbtcloud_partial_notification`. 
+
 ## [0.3.7](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.6...v0.3.7)
 
 ### Changes
