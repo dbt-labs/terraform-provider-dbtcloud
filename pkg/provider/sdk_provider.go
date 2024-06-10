@@ -16,31 +16,25 @@ import (
 func SDKProvider(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 
-		// required := true
-		// optional := false
-		// if version == "test" {
-		// 	required = false
-		// 	optional = true
-		// }
-
-		p := &schema.Provider{Schema: map[string]*schema.Schema{
-			"token": &schema.Schema{
-				Type:        schema.TypeString,
-				Optional:    true,
-				Sensitive:   true,
-				Description: "API token for your dbt Cloud. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_TOKEN`",
+		p := &schema.Provider{
+			Schema: map[string]*schema.Schema{
+				"token": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Sensitive:   true,
+					Description: "API token for your dbt Cloud. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_TOKEN`",
+				},
+				"account_id": {
+					Type:        schema.TypeInt,
+					Optional:    true,
+					Description: "Account identifier for your dbt Cloud implementation. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_ACCOUNT_ID`",
+				},
+				"host_url": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "URL for your dbt Cloud deployment. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_HOST_URL` - Defaults to https://cloud.getdbt.com/api",
+				},
 			},
-			"account_id": &schema.Schema{
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "Account identifier for your dbt Cloud implementation. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_ACCOUNT_ID`",
-			},
-			"host_url": &schema.Schema{
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "URL for your dbt Cloud deployment. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_HOST_URL` - Defaults to https://cloud.getdbt.com/api",
-			},
-		},
 			DataSourcesMap: map[string]*schema.Resource{
 				"dbtcloud_job":                      data_sources.DatasourceJob(),
 				"dbtcloud_project":                  data_sources.DatasourceProject(),

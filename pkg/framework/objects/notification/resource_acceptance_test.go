@@ -74,6 +74,10 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttrSet(
 						"dbtcloud_notification.test_notification_external",
+						"on_warning.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_external",
 						"on_failure.0",
 					),
 					resource.TestCheckResourceAttr(
@@ -97,6 +101,14 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr(
 						"dbtcloud_notification.test_notification_internal",
 						"on_cancel.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_warning.0",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_notification.test_notification_internal",
+						"on_warning.1",
 					),
 
 					testAccCheckDbtCloudNotificationExists(
@@ -183,6 +195,7 @@ resource "dbtcloud_notification" "test_notification_internal" {
 	
 resource "dbtcloud_notification" "test_notification_external" {
 	user_id           = %s
+	on_warning        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
 	external_email    = "%s"
@@ -201,6 +214,7 @@ resource "dbtcloud_notification" "test_notification_internal" {
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = []
+	on_warning        = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
 	notification_type = 1
 }
 	

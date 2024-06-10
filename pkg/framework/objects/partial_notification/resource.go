@@ -146,7 +146,7 @@ func (r *partialNotificationResource) Read(
 	state.SlackChannelName = types.StringPointerValue(notification.SlackChannelName)
 
 	// we set the "partial" values by intersecting the config with the remote
-	intOnCancel, intOnFailure, intOnSuccess, ok := extractModelJobLists(state)
+	intOnCancel, intOnFailure, intOnWarning, intOnSuccess, ok := extractModelJobLists(state)
 	if !ok {
 		resp.Diagnostics.AddError("Error extracting the model job lists", "")
 		return
@@ -162,6 +162,12 @@ func (r *partialNotificationResource) Read(
 		context.Background(),
 		types.Int64Type,
 		lo.Intersect(intOnFailure, notification.OnFailure),
+	)
+
+	state.OnWarning, _ = types.SetValueFrom(
+		context.Background(),
+		types.Int64Type,
+		lo.Intersect(intOnWarning, notification.OnWarning),
 	)
 
 	state.OnSuccess, _ = types.SetValueFrom(
@@ -187,7 +193,7 @@ func (r *partialNotificationResource) Create(
 	}
 
 	// we read the values from the config
-	intOnCancel, intOnFailure, intOnSuccess, ok := extractModelJobLists(plan)
+	intOnCancel, intOnFailure, intOnWarning, intOnSuccess, ok := extractModelJobLists(plan)
 	if !ok {
 		resp.Diagnostics.AddError("Error extracting the model job lists", "")
 		return
@@ -228,6 +234,10 @@ func (r *partialNotificationResource) Create(
 		remoteOnFailure := fullNotification.OnFailure
 		missingOnFailure, _ := lo.Difference(configOnFailure, remoteOnFailure)
 
+		configOnWarning := intOnWarning
+		remoteOnWarning := fullNotification.OnWarning
+		missingOnWarning := lo.Without(configOnWarning, remoteOnWarning...)
+
 		configOnSuccess := intOnSuccess
 		remoteOnSuccess := fullNotification.OnSuccess
 		missingOnSuccess, _ := lo.Difference(configOnSuccess, remoteOnSuccess)
@@ -237,6 +247,7 @@ func (r *partialNotificationResource) Create(
 			plan.UserID == types.Int64Value(int64(fullNotification.UserId)) &&
 			len(missingOnCancel) == 0 &&
 			len(missingOnFailure) == 0 &&
+			len(missingOnWarning) == 0 &&
 			len(missingOnSuccess) == 0 {
 			// nothing to do if they are all the same
 			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -246,6 +257,7 @@ func (r *partialNotificationResource) Create(
 			// and we update the notification
 			allOnCancel := append(remoteOnCancel, missingOnCancel...)
 			allOnFailure := append(remoteOnFailure, missingOnFailure...)
+			allOnWarning := append(remoteOnWarning, missingOnWarning...)
 			allOnSuccess := append(remoteOnSuccess, missingOnSuccess...)
 
 			_, err := r.client.UpdateNotification(
@@ -256,6 +268,7 @@ func (r *partialNotificationResource) Create(
 					UserId:           int(plan.UserID.ValueInt64()),
 					OnCancel:         allOnCancel,
 					OnFailure:        allOnFailure,
+					OnWarning:        allOnWarning,
 					OnSuccess:        allOnSuccess,
 					State:            int(plan.State.ValueInt64()),
 					NotificationType: int(plan.NotificationType.ValueInt64()),
@@ -280,6 +293,7 @@ func (r *partialNotificationResource) Create(
 			int(plan.UserID.ValueInt64()),
 			intOnCancel,
 			intOnFailure,
+			intOnWarning,
 			intOnSuccess,
 			int(plan.State.ValueInt64()),
 			int(plan.NotificationType.ValueInt64()),
@@ -321,7 +335,7 @@ func (r *partialNotificationResource) Delete(
 	}
 
 	// we read the values from the config
-	intOnCancel, intOnFailure, intOnSuccess, ok := extractModelJobLists(state)
+	intOnCancel, intOnFailure, intOnWarning, intOnSuccess, ok := extractModelJobLists(state)
 	if !ok {
 		resp.Diagnostics.AddError("Error extracting the model job lists", "")
 		return
@@ -335,11 +349,15 @@ func (r *partialNotificationResource) Delete(
 	remoteOnFailure := notification.OnFailure
 	requiredOnFailure, _ := lo.Difference(remoteOnFailure, configOnFailure)
 
+	configOnWarning := intOnWarning
+	remoteOnWarning := notification.OnWarning
+	requiredOnWarning := lo.Without(remoteOnWarning, configOnWarning...)
+
 	configOnSuccess := intOnSuccess
 	remoteOnSuccess := notification.OnSuccess
 	requiredOnSuccess, _ := lo.Difference(remoteOnSuccess, configOnSuccess)
 
-	if len(requiredOnCancel) > 0 || len(requiredOnFailure) > 0 || len(requiredOnSuccess) > 0 {
+	if len(requiredOnCancel) > 0 || len(requiredOnFailure) > 0 || len(requiredOnWarning) > 0 || len(requiredOnSuccess) > 0 {
 		// we update the notification if there are some jobs left
 		// but we leave the notification existing, without deleting it entirely
 		_, err = r.client.UpdateNotification(
@@ -350,6 +368,7 @@ func (r *partialNotificationResource) Delete(
 				UserId:           int(state.UserID.ValueInt64()),
 				OnCancel:         requiredOnCancel,
 				OnFailure:        requiredOnFailure,
+				OnWarning:        requiredOnWarning,
 				OnSuccess:        requiredOnSuccess,
 				State:            int(state.State.ValueInt64()),
 				NotificationType: int(state.NotificationType.ValueInt64()),
@@ -400,13 +419,13 @@ func (r *partialNotificationResource) Update(
 	}
 
 	// we compare the partial objects and update them if needed
-	intOnCancelPlan, intOnFailurePlan, intOnSuccessPlan, ok := extractModelJobLists(plan)
+	intOnCancelPlan, intOnFailurePlan, intOnWarningPlan, intOnSuccessPlan, ok := extractModelJobLists(plan)
 	if !ok {
 		resp.Diagnostics.AddError("Error extracting the model job lists from the plan", "")
 		return
 	}
 
-	intOnCancelState, intOnFailureState, intOnSuccessState, ok := extractModelJobLists(state)
+	intOnCancelState, intOnFailureState, intOnWarningState, intOnSuccessState, ok := extractModelJobLists(state)
 	if !ok {
 		resp.Diagnostics.AddError("Error extracting the model job lists from the state", "")
 		return
@@ -420,6 +439,11 @@ func (r *partialNotificationResource) Update(
 	deletedOnFailure, newOnFailure := lo.Difference(intOnFailureState, intOnFailurePlan)
 	requiredOnFailure, _ := lo.Difference(lo.Union(remoteOnFailure, newOnFailure), deletedOnFailure)
 
+	remoteOnWarning := notification.OnWarning
+	deletedOnWarning := lo.Without(intOnWarningState, intOnWarningPlan...)
+	newOnWarning := lo.Without(intOnWarningPlan, intOnWarningState...)
+	requiredOnWarning := lo.Without(lo.Union(remoteOnWarning, newOnWarning), deletedOnWarning...)
+
 	remoteOnSuccess := notification.OnSuccess
 	deletedOnSuccess, newOnSuccess := lo.Difference(intOnSuccessState, intOnSuccessPlan)
 	requiredOnSuccess, _ := lo.Difference(lo.Union(remoteOnSuccess, newOnSuccess), deletedOnSuccess)
@@ -431,6 +455,8 @@ func (r *partialNotificationResource) Update(
 		len(newOnCancel) > 0 ||
 		len(deletedOnFailure) > 0 ||
 		len(newOnFailure) > 0 ||
+		len(deletedOnWarning) > 0 ||
+		len(newOnWarning) > 0 ||
 		len(deletedOnSuccess) > 0 ||
 		len(newOnSuccess) > 0 {
 
@@ -443,6 +469,7 @@ func (r *partialNotificationResource) Update(
 				Id:               notification.Id,
 				UserId:           int(plan.UserID.ValueInt64()),
 				OnCancel:         requiredOnCancel,
+				OnWarning:        requiredOnWarning,
 				OnFailure:        requiredOnFailure,
 				OnSuccess:        requiredOnSuccess,
 				State:            int(plan.State.ValueInt64()),

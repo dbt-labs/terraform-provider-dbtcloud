@@ -15,7 +15,7 @@ install: build
 	mv ./$(BINARY) $(HOME)/.terraform.d/plugins/$(BINARY)
 
 doc:
-	go generate ./... && cp -r guides docs/
+	go generate ./...
 
 test: deps
 	go test -mod=readonly -count=1 ./...

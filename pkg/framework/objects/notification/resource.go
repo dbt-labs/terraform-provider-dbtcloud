@@ -110,6 +110,11 @@ func (r *notificationResource) Read(
 		types.Int64Type,
 		notification.OnFailure,
 	)
+	data.OnWarning, _ = types.SetValueFrom(
+		context.Background(),
+		types.Int64Type,
+		notification.OnWarning,
+	)
 	data.OnSuccess, _ = types.SetValueFrom(
 		context.Background(),
 		types.Int64Type,
@@ -137,13 +142,19 @@ func (r *notificationResource) Create(
 		return
 	}
 
-	var intOnCancel, intOnFailure, intOnSuccess []int
+	var intOnCancel, intOnFailure, intOnWarning, intOnSuccess []int
 
 	diags := data.OnCancel.ElementsAs(context.Background(), &intOnCancel, false)
 	if diags.HasError() {
 		return
 	}
+
 	diags = data.OnFailure.ElementsAs(context.Background(), &intOnFailure, false)
+	if diags.HasError() {
+		return
+	}
+
+	diags = data.OnWarning.ElementsAs(context.Background(), &intOnWarning, false)
 	if diags.HasError() {
 		return
 	}
@@ -157,6 +168,7 @@ func (r *notificationResource) Create(
 		int(data.UserID.ValueInt64()),
 		intOnCancel,
 		intOnFailure,
+		intOnWarning,
 		intOnSuccess,
 		int(data.State.ValueInt64()),
 		int(data.NotificationType.ValueInt64()),
@@ -231,6 +243,10 @@ func (r *notificationResource) Update(
 
 	if !plan.OnFailure.Equal(state.OnFailure) {
 		state.OnFailure = plan.OnFailure
+	}
+
+	if !plan.OnWarning.Equal(state.OnWarning) {
+		state.OnWarning = plan.OnWarning
 	}
 
 	if !plan.OnSuccess.Equal(state.OnSuccess) {

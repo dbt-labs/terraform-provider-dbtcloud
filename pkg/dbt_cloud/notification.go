@@ -19,6 +19,7 @@ type Notification struct {
 	UserId           int     `json:"user_id"`
 	OnCancel         []int   `json:"on_cancel"`
 	OnFailure        []int   `json:"on_failure"`
+	OnWarning        []int   `json:"on_warning"`
 	OnSuccess        []int   `json:"on_success"`
 	State            int     `json:"state"`
 	NotificationType int     `json:"type"`
@@ -60,6 +61,7 @@ func (c *Client) CreateNotification(
 	userId int,
 	onCancel []int,
 	onFailure []int,
+	onWarning []int,
 	onSuccess []int,
 	state int,
 	notificationType int,
@@ -72,6 +74,7 @@ func (c *Client) CreateNotification(
 		UserId:           userId,
 		OnCancel:         onCancel,
 		OnFailure:        onFailure,
+		OnWarning:        onWarning,
 		OnSuccess:        onSuccess,
 		State:            state,
 		NotificationType: notificationType,
