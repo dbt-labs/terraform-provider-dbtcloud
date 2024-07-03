@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -19,30 +20,30 @@ func ResourceServiceToken() *schema.Resource {
 		DeleteContext: resourceServiceTokenDelete,
 
 		Schema: map[string]*schema.Schema{
-			"uid": &schema.Schema{
+			"uid": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Service token UID (part of the token)",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Service token name",
 				ForceNew:    true,
 			},
-			"token_string": &schema.Schema{
+			"token_string": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Sensitive:   true,
 				Description: "Service token secret value (only accessible on creation))",
 			},
-			"state": &schema.Schema{
+			"state": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     1,
 				Description: "Service token state (1 is active, 2 is inactive)",
 			},
-			"service_token_permissions": &schema.Schema{
+			"service_token_permissions": {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Permissions set for the service token",
@@ -66,6 +67,25 @@ func ResourceServiceToken() *schema.Resource {
 							Type:        schema.TypeBool,
 							Required:    true,
 							Description: "Whether or not to apply this permission to all projects for this service token",
+						},
+						"writeable_environment_categories": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Description: helper.DocString(
+								`What types of environments to apply Write permissions to.
+								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~.
+								Not setting a value is the same as selecting ~~~all~~~.
+								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
+							),
+
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice(
+									dbt_cloud.EnvironmentCategories,
+									false,
+								),
+							},
 						},
 					},
 				},

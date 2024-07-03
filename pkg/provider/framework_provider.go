@@ -12,6 +12,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -178,6 +179,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSources,
 		group.GroupDataSource,
+		// service_token.ServiceTokenDataSource, // TODO: Uncomment when implemented
 	}
 }
 
@@ -188,5 +190,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		partial_license_map.PartialLicenseMapResource,
 		group.GroupResource,
+		service_token.ServiceTokenResource,
 	}
 }
