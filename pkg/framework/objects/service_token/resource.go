@@ -2,14 +2,17 @@ package service_token
 
 import (
 	"context"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -50,6 +53,14 @@ func (st *serviceTokenResource) Configure(ctx context.Context, req resource.Conf
 func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": schema.Int64Attribute{
+				Computed:    true,
+				Description: "The ID of the service token",
+				// this is used so that we don't show that ID is going to change
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"uid": schema.StringAttribute{
 				Description: "Service token UID (part of the token)",
 				Computed:    true,
@@ -96,7 +107,7 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 							Optional:    true,
 						},
 						// TODO(cwalden): Add validator to ensure that this is configurable for the given `permission_set`
-						"writeable_environment_categories": schema.SetAttribute{
+						"writable_environment_categories": schema.SetAttribute{
 							Description: helper.DocString(
 								`What types of environments to apply Write permissions to.
 								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
@@ -120,8 +131,59 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 }
 
 // Read implements resource.Resource.
-func (st *serviceTokenResource) Read(context.Context, resource.ReadRequest, *resource.ReadResponse) {
-	panic("unimplemented")
+func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+
+	var state ServiceTokenResourceModel
+
+	diags := req.State.Get(ctx, &state)
+
+	resp.Diagnostics.Append(diags...)
+
+	if diags.HasError() {
+		return
+	}
+
+	svcTokID := state.ID.ValueInt64()
+
+	svcTok, err := st.client.GetServiceToken(int(svcTokID))
+
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			resp.Diagnostics.AddWarning(
+				"Resource not found",
+				"The service token was not found and has been removed from the state.",
+			)
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error getting the service token", err.Error())
+		return
+	}
+
+	state.ID = types.Int64Value(int64(*svcTok.ID))
+	state.UID = types.StringValue(svcTok.UID)
+	state.Name = types.StringValue(svcTok.Name)
+	state.State = types.Int64Value(int64(svcTok.State))
+
+	svcTokPerms, err := st.client.GetServiceTokenPermissions(int(svcTokID))
+
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting the service token permissions", err.Error())
+		return
+	}
+
+	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *svcTokPerms)
+
+	resp.Diagnostics.Append(diags...)
+
+	if diags.HasError() {
+		return
+	}
+
+	state.ServiceTokenPermissions = perms
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 }
 
 // Create implements resource.Resource.
@@ -140,6 +202,6 @@ func (st *serviceTokenResource) Delete(context.Context, resource.DeleteRequest, 
 }
 
 // ImportState implements resource.ResourceWithImportState.
-func (st *serviceTokenResource) ImportState(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse) {
-	panic("unimplemented")
+func (st *serviceTokenResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

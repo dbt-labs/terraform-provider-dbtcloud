@@ -68,7 +68,7 @@ func ResourceServiceToken() *schema.Resource {
 							Required:    true,
 							Description: "Whether or not to apply this permission to all projects for this service token",
 						},
-						"writeable_environment_categories": {
+						"writable_environment_categories": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Description: helper.DocString(

@@ -15,31 +15,32 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-The mapping of permission names [from the docs](https://docs.getdbt.com/docs/cloud/manage-access/enterprise-permissions) to the permissions to set in Terraform is the following:
+### Nested Schema for `service_token_permissions`
+The mapping of permission names [from the docs](https://docs.getdbt.com/docs/cloud/manage-access/enterprise-permissions) to a `permissions_set` in `service_token_permissions`:
 
-|Permission name......... | Permission code|
-|-- | --|
-|Account Admin | account_admin|
-|Account Viewer | account_viewer|
-|Admin | admin|
-|Analyst | analyst|
-|Billing Admin | billing_admin|
-|Database Admin | database_admin|
-|Developer | developer|
-|Git Admin | git_admin|
-|Job Admin | job_admin|
-|Job Runner | job_runner|
-|Job Viewer | job_viewer|
-|Member | member|
-|Metadata Only | metadata_only|
-|Owner | owner|
-|Project Creator | project_creator|
-|Read-Only | readonly|
-|Security Admin | security_admin|
-|Semantic Layer Only | semantic_layer_only|
-|Stakeholder | stakeholder|
-|Team Admin | team_admin|
-|Webhooks Only | webhooks_only|
+| Permission name | `permission_set = ...` |
+| --- | --- |
+| Account Admin | `"account_admin"` |
+| Account Viewer | `"account_viewer"` |
+| Admin | `"admin"` |
+| Analyst | `"analyst"` |
+| Billing Admin | `"billing_admin"` |
+| Database Admin | `"database_admin"` |
+| Developer | `"developer"` |
+| Git Admin | `"git_admin"` |
+| Job Admin | `"job_admin"` |
+| Job Runner | `"job_runner"` |
+| Job Viewer | `"job_viewer"` |
+| Member | `"member"` |
+| Metadata Only | `"metadata_only"` |
+| Owner | `"owner"` |
+| Project Creator | `"project_creator"` |
+| Read-Only | `"readonly"` |
+| Security Admin | `"security_admin"` |
+| Semantic Layer Only | `"semantic_layer_only"` |
+| Stakeholder | `"stakeholder"` |
+| Team Admin | `"team_admin"` |
+| Webhooks Only | `"webhooks_only"` |
 
 {{ if gt (len (split .Description " --- ")) 1 -}}
 {{ index (split .Description " --- ") 1 | trimspace }}
