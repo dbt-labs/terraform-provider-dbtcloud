@@ -52,6 +52,7 @@ resource "dbtcloud_group" "tf_group_1" {
     permission_set = "developer"
     all_projects   = false
     project_id     = dbtcloud_project.dbt_project.id
+    writable_environment_categories = ["development", "staging"]
   }
 }
 ```
