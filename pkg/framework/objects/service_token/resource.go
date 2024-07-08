@@ -135,11 +135,8 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 
 	var state ServiceTokenResourceModel
 
-	diags := req.State.Get(ctx, &state)
-
-	resp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -173,10 +170,8 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *svcTokPerms)
-
 	resp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -187,18 +182,104 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 }
 
 // Create implements resource.Resource.
-func (st *serviceTokenResource) Create(context.Context, resource.CreateRequest, *resource.CreateResponse) {
-	panic("unimplemented")
+func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+
+	var plan ServiceTokenResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	name := plan.Name.ValueString()
+	state := plan.State.ValueInt64()
+
+	createdSrvTok, err := st.client.CreateServiceToken(name, int(state))
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to create the service token", err.Error())
+		return
+	}
+
+	srvTokPermissions, diags := ConvertServiceTokenPermissionModelToData(ctx, plan.ServiceTokenPermissions, *createdSrvTok.ID, st.client.AccountID)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	_, err = st.client.UpdateServiceTokenPermissions(*createdSrvTok.ID, srvTokPermissions)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to assign permissions to the service token", err.Error())
+		return
+	}
+
+	plan.ID = types.Int64Value(int64(*createdSrvTok.ID))
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
 }
 
 // Update implements resource.Resource.
-func (st *serviceTokenResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
-	panic("unimplemented")
+func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state ServiceTokenResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	svcTokID := int(state.ID.ValueInt64())
+
+	if !plan.Name.Equal(state.Name) || !plan.State.Equal(state.State) {
+		svcTok, err := st.client.GetServiceToken(svcTokID)
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to get the service token", err.Error())
+			return
+		}
+
+		svcTok.Name = plan.Name.ValueString()
+		svcTok.UID = state.UID.ValueString()
+		svcTok.State = int(plan.State.ValueInt64())
+
+		_, err = st.client.UpdateServiceToken(svcTokID, *svcTok)
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to update the service token", err.Error())
+			return
+		}
+	}
+
+	// Because we can't compare the service token permissions directly, we need to update them every time
+	// TODO(cwalden): Add a way to compare the service token permissions?
+	svcTokPerms, diags := ConvertServiceTokenPermissionModelToData(ctx, plan.ServiceTokenPermissions, svcTokID, st.client.AccountID)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	_, err := st.client.UpdateServiceTokenPermissions(svcTokID, svcTokPerms)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to update the service token permissions", err.Error())
+		return
+	}
+
 }
 
 // Delete implements resource.Resource.
-func (st *serviceTokenResource) Delete(context.Context, resource.DeleteRequest, *resource.DeleteResponse) {
-	panic("unimplemented")
+func (st *serviceTokenResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state ServiceTokenResourceModel
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	svcTokID := int(state.ID.ValueInt64())
+
+	_, err := st.client.DeleteServiceToken(svcTokID)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to delete the service token", err.Error())
+		return
+	}
 }
 
 // ImportState implements resource.ResourceWithImportState.
