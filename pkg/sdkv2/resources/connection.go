@@ -52,6 +52,7 @@ func ResourceConnection() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the connection in",
 			},
 			"name": &schema.Schema{

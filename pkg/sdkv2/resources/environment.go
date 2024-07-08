@@ -86,7 +86,7 @@ func ResourceEnvironment() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be empty or set to 'production'",
+				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
 			},
 			"environment_id": &schema.Schema{
 				Type:        schema.TypeInt,

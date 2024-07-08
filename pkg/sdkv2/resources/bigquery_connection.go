@@ -39,6 +39,7 @@ func ResourceBigQueryConnection() *schema.Resource {
 			"project_id": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Project ID to create the connection in",
 			},
 			"name": &schema.Schema{
@@ -172,7 +173,11 @@ func ResourceBigQueryConnection() *schema.Resource {
 	}
 }
 
-func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryConnectionCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -292,7 +297,11 @@ func resourceBigQueryConnectionCreate(ctx context.Context, d *schema.ResourceDat
 	return diags
 }
 
-func resourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryConnectionRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -385,7 +394,11 @@ func resourceBigQueryConnectionRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryConnectionUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
@@ -548,7 +561,11 @@ func resourceBigQueryConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 	return resourceBigQueryConnectionRead(ctx, d, m)
 }
 
-func resourceBigQueryConnectionDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceBigQueryConnectionDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 
 	return resourceConnectionDelete(ctx, d, m)
 

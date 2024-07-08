@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.8...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...HEAD)
+
+## [0.3.9](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.8...v0.3.9)
+
+### Fixes
+
+- [#271](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/271) Force creation of a new connection when the project is changed or deleted
+
+### Docs
+
+- Fix typo in environment code example
 
 ## [0.3.8](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.7...v0.3.8)
 
