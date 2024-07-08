@@ -33,6 +33,6 @@ resource "dbtcloud_bigquery_connection" "my_connection_with_oauth" {
   auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
   client_x509_cert_url        = "my_client_x509_cert_url"
   retries                     = 3
-  appplication_id             = "oauth_application_id"
+  application_id              = "oauth_application_id"
   application_secret          = "oauth_secret_id"
 }
