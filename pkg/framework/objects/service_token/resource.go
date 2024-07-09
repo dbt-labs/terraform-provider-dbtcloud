@@ -48,7 +48,7 @@ func (st *serviceTokenResource) Configure(ctx context.Context, req resource.Conf
 		return
 	}
 
-	resp.Diagnostics.AddWarning("Only Failing on CI??", fmt.Sprintf("Failed to get client from provider data:\n\ttype: %v\n\tvalue: %v", reflect.TypeOf(req.ProviderData), req.ProviderData))
+	resp.Diagnostics.AddError("Only Failing on CI??", fmt.Sprintf("Failed to get client from provider data:\n\ttype: %v\n\tvalue: %v", reflect.TypeOf(req.ProviderData), req.ProviderData))
 	resp.Diagnostics.AddError("Missing client", "A client is required to configure the service token resource")
 }
 
