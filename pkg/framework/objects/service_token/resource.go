@@ -116,6 +116,7 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
 							),
 							Optional:    true,
+							Computed:    true,
 							ElementType: types.StringType,
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
