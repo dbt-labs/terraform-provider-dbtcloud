@@ -10,7 +10,7 @@ import (
 )
 
 type ServiceTokenResourceModel struct {
-	ID          types.Int64  `tfsdk:"id"`
+	ID          types.String `tfsdk:"id"`
 	UID         types.String `tfsdk:"uid"`
 	Name        types.String `tfsdk:"name"`
 	TokenString types.String `tfsdk:"token_string"`
@@ -47,7 +47,7 @@ func ConvertServiceTokenPermissionModelToData(
 	for i, permission := range requiredAllPermissions {
 		writableEnvs := make([]dbt_cloud.EnvironmentCategory, 0, len(permission.WritableEnvironmentCategories.Elements()))
 
-		diags := permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, false)
+		diags := permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, true)
 
 		allDiags.Append(diags...)
 

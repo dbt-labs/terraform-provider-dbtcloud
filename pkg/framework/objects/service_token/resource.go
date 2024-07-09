@@ -2,18 +2,20 @@ package service_token
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,12 +55,12 @@ func (st *serviceTokenResource) Configure(ctx context.Context, req resource.Conf
 func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
+			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The ID of the service token",
 				// this is used so that we don't show that ID is going to change
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"uid": schema.StringAttribute{
@@ -117,6 +119,7 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 							),
 							Optional:    true,
 							Computed:    true,
+							Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 							ElementType: types.StringType,
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
@@ -141,9 +144,13 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	svcTokID := state.ID.ValueInt64()
+	svcTokID, err := strconv.Atoi(state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to convert the service token ID to an integer", err.Error())
+		return
+	}
 
-	svcTok, err := st.client.GetServiceToken(int(svcTokID))
+	svcTok, err := st.client.GetServiceToken(svcTokID)
 
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
@@ -158,7 +165,7 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	state.ID = types.Int64Value(int64(*svcTok.ID))
+	state.ID = types.StringValue(strconv.Itoa(*svcTok.ID))
 	state.UID = types.StringValue(svcTok.UID)
 	state.Name = types.StringValue(svcTok.Name)
 	state.State = types.Int64Value(int64(svcTok.State))
@@ -219,7 +226,7 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	plan.ID = types.Int64Value(int64(*createdSrvTok.ID))
+	plan.ID = types.StringValue(strconv.Itoa(*createdSrvTok.ID))
 	plan.UID = types.StringValue(createdSrvTok.UID)
 	plan.Name = types.StringValue(createdSrvTok.Name)
 	plan.State = types.Int64Value(int64(createdSrvTok.State))
@@ -240,7 +247,11 @@ func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	svcTokID := int(state.ID.ValueInt64())
+	svcTokID, err := strconv.Atoi(state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to convert the service token ID to an integer", err.Error())
+		return
+	}
 
 	if !plan.Name.Equal(state.Name) || !plan.State.Equal(state.State) {
 		svcTok, err := st.client.GetServiceToken(svcTokID)
@@ -296,10 +307,13 @@ func (st *serviceTokenResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	svcTokID := int(state.ID.ValueInt64())
-
-	_, err := st.client.DeleteServiceToken(svcTokID)
+	svcTokID, err := strconv.Atoi(state.ID.ValueString())
 	if err != nil {
+		resp.Diagnostics.AddError("Unable to convert the service token ID to an integer", err.Error())
+		return
+	}
+
+	if _, err := st.client.DeleteServiceToken(svcTokID); err != nil {
 		resp.Diagnostics.AddError("Unable to delete the service token", err.Error())
 		return
 	}
