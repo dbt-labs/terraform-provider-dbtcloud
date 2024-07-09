@@ -2,8 +2,6 @@ package service_token
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -33,19 +31,13 @@ func (st *serviceTokenDataSource) Metadata(_ context.Context, req datasource.Met
 
 // Configure implements datasource.DataSourceWithConfigure.
 func (st *serviceTokenDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*dbt_cloud.Client)
-
-	if !ok {
-		resp.Diagnostics.AddError("Only Failing on CI??", fmt.Sprintf("Failed to get client from provider data:\n\ttype: %v\n\tvalue: %v", reflect.TypeOf(req.ProviderData), req.ProviderData))
+	switch c := req.ProviderData.(type) {
+	case nil: // do nothing
+	case *dbt_cloud.Client:
+		st.client = c
+	default:
 		resp.Diagnostics.AddError("Missing client", "A client is required to configure the service token resource")
-		return
 	}
-
-	st.client = client
 }
 
 // Schema implements datasource.DataSource.
