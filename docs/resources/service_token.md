@@ -68,6 +68,7 @@ resource "dbtcloud_service_token" "test_service_token" {
 
 ### Read-Only
 
+- `id` (Number) The ID of the service token
 - `token_string` (String, Sensitive) Service token secret value (only accessible on creation))
 - `uid` (String) Service token UID (part of the token)
 

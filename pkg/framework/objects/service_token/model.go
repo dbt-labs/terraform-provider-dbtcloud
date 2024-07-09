@@ -19,6 +19,15 @@ type ServiceTokenResourceModel struct {
 	ServiceTokenPermissions []ServiceTokenPermission `tfsdk:"service_token_permissions"`
 }
 
+type ServiceTokenDataSourceModel struct {
+	ID             types.String `tfsdk:"id"`
+	ServiceTokenID types.Int64  `tfsdk:"service_token_id"`
+	UID            types.String `tfsdk:"uid"`
+	Name           types.String `tfsdk:"name"`
+
+	ServiceTokenPermissions []ServiceTokenPermission `tfsdk:"service_token_permissions"`
+}
+
 type ServiceTokenPermission struct {
 	PermissionSet                 types.String `tfsdk:"permission_set"`
 	AllProjects                   types.Bool   `tfsdk:"all_projects"`

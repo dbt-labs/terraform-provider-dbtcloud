@@ -18,7 +18,7 @@ type GroupResourceModel struct {
 }
 
 // we need a different one just because historically the data source uses `group_id` instead of `id`
-type GroupDatasourceModel struct {
+type GroupDataSourceModel struct {
 	ID               types.Int64       `tfsdk:"id"`
 	GroupID          types.Int64       `tfsdk:"group_id"`
 	Name             types.String      `tfsdk:"name"`

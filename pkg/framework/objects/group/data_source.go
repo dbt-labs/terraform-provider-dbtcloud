@@ -36,7 +36,7 @@ func (d *groupDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 
-	var data GroupDatasourceModel
+	var data GroupDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 

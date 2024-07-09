@@ -179,7 +179,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSources,
 		group.GroupDataSource,
-		// service_token.ServiceTokenDataSource, // TODO: Uncomment when implemented
+		service_token.ServiceTokenDataSource,
 	}
 }
 
