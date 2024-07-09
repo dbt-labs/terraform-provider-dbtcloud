@@ -33,14 +33,19 @@ func (st *serviceTokenDataSource) Metadata(_ context.Context, req datasource.Met
 
 // Configure implements datasource.DataSourceWithConfigure.
 func (st *serviceTokenDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
-	if client, ok := req.ProviderData.(*dbt_cloud.Client); ok {
-		st.client = client
+	if req.ProviderData == nil {
 		return
 	}
 
-	resp.Diagnostics.AddError("Only Failing on CI??", fmt.Sprintf("Failed to get client from provider data:\n\ttype: %v\n\tvalue: %v", reflect.TypeOf(req.ProviderData), req.ProviderData))
-	resp.Diagnostics.AddError("Missing client", "A client is required to configure the service token resource")
+	client, ok := req.ProviderData.(*dbt_cloud.Client)
+
+	if !ok {
+		resp.Diagnostics.AddError("Only Failing on CI??", fmt.Sprintf("Failed to get client from provider data:\n\ttype: %v\n\tvalue: %v", reflect.TypeOf(req.ProviderData), req.ProviderData))
+		resp.Diagnostics.AddError("Missing client", "A client is required to configure the service token resource")
+		return
+	}
+
+	st.client = client
 }
 
 // Schema implements datasource.DataSource.
