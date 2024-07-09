@@ -206,9 +206,15 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	_, err = st.client.UpdateServiceTokenPermissions(*createdSrvTok.ID, srvTokPermissions)
+	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(*createdSrvTok.ID, srvTokPermissions)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to assign permissions to the service token", err.Error())
+		return
+	}
+
+	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *updatedSvcTokPerms)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
 		return
 	}
 
@@ -217,6 +223,7 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 	plan.Name = types.StringValue(createdSrvTok.Name)
 	plan.State = types.Int64Value(int64(createdSrvTok.State))
 	plan.TokenString = types.StringValue(*createdSrvTok.TokenString)
+	plan.ServiceTokenPermissions = perms
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
@@ -260,11 +267,21 @@ func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	_, err := st.client.UpdateServiceTokenPermissions(svcTokID, svcTokPerms)
+	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(svcTokID, svcTokPerms)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to update the service token permissions", err.Error())
 		return
 	}
+
+	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *updatedSvcTokPerms)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	state.ServiceTokenPermissions = perms
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
 }
 
