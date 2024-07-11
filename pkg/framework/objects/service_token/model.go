@@ -88,20 +88,3 @@ func ConvertServiceTokenPermissionDataToModel(
 	}
 	return allPermissionsModel, allDiags
 }
-
-// func CompareGroupPermissions(
-// 	group1, group2 GroupPermission,
-// ) bool {
-// 	listGroup1Envs := helper.StringSetToStringSlice(group1.WritableEnvironmentCategories)
-// 	listGroup2Envs := helper.StringSetToStringSlice(group2.WritableEnvironmentCategories)
-
-// 	diffEnv1, diffEnv2 := lo.Difference(
-// 		listGroup1Envs,
-// 		listGroup2Envs,
-// 	)
-// 	return group1.PermissionSet == group2.PermissionSet &&
-// 		group1.ProjectID == group2.ProjectID &&
-// 		group1.AllProjects == group2.AllProjects &&
-// 		len(diffEnv1) == 0 &&
-// 		len(diffEnv2) == 0
-// }
