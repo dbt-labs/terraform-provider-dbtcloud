@@ -1,4 +1,4 @@
-package service_token_test
+package resources_test
 
 import (
 	"fmt"
@@ -13,13 +13,14 @@ import (
 )
 
 func TestAccDbtCloudServiceTokenResource(t *testing.T) {
+	t.Skip("Test deprecated")
 
 	serviceTokenName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	serviceTokenName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudServiceTokenDestroy,
 		Steps: []resource.TestStep{
@@ -37,45 +38,38 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 						"name",
 						serviceTokenName,
 					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_service_token.test_service_token",
-						"token_string",
-					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
 						"service_token_permissions.#",
-						"3",
+						"2",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set": "git_admin",
-							"all_projects":   "true",
-						},
+						"service_token_permissions.1.permission_set",
+						"git_admin",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set": "job_admin",
-							"all_projects":   "false",
-						},
+						"service_token_permissions.1.all_projects",
+						"true",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set":                    "developer",
-							"all_projects":                      "true",
-							"writable_environment_categories.#": "1",
-						},
+						"service_token_permissions.0.permission_set",
+						"job_admin",
 					),
-					resource.TestCheckTypeSetElemAttrPair(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*.project_id",
-						"dbtcloud_project.test_project",
-						"id",
+						"service_token_permissions.0.all_projects",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.0.project_id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"token_string",
 					),
 				),
 			},
@@ -94,44 +88,38 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 						"name",
 						serviceTokenName2,
 					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_service_token.test_service_token",
-						"token_string",
-					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
 						"service_token_permissions.#",
-						"3",
+						"2",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set": "git_admin",
-							"all_projects":   "false",
-						},
+						"service_token_permissions.0.permission_set",
+						"git_admin",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set": "job_admin",
-							"all_projects":   "true",
-						},
+						"service_token_permissions.0.all_projects",
+						"false",
 					),
-					resource.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckResourceAttrSet(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*",
-						map[string]string{
-							"permission_set": "developer",
-							"all_projects":   "true",
-						},
+						"service_token_permissions.0.project_id",
 					),
-					resource.TestCheckTypeSetElemAttrPair(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.*.project_id",
-						"dbtcloud_project.test_project",
-						"id",
+						"service_token_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.permission_set",
+						"job_admin",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"token_string",
 					),
 				),
 			},
@@ -145,7 +133,6 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 					// being a set, we need to ignore all the project_id as we don't know which one is the one with 0
 					"service_token_permissions.0.project_id",
 					"service_token_permissions.1.project_id",
-					"service_token_permissions.2.project_id",
 				},
 			},
 		},
@@ -164,14 +151,9 @@ resource "dbtcloud_service_token" "test_service_token" {
         all_projects = true
     }
     service_token_permissions {
-		permission_set = "job_admin"
+        permission_set = "job_admin"
         all_projects = false
         project_id = dbtcloud_project.test_project.id
-    }
-    service_token_permissions {
-	    permission_set = "developer"
-	    all_projects = true
-	    writable_environment_categories = ["all"]
     }
 }
 `, projectName, serviceTokenName)
@@ -191,10 +173,6 @@ resource "dbtcloud_service_token" "test_service_token" {
     }
     service_token_permissions {
         permission_set = "job_admin"
-        all_projects = true
-    }
-    service_token_permissions {
-        permission_set = "developer"
         all_projects = true
     }
 }

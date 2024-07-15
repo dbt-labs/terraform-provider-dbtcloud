@@ -5,22 +5,22 @@ type EnvironmentCategory = string
 
 const (
 	// All is the category for all environments
-	All EnvironmentCategory = "all"
+	EnvironmentCategory_All EnvironmentCategory = "all"
 	// Development is the category for development environments
-	Development EnvironmentCategory = "development"
+	EnvironmentCategory_Development EnvironmentCategory = "development"
 	// Staging is the category for staging environments
-	Staging EnvironmentCategory = "staging"
+	EnvironmentCategory_Staging EnvironmentCategory = "staging"
 	// Production is the category for production environments
-	Production EnvironmentCategory = "production"
+	EnvironmentCategory_Production EnvironmentCategory = "production"
 	// Other is the category for other environments
-	Other EnvironmentCategory = "other"
+	EnvironmentCategory_Other EnvironmentCategory = "other"
 )
 
 // EnvironmentCategories is a list of all possible environment categories
 var EnvironmentCategories = []EnvironmentCategory{
-	All,
-	Development,
-	Staging,
-	Production,
-	Other,
+	EnvironmentCategory_All,
+	EnvironmentCategory_Development,
+	EnvironmentCategory_Staging,
+	EnvironmentCategory_Production,
+	EnvironmentCategory_Other,
 }

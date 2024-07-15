@@ -9,11 +9,13 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -115,8 +117,12 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 								Not setting a value is the same as selecting ~~~all~~~.
 								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
 							),
-							Optional:    true,
-							Computed:    true,
+							Optional: true,
+							Computed: true,
+							// Default:  helper.EmptySetDefault(types.StringType),
+							Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
+								types.StringValue("all"),
+							})),
 							ElementType: types.StringType,
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(

@@ -50,13 +50,20 @@ func ConvertServiceTokenPermissionModelToData(
 		permissionRequest.ServiceTokenID = serviceTokenID
 		permissionRequest.AccountID = accountID
 		permissionRequest.Set = permission.PermissionSet.ValueString()
-		permissionRequest.ProjectID = int(permission.ProjectID.ValueInt64())
 		permissionRequest.AllProjects = permission.AllProjects.ValueBool()
+
+		if !permissionRequest.AllProjects {
+			permissionRequest.ProjectID = int(permission.ProjectID.ValueInt64())
+		}
 
 		if !permission.WritableEnvironmentCategories.IsUnknown() {
 			writableEnvs := make([]dbt_cloud.EnvironmentCategory, 0, len(permission.WritableEnvironmentCategories.Elements()))
 			allDiags.Append(permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, false)...)
-			permissionRequest.WritableEnvs = writableEnvs
+
+			// small hack to avoid sending all environments if all is present
+			if !helper.ListContains(writableEnvs, dbt_cloud.EnvironmentCategory_All) {
+				permissionRequest.WritableEnvs = writableEnvs
+			}
 		}
 
 	}
@@ -74,8 +81,18 @@ func ConvertServiceTokenPermissionDataToModel(
 		permissionsModel := &allPermissionsModel[i]
 
 		permissionsModel.PermissionSet = types.StringValue(permission.Set)
-		permissionsModel.ProjectID = helper.SetIntToInt64OrNull(permission.ProjectID)
+
 		permissionsModel.AllProjects = types.BoolValue(permission.AllProjects)
+
+		if permission.AllProjects {
+			permissionsModel.ProjectID = types.Int64Null()
+		} else {
+			permissionsModel.ProjectID = types.Int64Value(int64(permission.ProjectID))
+		}
+
+		if len(permission.WritableEnvs) == 0 {
+			permission.WritableEnvs = []dbt_cloud.EnvironmentCategory{dbt_cloud.EnvironmentCategory_All}
+		}
 
 		writableEnvs, diags := types.SetValueFrom(
 			ctx,
@@ -84,7 +101,6 @@ func ConvertServiceTokenPermissionDataToModel(
 		)
 		permissionsModel.WritableEnvironmentCategories = writableEnvs
 		allDiags.Append(diags...)
-
 	}
 	return allPermissionsModel, allDiags
 }

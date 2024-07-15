@@ -10,6 +10,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+func ListContains[T comparable](list []T, item T) bool {
+	for _, listItem := range list {
+		if listItem == item {
+			return true
+		}
+	}
+	return false
+}
+
 func EmptySetDefault(elemType attr.Type) defaults.Set {
 	return setdefault.StaticValue(
 		types.SetValueMust(
