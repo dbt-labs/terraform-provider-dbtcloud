@@ -37,20 +37,14 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 						"name",
 						serviceTokenName,
 					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_service_token.test_service_token",
+						"token_string",
+					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
 						"service_token_permissions.#",
-						"2",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.1.permission_set",
-						"git_admin",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_service_token.test_service_token",
-						"service_token_permissions.1.all_projects",
-						"true",
+						"3",
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
@@ -66,9 +60,35 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 						"dbtcloud_service_token.test_service_token",
 						"service_token_permissions.0.project_id",
 					),
-					resource.TestCheckResourceAttrSet(
+					resource.TestCheckResourceAttr(
 						"dbtcloud_service_token.test_service_token",
-						"token_string",
+						"service_token_permissions.1.permission_set",
+						"git_admin",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.1.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.2.permission_set",
+						"developer",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.2.all_projects",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.2.writable_environment_categories.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_service_token.test_service_token",
+						"service_token_permissions.2.writable_environment_categories.0",
+						"development",
 					),
 				),
 			},
@@ -132,6 +152,7 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 					// being a set, we need to ignore all the project_id as we don't know which one is the one with 0
 					"service_token_permissions.0.project_id",
 					"service_token_permissions.1.project_id",
+					"service_token_permissions.2.project_id",
 				},
 			},
 		},
@@ -150,9 +171,14 @@ resource "dbtcloud_service_token" "test_service_token" {
         all_projects = true
     }
     service_token_permissions {
-        permission_set = "job_admin"
+		permission_set = "job_admin"
         all_projects = false
         project_id = dbtcloud_project.test_project.id
+    }
+    service_token_permissions {
+	    permission_set = "developer"
+	    all_projects = true
+	    writable_environment_categories = ["development"]
     }
 }
 `, projectName, serviceTokenName)
@@ -174,6 +200,11 @@ resource "dbtcloud_service_token" "test_service_token" {
         permission_set = "job_admin"
         all_projects = true
     }
+    // service_token_permissions {
+    //     permission_set = "developer"
+    //     all_projects = true
+    //     // writable_environment_categories = ["development", "staging"]
+    // }
 }
 `, projectName, serviceTokenName)
 }

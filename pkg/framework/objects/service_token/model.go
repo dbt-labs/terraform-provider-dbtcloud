@@ -45,20 +45,20 @@ func ConvertServiceTokenPermissionModelToData(
 	allDiags := diag.Diagnostics{}
 
 	for i, permission := range requiredAllPermissions {
-		writableEnvs := make([]dbt_cloud.EnvironmentCategory, 0, len(permission.WritableEnvironmentCategories.Elements()))
+		permissionRequest := &allPermissionsRequest[i]
 
-		diags := permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, true)
+		permissionRequest.ServiceTokenID = serviceTokenID
+		permissionRequest.AccountID = accountID
+		permissionRequest.Set = permission.PermissionSet.ValueString()
+		permissionRequest.ProjectID = int(permission.ProjectID.ValueInt64())
+		permissionRequest.AllProjects = permission.AllProjects.ValueBool()
 
-		allDiags.Append(diags...)
-
-		allPermissionsRequest[i] = dbt_cloud.ServiceTokenPermission{
-			ServiceTokenID: serviceTokenID,
-			AccountID:      accountID,
-			Set:            permission.PermissionSet.ValueString(),
-			ProjectID:      int(permission.ProjectID.ValueInt64()),
-			AllProjects:    permission.AllProjects.ValueBool(),
-			WritableEnvs:   writableEnvs,
+		if !permission.WritableEnvironmentCategories.IsUnknown() {
+			writableEnvs := make([]dbt_cloud.EnvironmentCategory, 0, len(permission.WritableEnvironmentCategories.Elements()))
+			allDiags.Append(permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, false)...)
+			permissionRequest.WritableEnvs = writableEnvs
 		}
+
 	}
 	return allPermissionsRequest, allDiags
 }
@@ -71,20 +71,20 @@ func ConvertServiceTokenPermissionDataToModel(
 	allDiags := diag.Diagnostics{}
 	for i, permission := range allPermissions {
 
+		permissionsModel := &allPermissionsModel[i]
+
+		permissionsModel.PermissionSet = types.StringValue(permission.Set)
+		permissionsModel.ProjectID = helper.SetIntToInt64OrNull(permission.ProjectID)
+		permissionsModel.AllProjects = types.BoolValue(permission.AllProjects)
+
 		writableEnvs, diags := types.SetValueFrom(
 			ctx,
 			types.StringType,
 			permission.WritableEnvs,
 		)
-
+		permissionsModel.WritableEnvironmentCategories = writableEnvs
 		allDiags.Append(diags...)
 
-		allPermissionsModel[i] = ServiceTokenPermission{
-			PermissionSet:                 types.StringValue(permission.Set),
-			ProjectID:                     helper.SetIntToInt64OrNull(permission.ProjectID),
-			AllProjects:                   types.BoolValue(permission.AllProjects),
-			WritableEnvironmentCategories: writableEnvs,
-		}
 	}
 	return allPermissionsModel, allDiags
 }
