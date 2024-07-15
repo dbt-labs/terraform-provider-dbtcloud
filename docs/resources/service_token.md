@@ -42,14 +42,31 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 ```terraform
 resource "dbtcloud_service_token" "test_service_token" {
   name = "Test Service Token"
+
+  // Grant the service token `git_admin` permissions on all projects
   service_token_permissions {
     permission_set = "git_admin"
     all_projects   = true
   }
+
+  // Grant the service token `job_admin` permissions on a specific project
   service_token_permissions {
     permission_set = "job_admin"
     all_projects   = false
     project_id     = dbtcloud_project.dbt_project.id
+  }
+
+  // Grant the service token `developer` permissions on all projects, 
+  // but only in the `development` and `staging` environments
+  //
+  // NOTE: This is only configurable for certain `permission_set` values
+  service_token_permissions {
+    permission_set = "developer"
+    all_projects   = true
+    writable_environment_categories = [
+      "development",
+      "staging"
+    ]
   }
 }
 ```
@@ -96,16 +113,16 @@ Import is supported using the following syntax:
 ```shell
 # using  import blocks (requires Terraform >= 1.5)
 import {
-  to = dbtcloud_group.my_service_token
+  to = dbtcloud_service_token.my_service_token
   id = "service_token_id"
 }
 
 import {
-  to = dbtcloud_group.my_service_token
+  to = dbtcloud_service_token.my_service_token
   id = "12345"
 }
 
 # using the older import command
-terraform import dbtcloud_group.my_service_token "service_token_id"
-terraform import dbtcloud_group.my_service_token 12345
+terraform import dbtcloud_service_token.my_service_token "service_token_id"
+terraform import dbtcloud_service_token.my_service_token 12345
 ```
