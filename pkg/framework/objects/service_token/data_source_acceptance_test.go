@@ -1,4 +1,4 @@
-package data_sources_test
+package service_token_test
 
 import (
 	"fmt"

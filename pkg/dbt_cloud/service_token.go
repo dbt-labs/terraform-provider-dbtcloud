@@ -9,13 +9,14 @@ import (
 )
 
 type ServiceTokenPermission struct {
-	ID             *int   `json:"id,omitempty"`
-	AccountID      int    `json:"account_id"`
-	ServiceTokenID int    `json:"service_token_id"`
-	ProjectID      int    `json:"project_id,omitempty"`
-	AllProjects    bool   `json:"all_projects"`
-	State          int    `json:"state,omitempty"`
-	Set            string `json:"permission_set,omitempty"`
+	ID             *int                  `json:"id,omitempty"`
+	AccountID      int                   `json:"account_id"`
+	ServiceTokenID int                   `json:"service_token_id"`
+	ProjectID      int                   `json:"project_id,omitempty"`
+	AllProjects    bool                  `json:"all_projects"`
+	State          int                   `json:"state,omitempty"`
+	Set            string                `json:"permission_set,omitempty"`
+	WritableEnvs   []EnvironmentCategory `json:"writable_environment_categories,omitempty"`
 }
 
 type ServiceToken struct {
@@ -154,6 +155,7 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 
 func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenPermissions []ServiceTokenPermission) (*[]ServiceTokenPermission, error) {
 	serviceTokenPermissionData, err := json.Marshal(serviceTokenPermissions)
+
 	if err != nil {
 		return nil, err
 	}

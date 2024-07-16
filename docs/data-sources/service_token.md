@@ -17,20 +17,25 @@ description: |-
 
 ### Required
 
-- `service_token_id` (Number) ID of the service token
+- `service_token_id` (Number) The ID of the service token
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the service token
 - `name` (String) Service token name
-- `service_token_permissions` (Set of Object) Permissions set for the service token (see [below for nested schema](#nestedatt--service_token_permissions))
-- `uid` (String) The UID of the service token (part of the token secret)
+- `service_token_permissions` (Block Set) Permissions set for the service token (see [below for nested schema](#nestedblock--service_token_permissions))
+- `uid` (String) Service token UID (part of the token)
 
-<a id="nestedatt--service_token_permissions"></a>
+<a id="nestedblock--service_token_permissions"></a>
 ### Nested Schema for `service_token_permissions`
 
 Read-Only:
 
-- `all_projects` (Boolean)
-- `permission_set` (String)
-- `project_id` (Number)
+- `all_projects` (Boolean) Whether or not to apply this permission to all projects for this service token
+- `permission_set` (String) Set of permissions to apply
+- `project_id` (Number) Project ID to apply this permission to for this service token
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
+Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+The values allowed are `all`, `development`, `staging`, `production` and `other`.
+Not setting a value is the same as selecting `all`.
+Not all permission sets support environment level write settings, only `analyst`, `database_admin`, `developer`, `git_admin` and `team_admin`.

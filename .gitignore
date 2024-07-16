@@ -6,3 +6,4 @@ terraform-provider*
 autogen
 TODO.md
 NOTES.md
+.DS_Store
