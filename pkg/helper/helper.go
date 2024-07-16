@@ -19,6 +19,15 @@ func EmptySetDefault(elemType attr.Type) defaults.Set {
 	)
 }
 
+func IntPointerToInt64Pointer(value *int) *int64 {
+	if value == nil {
+		return nil
+	}
+	ret := int64(*value)
+	return &ret
+}
+
+// API data types to TF types
 func SetIntToInt64OrNull(value int) types.Int64 {
 	if value == 0 {
 		return types.Int64Null()
@@ -26,6 +35,23 @@ func SetIntToInt64OrNull(value int) types.Int64 {
 	return types.Int64Value(int64(value))
 }
 
+func SliceStringToSliceTypesString(input []string) []types.String {
+	result := make([]types.String, len(input))
+	for i, v := range input {
+		result[i] = types.StringValue(v)
+	}
+	return result
+}
+
+func SliceStringToSliceTypesInt64(input []int) []types.Int64 {
+	result := make([]types.Int64, len(input))
+	for i, v := range input {
+		result[i] = types.Int64Value(int64(v))
+	}
+	return result
+}
+
+// TF types to API data types
 func Int64SetToIntSlice(set types.Set) []int {
 	elements := set.Elements()
 	result := make([]int, len(elements))
@@ -44,15 +70,8 @@ func StringSetToStringSlice(set types.Set) []string {
 	return result
 }
 
+// useful for docs
 func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(newString, "")
-}
-
-func IntPointerToInt64Pointer(value *int) *int64 {
-	if value == nil {
-		return nil
-	}
-	ret := int64(*value)
-	return &ret
 }
