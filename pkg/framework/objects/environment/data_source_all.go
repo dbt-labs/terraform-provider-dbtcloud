@@ -14,7 +14,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &environmentsDataSources{}
 )
 
-func EnvironmentsDataSources() datasource.DataSource {
+func EnvironmentsDataSource() datasource.DataSource {
 	return &environmentsDataSources{}
 }
 

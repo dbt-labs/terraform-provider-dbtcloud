@@ -176,7 +176,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user.UserDataSource,
 		notification.NotificationDataSource,
 		environment.EnvironmentDataSource,
-		environment.EnvironmentsDataSources,
+		environment.EnvironmentsDataSource,
 		group.GroupDataSource,
 	}
 }
