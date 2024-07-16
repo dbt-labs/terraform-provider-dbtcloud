@@ -7,31 +7,32 @@ description: |-
 
 # dbtcloud_service_token (Resource)
 
-The mapping of permission names [from the docs](https://docs.getdbt.com/docs/cloud/manage-access/enterprise-permissions) to the permissions to set in Terraform is the following:
+### Nested Schema for `service_token_permissions`
+The mapping of permission names [from the docs](https://docs.getdbt.com/docs/cloud/manage-access/enterprise-permissions) to a `permissions_set` in `service_token_permissions`:
 
-|Permission name......... | Permission code|
-|-- | --|
-|Account Admin | account_admin|
-|Account Viewer | account_viewer|
-|Admin | admin|
-|Analyst | analyst|
-|Billing Admin | billing_admin|
-|Database Admin | database_admin|
-|Developer | developer|
-|Git Admin | git_admin|
-|Job Admin | job_admin|
-|Job Runner | job_runner|
-|Job Viewer | job_viewer|
-|Member | member|
-|Metadata Only | metadata_only|
-|Owner | owner|
-|Project Creator | project_creator|
-|Read-Only | readonly|
-|Security Admin | security_admin|
-|Semantic Layer Only | semantic_layer_only|
-|Stakeholder | stakeholder|
-|Team Admin | team_admin|
-|Webhooks Only | webhooks_only|
+| Permission name | `permission_set = ...` |
+| --- | --- |
+| Account Admin | `"account_admin"` |
+| Account Viewer | `"account_viewer"` |
+| Admin | `"admin"` |
+| Analyst | `"analyst"` |
+| Billing Admin | `"billing_admin"` |
+| Database Admin | `"database_admin"` |
+| Developer | `"developer"` |
+| Git Admin | `"git_admin"` |
+| Job Admin | `"job_admin"` |
+| Job Runner | `"job_runner"` |
+| Job Viewer | `"job_viewer"` |
+| Member | `"member"` |
+| Metadata Only | `"metadata_only"` |
+| Owner | `"owner"` |
+| Project Creator | `"project_creator"` |
+| Read-Only | `"readonly"` |
+| Security Admin | `"security_admin"` |
+| Semantic Layer Only | `"semantic_layer_only"` |
+| Stakeholder | `"stakeholder"` |
+| Team Admin | `"team_admin"` |
+| Webhooks Only | `"webhooks_only"` |
 
 
 
@@ -41,14 +42,31 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 ```terraform
 resource "dbtcloud_service_token" "test_service_token" {
   name = "Test Service Token"
+
+  // Grant the service token `git_admin` permissions on all projects
   service_token_permissions {
     permission_set = "git_admin"
     all_projects   = true
   }
+
+  // Grant the service token `job_admin` permissions on a specific project
   service_token_permissions {
     permission_set = "job_admin"
     all_projects   = false
     project_id     = dbtcloud_project.dbt_project.id
+  }
+
+  // Grant the service token `developer` permissions on all projects, 
+  // but only in the `development` and `staging` environments
+  //
+  // NOTE: This is only configurable for certain `permission_set` values
+  service_token_permissions {
+    permission_set = "developer"
+    all_projects   = true
+    writable_environment_categories = [
+      "development",
+      "staging"
+    ]
   }
 }
 ```
@@ -67,7 +85,7 @@ resource "dbtcloud_service_token" "test_service_token" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the service token
 - `token_string` (String, Sensitive) Service token secret value (only accessible on creation))
 - `uid` (String) Service token UID (part of the token)
 
@@ -82,6 +100,11 @@ Required:
 Optional:
 
 - `project_id` (Number) Project ID to apply this permission to for this service token
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
+Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+The values allowed are `all`, `development`, `staging`, `production` and `other`.
+Not setting a value is the same as selecting `all`.
+Not all permission sets support environment level write settings, only `analyst`, `database_admin`, `developer`, `git_admin` and `team_admin`.
 
 ## Import
 
@@ -90,16 +113,16 @@ Import is supported using the following syntax:
 ```shell
 # using  import blocks (requires Terraform >= 1.5)
 import {
-  to = dbtcloud_group.my_service_token
+  to = dbtcloud_service_token.my_service_token
   id = "service_token_id"
 }
 
 import {
-  to = dbtcloud_group.my_service_token
+  to = dbtcloud_service_token.my_service_token
   id = "12345"
 }
 
 # using the older import command
-terraform import dbtcloud_group.my_service_token "service_token_id"
-terraform import dbtcloud_group.my_service_token 12345
+terraform import dbtcloud_service_token.my_service_token "service_token_id"
+terraform import dbtcloud_service_token.my_service_token 12345
 ```

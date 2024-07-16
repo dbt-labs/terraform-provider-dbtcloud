@@ -17,7 +17,7 @@ type GroupPermission struct {
 	State                         int      `json:"state,omitempty"`
 	Set                           string   `json:"permission_set,omitempty"`
 	Level                         string   `json:"permission_level,omitempty"`
-	WritableEnvironmentCategories []string `json:"writable_environment_categories,omitempty"`
+	WritableEnvironmentCategories []string `json:"writable_environment_categories,omitempty"` // TODO(cwalden): use environment_category.go#EnvironmentCategory ?
 }
 
 type Group struct {
