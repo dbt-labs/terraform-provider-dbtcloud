@@ -185,3 +185,48 @@ func (c *Client) GetAllLicenseMaps() ([]LicenseMap, error) {
 	}
 	return allLicenseMaps, nil
 }
+
+func (c *Client) GetAllJobs(projectID int, environmentID int) ([]JobWithEnvironment, error) {
+	var url string
+
+	if projectID != 0 && environmentID != 0 {
+		return nil, fmt.Errorf("you can't filter by both project and environment")
+	}
+
+	if projectID == 0 && environmentID == 0 {
+		return nil, fmt.Errorf("you must filter by either project or environment")
+	}
+
+	if projectID != 0 {
+		url = fmt.Sprintf(
+			"%s/v2/accounts/%d/jobs?project_id=%d&include_related=[environment]",
+			c.HostURL,
+			c.AccountID,
+			projectID,
+		)
+	}
+
+	if environmentID != 0 {
+		url = fmt.Sprintf(
+			"%s/v2/accounts/%d/jobs?environment_id=%d&include_related=[environment]",
+			c.HostURL,
+			c.AccountID,
+			environmentID,
+		)
+	}
+
+	allJobsRaw := c.GetData(url)
+
+	allJobs := []JobWithEnvironment{}
+	for _, job := range allJobsRaw {
+
+		data, _ := json.Marshal(job)
+		currentJob := JobWithEnvironment{}
+		err := json.Unmarshal(data, &currentJob)
+		if err != nil {
+			return nil, err
+		}
+		allJobs = append(allJobs, currentJob)
+	}
+	return allJobs, nil
+}

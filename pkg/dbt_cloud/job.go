@@ -80,6 +80,11 @@ type Job struct {
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 }
 
+type JobWithEnvironment struct {
+	Job
+	Environment Environment `json:"environment"`
+}
+
 func (c *Client) GetJob(jobID string) (*Job, error) {
 	req, err := http.NewRequest(
 		"GET",

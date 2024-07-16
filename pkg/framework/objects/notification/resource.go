@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = &notificationResource{}
-	_ resource.ResourceWithConfigure   = &notificationResource{}
-	_ resource.ResourceWithImportState = &notificationResource{}
+	_ resource.Resource                   = &notificationResource{}
+	_ resource.ResourceWithConfigure      = &notificationResource{}
+	_ resource.ResourceWithImportState    = &notificationResource{}
+	_ resource.ResourceWithValidateConfig = &notificationResource{}
 )
 
 func NotificationResource() resource.Resource {
