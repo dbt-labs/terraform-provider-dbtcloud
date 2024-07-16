@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/samber/lo"
 )
 
 type ServiceTokenResourceModel struct {
@@ -61,7 +61,7 @@ func ConvertServiceTokenPermissionModelToData(
 			allDiags.Append(permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, false)...)
 
 			// small hack to avoid sending all environments if all is present
-			if !helper.ListContains(writableEnvs, dbt_cloud.EnvironmentCategory_All) {
+			if !lo.Contains(writableEnvs, dbt_cloud.EnvironmentCategory_All) {
 				permissionRequest.WritableEnvs = writableEnvs
 			}
 		}
