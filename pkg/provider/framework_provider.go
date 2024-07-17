@@ -176,6 +176,7 @@ func (p *dbtCloudProvider) Configure(
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		user.UserDataSource,
+		user.UsersDataSource,
 		notification.NotificationDataSource,
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSource,
