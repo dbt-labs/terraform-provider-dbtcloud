@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -10,46 +9,50 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &userDataSource{}
-	_ datasource.DataSourceWithConfigure = &userDataSource{}
+	_ datasource.DataSource              = &usersDataSource{}
+	_ datasource.DataSourceWithConfigure = &usersDataSource{}
 )
 
-func UserDataSource() datasource.DataSource {
-	return &userDataSource{}
+func UsersDataSource() datasource.DataSource {
+	return &usersDataSource{}
 }
 
-type userDataSource struct {
+type usersDataSource struct {
 	client *dbt_cloud.Client
 }
 
-func (d *userDataSource) Metadata(
+func (d *usersDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_user"
+	resp.TypeName = req.ProviderTypeName + "_users"
 }
 
-func (d *userDataSource) Read(
+func (d *usersDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var state userDataSourceModel
+	var state usersDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
-	user, err := d.client.GetUser(string(state.Email.ValueString()))
+	users, err := d.client.GetUsers()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Did not find user with email: %s", state.Email.ValueString()),
+			"Error retrieving users",
 			err.Error(),
 		)
 		return
 	}
 
-	state.ID = types.Int64Value(int64(user.ID))
-	state.Email = types.StringValue(user.Email)
+	for _, user := range users {
+		state.Users = append(state.Users, userDataSourceModel{
+			ID:    types.Int64Value(int64(user.ID)),
+			Email: types.StringValue(user.Email),
+		})
+	}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -58,7 +61,7 @@ func (d *userDataSource) Read(
 	}
 }
 
-func (d *userDataSource) Configure(
+func (d *usersDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
 	_ *datasource.ConfigureResponse,
