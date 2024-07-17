@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.10...HEAD)
+
+# [0.3.10](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...v0.3.10)
+
+### Changes
+
+- [#277](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/277) Add `dbtcloud_users` datasource to get all users
+- [#274](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/274) Add `dbtcloud_jobs` datasource to return all jobs for a given dbt Cloud project or environment
+- [#273](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/273) Add environment level restrictions to the `dbtcloud_service_token` resource
+
+### Docs
+
+- Fix typo in service token examples
 
 ## [0.3.9](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.8...v0.3.9)
 
