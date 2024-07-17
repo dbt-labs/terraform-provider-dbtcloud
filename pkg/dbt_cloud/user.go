@@ -37,7 +37,7 @@ type CurrentUserResponse struct {
 func (c *Client) GetUsers() ([]User, error) {
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/v2/accounts/%s/users/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v3/accounts/%s/users/", c.HostURL, strconv.Itoa(c.AccountID)),
 		nil,
 	)
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *Client) GetUsers() ([]User, error) {
 			req, err := http.NewRequest(
 				"GET",
 				fmt.Sprintf(
-					"%s/v2/accounts/%s/users/?offset=%d",
+					"%s/v3/accounts/%s/users/?offset=%d",
 					c.HostURL,
 					strconv.Itoa(c.AccountID),
 					numUsers,
@@ -116,7 +116,7 @@ func (c *Client) GetUser(email string) (*User, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Did not find user with email %s", email)
+	return nil, fmt.Errorf("did not find user with email %s", email)
 }
 
 func (c *Client) GetConnectedUser() (*User, error) {
