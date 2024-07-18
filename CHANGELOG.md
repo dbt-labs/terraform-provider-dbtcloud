@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changes
 
-- [#278](https://github.com/dbt-labs/terraform-provider-dbtcloud/pull/278) Deprecate `state` attribute in the resources and datasources that use it. This is used for soft-delete and isn't intended to be configured in the scope of the provider.
+- [#278](https://github.com/dbt-labs/terraform-provider-dbtcloud/pull/278) Deprecate `state` attribute in the resources and datasources that use it. It will be removed in the next major version of the provider. This attribute is used for soft-delete and isn't intended to be configured in the scope of the provider.
 
 # [0.3.10](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...v0.3.10)
 
