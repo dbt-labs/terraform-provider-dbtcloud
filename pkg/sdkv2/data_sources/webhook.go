@@ -10,27 +10,27 @@ import (
 )
 
 var webhookSchema = map[string]*schema.Schema{
-	"webhook_id": &schema.Schema{
+	"webhook_id": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Webhooks ID",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks Name",
 	},
-	"description": &schema.Schema{
+	"description": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks Description",
 	},
-	"client_url": &schema.Schema{
+	"client_url": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks Client URL",
 	},
-	"event_types": &schema.Schema{
+	"event_types": {
 		Type:        schema.TypeList,
 		Computed:    true,
 		Description: "Webhooks Event Types",
@@ -38,7 +38,7 @@ var webhookSchema = map[string]*schema.Schema{
 			Type: schema.TypeString,
 		},
 	},
-	"job_ids": &schema.Schema{
+	"job_ids": {
 		Type:        schema.TypeList,
 		Computed:    true,
 		Description: "List of job IDs to trigger the webhook",
@@ -46,17 +46,17 @@ var webhookSchema = map[string]*schema.Schema{
 			Type: schema.TypeInt,
 		},
 	},
-	"active": &schema.Schema{
+	"active": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Webhooks active flag",
 	},
-	"http_status_code": &schema.Schema{
+	"http_status_code": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks HTTP Status Code",
 	},
-	"account_identifier": &schema.Schema{
+	"account_identifier": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks Account Identifier",

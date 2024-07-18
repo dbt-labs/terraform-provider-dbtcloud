@@ -19,30 +19,30 @@ func ResourceFabricCredential() *schema.Resource {
 		DeleteContext: resourceFabricCredentialDelete,
 
 		Schema: map[string]*schema.Schema{
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the Fabric credential in",
 			},
-			"adapter_id": &schema.Schema{
+			"adapter_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Fabric adapter ID for the credential",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The system Fabric credential ID",
 			},
-			"user": &schema.Schema{
+			"user": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "",
 				Description:   "The username of the Fabric account to connect to. Only used when connection with AD user/pass",
 				ConflictsWith: []string{"tenant_id", "client_id", "client_secret"},
 			},
-			"password": &schema.Schema{
+			"password": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
@@ -50,21 +50,21 @@ func ResourceFabricCredential() *schema.Resource {
 				Description:   "The password for the account to connect to. Only used when connection with AD user/pass",
 				ConflictsWith: []string{"tenant_id", "client_id", "client_secret"},
 			},
-			"tenant_id": &schema.Schema{
+			"tenant_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "",
 				Description:   "The tenant ID of the Azure Active Directory instance. This is only used when connecting to Azure SQL with a service principal.",
 				ConflictsWith: []string{"user", "password"},
 			},
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "",
 				Description:   "The client ID of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.",
 				ConflictsWith: []string{"user", "password"},
 			},
-			"client_secret": &schema.Schema{
+			"client_secret": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
@@ -72,13 +72,13 @@ func ResourceFabricCredential() *schema.Resource {
 				Description:   "The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.",
 				ConflictsWith: []string{"user", "password"},
 			},
-			"schema": &schema.Schema{
+			"schema": {
 				Type:          schema.TypeString,
 				Required:      true,
 				Description:   "The schema where to create the dbt models",
 				ConflictsWith: []string{},
 			},
-			"schema_authorization": &schema.Schema{
+			"schema_authorization": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "",
@@ -322,8 +322,9 @@ func resourceFabricCredentialDelete(
 
 	fabricCredential.State = dbt_cloud.STATE_DELETED
 
-	// // those values don't mean anything for the delete operation but they are required by the API
-	emptyFabricCredentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(
+	// These values don't mean anything for the delete operation but they are required by the API
+	// TODO(cwalden): do we need to handle this err?
+	emptyFabricCredentialDetails, _ := dbt_cloud.GenerateFabricCredentialDetails(
 		"",
 		"",
 		"",

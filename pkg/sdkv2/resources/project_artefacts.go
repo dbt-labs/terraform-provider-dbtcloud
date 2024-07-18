@@ -12,18 +12,18 @@ import (
 )
 
 var projectArtefactsSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
 		ForceNew:    true,
 	},
-	"docs_job_id": &schema.Schema{
+	"docs_job_id": {
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Description: "Docs Job ID",
 	},
-	"freshness_job_id": &schema.Schema{
+	"freshness_job_id": {
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Description: "Freshness Job ID",

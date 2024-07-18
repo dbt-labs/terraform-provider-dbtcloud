@@ -10,37 +10,37 @@ import (
 )
 
 var databricksCredentialSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
 	},
-	"credential_id": &schema.Schema{
+	"credential_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Credential ID",
 	},
-	"adapter_id": &schema.Schema{
+	"adapter_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Databricks adapter ID for the credential",
 	},
-	"target_name": &schema.Schema{
+	"target_name": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Target name",
 	},
-	"num_threads": &schema.Schema{
+	"num_threads": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Number of threads to use",
 	},
-	"catalog": &schema.Schema{
+	"catalog": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The catalog where to create models",
 	},
-	"schema": &schema.Schema{
+	"schema": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The schema where to create models",

@@ -10,37 +10,37 @@ import (
 )
 
 var snowflakeCredentialSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
 	},
-	"credential_id": &schema.Schema{
+	"credential_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Credential ID",
 	},
-	"is_active": &schema.Schema{
+	"is_active": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Whether the Snowflake credential is active",
 	},
-	"auth_type": &schema.Schema{
+	"auth_type": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The type of Snowflake credential ('password' or 'keypair')",
 	},
-	"schema": &schema.Schema{
+	"schema": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Default schema name",
 	},
-	"user": &schema.Schema{
+	"user": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Username for Snowflake",
 	},
-	"num_threads": &schema.Schema{
+	"num_threads": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Number of threads to use",

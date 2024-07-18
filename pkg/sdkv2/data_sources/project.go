@@ -11,38 +11,38 @@ import (
 )
 
 var projectSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Description: "ID of the project to represent",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Optional:    true,
 		Description: "Given name for project",
 	},
-	"connection_id": &schema.Schema{
+	"connection_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of the connection associated with the project",
 	},
-	"repository_id": &schema.Schema{
+	"repository_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of the repository associated with the project",
 	},
-	"freshness_job_id": &schema.Schema{
+	"freshness_job_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of Job for source freshness",
 	},
-	"docs_job_id": &schema.Schema{
+	"docs_job_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of Job for the documentation",
 	},
-	"state": &schema.Schema{
+	"state": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Project state should be 1 = active, as 2 = deleted",

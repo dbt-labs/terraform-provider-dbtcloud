@@ -38,116 +38,116 @@ func ResourceConnection() *schema.Resource {
 		Description: docs,
 
 		Schema: map[string]*schema.Schema{
-			"connection_id": &schema.Schema{
+			"connection_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Connection Identifier",
 			},
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the connection is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the connection in",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Connection name",
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The type of connection",
 				ValidateFunc: validation.StringInSlice(connectionTypes, false),
 				ForceNew:     true,
 			},
-			"private_link_endpoint_id": &schema.Schema{
+			"private_link_endpoint_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     nil,
 				Description: "The ID of the PrivateLink connection. This ID can be found using the `privatelink_endpoint` data source",
 			},
-			"account": &schema.Schema{
+			"account": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "Account name for the connection (for Snowflake)",
 				ConflictsWith: []string{"host_name"},
 			},
-			"host_name": &schema.Schema{
+			"host_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "Host name for the connection, including Databricks cluster",
 				ConflictsWith: []string{"account"},
 			},
-			"port": &schema.Schema{
+			"port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     nil,
 				Description: "Port number to connect via",
 			},
-			"database": &schema.Schema{
+			"database": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Database name for the connection",
 			},
-			"warehouse": &schema.Schema{
+			"warehouse": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Warehouse name for the connection (for Snowflake)",
 			},
-			"role": &schema.Schema{
+			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "Role name for the connection (for Snowflake)",
 			},
-			"allow_sso": &schema.Schema{
+			"allow_sso": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Whether or not the connection should allow SSO (for Snowflake)",
 			},
-			"allow_keep_alive": &schema.Schema{
+			"allow_keep_alive": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Whether or not the connection should allow client session keep alive (for Snowflake)",
 			},
-			"oauth_client_id": &schema.Schema{
+			"oauth_client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "OAuth client identifier (for Snowflake and Databricks)",
 			},
-			"oauth_client_secret": &schema.Schema{
+			"oauth_client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "OAuth client secret (for Snowflake and Databricks)",
 			},
-			"tunnel_enabled": &schema.Schema{
+			"tunnel_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Whether or not tunneling should be enabled on your database connection",
 			},
-			"http_path": &schema.Schema{
+			"http_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The HTTP path of the Databricks cluster or SQL warehouse (for Databricks)",
 			},
-			"catalog": &schema.Schema{
+			"catalog": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace (for Databricks)",
 			},
-			"adapter_id": &schema.Schema{
+			"adapter_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Adapter id created for the Databricks connection (for Databricks)",

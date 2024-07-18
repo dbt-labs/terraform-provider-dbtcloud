@@ -10,27 +10,27 @@ import (
 )
 
 var bigqueryCredentialSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",
 	},
-	"credential_id": &schema.Schema{
+	"credential_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Credential ID",
 	},
-	"is_active": &schema.Schema{
+	"is_active": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Whether the BigQuery credential is active",
 	},
-	"dataset": &schema.Schema{
+	"dataset": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Default dataset name",
 	},
-	"num_threads": &schema.Schema{
+	"num_threads": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Number of threads to use",

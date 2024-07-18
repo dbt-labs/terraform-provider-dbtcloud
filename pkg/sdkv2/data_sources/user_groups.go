@@ -10,12 +10,12 @@ import (
 )
 
 var userGroupsSchema = map[string]*schema.Schema{
-	"user_id": &schema.Schema{
+	"user_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID of the user",
 	},
-	"group_ids": &schema.Schema{
+	"group_ids": {
 		Type:        schema.TypeSet,
 		Computed:    true,
 		Description: "IDs of the groups assigned to the user",

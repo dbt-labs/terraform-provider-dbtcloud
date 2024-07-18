@@ -18,13 +18,13 @@ func ResourceEnvironmentVariable() *schema.Resource {
 		DeleteContext: resourceEnvironmentVariableDelete,
 
 		Schema: map[string]*schema.Schema{
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Project for the variable to be created in",
 				ForceNew:    true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				// as the name is used as the ID, we need to force a new resource if the name changes
@@ -41,7 +41,7 @@ func ResourceEnvironmentVariable() *schema.Resource {
 					return
 				},
 			},
-			"environment_values": &schema.Schema{
+			"environment_values": {
 				Type:        schema.TypeMap,
 				Required:    true,
 				Description: "Map from environment names to respective variable value, a special key `project` should be set for the project default variable value. This field is not set as sensitive so take precautions when using secret environment variables.",

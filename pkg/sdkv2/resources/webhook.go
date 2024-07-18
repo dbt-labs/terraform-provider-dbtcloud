@@ -20,28 +20,28 @@ var (
 )
 
 var webhookSchema = map[string]*schema.Schema{
-	"webhook_id": &schema.Schema{
+	"webhook_id": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks ID",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Webhooks Name",
 	},
-	"description": &schema.Schema{
+	"description": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Default:     "",
 		Description: "Webhooks Description",
 	},
-	"client_url": &schema.Schema{
+	"client_url": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Webhooks Client URL",
 	},
-	"event_types": &schema.Schema{
+	"event_types": {
 		Type:        schema.TypeList,
 		Required:    true,
 		Description: "Webhooks Event Types",
@@ -50,7 +50,7 @@ var webhookSchema = map[string]*schema.Schema{
 			ValidateFunc: validation.StringInSlice(eventTypes, false),
 		},
 	},
-	"job_ids": &schema.Schema{
+	"job_ids": {
 		Type:        schema.TypeList,
 		Optional:    true,
 		Description: "List of job IDs to trigger the webhook, An empty list will trigger on all jobs",
@@ -58,24 +58,24 @@ var webhookSchema = map[string]*schema.Schema{
 			Type: schema.TypeInt,
 		},
 	},
-	"active": &schema.Schema{
+	"active": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     true,
 		Description: "Webhooks active flag",
 	},
-	"hmac_secret": &schema.Schema{
+	"hmac_secret": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Sensitive:   true,
 		Description: "Secret key for the webhook. Can be used to validate the authenticity of the webhook.",
 	},
-	"http_status_code": &schema.Schema{
+	"http_status_code": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Latest HTTP status of the webhook",
 	},
-	"account_identifier": &schema.Schema{
+	"account_identifier": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Webhooks Account Identifier",

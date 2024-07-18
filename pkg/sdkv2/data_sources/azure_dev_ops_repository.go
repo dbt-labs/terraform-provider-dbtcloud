@@ -9,37 +9,37 @@ import (
 )
 
 var azureDevOpsRepositorySchema = map[string]*schema.Schema{
-	"id": &schema.Schema{
+	"id": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The internal Azure Dev Ops ID of the ADO Repository",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The name of the ADO repository",
 	},
-	"azure_dev_ops_project_id": &schema.Schema{
+	"azure_dev_ops_project_id": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The internal Azure Dev Ops ID of the ADO Project. Can be retrieved using the data source dbtcloud_azure_dev_ops_project and the project name",
 	},
-	"details_url": &schema.Schema{
+	"details_url": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The URL of the ADO repository showing details about the repository and its attributes",
 	},
-	"remote_url": &schema.Schema{
+	"remote_url": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The HTTP URL of the ADO repository used to connect to dbt Cloud",
 	},
-	"web_url": &schema.Schema{
+	"web_url": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The URL of the ADO repository accessible in the browser",
 	},
-	"default_branch": &schema.Schema{
+	"default_branch": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The default branch of the ADO repository",

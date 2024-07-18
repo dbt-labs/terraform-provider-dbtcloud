@@ -27,52 +27,52 @@ func ResourcePostgresCredential() *schema.Resource {
 		DeleteContext: resourcePostgresCredentialDelete,
 
 		Schema: map[string]*schema.Schema{
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the Postgres/Redshift/AlloyDB credential is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the Postgres/Redshift/AlloyDB credential in",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The system Postgres/Redshift/AlloyDB credential ID",
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Type of connection. One of (postgres/redshift). Use postgres for alloydb connections",
 				ValidateFunc: validation.StringInSlice(warehouseTypes, false),
 			},
-			"default_schema": &schema.Schema{
+			"default_schema": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Default schema name",
 			},
-			"target_name": &schema.Schema{
+			"target_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "default",
 				Description: "Default schema name",
 			},
-			"username": &schema.Schema{
+			"username": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Username for Postgres/Redshift/AlloyDB",
 			},
-			"password": &schema.Schema{
+			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "Password for Postgres/Redshift/AlloyDB",
 			},
-			"num_threads": &schema.Schema{
+			"num_threads": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Number of threads to use",

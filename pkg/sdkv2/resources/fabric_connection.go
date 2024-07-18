@@ -19,57 +19,57 @@ func ResourceFabricConnection() *schema.Resource {
 
 		Description: "Resource to create Microsoft Fabric connections in dbt Cloud",
 		Schema: map[string]*schema.Schema{
-			"connection_id": &schema.Schema{
+			"connection_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Connection Identifier",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the connection in",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Connection name",
 			},
 			// under details
-			"server": &schema.Schema{
+			"server": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The server hostname.",
 			},
-			"port": &schema.Schema{
+			"port": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "The port to connect to for this connection.",
 			},
-			"database": &schema.Schema{
+			"database": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The database to connect to for this connection.",
 			},
-			"retries": &schema.Schema{
+			"retries": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     1,
 				Description: "The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.",
 			},
-			"login_timeout": &schema.Schema{
+			"login_timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     0,
 				Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 			},
-			"query_timeout": &schema.Schema{
+			"query_timeout": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     0,
 				Description: "The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 			},
-			"adapter_id": &schema.Schema{
+			"adapter_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Adapter id created for the Fabric connection",

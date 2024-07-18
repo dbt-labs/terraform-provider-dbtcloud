@@ -9,17 +9,17 @@ import (
 )
 
 var azureDevOpsProjectSchema = map[string]*schema.Schema{
-	"id": &schema.Schema{
+	"id": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The internal Azure Dev Ops ID of the ADO Project",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The name of the ADO project",
 	},
-	"url": &schema.Schema{
+	"url": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The URL of the ADO project",
