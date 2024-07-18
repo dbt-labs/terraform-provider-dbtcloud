@@ -9,7 +9,7 @@ import (
 )
 
 var privatelinkEndpointSchema = map[string]*schema.Schema{
-	"id": &schema.Schema{
+	"id": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The internal ID of the PrivateLink Endpoint",
@@ -20,26 +20,27 @@ var privatelinkEndpointSchema = map[string]*schema.Schema{
 		Default:     "",
 		Description: "Given descriptive name for the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)",
 	},
-	"type": &schema.Schema{
+	"type": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Type of the PrivateLink Endpoint",
 	},
-	"private_link_endpoint_url": &schema.Schema{
+	"private_link_endpoint_url": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Default:     "",
 		Description: "The URL of the PrivateLink Endpoint (private_link_endpoint_url and/or name need to be provided to return data for the datasource)",
 	},
-	"cidr_range": &schema.Schema{
+	"cidr_range": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The CIDR range of the PrivateLink Endpoint",
 	},
-	"state": &schema.Schema{
+	"state": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "PrivatelinkEndpoint state should be 1 = active, as 2 = deleted",
+		Deprecated:  "Remove this attribute's configuration as it's no longer in use and the attribute will be removed in the next major version of the provider.",
 	},
 }
 

@@ -21,23 +21,24 @@ func ResourceExtendedAttributes() *schema.Resource {
 		DeleteContext: resourceExtendedAttributesDelete,
 
 		Schema: map[string]*schema.Schema{
-			"extended_attributes_id": &schema.Schema{
+			"extended_attributes_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Extended Attributes ID",
 			},
-			"state": &schema.Schema{
+			"state": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     1,
 				Description: "Extended Attributes state (1 is active, 2 is inactive)",
+				Deprecated:  "Remove this attribute's configuration as it's no longer in use and the attribute will be removed in the next major version of the provider.",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Project ID to create the extended attributes in",
 			},
-			"extended_attributes": &schema.Schema{
+			"extended_attributes": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "A JSON string listing the extended attributes mapping. The keys are the connections attributes available in the `profiles.yml` for a given adapter. Any fields entered will override connection details or credentials set on the environment or project. To avoid incorrect Terraform diffs, it is recommended to create this string using `jsonencode` in your Terraform code. (see example)",
