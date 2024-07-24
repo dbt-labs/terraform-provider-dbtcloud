@@ -1,6 +1,7 @@
 package service_token_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -218,7 +219,7 @@ func testAccCheckDbtCloudServiceTokenExists(resource string) resource.TestCheckF
 		if err != nil {
 			return fmt.Errorf("Can't get ServiceTokenID")
 		}
-		_, err = apiClient.GetServiceToken(ServiceTokenID)
+		_, err = apiClient.GetServiceToken(context.TODO(), ServiceTokenID)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -240,7 +241,7 @@ func testAccCheckDbtCloudServiceTokenDestroy(s *terraform.State) error {
 		if err != nil {
 			return fmt.Errorf("Can't get ServiceTokenID")
 		}
-		_, err = apiClient.GetServiceToken(ServiceTokenID)
+		_, err = apiClient.GetServiceToken(context.TODO(), ServiceTokenID)
 		if err == nil {
 			return fmt.Errorf("ServiceToken still exists")
 		}

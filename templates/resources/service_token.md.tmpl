@@ -54,6 +54,10 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 {{ tffile (printf "%s%s%s" "examples/resources/" .Name "/resource.tf") }}
 {{- end }}
 
+!> `writable_environment_categories` is only configurable when the **dbt Cloud** instance 
+has Environment Level Restrictions enabled. Attempting to configure this field when not enabled 
+will cause terraform to fail with `Error: Provider produced inconsisten result after apply`.
+
 {{ .SchemaMarkdown | trimspace }}
 {{- if .HasImport }}
 

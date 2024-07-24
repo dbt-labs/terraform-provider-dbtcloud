@@ -9,13 +9,11 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -115,14 +113,12 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
 								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~.
 								Not setting a value is the same as selecting ~~~all~~~.
-								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
+								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.
+								**NOTE:** This field is only configurable for instances of dbt Cloud that have the environment level restriction feature enabled.`,
 							),
-							Optional: true,
-							Computed: true,
-							// Default:  helper.EmptySetDefault(types.StringType),
-							Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
-								types.StringValue("all"),
-							})),
+							Optional:    true,
+							Computed:    true,
+							Default:     helper.EmptySetDefault(types.StringType),
 							ElementType: types.StringType,
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
@@ -153,7 +149,7 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	svcTok, err := st.client.GetServiceToken(svcTokID)
+	svcTok, err := st.client.GetServiceToken(ctx, svcTokID)
 
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
@@ -173,7 +169,7 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 	state.Name = types.StringValue(svcTok.Name)
 	state.State = types.Int64Value(int64(svcTok.State))
 
-	svcTokPerms, err := st.client.GetServiceTokenPermissions(int(svcTokID))
+	svcTokPerms, err := st.client.GetServiceTokenPermissions(ctx, int(svcTokID))
 
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting the service token permissions", err.Error())
@@ -217,7 +213,7 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(*createdSrvTok.ID, srvTokPermissions)
+	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(ctx, *createdSrvTok.ID, srvTokPermissions)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to assign permissions to the service token", err.Error())
 		return
@@ -257,7 +253,7 @@ func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	if !plan.Name.Equal(state.Name) || !plan.State.Equal(state.State) {
-		svcTok, err := st.client.GetServiceToken(svcTokID)
+		svcTok, err := st.client.GetServiceToken(ctx, svcTokID)
 		if err != nil {
 			resp.Diagnostics.AddError("Unable to get the service token", err.Error())
 			return
@@ -282,7 +278,7 @@ func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(svcTokID, svcTokPerms)
+	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(ctx, svcTokID, svcTokPerms)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to update the service token permissions", err.Error())
 		return

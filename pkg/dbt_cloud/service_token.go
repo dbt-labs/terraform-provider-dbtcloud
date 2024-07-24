@@ -1,11 +1,14 @@
 package dbt_cloud
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type ServiceTokenPermission struct {
@@ -44,7 +47,7 @@ type ServiceTokenPermissionListResponse struct {
 	Status ResponseStatus           `json:"status"`
 }
 
-func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceTokenPermission, error) {
+func (c *Client) GetServiceTokenPermissions(ctx context.Context, serviceTokenID int) (*[]ServiceTokenPermission, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/permissions/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)), nil)
 	if err != nil {
 		return nil, err
@@ -61,10 +64,15 @@ func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceToken
 		return nil, err
 	}
 
+	tflog.Warn(ctx, "GET:", map[string]any{
+		"body": string(body),
+		"data": serviceTokenPermissionListResponse.Data,
+	})
+
 	return &serviceTokenPermissionListResponse.Data, nil
 }
 
-func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
+func (c *Client) GetServiceToken(ctx context.Context, serviceTokenID int) (*ServiceToken, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)), nil)
 	if err != nil {
 		return nil, err
@@ -86,7 +94,7 @@ func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
 		return nil, fmt.Errorf("resource-not-found: service token %d is not active", serviceTokenID)
 	}
 
-	permissions, err := c.GetServiceTokenPermissions(serviceTokenID)
+	permissions, err := c.GetServiceTokenPermissions(ctx, serviceTokenID)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +161,7 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 	return &serviceTokenResponse.Data, nil
 }
 
-func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenPermissions []ServiceTokenPermission) (*[]ServiceTokenPermission, error) {
+func (c *Client) UpdateServiceTokenPermissions(ctx context.Context, serviceTokenID int, serviceTokenPermissions []ServiceTokenPermission) (*[]ServiceTokenPermission, error) {
 	serviceTokenPermissionData, err := json.Marshal(serviceTokenPermissions)
 
 	if err != nil {
@@ -175,6 +183,11 @@ func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenP
 	if err != nil {
 		return nil, err
 	}
+
+	tflog.Warn(ctx, "UPDATE:", map[string]any{
+		"body": string(body),
+		"data": serviceTokenPermissionResponse.Data,
+	})
 
 	return &serviceTokenPermissionResponse.Data, nil
 }

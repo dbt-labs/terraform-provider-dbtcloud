@@ -115,7 +115,7 @@ func (st *serviceTokenDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	svcTokID := int(data.ServiceTokenID.ValueInt64())
 
-	svcTok, err := st.client.GetServiceToken(svcTokID)
+	svcTok, err := st.client.GetServiceToken(ctx, svcTokID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting the service token", err.Error())
 		return
