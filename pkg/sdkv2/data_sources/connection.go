@@ -11,62 +11,62 @@ import (
 )
 
 var connectionSchema = map[string]*schema.Schema{
-	"connection_id": &schema.Schema{
+	"connection_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID for the connection",
 	},
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID to create the connection in",
 	},
-	"is_active": &schema.Schema{
+	"is_active": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Whether the connection is active",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Connection name",
 	},
-	"type": &schema.Schema{
+	"type": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Connection type",
 	},
-	"private_link_endpoint_id": &schema.Schema{
+	"private_link_endpoint_id": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The ID of the PrivateLink connection",
 	},
-	"account": &schema.Schema{
+	"account": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Account for the connection",
 	},
-	"database": &schema.Schema{
+	"database": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Database name for the connection",
 	},
-	"warehouse": &schema.Schema{
+	"warehouse": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Warehouse name for the connection",
 	},
-	"role": &schema.Schema{
+	"role": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Role name for the connection",
 	},
-	"allow_sso": &schema.Schema{
+	"allow_sso": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Flag for whether or not to use SSO for the connection",
 	},
-	"allow_keep_alive": &schema.Schema{
+	"allow_keep_alive": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Flag for whether or not to use the keep session alive parameter in the connection",

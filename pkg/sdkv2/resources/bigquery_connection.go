@@ -25,142 +25,142 @@ func ResourceBigQueryConnection() *schema.Resource {
 
 		Description: "Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.",
 		Schema: map[string]*schema.Schema{
-			"connection_id": &schema.Schema{
+			"connection_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Connection Identifier",
 			},
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the connection is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the connection in",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Connection name",
 			},
 			// TODO auto-add type
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The type of connection",
 				ValidateFunc: validation.StringInSlice(connectionTypes, false),
 			},
 			// under details
-			"gcp_project_id": &schema.Schema{
+			"gcp_project_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "GCP project ID",
 			},
-			"timeout_seconds": &schema.Schema{
+			"timeout_seconds": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Timeout in seconds for queries",
 			},
-			"private_key_id": &schema.Schema{
+			"private_key_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Private key ID of the Service Account",
 			},
-			"private_key": &schema.Schema{
+			"private_key": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Sensitive:   true,
 				Description: "Private key of the Service Account",
 			},
-			"client_email": &schema.Schema{
+			"client_email": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Service Account email",
 			},
-			"client_id": &schema.Schema{
+			"client_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Client ID of the Service Account",
 			},
-			"auth_uri": &schema.Schema{
+			"auth_uri": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Auth URI for the Service Account",
 			},
-			"token_uri": &schema.Schema{
+			"token_uri": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Token URI for the Service Account",
 			},
-			"auth_provider_x509_cert_url": &schema.Schema{
+			"auth_provider_x509_cert_url": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Auth Provider X509 Cert URL for the Service Account",
 			},
-			"client_x509_cert_url": &schema.Schema{
+			"client_x509_cert_url": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Client X509 Cert URL for the Service Account",
 			},
-			"retries": &schema.Schema{
+			"retries": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     1,
 				Description: "Number of retries for queries",
 			},
-			"location": &schema.Schema{
+			"location": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Location to create new Datasets in",
 			},
-			"maximum_bytes_billed": &schema.Schema{
+			"maximum_bytes_billed": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Max number of bytes that can be billed for a given BigQuery query",
 			},
-			"execution_project": &schema.Schema{
+			"execution_project": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Project to bill for query execution",
 			},
-			"priority": &schema.Schema{
+			"priority": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "The priority with which to execute BigQuery queries (batch or interactive)",
 				ValidateFunc: validation.StringInSlice(bigQueryPriorities, false),
 			},
-			"gcs_bucket": &schema.Schema{
+			"gcs_bucket": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "URI for a Google Cloud Storage bucket to host Python code executed via Datapro",
 			},
-			"dataproc_region": &schema.Schema{
+			"dataproc_region": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Google Cloud region for PySpark workloads on Dataproc",
 			},
-			"dataproc_cluster_name": &schema.Schema{
+			"dataproc_cluster_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Dataproc cluster name for PySpark workloads",
 			},
-			"application_secret": &schema.Schema{
+			"application_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The Application Secret for BQ OAuth",
 			},
-			"application_id": &schema.Schema{
+			"application_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The Application ID for BQ OAuth",
 			},
-			"is_configured_for_oauth": &schema.Schema{
+			"is_configured_for_oauth": {
 				Type:        schema.TypeBool,
 				Computed:    true,
 				Description: "Whether the connection is configured for OAuth or not",

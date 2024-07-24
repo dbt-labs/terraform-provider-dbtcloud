@@ -27,13 +27,13 @@ func ResourceLicenseMap() *schema.Resource {
 		DeleteContext: licenseMapDelete,
 
 		Schema: map[string]*schema.Schema{
-			"license_type": &schema.Schema{
+			"license_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "License type",
 				ValidateFunc: validation.StringInSlice(licenseTypes, false),
 			},
-			"sso_license_mapping_groups": &schema.Schema{
+			"sso_license_mapping_groups": {
 				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "SSO license mapping group names for this group",

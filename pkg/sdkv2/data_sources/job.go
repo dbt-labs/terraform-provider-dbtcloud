@@ -13,47 +13,47 @@ import (
 )
 
 var jobSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID of the project the job is in",
 	},
-	"environment_id": &schema.Schema{
+	"environment_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of the environment the job is in",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Given name for the job",
 	},
-	"description": &schema.Schema{
+	"description": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "Long description for the job",
 	},
-	"job_id": &schema.Schema{
+	"job_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID of the job",
 	},
-	"deferring_job_id": &schema.Schema{
+	"deferring_job_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of the job this job defers to",
 	},
-	"deferring_environment_id": &schema.Schema{
+	"deferring_environment_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "ID of the environment this job defers to",
 	},
-	"self_deferring": &schema.Schema{
+	"self_deferring": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
 	},
-	"triggers": &schema.Schema{
+	"triggers": {
 		Type:     schema.TypeMap,
 		Computed: true,
 		Elem: &schema.Schema{
@@ -63,17 +63,17 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge",
 	},
-	"timeout_seconds": &schema.Schema{
+	"timeout_seconds": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "Number of seconds before the job times out",
 	},
-	"triggers_on_draft_pr": &schema.Schema{
+	"triggers_on_draft_pr": {
 		Type:        schema.TypeBool,
 		Computed:    true,
 		Description: "Whether the CI job should be automatically triggered on draft PRs",
 	},
-	"job_completion_trigger_condition": &schema.Schema{
+	"job_completion_trigger_condition": {
 		Type:     schema.TypeSet,
 		Computed: true,
 		Elem: &schema.Resource{

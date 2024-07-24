@@ -12,13 +12,13 @@ import (
 )
 
 var projectRepositorySchema = map[string]*schema.Schema{
-	"repository_id": &schema.Schema{
+	"repository_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Repository ID",
 		ForceNew:    true,
 	},
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",

@@ -19,34 +19,34 @@ func ResourceEnvironment() *schema.Resource {
 		DeleteContext: resourceEnvironmentDelete,
 
 		Schema: map[string]*schema.Schema{
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the environment is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Project ID to create the environment in",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     nil,
 				Description: "Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Environment name",
 			},
-			"dbt_version": &schema.Schema{
+			"dbt_version": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. In a future version of the provider `versionless` will be the default if no version is provided",
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The type of environment (must be either development or deployment)",
@@ -70,30 +70,30 @@ func ResourceEnvironment() *schema.Resource {
 					return
 				},
 			},
-			"use_custom_branch": &schema.Schema{
+			"use_custom_branch": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Whether to use a custom git branch in this environment",
 			},
-			"custom_branch": &schema.Schema{
+			"custom_branch": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "Which custom branch to use in this environment",
 			},
-			"deployment_type": &schema.Schema{
+			"deployment_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
 			},
-			"environment_id": &schema.Schema{
+			"environment_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Environment ID within the project",
 			},
-			"extended_attributes_id": &schema.Schema{
+			"extended_attributes_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "ID of the extended attributes for the environment",

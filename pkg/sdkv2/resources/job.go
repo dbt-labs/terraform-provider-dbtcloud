@@ -25,29 +25,29 @@ var (
 )
 
 var jobSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID to create the job in",
 		ForceNew:    true,
 	},
-	"environment_id": &schema.Schema{
+	"environment_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Environment ID to create the job in",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Job name",
 	},
-	"description": &schema.Schema{
+	"description": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Default:     "",
 		Description: "Description for the job",
 	},
-	"execute_steps": &schema.Schema{
+	"execute_steps": {
 		Type:     schema.TypeList,
 		MinItems: 1,
 		Required: true,
@@ -56,18 +56,18 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "List of commands to execute for the job",
 	},
-	"dbt_version": &schema.Schema{
+	"dbt_version": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Description: "Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions",
 	},
-	"is_active": &schema.Schema{
+	"is_active": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     true,
 		Description: "Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.",
 	},
-	"triggers": &schema.Schema{
+	"triggers": {
 		Type:     schema.TypeMap,
 		Required: true,
 		Elem: &schema.Schema{
@@ -77,38 +77,38 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `on_merge`. All flags should be listed and set with `true` or `false`. When `on_merge` is `true`, all the other values must be false.<br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.",
 	},
-	"num_threads": &schema.Schema{
+	"num_threads": {
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Default:     1,
 		Description: "Number of threads to use in the job",
 	},
-	"target_name": &schema.Schema{
+	"target_name": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Default:     "default",
 		Description: "Target name for the dbt profile",
 	},
-	"generate_docs": &schema.Schema{
+	"generate_docs": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Flag for whether the job should generate documentation",
 	},
-	"run_generate_sources": &schema.Schema{
+	"run_generate_sources": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.",
 	},
-	"schedule_type": &schema.Schema{
+	"schedule_type": {
 		Type:         schema.TypeString,
 		Optional:     true,
 		Default:      "every_day",
 		Description:  "Type of schedule to use, one of every_day/ days_of_week/ custom_cron",
 		ValidateFunc: validation.StringInSlice(scheduleTypes, false),
 	},
-	"schedule_interval": &schema.Schema{
+	"schedule_interval": {
 		Type:          schema.TypeInt,
 		Optional:      true,
 		Default:       1,
@@ -116,7 +116,7 @@ var jobSchema = map[string]*schema.Schema{
 		ValidateFunc:  validation.IntBetween(1, 23),
 		ConflictsWith: []string{"schedule_hours", "schedule_cron"},
 	},
-	"schedule_hours": &schema.Schema{
+	"schedule_hours": {
 		Type:     schema.TypeList,
 		MinItems: 1,
 		Optional: true,
@@ -126,7 +126,7 @@ var jobSchema = map[string]*schema.Schema{
 		Description:   "List of hours to execute the job at if running on a schedule",
 		ConflictsWith: []string{"schedule_interval", "schedule_cron"},
 	},
-	"schedule_days": &schema.Schema{
+	"schedule_days": {
 		Type:     schema.TypeList,
 		MinItems: 1,
 		Optional: true,
@@ -135,43 +135,43 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule",
 	},
-	"schedule_cron": &schema.Schema{
+	"schedule_cron": {
 		Type:          schema.TypeString,
 		Optional:      true,
 		Description:   "Custom cron expression for schedule",
 		ConflictsWith: []string{"schedule_interval", "schedule_hours"},
 	},
-	"deferring_job_id": &schema.Schema{
+	"deferring_job_id": {
 		Type:          schema.TypeInt,
 		Optional:      true,
 		Description:   "Job identifier that this job defers to (legacy deferring approach)",
 		ConflictsWith: []string{"self_deferring", "deferring_environment_id"},
 	},
-	"deferring_environment_id": &schema.Schema{
+	"deferring_environment_id": {
 		Type:          schema.TypeInt,
 		Optional:      true,
 		Description:   "Environment identifier that this job defers to (new deferring approach)",
 		ConflictsWith: []string{"self_deferring", "deferring_job_id"},
 	},
-	"self_deferring": &schema.Schema{
+	"self_deferring": {
 		Type:          schema.TypeBool,
 		Optional:      true,
 		Description:   "Whether this job defers on a previous run of itself",
 		ConflictsWith: []string{"deferring_job_id"},
 	},
-	"timeout_seconds": &schema.Schema{
+	"timeout_seconds": {
 		Type:        schema.TypeInt,
 		Optional:    true,
 		Default:     0,
 		Description: "Number of seconds to allow the job to run before timing out",
 	},
-	"triggers_on_draft_pr": &schema.Schema{
+	"triggers_on_draft_pr": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Whether the CI job should be automatically triggered on draft PRs",
 	},
-	"job_completion_trigger_condition": &schema.Schema{
+	"job_completion_trigger_condition": {
 		Type:     schema.TypeSet,
 		Optional: true,
 		// using  a set or a list with 1 item is the way in the SDKv2 to define nested objects

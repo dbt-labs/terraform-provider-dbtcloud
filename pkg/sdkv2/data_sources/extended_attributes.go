@@ -10,22 +10,22 @@ import (
 )
 
 var extendedAttributesSchema = map[string]*schema.Schema{
-	"extended_attributes_id": &schema.Schema{
+	"extended_attributes_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "ID of the extended attributes",
 	},
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID the extended attributes refers to",
 	},
-	"state": &schema.Schema{
+	"state": {
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "The state of the extended attributes (1 = active, 2 = inactive)",
 	},
-	"extended_attributes": &schema.Schema{
+	"extended_attributes": {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "A JSON string listing the extended attributes mapping",

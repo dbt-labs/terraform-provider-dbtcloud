@@ -12,13 +12,13 @@ import (
 )
 
 var projectConnectionSchema = map[string]*schema.Schema{
-	"connection_id": &schema.Schema{
+	"connection_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Connection ID",
 		ForceNew:    true,
 	},
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID",

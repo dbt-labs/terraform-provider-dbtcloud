@@ -27,46 +27,46 @@ func ResourceDatabricksCredential() *schema.Resource {
 		DeleteContext: resourceDatabricksCredentialDelete,
 
 		Schema: map[string]*schema.Schema{
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the Databricks credential in",
 			},
-			"adapter_id": &schema.Schema{
+			"adapter_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Databricks adapter ID for the credential",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The system Databricks credential ID",
 			},
-			"target_name": &schema.Schema{
+			"target_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "default",
 				Description: "Target name",
 			},
-			"token": &schema.Schema{
+			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Sensitive:   true,
 				Description: "Token for Databricks user",
 			},
-			"catalog": &schema.Schema{
+			"catalog": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				Description: "The catalog where to create models (only for the databricks adapter)",
 			},
-			"schema": &schema.Schema{
+			"schema": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The schema where to create models",
 			},
-			"adapter_type": &schema.Schema{
+			"adapter_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The type of the adapter (databricks or spark)",

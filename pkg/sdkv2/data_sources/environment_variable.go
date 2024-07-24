@@ -10,17 +10,17 @@ import (
 )
 
 var environmentVariableSchema = map[string]*schema.Schema{
-	"project_id": &schema.Schema{
+	"project_id": {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "Project ID the variable exists in",
 	},
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Name for the variable",
 	},
-	"environment_values": &schema.Schema{
+	"environment_values": {
 		Type:        schema.TypeMap,
 		Computed:    true,
 		Description: "Map containing the environment variables",

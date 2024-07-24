@@ -19,29 +19,29 @@ func ResourceBigQueryCredential() *schema.Resource {
 		DeleteContext: resourceBigQueryCredentialDelete,
 
 		Schema: map[string]*schema.Schema{
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the BigQuery credential is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the BigQuery credential in",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The system BigQuery credential ID",
 			},
-			"dataset": &schema.Schema{
+			"dataset": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Default dataset name",
 			},
-			"num_threads": &schema.Schema{
+			"num_threads": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Number of threads to use",

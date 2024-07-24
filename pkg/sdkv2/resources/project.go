@@ -11,12 +11,12 @@ import (
 )
 
 var projectSchema = map[string]*schema.Schema{
-	"name": &schema.Schema{
+	"name": {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Project name",
 	},
-	"dbt_project_subdirectory": &schema.Schema{
+	"dbt_project_subdirectory": {
 		Type:        schema.TypeString,
 		Optional:    true,
 		Description: "dbt project subdirectory path",

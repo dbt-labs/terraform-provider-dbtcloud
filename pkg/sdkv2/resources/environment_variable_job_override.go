@@ -19,30 +19,30 @@ func ResourceEnvironmentVariableJobOverride() *schema.Resource {
 		DeleteContext: resourceEnvironmentVariableJobOverrideDelete,
 
 		Schema: map[string]*schema.Schema{
-			"environment_variable_job_override_id": &schema.Schema{
+			"environment_variable_job_override_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The ID of the environment variable job override",
 			},
-			"job_definition_id": &schema.Schema{
+			"job_definition_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The job ID for which the environment variable is being overridden",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The environment variable name to override",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The project ID for which the environment variable is being overridden",
 			},
-			"raw_value": &schema.Schema{
+			"raw_value": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The value for the override of the environment variable",

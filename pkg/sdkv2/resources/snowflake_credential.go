@@ -27,76 +27,76 @@ func ResourceSnowflakeCredential() *schema.Resource {
 		DeleteContext: resourceSnowflakeCredentialDelete,
 
 		Schema: map[string]*schema.Schema{
-			"is_active": &schema.Schema{
+			"is_active": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
 				Description: "Whether the Snowflake credential is active",
 			},
-			"project_id": &schema.Schema{
+			"project_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Project ID to create the Snowflake credential in",
 			},
-			"credential_id": &schema.Schema{
+			"credential_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The system Snowflake credential ID",
 			},
-			"auth_type": &schema.Schema{
+			"auth_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The type of Snowflake credential ('password' or 'keypair')",
 				ValidateFunc: validation.StringInSlice(authTypes, false),
 			},
-			"database": &schema.Schema{
+			"database": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Database to connect to",
 			},
-			"role": &schema.Schema{
+			"role": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Role to assume",
 			},
-			"warehouse": &schema.Schema{
+			"warehouse": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Warehouse to use",
 			},
-			"schema": &schema.Schema{
+			"schema": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Default schema name",
 			},
-			"user": &schema.Schema{
+			"user": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Username for Snowflake",
 			},
-			"password": &schema.Schema{
+			"password": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
 				Description:   "Password for Snowflake",
 				ConflictsWith: []string{"private_key", "private_key_passphrase"},
 			},
-			"private_key": &schema.Schema{
+			"private_key": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
 				Description:   "Private key for Snowflake",
 				ConflictsWith: []string{"password"},
 			},
-			"private_key_passphrase": &schema.Schema{
+			"private_key_passphrase": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
 				Description:   "Private key passphrase for Snowflake",
 				ConflictsWith: []string{"password"},
 			},
-			"num_threads": &schema.Schema{
+			"num_threads": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "Number of threads to use",

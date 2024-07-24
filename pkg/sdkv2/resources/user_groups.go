@@ -20,12 +20,12 @@ func ResourceUserGroups() *schema.Resource {
 		DeleteContext: resourceUserGroupsDelete,
 
 		Schema: map[string]*schema.Schema{
-			"user_id": &schema.Schema{
+			"user_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "The internal ID of a dbt Cloud user",
 			},
-			"group_ids": &schema.Schema{
+			"group_ids": {
 				Type:        schema.TypeSet,
 				Required:    true,
 				Description: "IDs of the groups to assign to the user. If additional groups were assigned manually in dbt Cloud, they will be removed.",
@@ -59,7 +59,7 @@ func checkGroupsAssigned(groupIDs []int, groupsAssigned *dbt_cloud.AssignUserGro
 
 	for _, groupID := range groupIDs {
 		if !groupIDsAssignedMap[groupID] {
-			return fmt.Errorf("The Group %d was not assigned to the user. It is possible that it doesn't exist and needs to be removed from the config.", groupID)
+			return fmt.Errorf("the Group %d was not assigned to the user (it's possible that it doesn't exist and needs to be removed from the config)", groupID)
 		}
 	}
 
@@ -102,6 +102,9 @@ func resourceUserGroupsRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 
 	userID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	userGroups, err := c.GetUserGroups(userID)
 	if err != nil {
