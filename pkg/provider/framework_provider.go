@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
@@ -194,5 +195,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_license_map.PartialLicenseMapResource,
 		group.GroupResource,
 		service_token.ServiceTokenResource,
+		global_connection.GlobalConnectionResource,
 	}
 }
