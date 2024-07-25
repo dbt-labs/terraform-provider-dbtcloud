@@ -70,6 +70,14 @@ func StringSetToStringSlice(set types.Set) []string {
 	return result
 }
 
+func TypesInt64ToInt64Pointer(value types.Int64) *int64 {
+	if value.IsNull() {
+		return nil
+	}
+	fieldVal := value.ValueInt64()
+	return &fieldVal
+}
+
 // useful for docs
 func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
