@@ -11,8 +11,8 @@ type GlobalConnectionResourceModel struct {
 }
 
 type CommonConfig struct {
-	ID                    types.Int64  `tfsdk:"id"`
-	AdapterVersion        types.String `tfsdk:"adapter_version"`
+	ID types.Int64 `tfsdk:"id"`
+	// AdapterVersion        types.String `tfsdk:"adapter_version"` // TODO(cwalden): needed?
 	Name                  types.String `tfsdk:"name"`
 	IsSshTunnelEnabled    types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
 	PrivateLinkEndpointId types.Int64  `tfsdk:"private_link_endpoint_id"`
@@ -56,6 +56,12 @@ type SnowflakeConfig struct {
 	OauthClientID          types.String `tfsdk:"oauth_client_id"`
 	OauthClientSecret      types.String `tfsdk:"oauth_client_secret"`
 }
+
+type DatabricksConfig struct{}
+
+type FabricConfig struct{}
+
+type PostgresConfig struct{}
 
 type GlobalConnectionDataSourceModel struct {
 	// TBD, and do we use the same as the for the Resource model?

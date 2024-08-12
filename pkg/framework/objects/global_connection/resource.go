@@ -56,9 +56,11 @@ func (r *globalConnectionResource) Read(
 	connectionID := state.ID.ValueInt64()
 
 	switch {
-	case !(state.SnowflakeConfig == nil):
+	case state.SnowflakeConfig != nil:
 
-		connection, err := r.client.GetSnowflakeGlobalConnection(connectionID)
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SnowflakeConfig](r.client)
+
+		common, snowflakeCfg, err := c.Get(connectionID)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "resource-not-found") {
 				resp.Diagnostics.AddWarning(
@@ -73,30 +75,23 @@ func (r *globalConnectionResource) Read(
 		}
 
 		// global settings
-		state.ID = types.Int64PointerValue(connection.ID)
-		state.AdapterVersion = types.StringValue(connection.AdapterVersion)
-		state.Name = types.StringValue(connection.Name)
-		state.IsSshTunnelEnabled = types.BoolValue(connection.IsSshTunnelEnabled)
-		state.PrivateLinkEndpointId = types.Int64PointerValue(connection.PrivateLinkEndpointId)
-		state.OauthConfigurationId = types.Int64PointerValue(connection.OauthConfigurationId)
+		state.ID = types.Int64PointerValue(common.ID)
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.PrivateLinkEndpointId = types.Int64PointerValue(common.PrivateLinkEndpointId)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// snowflake settings
-		state.SnowflakeConfig.Account = types.StringValue(connection.Config.Account)
-		state.SnowflakeConfig.Database = types.StringValue(connection.Config.Database)
-		state.SnowflakeConfig.Warehouse = types.StringValue(connection.Config.Warehouse)
-		state.SnowflakeConfig.ClientSessionKeepAlive = types.BoolValue(
-			connection.Config.ClientSessionKeepAlive,
-		)
-		state.SnowflakeConfig.AllowSso = types.BoolValue(connection.Config.AllowSso)
+		state.SnowflakeConfig.Account = types.StringPointerValue(snowflakeCfg.Account)
+		state.SnowflakeConfig.Database = types.StringPointerValue(snowflakeCfg.Database)
+		state.SnowflakeConfig.Warehouse = types.StringPointerValue(snowflakeCfg.Warehouse)
+		state.SnowflakeConfig.ClientSessionKeepAlive = types.BoolPointerValue(snowflakeCfg.ClientSessionKeepAlive)
+		state.SnowflakeConfig.AllowSso = types.BoolPointerValue(snowflakeCfg.AllowSso)
 
 		// nullable optional fields
 		// TODO: decide if it is better to read it as string, *string or nullable.Nullable[string] on the dbt_cloud side
 		// in this case role can never be empty so this works but we might have cases where null and empty are different
-		if connection.Config.Role != "" {
-			state.SnowflakeConfig.Role = types.StringValue(connection.Config.Role)
-		} else {
-			state.SnowflakeConfig.Role = types.StringNull()
-		}
+		state.SnowflakeConfig.Role = types.StringPointerValue(snowflakeCfg.Role)
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: OauthClientID, OauthClientSecret
@@ -121,40 +116,41 @@ func (r *globalConnectionResource) Create(
 		return
 	}
 
-	switch {
-	case !(plan.SnowflakeConfig == nil):
+	commonCfg := dbt_cloud.GlobalConnectionCommon{
+		Name:                  plan.Name.ValueStringPointer(),
+		IsSshTunnelEnabled:    plan.IsSshTunnelEnabled.ValueBoolPointer(),
+		PrivateLinkEndpointId: helper.TypesInt64ToInt64Pointer(plan.PrivateLinkEndpointId),
+		OauthConfigurationId:  helper.TypesInt64ToInt64Pointer(plan.OauthConfigurationId),
+	}
 
-		connectionInput := dbt_cloud.SnowflakeGlobalConnection{
-			GlobalConnection: dbt_cloud.GlobalConnection{
-				AccountID:             int64(r.client.AccountID),
-				AdapterVersion:        "snowflake_v0",
-				Name:                  plan.Name.ValueString(),
-				IsSshTunnelEnabled:    plan.IsSshTunnelEnabled.ValueBool(),
-				PrivateLinkEndpointId: helper.TypesInt64ToInt64Pointer(plan.PrivateLinkEndpointId),
-				OauthConfigurationId:  helper.TypesInt64ToInt64Pointer(plan.OauthConfigurationId),
-			},
-			Config: dbt_cloud.SnowflakeConfig{
-				Account:                plan.SnowflakeConfig.Account.ValueString(),
-				Database:               plan.SnowflakeConfig.Database.ValueString(),
-				Warehouse:              plan.SnowflakeConfig.Warehouse.ValueString(),
-				ClientSessionKeepAlive: plan.SnowflakeConfig.ClientSessionKeepAlive.ValueBool(),
-				Role:                   plan.SnowflakeConfig.Role.ValueString(),
-				AllowSso:               plan.SnowflakeConfig.AllowSso.ValueBool(),
-				OauthClientID:          plan.SnowflakeConfig.OauthClientID.ValueString(),
-				OauthClientSecret:      plan.SnowflakeConfig.OauthClientSecret.ValueString(),
-			},
+	switch {
+	case plan.SnowflakeConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SnowflakeConfig](r.client)
+
+		snowflakeCfg := dbt_cloud.SnowflakeConfig{
+			Account:                plan.SnowflakeConfig.Account.ValueStringPointer(),
+			Database:               plan.SnowflakeConfig.Database.ValueStringPointer(),
+			Warehouse:              plan.SnowflakeConfig.Warehouse.ValueStringPointer(),
+			ClientSessionKeepAlive: plan.SnowflakeConfig.ClientSessionKeepAlive.ValueBoolPointer(),
+			Role:                   plan.SnowflakeConfig.Role.ValueStringPointer(),
+			AllowSso:               plan.SnowflakeConfig.AllowSso.ValueBoolPointer(),
+			OauthClientID:          plan.SnowflakeConfig.OauthClientID.ValueStringPointer(),
+			OauthClientSecret:      plan.SnowflakeConfig.OauthClientSecret.ValueStringPointer(),
 		}
 
-		connection, err := r.client.CreateSnowflakeGlobalConnection(connectionInput)
+		commonResp, _, err := c.Create(commonCfg, snowflakeCfg)
+
 		if err != nil {
 			resp.Diagnostics.AddError("Error creating the connection", err.Error())
 			return
 		}
 
 		// we set the computed values that don't have any default
-		plan.ID = types.Int64Value(*connection.ID)
-		plan.AdapterVersion = types.StringValue(connection.AdapterVersion)
-		plan.IsSshTunnelEnabled = types.BoolValue(connection.IsSshTunnelEnabled)
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+		// TODO(rest)
 
 	default:
 		panic("Unknown connection type")
@@ -199,7 +195,7 @@ func (r *globalConnectionResource) Update(
 		return
 	}
 
-	globalConfigChanges := dbt_cloud.GlobalConnectionPointers{}
+	globalConfigChanges := dbt_cloud.GlobalConnectionCommon{}
 
 	if plan.Name != state.Name {
 		globalConfigChanges.Name = plan.Name.ValueStringPointer()
@@ -209,60 +205,48 @@ func (r *globalConnectionResource) Update(
 	}
 
 	switch {
-	case !(plan.SnowflakeConfig == nil):
+	case plan.SnowflakeConfig != nil:
 
-		warehouseConfigChanges := dbt_cloud.SnowflakeConfigPointers{}
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SnowflakeConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.SnowflakeConfig{}
 
 		// Snowflake specific ones
 		if plan.SnowflakeConfig.Account != state.SnowflakeConfig.Account {
-			warehouseConfigChanges.Account = plan.SnowflakeConfig.Account.ValueString()
+			warehouseConfigChanges.Account = plan.SnowflakeConfig.Account.ValueStringPointer()
 		}
 		if plan.SnowflakeConfig.Database != state.SnowflakeConfig.Database {
-			warehouseConfigChanges.Database = plan.SnowflakeConfig.Database.ValueString()
+			warehouseConfigChanges.Database = plan.SnowflakeConfig.Database.ValueStringPointer()
 		}
 		if plan.SnowflakeConfig.Warehouse != state.SnowflakeConfig.Warehouse {
-			warehouseConfigChanges.Warehouse = plan.SnowflakeConfig.Warehouse.ValueString()
+			warehouseConfigChanges.Warehouse = plan.SnowflakeConfig.Warehouse.ValueStringPointer()
 		}
 		if plan.SnowflakeConfig.ClientSessionKeepAlive != state.SnowflakeConfig.ClientSessionKeepAlive {
-			warehouseConfigChanges.ClientSessionKeepAlive = plan.SnowflakeConfig.ClientSessionKeepAlive.ValueBool()
+			warehouseConfigChanges.ClientSessionKeepAlive = plan.SnowflakeConfig.ClientSessionKeepAlive.ValueBoolPointer()
 		}
 		// here we need to take care of the null case
 		// when Role is Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload
 		if plan.SnowflakeConfig.Role != state.SnowflakeConfig.Role {
-			if plan.SnowflakeConfig.Role.IsNull() {
-				warehouseConfigChanges.Role.SetNull()
-			} else {
-				warehouseConfigChanges.Role.Set(plan.SnowflakeConfig.Role.ValueString())
-			}
+			warehouseConfigChanges.Role = plan.SnowflakeConfig.Role.ValueStringPointer()
 		}
 		if plan.SnowflakeConfig.AllowSso != state.SnowflakeConfig.AllowSso {
-			warehouseConfigChanges.AllowSso = plan.SnowflakeConfig.AllowSso.ValueBool()
+			warehouseConfigChanges.AllowSso = plan.SnowflakeConfig.AllowSso.ValueBoolPointer()
 		}
 		if plan.SnowflakeConfig.OauthClientID != state.SnowflakeConfig.OauthClientID {
-			warehouseConfigChanges.OauthClientID = plan.SnowflakeConfig.OauthClientID.ValueString()
+			warehouseConfigChanges.OauthClientID = plan.SnowflakeConfig.OauthClientID.ValueStringPointer()
 		}
 		if plan.SnowflakeConfig.OauthClientSecret != state.SnowflakeConfig.OauthClientSecret {
-			warehouseConfigChanges.OauthClientSecret = plan.SnowflakeConfig.OauthClientSecret.ValueString()
+			warehouseConfigChanges.OauthClientSecret = plan.SnowflakeConfig.OauthClientSecret.ValueStringPointer()
 		}
 
-		differentData := dbt_cloud.SnowflakeGlobalConnectionPointers{
-			GlobalConnectionPointers: globalConfigChanges,
-			Config:                   &warehouseConfigChanges,
-		}
-
-		// Update the global connection
-		updateConnection, err := r.client.UpdateSnowflakeGlobalConnection(
-			state.ID.ValueInt64(),
-			differentData,
-		)
+		updateCommon, _, err := c.Update(state.ID.ValueInt64(), globalConfigChanges, warehouseConfigChanges)
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating global connection", err.Error())
 			return
 		}
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
-		plan.AdapterVersion = types.StringValue(updateConnection.AdapterVersion)
-		plan.IsSshTunnelEnabled = types.BoolValue(updateConnection.IsSshTunnelEnabled)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
 
 		// Set the updated state
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
