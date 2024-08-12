@@ -33,6 +33,7 @@ type Environment struct {
 	Custom_Environment_Variables *string              `json:"custom_environment_variables"`
 	DeploymentType               *string              `json:"deployment_type,omitempty"`
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
+	ConnectionID                 *int                 `json:"connection_id,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -66,7 +67,9 @@ func (c *Client) CreateEnvironment(
 	customBranch string,
 	credentialId int,
 	deploymentType string,
-	extendedAttributesID int) (*Environment, error) {
+	extendedAttributesID int,
+	connectionID int,
+) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -92,6 +95,9 @@ func (c *Client) CreateEnvironment(
 	}
 	if extendedAttributesID != 0 {
 		newEnvironment.ExtendedAttributesID = &extendedAttributesID
+	}
+	if connectionID != 0 {
+		newEnvironment.ConnectionID = &connectionID
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {

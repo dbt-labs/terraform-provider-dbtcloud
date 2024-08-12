@@ -53,11 +53,13 @@ func (d *globalConnectionDataSource) Read(
 func (d *globalConnectionDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
-	_ *datasource.ConfigureResponse,
+	resp *datasource.ConfigureResponse,
 ) {
-	if req.ProviderData == nil {
-		return
+	switch c := req.ProviderData.(type) {
+	case nil: // do nothing
+	case *dbt_cloud.Client:
+		d.client = c
+	default:
+		resp.Diagnostics.AddError("Missing client", "A client is required to configure the global connection resource")
 	}
-
-	d.client = req.ProviderData.(*dbt_cloud.Client)
 }

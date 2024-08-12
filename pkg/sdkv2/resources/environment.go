@@ -98,6 +98,11 @@ func ResourceEnvironment() *schema.Resource {
 				Optional:    true,
 				Description: "ID of the extended attributes for the environment",
 			},
+			"connection_id": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "A connection ID (used with Global Connections)",
+			},
 		},
 
 		Importer: &schema.ResourceImporter{
@@ -125,6 +130,7 @@ func resourceEnvironmentCreate(
 	customBranch := d.Get("custom_branch").(string)
 	deploymentType := d.Get("deployment_type").(string)
 	extendedAttributesID := d.Get("extended_attributes_id").(int)
+	connectionID := d.Get("connection_id").(int)
 
 	environment, err := c.CreateEnvironment(
 		isActive,
@@ -137,6 +143,7 @@ func resourceEnvironmentCreate(
 		credentialId,
 		deploymentType,
 		extendedAttributesID,
+		connectionID,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -210,6 +217,9 @@ func resourceEnvironmentRead(
 	if err := d.Set("extended_attributes_id", environment.ExtendedAttributesID); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("connection_id", environment.ConnectionID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -239,7 +249,8 @@ func resourceEnvironmentUpdate(
 		d.HasChange("custom_branch") ||
 		d.HasChange("use_custom_branch") ||
 		d.HasChange("deployment_type") ||
-		d.HasChange("extended_attributes_id") {
+		d.HasChange("extended_attributes_id") ||
+		d.HasChange("connection_id") {
 
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
@@ -288,6 +299,14 @@ func resourceEnvironmentUpdate(
 				environment.ExtendedAttributesID = &extendedAttributesID
 			} else {
 				environment.ExtendedAttributesID = nil
+			}
+		}
+		if d.HasChange("connection_id") {
+			connectionID := d.Get("connection_id").(int)
+			if connectionID != 0 {
+				environment.ConnectionID = &connectionID
+			} else {
+				environment.ConnectionID = nil
 			}
 		}
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)

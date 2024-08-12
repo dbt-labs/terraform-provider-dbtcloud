@@ -5,14 +5,18 @@ import (
 )
 
 type GlobalConnectionResourceModel struct {
-	ID                    types.Int64      `tfsdk:"id"`
-	AdapterVersion        types.String     `tfsdk:"adapter_version"`
-	Name                  types.String     `tfsdk:"name"`
-	IsSshTunnelEnabled    types.Bool       `tfsdk:"is_ssh_tunnel_enabled"`
-	PrivateLinkEndpointId types.Int64      `tfsdk:"private_link_endpoint_id"`
-	OauthConfigurationId  types.Int64      `tfsdk:"oauth_configuration_id"`
-	SnowflakeConfig       *SnowflakeConfig `tfsdk:"snowflake"`
-	BigQueryConfig        *BigQueryConfig  `tfsdk:"bigquery"`
+	CommonConfig
+	SnowflakeConfig *SnowflakeConfig `tfsdk:"snowflake"`
+	BigQueryConfig  *BigQueryConfig  `tfsdk:"bigquery"`
+}
+
+type CommonConfig struct {
+	ID                    types.Int64  `tfsdk:"id"`
+	AdapterVersion        types.String `tfsdk:"adapter_version"`
+	Name                  types.String `tfsdk:"name"`
+	IsSshTunnelEnabled    types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
+	PrivateLinkEndpointId types.Int64  `tfsdk:"private_link_endpoint_id"`
+	OauthConfigurationId  types.Int64  `tfsdk:"oauth_configuration_id"`
 }
 
 type BigQueryConfig struct {
