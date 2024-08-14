@@ -38,6 +38,10 @@ func TestAccDbtCloudEnvironmentsDataSource(t *testing.T) {
 			"environments.0.name",
 			randomEnvironmentName2,
 		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_environments.test_one_project",
+			"environments.0.environment_id",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
