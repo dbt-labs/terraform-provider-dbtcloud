@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -17,6 +18,15 @@ func ResourceEnvironment() *schema.Resource {
 		ReadContext:   resourceEnvironmentRead,
 		UpdateContext: resourceEnvironmentUpdate,
 		DeleteContext: resourceEnvironmentDelete,
+		Description: helper.DocString(
+			`Resource to manage dbt Cloud environments for the different dbt Cloud projects.
+
+			In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created.
+
+			~> In August 2024, dbt Cloud released the "global connection" feature, allowing connections to be defined at the account level and reused across environments and projects.
+			This version of the provider has the ~~~connection_id~~~ as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.
+			`,
+		),
 
 		Schema: map[string]*schema.Schema{
 			"is_active": {
@@ -99,12 +109,17 @@ func ResourceEnvironment() *schema.Resource {
 				Description: "ID of the extended attributes for the environment",
 			},
 			"connection_id": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "A connection ID (used with Global Connections)",
+				Type:     schema.TypeInt,
+				Optional: true,
+				Description: helper.DocString(
+					`The ID of the connection to use (can be the ~~~id~~~ of a ~~~dbtcloud_global_connection~~~ or the ~~~connection_id~~~ of a legacy connection). 
+					  - At the moment, it is optional and the environment will use the connection set in ~~~dbtcloud_project_connection~~~ if ~~~connection_id~~~ is not set in this resource
+					  - In future versions this field will become required, so it is recommended to set it from now on
+					  - When configuring this field, it needs to be configured for all the environments of the project
+					  - To avoid Terraform state issues, when using this field, the ~~~dbtcloud_project_connection~~~ resource should be removed from the project or you need to make sure that the ~~~connection_id~~~ is the same in ~~~dbtcloud_project_connection~~~ and in the ~~~connection_id~~~ of the Development environment of the project`,
+				),
 			},
 		},
-
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -217,8 +232,14 @@ func resourceEnvironmentRead(
 	if err := d.Set("extended_attributes_id", environment.ExtendedAttributesID); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("connection_id", environment.ConnectionID); err != nil {
-		return diag.FromErr(err)
+	if v, ok := d.GetOk("connection_id"); ok && v != nil {
+		if err := d.Set("connection_id", environment.ConnectionID); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err := d.Set("connection_id", 0); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return diags

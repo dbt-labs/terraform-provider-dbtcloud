@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudEnvironmentResource(t *testing.T) {
+// testing for the historical use case where connection_id is not configured at the env level
+func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -26,7 +27,10 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName),
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+					projectName,
+					environmentName,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
 					resource.TestCheckResourceAttr(
@@ -43,7 +47,7 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 			},
 			// RENAME
 			{
-				Config: testAccDbtCloudEnvironmentResourceBasicConfig(
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
 					projectName,
 					environmentName2,
 				),
@@ -58,7 +62,197 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 			},
 			// MODIFY ADDING CRED
 			{
-				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
+					projectName,
+					environmentName2,
+					"",
+					"false",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"custom_branch",
+						"",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"use_custom_branch",
+						"false",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_environment.test_env",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"deployment_type",
+						"production",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"connection_id",
+						"0",
+					),
+				),
+			},
+			// MODIFY CUSTOM BRANCH
+			{
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
+					projectName,
+					environmentName2,
+					"main",
+					"true",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						DBT_CLOUD_VERSION,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"custom_branch",
+						"main",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"use_custom_branch",
+						"true",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_environment.test_env",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"connection_id",
+						"0",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_environment.test_env",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+	projectName, environmentName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "%s"
+  project_id = dbtcloud_project.test_project.id
+  deployment_type = "production"
+}
+`, projectName, environmentName, DBT_CLOUD_VERSION)
+}
+
+func testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
+	projectName, environmentName, customBranch, useCustomBranch string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "%s"
+  custom_branch = "%s"
+  use_custom_branch = %s
+  project_id = dbtcloud_project.test_project.id
+  credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
+  deployment_type = "production"
+}
+
+resource "dbtcloud_bigquery_credential" "test_credential" {
+	project_id  = dbtcloud_project.test_project.id
+	dataset     = "my_bq_dataset"
+	num_threads = 16
+  }
+  
+`, projectName, environmentName, DBT_CLOUD_VERSION, customBranch, useCustomBranch)
+}
+
+// testing for the global connection use case where connection_id is added at the env level
+func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
+
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
+					projectName,
+					environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"deployment_type",
+						"production",
+					),
+				),
+			},
+			// RENAME
+			{
+				Config: testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
+					projectName,
+					environmentName2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"name",
+						environmentName2,
+					),
+				),
+			},
+			// MODIFY ADDING CRED
+			{
+				Config: testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
 					projectName,
 					environmentName2,
 					"",
@@ -99,7 +293,7 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 			},
 			// MODIFY CUSTOM BRANCH
 			{
-				Config: testAccDbtCloudEnvironmentResourceModifiedConfig(
+				Config: testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
 					projectName,
 					environmentName2,
 					"main",
@@ -135,19 +329,34 @@ func TestAccDbtCloudEnvironmentResource(t *testing.T) {
 			},
 			// IMPORT
 			{
-				ResourceName:            "dbtcloud_environment.test_env",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ResourceName:      "dbtcloud_environment.test_env",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// TODO: Once the connection_id is mandatory, we can remove this exception and the custom logic for reading connection_id in the resource
+				ImportStateVerifyIgnore: []string{"connection_id"},
 			},
 		},
 	})
 }
 
-func testAccDbtCloudEnvironmentResourceBasicConfig(projectName, environmentName string) string {
+func testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
+	projectName, environmentName string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
+}
+
+resource dbtcloud_global_connection test {
+  name = "test connection"
+
+  snowflake = {
+    account = "test"
+    role = "role"
+    warehouse = "warehouse"
+    database = "database"
+    allow_sso = false
+  }
 }
 
 resource "dbtcloud_environment" "test_env" {
@@ -156,16 +365,40 @@ resource "dbtcloud_environment" "test_env" {
   dbt_version = "%s"
   project_id = dbtcloud_project.test_project.id
   deployment_type = "production"
-}
-`, projectName, environmentName, DBT_CLOUD_VERSION)
+  connection_id = dbtcloud_global_connection.test.id
+  }
+  
+  `, projectName, environmentName, DBT_CLOUD_VERSION)
 }
 
-func testAccDbtCloudEnvironmentResourceModifiedConfig(
+func testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
 	projectName, environmentName, customBranch, useCustomBranch string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
-  name        = "%s"
+	name        = "%s"
+	}
+
+resource dbtcloud_global_connection test {
+  name = "test connection"
+  snowflake = {
+    account = "test"
+    role = "role"
+    warehouse = "warehouse"
+    database = "database"
+    allow_sso = false
+  }
+}
+
+resource dbtcloud_global_connection test2 {
+  name = "test connection"
+  snowflake = {
+    account = "test"
+    role = "role"
+    warehouse = "warehouse"
+    database = "database"
+    allow_sso = false
+  }
 }
 
 resource "dbtcloud_environment" "test_env" {
@@ -177,6 +410,7 @@ resource "dbtcloud_environment" "test_env" {
   project_id = dbtcloud_project.test_project.id
   credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
   deployment_type = "production"
+  connection_id = dbtcloud_global_connection.test2.id
 }
 
 resource "dbtcloud_bigquery_credential" "test_credential" {
