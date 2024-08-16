@@ -5,27 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/oapi-codegen/nullable"
 )
-
-// // TODO: Do we need this? Or do we just remove it?
-// type GlobalConnectionType int
-
-// // Declare enum values using iota
-// const (
-// 	Snowflake GlobalConnectionType = iota
-// 	BigQuery
-// )
 
 type GlobalConnectionConfig interface {
 	AdapterVersion() string
 }
 
 type GlobalConnectionCommon struct {
-	ID                    *int64  `json:"id,omitempty"`
-	Name                  *string `json:"name"`
-	IsSshTunnelEnabled    *bool   `json:"is_ssh_tunnel_enabled"`
-	PrivateLinkEndpointId *int64  `json:"private_link_endpoint_id"`
-	OauthConfigurationId  *int64  `json:"oauth_configuration_id"`
+	ID                    *int64                    `json:"id,omitempty"`
+	Name                  *string                   `json:"name,omitempty"`
+	IsSshTunnelEnabled    *bool                     `json:"is_ssh_tunnel_enabled,omitempty"`
+	PrivateLinkEndpointId nullable.Nullable[string] `json:"private_link_endpoint_id,omitempty"`
+	OauthConfigurationId  *int64                    `json:"oauth_configuration_id,omitempty"`
 	// OauthRedirectUri           *string `json:"oauth_redirect_uri"` //those are read-only fields, we could maybe get them as Computed but never send them
 	// IsConfiguredForNativeOauth bool    `json:"is_configured_for_native_oauth"`
 }
@@ -81,7 +74,10 @@ func (c *GlobalConnectionClient[T]) Get(connectionID int64) (*GlobalConnectionCo
 	return &resp.Data.GlobalConnectionCommon, &resp.Data.Config, nil
 }
 
-func (c *GlobalConnectionClient[T]) Create(common GlobalConnectionCommon, config T) (*GlobalConnectionCommon, *T, error) {
+func (c *GlobalConnectionClient[T]) Create(
+	common GlobalConnectionCommon,
+	config T,
+) (*GlobalConnectionCommon, *T, error) {
 
 	buffer := new(bytes.Buffer)
 	enc := json.NewEncoder(buffer)
@@ -127,7 +123,12 @@ func (c *GlobalConnectionClient[T]) Create(common GlobalConnectionCommon, config
 	return &resp.Data.GlobalConnectionCommon, &resp.Data.Config, nil
 
 }
-func (c *GlobalConnectionClient[T]) Update(connectionID int64, common GlobalConnectionCommon, config T) (*GlobalConnectionCommon, *T, error) {
+
+func (c *GlobalConnectionClient[T]) Update(
+	connectionID int64,
+	common GlobalConnectionCommon,
+	config T,
+) (*GlobalConnectionCommon, *T, error) {
 
 	buffer := new(bytes.Buffer)
 	enc := json.NewEncoder(buffer)
@@ -194,19 +195,15 @@ func (c *Client) DeleteGlobalConnection(connectionID int64) (string, error) {
 	return "", nil
 }
 
-// I originally put pointers everywhere and used omitempty but it prevented us from sending null values
-// and differentiating between null and not sending the field at all
-// TODO: rename to something else than Pointers now that those fields are not Pointers :-)
-// TODO: check if we could reuse the same structure as the other one, with the nullable fields and the omitempty
 type SnowflakeConfig struct {
-	Account                *string `json:"account,omitempty"`
-	Database               *string `json:"database,omitempty"`
-	Warehouse              *string `json:"warehouse,omitempty"`
-	ClientSessionKeepAlive *bool   `json:"client_session_keep_alive,omitempty"`
-	Role                   *string `json:"role,omitempty"`
-	AllowSso               *bool   `json:"allow_sso,omitempty"`
-	OauthClientID          *string `json:"oauth_client_id,omitempty"`
-	OauthClientSecret      *string `json:"oauth_client_secret,omitempty"`
+	Account                *string                   `json:"account,omitempty"`
+	Database               *string                   `json:"database,omitempty"`
+	Warehouse              *string                   `json:"warehouse,omitempty"`
+	ClientSessionKeepAlive *bool                     `json:"client_session_keep_alive,omitempty"`
+	Role                   nullable.Nullable[string] `json:"role,omitempty"`
+	AllowSso               *bool                     `json:"allow_sso,omitempty"`
+	OauthClientID          *string                   `json:"oauth_client_id,omitempty"`
+	OauthClientSecret      *string                   `json:"oauth_client_secret,omitempty"`
 }
 
 func (SnowflakeConfig) AdapterVersion() string {
@@ -214,30 +211,30 @@ func (SnowflakeConfig) AdapterVersion() string {
 }
 
 type BigQueryConfig struct {
-	ProjectID                 *string  `json:"project_id,omitempty"`
-	TimeoutSeconds            *int64   `json:"timeout_seconds,omitempty"`
-	PrivateKeyID              *string  `json:"private_key_id,omitempty"`
-	PrivateKey                *string  `json:"private_key,omitempty"`
-	ClientEmail               *string  `json:"client_email,omitempty"`
-	ClientID                  *string  `json:"client_id,omitempty"`
-	AuthURI                   *string  `json:"auth_uri,omitempty"`
-	TokenURI                  *string  `json:"token_uri,omitempty"`
-	AuthProviderX509CertURL   *string  `json:"auth_provider_x509_cert_url,omitempty"`
-	ClientX509CertURL         *string  `json:"client_x509_cert_url,omitempty"`
-	Priority                  *string  `json:"priority,omitempty"`
-	Retries                   *int64   `json:"retries,omitempty"`
-	Location                  *string  `json:"location,omitempty"`
-	MaximumBytesBilled        *int64   `json:"maximum_bytes_billed,omitempty"`
-	ExecutionProject          *string  `json:"execution_project,omitempty"`
-	ImpersonateServiceAccount *string  `json:"impersonate_service_account,omitempty"`
-	JobRetryDeadlineSeconds   *int64   `json:"job_retry_deadline_seconds,omitempty"`
-	JobCreationTimeoutSeconds *int64   `json:"job_creation_timeout_seconds,omitempty"`
-	ApplicationID             *string  `json:"application_id,omitempty"`
-	ApplicationSecret         *string  `json:"application_secret,omitempty"`
-	GcsBucket                 *string  `json:"gcs_bucket,omitempty"`
-	DataprocRegion            *string  `json:"dataproc_region,omitempty"`
-	DataprocClusterName       *string  `json:"dataproc_cluster_name,omitempty"`
-	Scopes                    []string `json:"scopes,omitempty"`
+	ProjectID                 *string                   `json:"project_id,omitempty"`
+	TimeoutSeconds            *int64                    `json:"timeout_seconds,omitempty"`
+	PrivateKeyID              *string                   `json:"private_key_id,omitempty"`
+	PrivateKey                *string                   `json:"private_key,omitempty"`
+	ClientEmail               *string                   `json:"client_email,omitempty"`
+	ClientID                  *string                   `json:"client_id,omitempty"`
+	AuthURI                   *string                   `json:"auth_uri,omitempty"`
+	TokenURI                  *string                   `json:"token_uri,omitempty"`
+	AuthProviderX509CertURL   *string                   `json:"auth_provider_x509_cert_url,omitempty"`
+	ClientX509CertURL         *string                   `json:"client_x509_cert_url,omitempty"`
+	Priority                  nullable.Nullable[string] `json:"priority,omitempty"`
+	Retries                   *int64                    `json:"retries,omitempty"` //not nullable because there is a default in the UI
+	Location                  nullable.Nullable[string] `json:"location,omitempty"`
+	MaximumBytesBilled        nullable.Nullable[int64]  `json:"maximum_bytes_billed,omitempty"`
+	ExecutionProject          nullable.Nullable[string] `json:"execution_project,omitempty"`
+	ImpersonateServiceAccount nullable.Nullable[string] `json:"impersonate_service_account,omitempty"`
+	JobRetryDeadlineSeconds   nullable.Nullable[int64]  `json:"job_retry_deadline_seconds,omitempty"`
+	JobCreationTimeoutSeconds nullable.Nullable[int64]  `json:"job_creation_timeout_seconds,omitempty"`
+	ApplicationID             nullable.Nullable[string] `json:"application_id,omitempty"`
+	ApplicationSecret         nullable.Nullable[string] `json:"application_secret,omitempty"`
+	GcsBucket                 nullable.Nullable[string] `json:"gcs_bucket,omitempty"`
+	DataprocRegion            nullable.Nullable[string] `json:"dataproc_region,omitempty"`
+	DataprocClusterName       nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
+	Scopes                    []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
 }
 
 func (BigQueryConfig) AdapterVersion() string {
