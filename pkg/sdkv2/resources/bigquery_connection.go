@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -23,7 +24,11 @@ func ResourceBigQueryConnection() *schema.Resource {
 		UpdateContext: resourceBigQueryConnectionUpdate,
 		DeleteContext: resourceBigQueryConnectionDelete,
 
-		Description: "Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.",
+		Description: helper.DocString(
+			`Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.
+			
+			~> This resource is going to be deprecated in the future, please use the ~~~dbtcloud_global_connection~~~ resource instead to crate BigQuery connections.`,
+		),
 		Schema: map[string]*schema.Schema{
 			"connection_id": {
 				Type:        schema.TypeInt,
