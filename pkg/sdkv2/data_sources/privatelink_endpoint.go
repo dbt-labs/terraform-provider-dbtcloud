@@ -40,6 +40,7 @@ var privatelinkEndpointSchema = map[string]*schema.Schema{
 		Type:        schema.TypeInt,
 		Computed:    true,
 		Description: "PrivatelinkEndpoint state should be 1 = active, as 2 = deleted",
+		Deprecated:  "Remove this attribute's configuration as it's no longer in use and the attribute will be removed in the next major version of the provider.",
 	},
 }
 

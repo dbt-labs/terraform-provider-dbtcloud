@@ -31,6 +31,7 @@ func ResourceExtendedAttributes() *schema.Resource {
 				Optional:    true,
 				Default:     1,
 				Description: "Extended Attributes state (1 is active, 2 is inactive)",
+				Deprecated:  "Remove this attribute's configuration as it's no longer in use and the attribute will be removed in the next major version of the provider.",
 			},
 			"project_id": {
 				Type:        schema.TypeInt,
