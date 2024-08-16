@@ -22,6 +22,7 @@ Retrieve data for a single environment
 
 ### Read-Only
 
+- `connection_id` (Number) A connection ID (used with Global Connections)
 - `credentials_id` (Number) The project ID to which the environment belong
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment.
