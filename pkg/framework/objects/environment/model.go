@@ -13,6 +13,7 @@ type EnvironmentDataSourceModel struct {
 	CustomBranch         types.String `tfsdk:"custom_branch"`
 	DeploymentType       types.String `tfsdk:"deployment_type"`
 	ExtendedAttributesID types.Int64  `tfsdk:"extended_attributes_id"`
+	ConnectionID         types.Int64  `tfsdk:"connection_id"`
 }
 
 type EnvironmentsDataSourceModel struct {
