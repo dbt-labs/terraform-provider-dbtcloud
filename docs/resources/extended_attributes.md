@@ -51,7 +51,7 @@ resource "dbtcloud_environment" "issue_depl" {
 
 ### Optional
 
-- `state` (Number) Extended Attributes state (1 is active, 2 is inactive)
+- `state` (Number, Deprecated) Extended Attributes state (1 is active, 2 is inactive)
 
 ### Read-Only
 
