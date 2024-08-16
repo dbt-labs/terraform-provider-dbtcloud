@@ -32,14 +32,19 @@ func ResourceProjectConnection() *schema.Resource {
 		ReadContext:   resourceProjectConnectionRead,
 		DeleteContext: resourceProjectConnectionDelete,
 
-		Schema: projectConnectionSchema,
+		Schema:             projectConnectionSchema,
+		DeprecationMessage: "This resource is deprecated with the release of global connections and it will be removed in a future version of the provider. Going forward, please set the `connection_id` in the `dbtcloud_environment` resource instead.",
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
 
-func resourceProjectConnectionCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectConnectionCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -67,7 +72,11 @@ func resourceProjectConnectionCreate(ctx context.Context, d *schema.ResourceData
 	return diags
 }
 
-func resourceProjectConnectionRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectConnectionRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -97,7 +106,11 @@ func resourceProjectConnectionRead(ctx context.Context, d *schema.ResourceData, 
 	return diags
 }
 
-func resourceProjectConnectionDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectConnectionDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
