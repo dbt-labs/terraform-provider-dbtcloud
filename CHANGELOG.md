@@ -2,11 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.10...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.11...HEAD)
+
+# [0.3.11](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...v0.3.11)
 
 ### Changes
 
+- [#267](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/267) Support for global connections
+  - `dbtcloud_environment` now accepts a `connection_id` to link the environment to the connection. This is the new recommended way to link connections to environments instead of linking the connection to the project with `dbtcloud_project_connection`
+    - The `dbtcloud_project_connection` still works today and when used doesn't require setting up a `connection_id` in the `dbtcloud_environment` resource (i.e. , any current config/module should continue working), but the resource is flagged as deprecated and will be removed in a future version of the provider
+  - For now, people can continue using the project-scoped connection resources `dbtcloud_connection`, `dbtcloud_bigquery_connection` and `dbtcloud_fabric_connection` for creating and updating global connections. The parameter `project_id` in those connections still need to be a valid project id but doesn't mean that this connection is restricted to this project ID. The project-scoped connections created from Terraform are automatically converted to global connections
+  - A new resource `dbtcloud_global_connection` has been created and currently supports Snowflake and BigQuery connections. In the next weeks, support for all the Data Warehouses will be added to this resource
+    - When a data warehouse is supported in `dbtcloud_global_connection`, we recommend using this new resource instead of the legacy project-scoped connection resources. Those resources will be deprecated in a future version of the provider.
 - [#278](https://github.com/dbt-labs/terraform-provider-dbtcloud/pull/278) Deprecate `state` attribute in the resources and datasources that use it. It will be removed in the next major version of the provider. This attribute is used for soft-delete and isn't intended to be configured in the scope of the provider.
+
+### Fix
+
+- [#281](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/281) Fix the datasource `dbcloud_environments` where the environment IDs were not being saved
 
 # [0.3.10](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...v0.3.10)
 

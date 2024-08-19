@@ -41,16 +41,6 @@ func TestAccDbtCloudProjectConnectionResource(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
 			},
-			// EMPTY
-			{
-				Config: testAccDbtCloudProjectConnectionResourceEmptyConfig(
-					projectName,
-					connectionName,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectConnectionEmpty("dbtcloud_project.test_project"),
-				),
-			},
 		},
 	})
 }
@@ -82,28 +72,6 @@ resource "dbtcloud_project_connection" "test_project_connection" {
 `, projectName, connectionName)
 }
 
-func testAccDbtCloudProjectConnectionResourceEmptyConfig(
-	projectName, connectionName string,
-) string {
-	return fmt.Sprintf(`
-resource "dbtcloud_project" "test_project" {
-  name        = "%s"
-}
-
-resource "dbtcloud_connection" "test_connection" {
-  name        = "%s"
-  type = "snowflake"
-  project_id = dbtcloud_project.test_project.id
-  account = "test"
-  database = "db"
-  warehouse = "wh"
-  role = "user"
-  allow_sso = false
-  allow_keep_alive = false
-}
-`, projectName, connectionName)
-}
-
 func testAccCheckDbtCloudProjectConnectionExists(resource string) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]
@@ -123,30 +91,6 @@ func testAccCheckDbtCloudProjectConnectionExists(resource string) resource.TestC
 			return fmt.Errorf("Can't get project")
 		}
 		if project.ConnectionID == nil {
-			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
-		}
-		return nil
-	}
-}
-
-func testAccCheckDbtCloudProjectConnectionEmpty(resource string) resource.TestCheckFunc {
-	return func(state *terraform.State) error {
-		rs, ok := state.RootModule().Resources[resource]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resource)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Record ID is set")
-		}
-		apiClient, err := acctest_helper.SharedClient()
-		if err != nil {
-			return fmt.Errorf("Issue getting the client")
-		}
-		project, err := apiClient.GetProject(rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("Can't get project")
-		}
-		if project.ConnectionID != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
 		return nil

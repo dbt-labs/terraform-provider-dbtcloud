@@ -9,7 +9,9 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/provider"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
@@ -74,4 +76,42 @@ func TestAccPreCheck(t *testing.T) {
 
 func IsDbtCloudPR() bool {
 	return os.Getenv("DBT_CLOUD_ACCOUNT_ID") == "1"
+}
+
+func HelperTestResourceSchema[R resource.Resource](t *testing.T, r R) {
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	res := resource.SchemaResponse{}
+
+	r.Schema(ctx, req, &res)
+
+	if res.Diagnostics.HasError() {
+		t.Fatalf("Error in schema: %v", res.Diagnostics)
+	}
+
+	diags := res.Schema.ValidateImplementation(ctx)
+
+	if diags.HasError() {
+		t.Fatalf("Error in schema validation: %v", diags)
+	}
+}
+
+func HelperTestDataSourceSchema[DS datasource.DataSource](t *testing.T, ds DS) {
+	ctx := context.Background()
+
+	req := datasource.SchemaRequest{}
+	res := datasource.SchemaResponse{}
+
+	ds.Schema(ctx, req, &res)
+
+	if res.Diagnostics.HasError() {
+		t.Fatalf("Error in schema: %v", res.Diagnostics)
+	}
+
+	diags := res.Schema.ValidateImplementation(ctx)
+
+	if diags.HasError() {
+		t.Fatalf("Error in schema validation: %v", diags)
+	}
 }

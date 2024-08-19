@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/terraform-plugin-mux v0.15.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
 	github.com/hashicorp/terraform-plugin-testing v1.7.0
+	github.com/oapi-codegen/nullable v1.1.0
 	github.com/samber/lo v1.39.0
 	github.com/sirupsen/logrus v1.9.3
 )

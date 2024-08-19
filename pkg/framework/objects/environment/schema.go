@@ -55,6 +55,10 @@ func (r *environmentDataSource) Schema(
 				Computed:    true,
 				Description: "The ID of the extended attributes applied",
 			},
+			"connection_id": schema.Int64Attribute{
+				Computed:    true,
+				Description: "A connection ID (used with Global Connections)",
+			},
 		},
 	}
 }
@@ -115,6 +119,10 @@ func (r *environmentsDataSources) Schema(
 						"extended_attributes_id": schema.Int64Attribute{
 							Computed:    true,
 							Description: "The ID of the extended attributes applied",
+						},
+						"connection_id": schema.Int64Attribute{
+							Computed:    true,
+							Description: "A connection ID (used with Global Connections)",
 						},
 					},
 				},

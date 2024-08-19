@@ -43,4 +43,4 @@ data "dbtcloud_project" "test_project" {
 - `freshness_job_id` (Number) ID of Job for source freshness
 - `id` (String) The ID of this resource.
 - `repository_id` (Number) ID of the repository associated with the project
-- `state` (Number) Project state should be 1 = active, as 2 = deleted
+- `state` (Number, Deprecated) Project state should be 1 = active, as 2 = deleted

@@ -23,7 +23,7 @@ type Environment struct {
 	Type                         string               `json:"type"`
 	Use_Custom_Branch            bool                 `json:"use_custom_branch"`
 	Custom_Branch                *string              `json:"custom_branch"`
-	Environment_Id               *int                 `json:"-"`
+	Environment_Id               *int                 `json:"-"` //TODO: check why this is here
 	Support_Docs                 bool                 `json:"supports_docs"`
 	Created_At                   *string              `json:"created_at"`
 	Updated_At                   *string              `json:"updated_at"`
@@ -33,10 +33,21 @@ type Environment struct {
 	Custom_Environment_Variables *string              `json:"custom_environment_variables"`
 	DeploymentType               *string              `json:"deployment_type,omitempty"`
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
+	ConnectionID                 *int                 `json:"connection_id,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), nil)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environments/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			environmentId,
+		),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +77,9 @@ func (c *Client) CreateEnvironment(
 	customBranch string,
 	credentialId int,
 	deploymentType string,
-	extendedAttributesID int) (*Environment, error) {
+	extendedAttributesID int,
+	connectionID int,
+) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
@@ -93,12 +106,24 @@ func (c *Client) CreateEnvironment(
 	if extendedAttributesID != 0 {
 		newEnvironment.ExtendedAttributesID = &extendedAttributesID
 	}
+	if connectionID != 0 {
+		newEnvironment.ConnectionID = &connectionID
+	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/", c.HostURL, c.AccountID, projectId), strings.NewReader(string(newEnvironmentData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environments/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+		),
+		strings.NewReader(string(newEnvironmentData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +143,11 @@ func (c *Client) CreateEnvironment(
 	return &environmentResponse.Data, nil
 }
 
-func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment Environment) (*Environment, error) {
+func (c *Client) UpdateEnvironment(
+	projectId int,
+	environmentId int,
+	environment Environment,
+) (*Environment, error) {
 
 	// we don't send the environment details in the update request, just the credential_id
 	environment.Credentials = nil
@@ -128,7 +157,17 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), strings.NewReader(string(environmentData)))
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environments/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			environmentId,
+		),
+		strings.NewReader(string(environmentData)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +188,17 @@ func (c *Client) UpdateEnvironment(projectId int, environmentId int, environment
 }
 
 func (c *Client) DeleteEnvironment(projectId, environmentId int) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/projects/%d/environments/%d/", c.HostURL, c.AccountID, projectId, environmentId), nil)
+	req, err := http.NewRequest(
+		"DELETE",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/environments/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			environmentId,
+		),
+		nil,
+	)
 	if err != nil {
 		return "", err
 	}

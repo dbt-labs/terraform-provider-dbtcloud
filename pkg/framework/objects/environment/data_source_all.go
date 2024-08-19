@@ -63,7 +63,7 @@ func (d *environmentsDataSources) Read(
 		currentEnv := EnvironmentDataSourceModel{}
 
 		currentEnv.EnvironmentID = types.Int64PointerValue(
-			helper.IntPointerToInt64Pointer(environment.Environment_Id),
+			helper.IntPointerToInt64Pointer(environment.ID),
 		)
 		currentEnv.ProjectID = types.Int64Value(int64(environment.Project_Id))
 
