@@ -12,6 +12,11 @@ import (
 
 func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 
+	if acctest_helper.IsDbtCloudPR() {
+		// TODO: remove this when global connections is on everywhere
+		t.Skip("Skipping global connections in dbt Cloud CI for now")
+	}
+
 	// TODO: test the import as well when it is ready
 
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -145,6 +150,10 @@ resource dbtcloud_global_connection test {
 
 func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 
+	if acctest_helper.IsDbtCloudPR() {
+		// TODO: remove this when global connections is on everywhere
+		t.Skip("Skipping global connections in dbt Cloud CI for now")
+	}
 	// TODO: test the import as well when it is ready
 
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
