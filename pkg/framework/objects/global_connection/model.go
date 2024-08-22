@@ -2,19 +2,26 @@ package global_connection
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/samber/lo"
 )
 
-var supportedGlobalConfigTypes = []string{"bigquery", "snowflake"}
+var mappingAdapterEmptyConfig = map[string]any{
+	"bigquery":   BigQueryConfig{},
+	"snowflake":  SnowflakeConfig{},
+	"databricks": DatabricksConfig{},
+}
+var supportedGlobalConfigTypes = lo.Keys(mappingAdapterEmptyConfig)
 
 type GlobalConnectionResourceModel struct {
-	ID                    types.Int64      `tfsdk:"id"`
-	AdapterVersion        types.String     `tfsdk:"adapter_version"`
-	Name                  types.String     `tfsdk:"name"`
-	IsSshTunnelEnabled    types.Bool       `tfsdk:"is_ssh_tunnel_enabled"`
-	PrivateLinkEndpointId types.String     `tfsdk:"private_link_endpoint_id"`
-	OauthConfigurationId  types.Int64      `tfsdk:"oauth_configuration_id"`
-	SnowflakeConfig       *SnowflakeConfig `tfsdk:"snowflake"`
-	BigQueryConfig        *BigQueryConfig  `tfsdk:"bigquery"`
+	ID                    types.Int64       `tfsdk:"id"`
+	AdapterVersion        types.String      `tfsdk:"adapter_version"`
+	Name                  types.String      `tfsdk:"name"`
+	IsSshTunnelEnabled    types.Bool        `tfsdk:"is_ssh_tunnel_enabled"`
+	PrivateLinkEndpointId types.String      `tfsdk:"private_link_endpoint_id"`
+	OauthConfigurationId  types.Int64       `tfsdk:"oauth_configuration_id"`
+	SnowflakeConfig       *SnowflakeConfig  `tfsdk:"snowflake"`
+	BigQueryConfig        *BigQueryConfig   `tfsdk:"bigquery"`
+	DatabricksConfig      *DatabricksConfig `tfsdk:"databricks"`
 }
 
 type BigQueryConfig struct {
@@ -57,7 +64,14 @@ type SnowflakeConfig struct {
 	Role types.String `tfsdk:"role"`
 }
 
-type DatabricksConfig struct{}
+type DatabricksConfig struct {
+	Host     types.String `tfsdk:"host"`
+	HTTPPath types.String `tfsdk:"http_path"`
+	// nullable
+	Catalog      types.String `tfsdk:"catalog"`
+	ClientID     types.String `tfsdk:"client_id"`
+	ClientSecret types.String `tfsdk:"client_secret"`
+}
 
 type RedshiftConfig struct{}
 

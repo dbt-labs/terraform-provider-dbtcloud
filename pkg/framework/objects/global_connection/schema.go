@@ -29,7 +29,7 @@ func (r *globalConnectionResource) Schema(
 
 			Those connections are not linked to a project and can be linked to environments from different projects by using the ~~~connection_id~~~ field in the ~~~dbtcloud_environment~~~ resource.
 			
-			For now, only BigQuery and Snowflake connections are supported and the other Data Warehouses can continue using the existing resources ~~~dbtcloud_connection~~~ and ~~~dbtcloud_fabric_connection~~~ , 
+			For now, only a subset of connections are supported and the other Data Warehouses can continue using the existing resources ~~~dbtcloud_connection~~~ and ~~~dbtcloud_fabric_connection~~~ , 
 			but all Data Warehouses will soon be supported under this resource and the other ones will be deprecated in the future.`,
 		),
 		Attributes: map[string]schema.Attribute{
@@ -227,6 +227,32 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     booldefault.StaticBool(false),
 						Description: "If true, the snowflake client will keep connections for longer than the default 4 hours. This is helpful when particularly long-running queries are executing (> 4 hours)",
+					},
+				},
+			},
+			"databricks": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Databricks connection configuration",
+				Attributes: map[string]schema.Attribute{
+					"host": schema.StringAttribute{
+						Required:    true,
+						Description: "The hostname of the Databricks cluster or SQL warehouse.",
+					},
+					"http_path": schema.StringAttribute{
+						Required:    true,
+						Description: "The HTTP path of the Databricks cluster or SQL warehouse.",
+					},
+					"catalog": schema.StringAttribute{
+						Optional:    true,
+						Description: "Catalog name if Unity Catalog is enabled in your Databricks workspace.",
+					},
+					"client_id": schema.StringAttribute{
+						Optional:    true,
+						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
+					},
+					"client_secret": schema.StringAttribute{
+						Optional:    true,
+						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
 					},
 				},
 			},

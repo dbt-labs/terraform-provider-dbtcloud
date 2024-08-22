@@ -321,3 +321,143 @@ resource dbtcloud_global_connection test {
 }
 `, connectionName)
 }
+
+func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
+
+	if acctest_helper.IsDbtCloudPR() {
+		// TODO: remove this when global connections is on everywhere
+		t.Skip("Skipping global connections in dbt Cloud CI for now")
+	}
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with just mandatory fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionDatabricksResourceBasicConfig(
+					connectionName,
+				),
+				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"databricks_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"false",
+					),
+				),
+			},
+			// modify, adding optional fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionDatabricksResourceFullConfig(
+					connectionName,
+					oAuthClientID,
+					oAuthClientSecret,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"databricks_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"false",
+					),
+				),
+			},
+			// modify, removing optional fields to check PATCH when we remove fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionDatabricksResourceBasicConfig(
+					connectionName2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"databricks_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"false",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"databricks.client_id",
+					"databricks.client_secret",
+				},
+			},
+		},
+	})
+
+}
+
+func testAccDbtCloudSGlobalConnectionDatabricksResourceBasicConfig(
+	connectionName string,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  databricks = {
+    host = "databricks.com"
+    http_path = "/sql/your/http/path"
+
+	// optional fields
+	catalog = "dbt_catalog"
+  }
+}
+
+`, connectionName)
+}
+
+func testAccDbtCloudSGlobalConnectionDatabricksResourceFullConfig(
+	connectionName, oAuthClientID, oAuthClientSecret string,
+) string {
+	return fmt.Sprintf(`
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  databricks = {
+    host = "databricks.com"
+    http_path = "/sql/your/http/path"
+
+	// optional fields
+	// catalog = "dbt_catalog"
+	client_id = "%s"
+	client_secret = "%s"
+  }
+}
+`, connectionName, oAuthClientID, oAuthClientSecret)
+}
