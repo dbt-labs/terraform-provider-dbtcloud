@@ -2,6 +2,7 @@ package global_connection
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -14,9 +15,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &globalConnectionResource{}
-	_ resource.ResourceWithConfigure = &globalConnectionResource{}
-	// _ resource.ResourceWithImportState      = &globalConnectionResource{}
+	_ resource.Resource                     = &globalConnectionResource{}
+	_ resource.ResourceWithConfigure        = &globalConnectionResource{}
+	_ resource.ResourceWithImportState      = &globalConnectionResource{}
 	_ resource.ResourceWithConfigValidators = &globalConnectionResource{}
 	_ resource.ResourceWithModifyPlan       = &globalConnectionResource{}
 )
@@ -716,15 +717,36 @@ func (r *globalConnectionResource) Update(
 
 }
 
-// func (r *globalConnectionResource) ImportState(
-// 	ctx context.Context,
-// 	req resource.ImportStateRequest,
-// 	resp *resource.ImportStateResponse,
-// ) {
-// 	// TODO:for the import we need to pass more than just the ID...
-// 	// Or we just pass the ID but we need to get the type of connection first
-// 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-// }
+func (r *globalConnectionResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	connectionID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error parsing the connection ID",
+			err.Error(),
+		)
+		return
+	}
+
+	globalConnectionResponse, err := r.client.GetGlobalConnectionAdapter(int64(connectionID))
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting the connection type", err.Error())
+		return
+	}
+
+	connectionType := strings.Split(globalConnectionResponse.Data.AdapterVersion, "_")[0]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(connectionID))...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(
+			ctx,
+			path.Root(connectionType),
+			mappingAdapterEmptyConfig[connectionType],
+		)...)
+}
 
 func (r *globalConnectionResource) Configure(
 	_ context.Context,

@@ -17,8 +17,6 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 		t.Skip("Skipping global connections in dbt Cloud CI for now")
 	}
 
-	// TODO: test the import as well when it is ready
-
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -99,7 +97,16 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					),
 				),
 			},
-			// TODO IMPORT when supported
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"snowflake.oauth_client_id",
+					"snowflake.oauth_client_secret",
+				},
+			},
 		},
 	})
 
@@ -154,7 +161,6 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 		// TODO: remove this when global connections is on everywhere
 		t.Skip("Skipping global connections in dbt Cloud CI for now")
 	}
-	// TODO: test the import as well when it is ready
 
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -230,7 +236,17 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 					),
 				),
 			},
-			// TODO IMPORT when supported
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+				},
+			},
 		},
 	})
 
