@@ -2,9 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.11...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.12...HEAD)
 
-# [0.3.11](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.9...v0.3.11)
+# [0.3.12](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.11...v0.3.12)
+
+### Changes
+
+- Add support for `import` for `dbtcloud_global_connection`
+- Add support for Databricks in `dbtcloud_global_connection` 
+
+# [0.3.11](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.10...v0.3.11)
 
 ### Changes
 

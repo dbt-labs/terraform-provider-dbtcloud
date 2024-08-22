@@ -2,6 +2,7 @@ package global_connection
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -14,9 +15,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &globalConnectionResource{}
-	_ resource.ResourceWithConfigure = &globalConnectionResource{}
-	// _ resource.ResourceWithImportState      = &globalConnectionResource{}
+	_ resource.Resource                     = &globalConnectionResource{}
+	_ resource.ResourceWithConfigure        = &globalConnectionResource{}
+	_ resource.ResourceWithImportState      = &globalConnectionResource{}
 	_ resource.ResourceWithConfigValidators = &globalConnectionResource{}
 	_ resource.ResourceWithModifyPlan       = &globalConnectionResource{}
 )
@@ -38,11 +39,14 @@ func (r *globalConnectionResource) Metadata(
 }
 
 func (r globalConnectionResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+
+	var validators []path.Expression
+	for _, warehouse := range supportedGlobalConfigTypes {
+		validators = append(validators, path.MatchRoot(warehouse))
+	}
+
 	return []resource.ConfigValidator{
-		resourcevalidator.ExactlyOneOf(
-			path.MatchRoot("snowflake"),
-			path.MatchRoot("bigquery"),
-		),
+		resourcevalidator.ExactlyOneOf(validators...),
 	}
 }
 
@@ -83,6 +87,10 @@ func (r globalConnectionResource) ModifyPlan(
 			IsNull:  plan.BigQueryConfig == nil,
 		},
 		"snowflake": {
+			WasNull: state.SnowflakeConfig == nil,
+			IsNull:  plan.SnowflakeConfig == nil,
+		},
+		"databricks": {
 			WasNull: state.SnowflakeConfig == nil,
 			IsNull:  plan.SnowflakeConfig == nil,
 		},
@@ -298,6 +306,52 @@ func (r *globalConnectionResource) Read(
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: ApplicationID, ApplicationSecret, PrivateKey
 
+	case state.DatabricksConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.DatabricksConfig](r.client)
+
+		common, databricksCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(databricksCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Databricks settings
+		state.DatabricksConfig.Host = types.StringPointerValue(databricksCfg.Host)
+		state.DatabricksConfig.HTTPPath = types.StringPointerValue(databricksCfg.HTTPPath)
+
+		// nullable optional fields
+		if !databricksCfg.Catalog.IsNull() {
+			state.DatabricksConfig.Catalog = types.StringValue(databricksCfg.Catalog.MustGet())
+		} else {
+			state.DatabricksConfig.Catalog = types.StringNull()
+		}
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: ClientID, ClientSecret
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -438,6 +492,39 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.DatabricksConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.DatabricksConfig](r.client)
+
+		databricksCfg := dbt_cloud.DatabricksConfig{
+			Host:     plan.DatabricksConfig.Host.ValueStringPointer(),
+			HTTPPath: plan.DatabricksConfig.HTTPPath.ValueStringPointer(),
+		}
+
+		// nullable fields
+		if !plan.DatabricksConfig.Catalog.IsNull() {
+			databricksCfg.Catalog.Set(plan.DatabricksConfig.Catalog.ValueString())
+		}
+		if !plan.DatabricksConfig.ClientID.IsNull() {
+			databricksCfg.ClientID.Set(plan.DatabricksConfig.ClientID.ValueString())
+		}
+		if !plan.DatabricksConfig.ClientSecret.IsNull() {
+			databricksCfg.ClientSecret.Set(plan.DatabricksConfig.ClientSecret.ValueString())
+		}
+
+		commonResp, _, err := c.Create(commonCfg, databricksCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(databricksCfg.AdapterVersion())
 		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
@@ -710,21 +797,98 @@ func (r *globalConnectionResource) Update(
 		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
+	case plan.DatabricksConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.DatabricksConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.DatabricksConfig{}
+
+		// Databricks specific ones
+		if plan.DatabricksConfig.Host != state.DatabricksConfig.Host {
+			warehouseConfigChanges.Host = plan.DatabricksConfig.Host.ValueStringPointer()
+		}
+		if plan.DatabricksConfig.HTTPPath != state.DatabricksConfig.HTTPPath {
+			warehouseConfigChanges.HTTPPath = plan.DatabricksConfig.HTTPPath.ValueStringPointer()
+		}
+
+		// nullable fields
+		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated
+		if plan.DatabricksConfig.Catalog != state.DatabricksConfig.Catalog {
+			if plan.DatabricksConfig.Catalog.IsNull() {
+				warehouseConfigChanges.Catalog.SetNull()
+			} else {
+				warehouseConfigChanges.Catalog.Set(plan.DatabricksConfig.Catalog.ValueString())
+			}
+		}
+		if plan.DatabricksConfig.ClientID != state.DatabricksConfig.ClientID {
+			if plan.DatabricksConfig.ClientID.IsNull() {
+				warehouseConfigChanges.ClientID.SetNull()
+			} else {
+				warehouseConfigChanges.ClientID.Set(plan.DatabricksConfig.ClientID.ValueString())
+			}
+		}
+		if plan.DatabricksConfig.ClientSecret != state.DatabricksConfig.ClientSecret {
+			if plan.DatabricksConfig.ClientSecret.IsNull() {
+				warehouseConfigChanges.ClientSecret.SetNull()
+			} else {
+				warehouseConfigChanges.ClientSecret.Set(plan.DatabricksConfig.ClientSecret.ValueString())
+			}
+		}
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	default:
+		panic("Unknown connection type")
 	}
+
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 
 }
 
-// func (r *globalConnectionResource) ImportState(
-// 	ctx context.Context,
-// 	req resource.ImportStateRequest,
-// 	resp *resource.ImportStateResponse,
-// ) {
-// 	// TODO:for the import we need to pass more than just the ID...
-// 	// Or we just pass the ID but we need to get the type of connection first
-// 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-// }
+func (r *globalConnectionResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
+	connectionID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error parsing the connection ID",
+			err.Error(),
+		)
+		return
+	}
+
+	globalConnectionResponse, err := r.client.GetGlobalConnectionAdapter(int64(connectionID))
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting the connection type", err.Error())
+		return
+	}
+
+	connectionType := strings.Split(globalConnectionResponse.Data.AdapterVersion, "_")[0]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(connectionID))...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(
+			ctx,
+			path.Root(connectionType),
+			mappingAdapterEmptyConfig[connectionType],
+		)...)
+}
 
 func (r *globalConnectionResource) Configure(
 	_ context.Context,

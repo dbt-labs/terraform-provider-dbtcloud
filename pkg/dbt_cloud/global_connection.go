@@ -13,6 +13,45 @@ type GlobalConnectionConfig interface {
 	AdapterVersion() string
 }
 
+// TODO: Could be improved in the future, maybe creating a client with empty Config
+// For now, I couldn't use it as the  AdapterVersion is not returned in the GET response
+// To be revisited when we handle different versions for the same adapter
+type GlobalConnectionAdapter struct {
+	Data struct {
+		ID             int64  `json:"id"`
+		AdapterVersion string `json:"adapter_version"`
+	} `json:"data"`
+}
+
+func (c *Client) GetGlobalConnectionAdapter(connectionID int64) (*GlobalConnectionAdapter, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/connections/%d/",
+			c.HostURL,
+			c.AccountID,
+			connectionID,
+		),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionResponse := GlobalConnectionAdapter{}
+	err = json.Unmarshal(body, &connectionResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &connectionResponse, nil
+}
+
 type GlobalConnectionCommon struct {
 	ID                    *int64                    `json:"id,omitempty"`
 	Name                  *string                   `json:"name,omitempty"`
@@ -239,4 +278,16 @@ type BigQueryConfig struct {
 
 func (BigQueryConfig) AdapterVersion() string {
 	return "bigquery_v0"
+}
+
+type DatabricksConfig struct {
+	Host         *string                   `json:"host,omitempty"`
+	HTTPPath     *string                   `json:"http_path,omitempty"`
+	Catalog      nullable.Nullable[string] `json:"catalog,omitempty"`
+	ClientID     nullable.Nullable[string] `json:"client_id,omitempty"`
+	ClientSecret nullable.Nullable[string] `json:"client_secret,omitempty"`
+}
+
+func (DatabricksConfig) AdapterVersion() string {
+	return "databricks_v0"
 }
