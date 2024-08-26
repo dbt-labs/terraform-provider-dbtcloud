@@ -207,12 +207,6 @@ resource "dbtcloud_bigquery_credential" "test_credential" {
 
 // testing for the global connection use case where connection_id is added at the env level
 func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
-
-	// TODO: remove this when global connection is released to all tenants
-	if os.Getenv("DBT_CLOUD_ACCOUNT_ID") == "1" {
-		t.Skip("Skipping global connections in dbt Cloud CI for now")
-	}
-
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))

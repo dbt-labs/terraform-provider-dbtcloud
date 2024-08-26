@@ -11,12 +11,6 @@ import (
 )
 
 func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
-
-	if acctest_helper.IsDbtCloudPR() {
-		// TODO: remove this when global connections is on everywhere
-		t.Skip("Skipping global connections in dbt Cloud CI for now")
-	}
-
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
