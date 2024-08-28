@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -104,7 +105,8 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 		AccountID:  *account_id,
 	}
 
-	if account_id != nil {
+	_, runningAcceptanceTests := os.LookupEnv("TF_ACC")
+	if account_id != nil && !runningAcceptanceTests {
 		url := fmt.Sprintf("%s/v2/accounts/", *host_url)
 
 		// authenticate
