@@ -234,6 +234,117 @@ func (c *Client) DeleteGlobalConnection(connectionID int64) (string, error) {
 	return "", nil
 }
 
+// To manage SSH tunnel connections
+
+type globalConnectionEncryptionByConnectionResponse struct {
+	Status ResponseStatus                      `json:"status"`
+	Data   []GlobalConnectionEncryptionPayload `json:"data"`
+}
+
+type globalConnectionEncryptionResponse struct {
+	Status ResponseStatus                    `json:"status"`
+	Data   GlobalConnectionEncryptionPayload `json:"data"`
+}
+
+type GlobalConnectionEncryptionPayload struct {
+	ID           *int64 `json:"id"`
+	AccountID    int64  `json:"account_id"`
+	ConnectionID int64  `json:"connection_id"`
+	Username     string `json:"username,omitempty"`
+	Port         int64  `json:"port,omitempty"`
+	HostName     string `json:"hostname,omitempty"`
+	PublicKey    string `json:"public_key,omitempty"`
+	State        int64  `json:"state,omitempty"`
+}
+
+func (c *GlobalConnectionClient[T]) GetEncryptionsForConnection(
+	connectionID int64,
+) (*[]GlobalConnectionEncryptionPayload, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v2/accounts/%d/encryptions/?connection_id=%d&state=1",
+			c.HostURL,
+			c.AccountID,
+			connectionID,
+		),
+		nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(globalConnectionEncryptionByConnectionResponse)
+
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Data) > 1 {
+		return nil, fmt.Errorf("more than one SSH tunnel config found for the connection")
+	}
+
+	return &resp.Data, nil
+}
+
+func (c *GlobalConnectionClient[T]) CreateUpdateEncryption(
+	encryptionPayload GlobalConnectionEncryptionPayload,
+) (*GlobalConnectionEncryptionPayload, error) {
+
+	buffer := new(bytes.Buffer)
+	enc := json.NewEncoder(buffer)
+
+	err := enc.Encode(encryptionPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptionID := encryptionPayload.ID
+	var postURL string
+
+	if encryptionID == nil {
+		// create
+		postURL = fmt.Sprintf(
+			"%s/v2/accounts/%d/encryptions/",
+			c.HostURL,
+			c.AccountID,
+		)
+	} else {
+		// update
+		postURL = fmt.Sprintf(
+			"%s/v2/accounts/%d/encryptions/%d/",
+			c.HostURL,
+			c.AccountID,
+			*encryptionID,
+		)
+	}
+
+	req, err := http.NewRequest("POST", postURL, buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(globalConnectionEncryptionResponse)
+	err = json.Unmarshal(body, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.Data, nil
+}
+
 type SnowflakeConfig struct {
 	Account                *string                   `json:"account,omitempty"`
 	Database               *string                   `json:"database,omitempty"`
@@ -290,4 +401,105 @@ type DatabricksConfig struct {
 
 func (DatabricksConfig) AdapterVersion() string {
 	return "databricks_v0"
+}
+
+// Redshift and Postgres are the same today but they might diverge in the future to support more authentication methods
+type RedshiftConfig struct {
+	HostName *string                   `json:"hostname,omitempty"`
+	Port     *int64                    `json:"port,omitempty"`
+	DBName   nullable.Nullable[string] `json:"dbname,omitempty"`
+}
+
+func (RedshiftConfig) AdapterVersion() string {
+	return "redshift_v0"
+}
+
+type PostgresConfig struct {
+	HostName *string                   `json:"hostname,omitempty"`
+	Port     *int64                    `json:"port,omitempty"`
+	DBName   nullable.Nullable[string] `json:"dbname,omitempty"`
+}
+
+func (PostgresConfig) AdapterVersion() string {
+	return "postgres_v0"
+}
+
+var FabricDriver = "ODBC Driver 18 for SQL Server"
+
+type FabricConfig struct {
+	Driver       *string `json:"driver,omitempty"`
+	Server       *string `json:"server,omitempty"`
+	Port         *int64  `json:"port,omitempty"`
+	Database     *string `json:"database,omitempty"`
+	Retries      *int64  `json:"retries,omitempty"`
+	LoginTimeout *int64  `json:"login_timeout,omitempty"`
+	QueryTimeout *int64  `json:"query_timeout,omitempty"`
+}
+
+func (FabricConfig) AdapterVersion() string {
+	return "fabric_v0"
+}
+
+// Right now Synapse and Fabric are the same
+// If they diverge in the future, we can update the SynapseConfig struct
+var SynapseDriver = FabricDriver
+
+type SynapseConfig struct {
+	Driver       *string `json:"driver,omitempty"`
+	Host         *string `json:"host,omitempty"`
+	Port         *int64  `json:"port,omitempty"`
+	Database     *string `json:"database,omitempty"`
+	Retries      *int64  `json:"retries,omitempty"`
+	LoginTimeout *int64  `json:"login_timeout,omitempty"`
+	QueryTimeout *int64  `json:"query_timeout,omitempty"`
+}
+
+func (SynapseConfig) AdapterVersion() string {
+	return "synapse_v0"
+}
+
+type StarburstConfig struct {
+	Method *string `json:"method,omitempty"`
+	Host   *string `json:"host,omitempty"`
+	Port   *int64  `json:"port,omitempty"`
+}
+
+func (StarburstConfig) AdapterVersion() string {
+	return "trino_v0"
+}
+
+type AthenaConfig struct {
+	RegionName        *string                   `json:"region_name,omitempty"`
+	Database          *string                   `json:"database,omitempty"`
+	S3StagingDir      *string                   `json:"s3_staging_dir,omitempty"`
+	WorkGroup         nullable.Nullable[string] `json:"work_group,omitempty"`
+	SparkWorkGroup    nullable.Nullable[string] `json:"spark_work_group,omitempty"`
+	S3DataDir         nullable.Nullable[string] `json:"s3_data_dir,omitempty"`
+	S3DataNaming      nullable.Nullable[string] `json:"s3_data_naming,omitempty"`
+	S3TmpTableDir     nullable.Nullable[string] `json:"s3_tmp_table_dir,omitempty"`
+	PollInterval      nullable.Nullable[int64]  `json:"poll_interval,omitempty"`
+	NumRetries        nullable.Nullable[int64]  `json:"num_retries,omitempty"`
+	NumBoto3Retries   nullable.Nullable[int64]  `json:"num_boto3_retries,omitempty"`
+	NumIcebergRetries nullable.Nullable[int64]  `json:"num_iceberg_retries,omitempty"`
+}
+
+func (AthenaConfig) AdapterVersion() string {
+	return "athena_v0"
+}
+
+type ApacheSparkConfig struct {
+	Method         *string                   `json:"method,omitempty"`
+	Host           *string                   `json:"host,omitempty"`
+	Port           *int64                    `json:"port,omitempty"`
+	Cluster        *string                   `json:"cluster,omitempty"`
+	ConnectTimeout *int64                    `json:"connect_timeout,omitempty"`
+	ConnectRetries *int64                    `json:"connect_retries,omitempty"`
+	Organization   nullable.Nullable[string] `json:"organization,omitempty"`
+	User           nullable.Nullable[string] `json:"user,omitempty"`
+	Auth           nullable.Nullable[string] `json:"auth,omitempty"`
+	// KerberosServiceName any    `json:"kerberos_service_name,omitempty"` // This field comes back but can't be set from the UI
+}
+
+func (ApacheSparkConfig) AdapterVersion() string {
+	return "apache_spark_v0"
 }

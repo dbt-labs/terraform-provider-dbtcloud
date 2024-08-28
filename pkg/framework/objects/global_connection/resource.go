@@ -47,6 +47,11 @@ func (r globalConnectionResource) ConfigValidators(ctx context.Context) []resour
 
 	return []resource.ConfigValidator{
 		resourcevalidator.ExactlyOneOf(validators...),
+		// BigQuery doesn't support Private Link today
+		resourcevalidator.Conflicting(
+			path.MatchRoot("bigquery"),
+			path.MatchRoot("private_link_endpoint_id"),
+		),
 	}
 }
 
@@ -76,38 +81,12 @@ func (r globalConnectionResource) ModifyPlan(
 		return
 	}
 
-	type ConfigState struct {
-		WasNull bool
-		IsNull  bool
-	}
+	for configType, configState := range mappingAdapterDetails {
+		wasNull := configState.IsEmptyConfig(&state)
+		isNull := configState.IsEmptyConfig(&plan)
 
-	configStates := map[string]ConfigState{
-		"bigquery": {
-			WasNull: state.BigQueryConfig == nil,
-			IsNull:  plan.BigQueryConfig == nil,
-		},
-		"snowflake": {
-			WasNull: state.SnowflakeConfig == nil,
-			IsNull:  plan.SnowflakeConfig == nil,
-		},
-		"databricks": {
-			WasNull: state.SnowflakeConfig == nil,
-			IsNull:  plan.SnowflakeConfig == nil,
-		},
-		// Add more types here as needed
-	}
-
-	configStatesVals := lo.Keys(configStates)
-	left, right := lo.Difference(configStatesVals, supportedGlobalConfigTypes)
-	if len(left) > 0 || len(right) > 0 {
-		panic(
-			"ModifyPlan is missing some of the Data Warehouse types. The provider needs to be updated",
-		)
-	}
-
-	for configType, configState := range configStates {
-		if (configState.WasNull && !configState.IsNull) ||
-			(!configState.WasNull && configState.IsNull) {
+		if (wasNull && !isNull) ||
+			(!wasNull && isNull) {
 			resp.RequiresReplace = append(resp.RequiresReplace, path.Root(configType))
 		}
 	}
@@ -352,6 +331,415 @@ func (r *globalConnectionResource) Read(
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: ClientID, ClientSecret
 
+	case state.RedshiftConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
+
+		common, redshiftCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		sshTunnel, err := c.GetEncryptionsForConnection(connectionID)
+		if err != nil {
+			resp.Diagnostics.AddError("Error getting the SSH Tunnel details", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(redshiftCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Redshift settings
+		state.RedshiftConfig.HostName = types.StringPointerValue(redshiftCfg.HostName)
+		state.RedshiftConfig.Port = types.Int64PointerValue(redshiftCfg.Port)
+
+		// nullable optional fields
+		if !redshiftCfg.DBName.IsNull() {
+			state.RedshiftConfig.DBName = types.StringValue(redshiftCfg.DBName.MustGet())
+		} else {
+			state.RedshiftConfig.DBName = types.StringNull()
+		}
+
+		// SSH tunnel settings
+		if len(*sshTunnel) > 0 {
+
+			state.RedshiftConfig.SSHTunnel = &SSHTunnelConfig{
+				ID:        types.Int64PointerValue((*sshTunnel)[0].ID),
+				HostName:  types.StringValue((*sshTunnel)[0].HostName),
+				Port:      types.Int64Value((*sshTunnel)[0].Port),
+				Username:  types.StringValue((*sshTunnel)[0].Username),
+				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
+			}
+		}
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Redshift
+
+	case state.PostgresConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.PostgresConfig](r.client)
+
+		common, postgresCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		sshTunnel, err := c.GetEncryptionsForConnection(connectionID)
+		if err != nil {
+			resp.Diagnostics.AddError("Error getting the SSH Tunnel details", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(postgresCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Postgres settings
+		state.PostgresConfig.HostName = types.StringPointerValue(postgresCfg.HostName)
+		state.PostgresConfig.Port = types.Int64PointerValue(postgresCfg.Port)
+
+		// nullable optional fields
+		if !postgresCfg.DBName.IsNull() {
+			state.PostgresConfig.DBName = types.StringValue(postgresCfg.DBName.MustGet())
+		} else {
+			state.PostgresConfig.DBName = types.StringNull()
+		}
+
+		// SSH tunnel settings
+		if len(*sshTunnel) > 0 {
+
+			state.PostgresConfig.SSHTunnel = &SSHTunnelConfig{
+				ID:        types.Int64PointerValue((*sshTunnel)[0].ID),
+				HostName:  types.StringValue((*sshTunnel)[0].HostName),
+				Port:      types.Int64Value((*sshTunnel)[0].Port),
+				Username:  types.StringValue((*sshTunnel)[0].Username),
+				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
+			}
+		}
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Postgres
+
+	case state.FabricConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.FabricConfig](r.client)
+
+		common, fabricCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(fabricCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Fabric settings
+		state.FabricConfig.Server = types.StringPointerValue(fabricCfg.Server)
+		state.FabricConfig.Port = types.Int64PointerValue(fabricCfg.Port)
+		state.FabricConfig.Database = types.StringPointerValue(fabricCfg.Database)
+		state.FabricConfig.Retries = types.Int64PointerValue(fabricCfg.Retries)
+		state.FabricConfig.LoginTimeout = types.Int64PointerValue(fabricCfg.LoginTimeout)
+		state.FabricConfig.QueryTimeout = types.Int64PointerValue(fabricCfg.QueryTimeout)
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Fabric
+
+	case state.SynapseConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SynapseConfig](r.client)
+
+		common, synapseCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(synapseCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Synapse settings
+		state.SynapseConfig.Host = types.StringPointerValue(synapseCfg.Host)
+		state.SynapseConfig.Port = types.Int64PointerValue(synapseCfg.Port)
+		state.SynapseConfig.Database = types.StringPointerValue(synapseCfg.Database)
+		state.SynapseConfig.Retries = types.Int64PointerValue(synapseCfg.Retries)
+		state.SynapseConfig.LoginTimeout = types.Int64PointerValue(synapseCfg.LoginTimeout)
+		state.SynapseConfig.QueryTimeout = types.Int64PointerValue(synapseCfg.QueryTimeout)
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Synapse
+
+	case state.StarburstConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.StarburstConfig](r.client)
+
+		common, starburstCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(starburstCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Starburst settings
+		state.StarburstConfig.Method = types.StringPointerValue(starburstCfg.Method)
+		state.StarburstConfig.Host = types.StringPointerValue(starburstCfg.Host)
+		state.StarburstConfig.Port = types.Int64PointerValue(starburstCfg.Port)
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Starburst
+
+	case state.AthenaConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.AthenaConfig](r.client)
+
+		common, athenaCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(athenaCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Athena settings
+		state.AthenaConfig.RegionName = types.StringPointerValue(athenaCfg.RegionName)
+		state.AthenaConfig.Database = types.StringPointerValue(athenaCfg.Database)
+		state.AthenaConfig.S3StagingDir = types.StringPointerValue(athenaCfg.S3StagingDir)
+
+		// nullable optional fields
+		if !athenaCfg.WorkGroup.IsNull() {
+			state.AthenaConfig.WorkGroup = types.StringValue(athenaCfg.WorkGroup.MustGet())
+		} else {
+			state.AthenaConfig.WorkGroup = types.StringNull()
+		}
+		if !athenaCfg.SparkWorkGroup.IsNull() {
+			state.AthenaConfig.SparkWorkGroup = types.StringValue(
+				athenaCfg.SparkWorkGroup.MustGet(),
+			)
+		} else {
+			state.AthenaConfig.SparkWorkGroup = types.StringNull()
+		}
+		if !athenaCfg.S3DataDir.IsNull() {
+			state.AthenaConfig.S3DataDir = types.StringValue(athenaCfg.S3DataDir.MustGet())
+		} else {
+			state.AthenaConfig.S3DataDir = types.StringNull()
+		}
+		if !athenaCfg.S3DataNaming.IsNull() {
+			state.AthenaConfig.S3DataNaming = types.StringValue(athenaCfg.S3DataNaming.MustGet())
+		} else {
+			state.AthenaConfig.S3DataNaming = types.StringNull()
+		}
+		if !athenaCfg.S3TmpTableDir.IsNull() {
+			state.AthenaConfig.S3TmpTableDir = types.StringValue(athenaCfg.S3TmpTableDir.MustGet())
+		} else {
+			state.AthenaConfig.S3TmpTableDir = types.StringNull()
+		}
+		if !athenaCfg.PollInterval.IsNull() {
+			state.AthenaConfig.PollInterval = types.Int64Value(athenaCfg.PollInterval.MustGet())
+		} else {
+			state.AthenaConfig.PollInterval = types.Int64Null()
+		}
+		if !athenaCfg.NumRetries.IsNull() {
+			state.AthenaConfig.NumRetries = types.Int64Value(athenaCfg.NumRetries.MustGet())
+		} else {
+			state.AthenaConfig.NumRetries = types.Int64Null()
+		}
+		if !athenaCfg.NumBoto3Retries.IsNull() {
+			state.AthenaConfig.NumBoto3Retries = types.Int64Value(
+				athenaCfg.NumBoto3Retries.MustGet(),
+			)
+		} else {
+			state.AthenaConfig.NumBoto3Retries = types.Int64Null()
+		}
+		if !athenaCfg.NumIcebergRetries.IsNull() {
+			state.AthenaConfig.NumIcebergRetries = types.Int64Value(
+				athenaCfg.NumIcebergRetries.MustGet(),
+			)
+		} else {
+			state.AthenaConfig.NumIcebergRetries = types.Int64Null()
+		}
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Athena
+
+	case state.ApacheSparkConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ApacheSparkConfig](r.client)
+
+		common, sparkCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				resp.Diagnostics.AddWarning(
+					"Resource not found",
+					"The connection resource was not found and has been removed from the state.",
+				)
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting the connection", err.Error())
+			return
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+
+		// Spark settings
+		state.ApacheSparkConfig.Method = types.StringPointerValue(sparkCfg.Method)
+		state.ApacheSparkConfig.Host = types.StringPointerValue(sparkCfg.Host)
+		state.ApacheSparkConfig.Port = types.Int64PointerValue(sparkCfg.Port)
+		state.ApacheSparkConfig.Cluster = types.StringPointerValue(sparkCfg.Cluster)
+		state.ApacheSparkConfig.ConnectTimeout = types.Int64PointerValue(sparkCfg.ConnectTimeout)
+		state.ApacheSparkConfig.ConnectRetries = types.Int64PointerValue(sparkCfg.ConnectRetries)
+
+		// nullable optional fields
+		if !sparkCfg.Organization.IsNull() {
+			state.ApacheSparkConfig.Organization = types.StringValue(
+				sparkCfg.Organization.MustGet(),
+			)
+		} else {
+			state.ApacheSparkConfig.Organization = types.StringNull()
+		}
+		if !sparkCfg.User.IsNull() {
+			state.ApacheSparkConfig.User = types.StringValue(sparkCfg.User.MustGet())
+		} else {
+			state.ApacheSparkConfig.User = types.StringNull()
+		}
+		if !sparkCfg.Auth.IsNull() {
+			state.ApacheSparkConfig.Auth = types.StringValue(sparkCfg.Auth.MustGet())
+		} else {
+			state.ApacheSparkConfig.Auth = types.StringNull()
+		}
+
+		// We don't set the sensitive fields when we read because those are secret and never returned by the API
+		// sensitive fields: N/A for Spark
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -528,6 +916,293 @@ func (r *globalConnectionResource) Create(
 		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
+	case plan.RedshiftConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
+
+		redshiftCfg := dbt_cloud.RedshiftConfig{
+			HostName: plan.RedshiftConfig.HostName.ValueStringPointer(),
+			Port:     plan.RedshiftConfig.Port.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		if !plan.RedshiftConfig.DBName.IsNull() {
+			redshiftCfg.DBName.Set(plan.RedshiftConfig.DBName.ValueString())
+		}
+
+		commonResp, _, err := c.Create(commonCfg, redshiftCfg)
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// SSH tunnel settings
+		if plan.RedshiftConfig.SSHTunnel != nil {
+			sshTunnelPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+				AccountID:    int64(r.client.AccountID),
+				ConnectionID: *commonResp.ID,
+				Username:     plan.RedshiftConfig.SSHTunnel.Username.ValueString(),
+				Port:         plan.RedshiftConfig.SSHTunnel.Port.ValueInt64(),
+				HostName:     plan.RedshiftConfig.SSHTunnel.HostName.ValueString(),
+			}
+			sshTunnel, err := c.CreateUpdateEncryption(sshTunnelPayload)
+
+			if err != nil {
+				resp.Diagnostics.AddError("Error creating the SSH Tunnel", err.Error())
+				return
+			}
+
+			plan.RedshiftConfig.SSHTunnel = &SSHTunnelConfig{
+				ID:        types.Int64PointerValue(sshTunnel.ID),
+				Username:  types.StringValue(sshTunnel.Username),
+				Port:      types.Int64Value(sshTunnel.Port),
+				HostName:  types.StringValue(sshTunnel.HostName),
+				PublicKey: types.StringValue(sshTunnel.PublicKey),
+			}
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(redshiftCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.PostgresConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.PostgresConfig](r.client)
+
+		postgresCfg := dbt_cloud.PostgresConfig{
+			HostName: plan.PostgresConfig.HostName.ValueStringPointer(),
+			Port:     plan.PostgresConfig.Port.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		if !plan.PostgresConfig.DBName.IsNull() {
+			postgresCfg.DBName.Set(plan.PostgresConfig.DBName.ValueString())
+		} else {
+			// this is different from Redshift. We need to send null on Create for Postgres
+			postgresCfg.DBName.SetNull()
+		}
+
+		commonResp, _, err := c.Create(commonCfg, postgresCfg)
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// SSH tunnel settings
+		if plan.PostgresConfig.SSHTunnel != nil {
+			sshTunnelPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+				AccountID:    int64(r.client.AccountID),
+				ConnectionID: *commonResp.ID,
+				Username:     plan.PostgresConfig.SSHTunnel.Username.ValueString(),
+				Port:         plan.PostgresConfig.SSHTunnel.Port.ValueInt64(),
+				HostName:     plan.PostgresConfig.SSHTunnel.HostName.ValueString(),
+			}
+			sshTunnel, err := c.CreateUpdateEncryption(sshTunnelPayload)
+
+			if err != nil {
+				resp.Diagnostics.AddError("Error creating the SSH Tunnel", err.Error())
+				return
+			}
+
+			plan.PostgresConfig.SSHTunnel = &SSHTunnelConfig{
+				ID:        types.Int64PointerValue(sshTunnel.ID),
+				Username:  types.StringValue(sshTunnel.Username),
+				Port:      types.Int64Value(sshTunnel.Port),
+				HostName:  types.StringValue(sshTunnel.HostName),
+				PublicKey: types.StringValue(sshTunnel.PublicKey),
+			}
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(postgresCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.FabricConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.FabricConfig](r.client)
+
+		fabricCfg := dbt_cloud.FabricConfig{
+			Driver:       &dbt_cloud.FabricDriver,
+			Server:       plan.FabricConfig.Server.ValueStringPointer(),
+			Port:         plan.FabricConfig.Port.ValueInt64Pointer(),
+			Database:     plan.FabricConfig.Database.ValueStringPointer(),
+			Retries:      plan.FabricConfig.Retries.ValueInt64Pointer(),
+			LoginTimeout: plan.FabricConfig.LoginTimeout.ValueInt64Pointer(),
+			QueryTimeout: plan.FabricConfig.QueryTimeout.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		// N/A for Fabric
+
+		commonResp, _, err := c.Create(commonCfg, fabricCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(fabricCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.SynapseConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SynapseConfig](r.client)
+
+		synapseCfg := dbt_cloud.SynapseConfig{
+			Driver:       &dbt_cloud.SynapseDriver,
+			Host:         plan.SynapseConfig.Host.ValueStringPointer(),
+			Port:         plan.SynapseConfig.Port.ValueInt64Pointer(),
+			Database:     plan.SynapseConfig.Database.ValueStringPointer(),
+			Retries:      plan.SynapseConfig.Retries.ValueInt64Pointer(),
+			LoginTimeout: plan.SynapseConfig.LoginTimeout.ValueInt64Pointer(),
+			QueryTimeout: plan.SynapseConfig.QueryTimeout.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		// N/A for Synapse
+
+		commonResp, _, err := c.Create(commonCfg, synapseCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(synapseCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.StarburstConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.StarburstConfig](r.client)
+
+		starburstCfg := dbt_cloud.StarburstConfig{
+			Method: plan.StarburstConfig.Method.ValueStringPointer(),
+			Host:   plan.StarburstConfig.Host.ValueStringPointer(),
+			Port:   plan.StarburstConfig.Port.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		// N/A for Starburst
+
+		commonResp, _, err := c.Create(commonCfg, starburstCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(starburstCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.AthenaConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.AthenaConfig](r.client)
+
+		athenaCfg := dbt_cloud.AthenaConfig{
+			RegionName:   plan.AthenaConfig.RegionName.ValueStringPointer(),
+			Database:     plan.AthenaConfig.Database.ValueStringPointer(),
+			S3StagingDir: plan.AthenaConfig.S3StagingDir.ValueStringPointer(),
+		}
+
+		// nullable fields
+		if !plan.AthenaConfig.WorkGroup.IsNull() {
+			athenaCfg.WorkGroup.Set(plan.AthenaConfig.WorkGroup.ValueString())
+		}
+		if !plan.AthenaConfig.SparkWorkGroup.IsNull() {
+			athenaCfg.SparkWorkGroup.Set(plan.AthenaConfig.SparkWorkGroup.ValueString())
+		}
+		if !plan.AthenaConfig.S3DataDir.IsNull() {
+			athenaCfg.S3DataDir.Set(plan.AthenaConfig.S3DataDir.ValueString())
+		}
+		if !plan.AthenaConfig.S3DataNaming.IsNull() {
+			athenaCfg.S3DataNaming.Set(plan.AthenaConfig.S3DataNaming.ValueString())
+		}
+		if !plan.AthenaConfig.S3TmpTableDir.IsNull() {
+			athenaCfg.S3TmpTableDir.Set(plan.AthenaConfig.S3TmpTableDir.ValueString())
+		}
+		if !plan.AthenaConfig.PollInterval.IsNull() {
+			athenaCfg.PollInterval.Set(plan.AthenaConfig.PollInterval.ValueInt64())
+		}
+		if !plan.AthenaConfig.NumRetries.IsNull() {
+			athenaCfg.NumRetries.Set(plan.AthenaConfig.NumRetries.ValueInt64())
+		}
+		if !plan.AthenaConfig.NumBoto3Retries.IsNull() {
+			athenaCfg.NumBoto3Retries.Set(plan.AthenaConfig.NumBoto3Retries.ValueInt64())
+		}
+		if !plan.AthenaConfig.NumIcebergRetries.IsNull() {
+			athenaCfg.NumIcebergRetries.Set(plan.AthenaConfig.NumIcebergRetries.ValueInt64())
+		}
+
+		commonResp, _, err := c.Create(commonCfg, athenaCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(athenaCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
+	case plan.ApacheSparkConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ApacheSparkConfig](r.client)
+
+		sparkCfg := dbt_cloud.ApacheSparkConfig{
+			Method:         plan.ApacheSparkConfig.Method.ValueStringPointer(),
+			Host:           plan.ApacheSparkConfig.Host.ValueStringPointer(),
+			Port:           plan.ApacheSparkConfig.Port.ValueInt64Pointer(),
+			Cluster:        plan.ApacheSparkConfig.Cluster.ValueStringPointer(),
+			ConnectTimeout: plan.ApacheSparkConfig.ConnectTimeout.ValueInt64Pointer(),
+			ConnectRetries: plan.ApacheSparkConfig.ConnectRetries.ValueInt64Pointer(),
+		}
+
+		// nullable fields
+		// Careful, this seems to be handled differently for Spark vs all the other DWs. Here we need to set the fields to NULL
+		if !plan.ApacheSparkConfig.Organization.IsNull() {
+			sparkCfg.Organization.Set(plan.ApacheSparkConfig.Organization.ValueString())
+		} else {
+			sparkCfg.Organization.SetNull()
+		}
+		if !plan.ApacheSparkConfig.User.IsNull() {
+			sparkCfg.User.Set(plan.ApacheSparkConfig.User.ValueString())
+		} else {
+			sparkCfg.User.SetNull()
+		}
+		if !plan.ApacheSparkConfig.Auth.IsNull() {
+			sparkCfg.Auth.Set(plan.ApacheSparkConfig.Auth.ValueString())
+		} else {
+			sparkCfg.Auth.SetNull()
+		}
+
+		commonResp, _, err := c.Create(commonCfg, sparkCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
+		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -555,6 +1230,33 @@ func (r *globalConnectionResource) Delete(
 		return
 	}
 
+	// delete the SSH Tunnel if it exists
+	for _, config := range mappingAdapterDetails {
+		SSHTunnelConfig := config.GetSSHTunnelConfig(&state)
+		if SSHTunnelConfig != nil {
+
+			valueID := SSHTunnelConfig.ID.ValueInt64()
+			// to delete the encryption we update it with state=2
+			sshTunnelPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+				ID:           &valueID,
+				AccountID:    int64(r.client.AccountID),
+				ConnectionID: connectionID,
+				Username:     SSHTunnelConfig.Username.ValueString(),
+				Port:         SSHTunnelConfig.Port.ValueInt64(),
+				HostName:     SSHTunnelConfig.HostName.ValueString(),
+				State:        dbt_cloud.STATE_DELETED,
+			}
+
+			// we use Redshift here but it is the same function for all
+			// we could change the function to use a generic client rather than a global connection client
+			c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
+			_, err := c.CreateUpdateEncryption(sshTunnelPayload)
+			if err != nil {
+				resp.Diagnostics.AddError("Error deleting the SSH Tunnel", err.Error())
+				return
+			}
+		}
+	}
 }
 
 func (r *globalConnectionResource) Update(
@@ -850,6 +1552,416 @@ func (r *globalConnectionResource) Update(
 		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
+	case plan.RedshiftConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.RedshiftConfig{}
+		warehouseConfigChanged := false
+
+		// Redshift specific ones
+		if plan.RedshiftConfig.HostName != state.RedshiftConfig.HostName {
+			warehouseConfigChanges.HostName = plan.RedshiftConfig.HostName.ValueStringPointer()
+			warehouseConfigChanged = true
+		}
+		if plan.RedshiftConfig.Port != state.RedshiftConfig.Port {
+			warehouseConfigChanges.Port = plan.RedshiftConfig.Port.ValueInt64Pointer()
+			warehouseConfigChanged = true
+		}
+
+		// nullable fields
+		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated
+		if plan.RedshiftConfig.DBName != state.RedshiftConfig.DBName {
+			warehouseConfigChanged = true
+			if plan.RedshiftConfig.DBName.IsNull() {
+				warehouseConfigChanges.DBName.SetNull()
+			} else {
+				warehouseConfigChanges.DBName.Set(plan.RedshiftConfig.DBName.ValueString())
+			}
+		}
+
+		if warehouseConfigChanged {
+			updateCommon, _, err := c.Update(
+				state.ID.ValueInt64(),
+				globalConfigChanges,
+				warehouseConfigChanges,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Error updating global connection", err.Error())
+				return
+			}
+			// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+			plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+			plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+			plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+		} else {
+			// if the warehouseConfig didn't change, we keep the existing state values
+			plan.IsSshTunnelEnabled = state.IsSshTunnelEnabled
+			plan.OauthConfigurationId = state.OauthConfigurationId
+			plan.AdapterVersion = state.AdapterVersion
+		}
+
+		// SSH tunnel settings
+		sshTunnel, err := r.handleSSHTunnelUpdates(
+			plan.RedshiftConfig.SSHTunnel,
+			state.RedshiftConfig.SSHTunnel,
+			int64(r.client.AccountID),
+			state.ID.ValueInt64(),
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error with the SSH Tunnel", err.Error())
+			return
+		}
+		plan.RedshiftConfig.SSHTunnel = sshTunnel
+
+	case plan.PostgresConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.PostgresConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.PostgresConfig{}
+		warehouseConfigChanged := false
+
+		// Postgres specific ones
+		if plan.PostgresConfig.HostName != state.PostgresConfig.HostName {
+			warehouseConfigChanges.HostName = plan.PostgresConfig.HostName.ValueStringPointer()
+			warehouseConfigChanged = true
+		}
+		if plan.PostgresConfig.Port != state.PostgresConfig.Port {
+			warehouseConfigChanges.Port = plan.PostgresConfig.Port.ValueInt64Pointer()
+			warehouseConfigChanged = true
+		}
+
+		// nullable fields
+		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated
+		if plan.PostgresConfig.DBName != state.PostgresConfig.DBName {
+			warehouseConfigChanged = true
+			if plan.PostgresConfig.DBName.IsNull() {
+				warehouseConfigChanges.DBName.SetNull()
+			} else {
+				warehouseConfigChanges.DBName.Set(plan.PostgresConfig.DBName.ValueString())
+			}
+		}
+
+		if warehouseConfigChanged {
+			updateCommon, _, err := c.Update(
+				state.ID.ValueInt64(),
+				globalConfigChanges,
+				warehouseConfigChanges,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Error updating global connection", err.Error())
+				return
+			}
+			// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+			plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+			plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+			plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+		} else {
+			// if the warehouseConfig didn't change, we keep the existing state values
+			plan.IsSshTunnelEnabled = state.IsSshTunnelEnabled
+			plan.OauthConfigurationId = state.OauthConfigurationId
+			plan.AdapterVersion = state.AdapterVersion
+		}
+
+		// SSH tunnel settings
+		sshTunnel, err := r.handleSSHTunnelUpdates(
+			plan.PostgresConfig.SSHTunnel,
+			state.PostgresConfig.SSHTunnel,
+			int64(r.client.AccountID),
+			state.ID.ValueInt64(),
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error with the SSH Tunnel", err.Error())
+			return
+		}
+		plan.PostgresConfig.SSHTunnel = sshTunnel
+
+	case plan.FabricConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.FabricConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.FabricConfig{}
+
+		// Fabric specific ones
+		if plan.FabricConfig.Server != state.FabricConfig.Server {
+			warehouseConfigChanges.Server = plan.FabricConfig.Server.ValueStringPointer()
+		}
+		if plan.FabricConfig.Port != state.FabricConfig.Port {
+			warehouseConfigChanges.Port = plan.FabricConfig.Port.ValueInt64Pointer()
+		}
+		if plan.FabricConfig.Database != state.FabricConfig.Database {
+			warehouseConfigChanges.Database = plan.FabricConfig.Database.ValueStringPointer()
+		}
+		if plan.FabricConfig.Retries != state.FabricConfig.Retries {
+			warehouseConfigChanges.Retries = plan.FabricConfig.Retries.ValueInt64Pointer()
+		}
+		if plan.FabricConfig.LoginTimeout != state.FabricConfig.LoginTimeout {
+			warehouseConfigChanges.LoginTimeout = plan.FabricConfig.LoginTimeout.ValueInt64Pointer()
+		}
+		if plan.FabricConfig.QueryTimeout != state.FabricConfig.QueryTimeout {
+			warehouseConfigChanges.QueryTimeout = plan.FabricConfig.QueryTimeout.ValueInt64Pointer()
+		}
+
+		// nullable fields
+		// N/A for Fabric
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.SynapseConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SynapseConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.SynapseConfig{}
+
+		// Synapse specific ones
+		if plan.SynapseConfig.Host != state.SynapseConfig.Host {
+			warehouseConfigChanges.Host = plan.SynapseConfig.Host.ValueStringPointer()
+		}
+		if plan.SynapseConfig.Port != state.SynapseConfig.Port {
+			warehouseConfigChanges.Port = plan.SynapseConfig.Port.ValueInt64Pointer()
+		}
+		if plan.SynapseConfig.Database != state.SynapseConfig.Database {
+			warehouseConfigChanges.Database = plan.SynapseConfig.Database.ValueStringPointer()
+		}
+		if plan.SynapseConfig.Retries != state.SynapseConfig.Retries {
+			warehouseConfigChanges.Retries = plan.SynapseConfig.Retries.ValueInt64Pointer()
+		}
+		if plan.SynapseConfig.LoginTimeout != state.SynapseConfig.LoginTimeout {
+			warehouseConfigChanges.LoginTimeout = plan.SynapseConfig.LoginTimeout.ValueInt64Pointer()
+		}
+		if plan.SynapseConfig.QueryTimeout != state.SynapseConfig.QueryTimeout {
+			warehouseConfigChanges.QueryTimeout = plan.SynapseConfig.QueryTimeout.ValueInt64Pointer()
+		}
+
+		// nullable fields
+		// N/A for Synapse
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.StarburstConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.StarburstConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.StarburstConfig{}
+
+		// Synapse specific ones
+		if plan.StarburstConfig.Method != state.StarburstConfig.Method {
+			warehouseConfigChanges.Method = plan.StarburstConfig.Method.ValueStringPointer()
+		}
+		if plan.StarburstConfig.Host != state.StarburstConfig.Host {
+			warehouseConfigChanges.Host = plan.StarburstConfig.Host.ValueStringPointer()
+		}
+		if plan.StarburstConfig.Port != state.StarburstConfig.Port {
+			warehouseConfigChanges.Port = plan.StarburstConfig.Port.ValueInt64Pointer()
+		}
+
+		// nullable fields
+		// N/A for Starburst
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.AthenaConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.AthenaConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.AthenaConfig{}
+
+		// Athena specific ones
+		if plan.AthenaConfig.RegionName != state.AthenaConfig.RegionName {
+			warehouseConfigChanges.RegionName = plan.AthenaConfig.RegionName.ValueStringPointer()
+		}
+		if plan.AthenaConfig.Database != state.AthenaConfig.Database {
+			warehouseConfigChanges.Database = plan.AthenaConfig.Database.ValueStringPointer()
+		}
+		if plan.AthenaConfig.S3StagingDir != state.AthenaConfig.S3StagingDir {
+			warehouseConfigChanges.S3StagingDir = plan.AthenaConfig.S3StagingDir.ValueStringPointer()
+		}
+
+		// nullable fields
+		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated
+		if plan.AthenaConfig.WorkGroup != state.AthenaConfig.WorkGroup {
+			if plan.AthenaConfig.WorkGroup.IsNull() {
+				warehouseConfigChanges.WorkGroup.SetNull()
+			} else {
+				warehouseConfigChanges.WorkGroup.Set(plan.AthenaConfig.WorkGroup.ValueString())
+			}
+		}
+		if plan.AthenaConfig.SparkWorkGroup != state.AthenaConfig.SparkWorkGroup {
+			if plan.AthenaConfig.SparkWorkGroup.IsNull() {
+				warehouseConfigChanges.SparkWorkGroup.SetNull()
+			} else {
+				warehouseConfigChanges.SparkWorkGroup.Set(plan.AthenaConfig.SparkWorkGroup.ValueString())
+			}
+		}
+		if plan.AthenaConfig.S3DataDir != state.AthenaConfig.S3DataDir {
+			if plan.AthenaConfig.S3DataDir.IsNull() {
+				warehouseConfigChanges.S3DataDir.SetNull()
+			} else {
+				warehouseConfigChanges.S3DataDir.Set(plan.AthenaConfig.S3DataDir.ValueString())
+			}
+		}
+		if plan.AthenaConfig.S3DataNaming != state.AthenaConfig.S3DataNaming {
+			if plan.AthenaConfig.S3DataNaming.IsNull() {
+				warehouseConfigChanges.S3DataNaming.SetNull()
+			} else {
+				warehouseConfigChanges.S3DataNaming.Set(plan.AthenaConfig.S3DataNaming.ValueString())
+			}
+		}
+		if plan.AthenaConfig.S3TmpTableDir != state.AthenaConfig.S3TmpTableDir {
+			if plan.AthenaConfig.S3TmpTableDir.IsNull() {
+				warehouseConfigChanges.S3TmpTableDir.SetNull()
+			} else {
+				warehouseConfigChanges.S3TmpTableDir.Set(plan.AthenaConfig.S3TmpTableDir.ValueString())
+			}
+		}
+		if plan.AthenaConfig.PollInterval != state.AthenaConfig.PollInterval {
+			if plan.AthenaConfig.PollInterval.IsNull() {
+				warehouseConfigChanges.PollInterval.SetNull()
+			} else {
+				warehouseConfigChanges.PollInterval.Set(plan.AthenaConfig.PollInterval.ValueInt64())
+			}
+		}
+		if plan.AthenaConfig.NumRetries != state.AthenaConfig.NumRetries {
+			if plan.AthenaConfig.NumRetries.IsNull() {
+				warehouseConfigChanges.NumRetries.SetNull()
+			} else {
+				warehouseConfigChanges.NumRetries.Set(plan.AthenaConfig.NumRetries.ValueInt64())
+			}
+		}
+		if plan.AthenaConfig.NumBoto3Retries != state.AthenaConfig.NumBoto3Retries {
+			if plan.AthenaConfig.NumBoto3Retries.IsNull() {
+				warehouseConfigChanges.NumBoto3Retries.SetNull()
+			} else {
+				warehouseConfigChanges.NumBoto3Retries.Set(plan.AthenaConfig.NumBoto3Retries.ValueInt64())
+			}
+		}
+		if plan.AthenaConfig.NumIcebergRetries != state.AthenaConfig.NumIcebergRetries {
+			if plan.AthenaConfig.NumIcebergRetries.IsNull() {
+				warehouseConfigChanges.NumIcebergRetries.SetNull()
+			} else {
+				warehouseConfigChanges.NumIcebergRetries.Set(plan.AthenaConfig.NumIcebergRetries.ValueInt64())
+			}
+		}
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.ApacheSparkConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ApacheSparkConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.ApacheSparkConfig{}
+
+		// Spark specific ones
+		if plan.ApacheSparkConfig.Method != state.ApacheSparkConfig.Method {
+			warehouseConfigChanges.Method = plan.ApacheSparkConfig.Method.ValueStringPointer()
+		}
+		if plan.ApacheSparkConfig.Host != state.ApacheSparkConfig.Host {
+			warehouseConfigChanges.Host = plan.ApacheSparkConfig.Host.ValueStringPointer()
+		}
+		if plan.ApacheSparkConfig.Port != state.ApacheSparkConfig.Port {
+			warehouseConfigChanges.Port = plan.ApacheSparkConfig.Port.ValueInt64Pointer()
+		}
+		if plan.ApacheSparkConfig.Cluster != state.ApacheSparkConfig.Cluster {
+			warehouseConfigChanges.Cluster = plan.ApacheSparkConfig.Cluster.ValueStringPointer()
+		}
+		if plan.ApacheSparkConfig.ConnectTimeout != state.ApacheSparkConfig.ConnectTimeout {
+			warehouseConfigChanges.ConnectTimeout = plan.ApacheSparkConfig.ConnectTimeout.ValueInt64Pointer()
+		}
+		if plan.ApacheSparkConfig.ConnectRetries != state.ApacheSparkConfig.ConnectRetries {
+			warehouseConfigChanges.ConnectRetries = plan.ApacheSparkConfig.ConnectRetries.ValueInt64Pointer()
+		}
+
+		// nullable fields
+		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated
+		if plan.ApacheSparkConfig.Organization != state.ApacheSparkConfig.Organization {
+			if plan.ApacheSparkConfig.Organization.IsNull() {
+				warehouseConfigChanges.Organization.SetNull()
+			} else {
+				warehouseConfigChanges.Organization.Set(plan.ApacheSparkConfig.Organization.ValueString())
+			}
+		}
+		if plan.ApacheSparkConfig.User != state.ApacheSparkConfig.User {
+			if plan.ApacheSparkConfig.User.IsNull() {
+				warehouseConfigChanges.User.SetNull()
+			} else {
+				warehouseConfigChanges.User.Set(plan.ApacheSparkConfig.User.ValueString())
+			}
+		}
+		if plan.ApacheSparkConfig.Auth != state.ApacheSparkConfig.Auth {
+			if plan.ApacheSparkConfig.Auth.IsNull() {
+				warehouseConfigChanges.Auth.SetNull()
+			} else {
+				warehouseConfigChanges.Auth.Set(plan.ApacheSparkConfig.Auth.ValueString())
+			}
+		}
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -879,14 +1991,21 @@ func (r *globalConnectionResource) ImportState(
 		return
 	}
 
-	connectionType := strings.Split(globalConnectionResponse.Data.AdapterVersion, "_")[0]
+	// we need this logic because sometimes adapter names have _ in them, like apache_spark_v0
+	var connectionType string
+	lastUnderscoreIndex := strings.LastIndex(globalConnectionResponse.Data.AdapterVersion, "_")
+	if lastUnderscoreIndex == -1 {
+		connectionType = globalConnectionResponse.Data.AdapterVersion
+	} else {
+		connectionType = globalConnectionResponse.Data.AdapterVersion[:lastUnderscoreIndex]
+	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(connectionID))...)
 	resp.Diagnostics.Append(
 		resp.State.SetAttribute(
 			ctx,
 			path.Root(connectionType),
-			mappingAdapterEmptyConfig[connectionType],
+			mappingAdapterDetails[connectionType].EmptyConfigName,
 		)...)
 }
 
@@ -900,4 +2019,73 @@ func (r *globalConnectionResource) Configure(
 	}
 
 	r.client = req.ProviderData.(*dbt_cloud.Client)
+}
+
+func (r *globalConnectionResource) handleSSHTunnelUpdates(
+	sshTunnelPlan *SSHTunnelConfig,
+	sshTunnelState *SSHTunnelConfig,
+	accountID int64,
+	connectionID int64,
+) (*SSHTunnelConfig, error) {
+	c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
+	if sshTunnelPlan == nil && sshTunnelState != nil {
+		// delete the encryption
+		valueID := sshTunnelState.ID.ValueInt64()
+		sshTunnelPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+			ID:           &valueID,
+			AccountID:    accountID,
+			ConnectionID: connectionID,
+			Username:     sshTunnelState.Username.ValueString(),
+			Port:         sshTunnelState.Port.ValueInt64(),
+			HostName:     sshTunnelState.HostName.ValueString(),
+			State:        dbt_cloud.STATE_DELETED,
+		}
+		_, err := c.CreateUpdateEncryption(sshTunnelPayload)
+		if err != nil {
+			return nil, err
+		}
+	} else if sshTunnelPlan != nil && sshTunnelState == nil {
+		// create the encryption
+		sshPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+			AccountID:    accountID,
+			ConnectionID: connectionID,
+			Username:     sshTunnelPlan.Username.ValueString(),
+			Port:         sshTunnelPlan.Port.ValueInt64(),
+			HostName:     sshTunnelPlan.HostName.ValueString(),
+		}
+		sshTunnel, err := c.CreateUpdateEncryption(sshPayload)
+		if err != nil {
+			return nil, err
+		}
+		sshTunnelPlan = &SSHTunnelConfig{
+			ID:        types.Int64PointerValue(sshTunnel.ID),
+			Username:  types.StringValue(sshTunnel.Username),
+			Port:      types.Int64Value(sshTunnel.Port),
+			HostName:  types.StringValue(sshTunnel.HostName),
+			PublicKey: types.StringValue(sshTunnel.PublicKey),
+		}
+	} else if sshTunnelPlan != nil && sshTunnelState != nil && sshTunnelPlan != sshTunnelState {
+		// update the encryption
+		valueID := sshTunnelState.ID.ValueInt64()
+		sshPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
+			ID:           &valueID,
+			AccountID:    accountID,
+			ConnectionID: connectionID,
+			Username:     sshTunnelPlan.Username.ValueString(),
+			Port:         sshTunnelPlan.Port.ValueInt64(),
+			HostName:     sshTunnelPlan.HostName.ValueString(),
+		}
+		sshTunnel, err := c.CreateUpdateEncryption(sshPayload)
+		if err != nil {
+			return nil, err
+		}
+		sshTunnelPlan = &SSHTunnelConfig{
+			ID:        types.Int64PointerValue(sshTunnel.ID),
+			Username:  types.StringValue(sshTunnel.Username),
+			Port:      types.Int64Value(sshTunnel.Port),
+			HostName:  types.StringValue(sshTunnel.HostName),
+			PublicKey: types.StringValue(sshTunnel.PublicKey),
+		}
+	}
+	return sshTunnelPlan, nil
 }
