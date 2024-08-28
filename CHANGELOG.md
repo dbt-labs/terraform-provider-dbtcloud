@@ -14,6 +14,14 @@ All notable changes to this project will be documented in this file.
 
 - Update "Getting Started" guide to use global connections instead of project-scoped connections
 
+### Behind the scenes
+
+- Accelerate CI testing by:
+  - avoiding too many calls to `v2/.../account`
+  - installing Terraform manually in the CI pipeline so that each test doesn't download a new version of the CLI
+  - moving some tests to run in Parallel (could move more in the future)
+- Update go libraries
+
 # [0.3.12](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.11...v0.3.12)
 
 ### Changes
