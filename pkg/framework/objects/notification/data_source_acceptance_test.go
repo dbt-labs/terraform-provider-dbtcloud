@@ -12,6 +12,10 @@ import (
 
 func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 
+	if acctest_helper.IsDbtCloudPR() {
+		t.Skip("Skipping notifications in dbt Cloud CI for now")
+	}
+
 	var userID string
 	if acctest_helper.IsDbtCloudPR() {
 		userID = "1"
