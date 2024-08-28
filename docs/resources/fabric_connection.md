@@ -2,13 +2,16 @@
 page_title: "dbtcloud_fabric_connection Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Resource to create Microsoft Fabric connections in dbt Cloud
+  Resource to create a MS Fabric connection in dbt Cloud.
+  ~> This resource is deprecated and is going to be removed in the next major release, please use the dbtcloud_global_connection resource instead to create any DW connection.
 ---
 
 # dbtcloud_fabric_connection (Resource)
 
 
-Resource to create Microsoft Fabric connections in dbt Cloud
+Resource to create a MS Fabric connection in dbt Cloud.
+
+~> This resource is deprecated and is going to be removed in the next major release, please use the `dbtcloud_global_connection` resource instead to create any DW connection.
 
 ## Example Usage
 

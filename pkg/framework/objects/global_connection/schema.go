@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -27,10 +28,9 @@ func (r *globalConnectionResource) Schema(
 		Description: helper.DocString(
 			`This resource can be used to create global connections as introduced in dbt Cloud in August 2024.
 
-			Those connections are not linked to a project and can be linked to environments from different projects by using the ~~~connection_id~~~ field in the ~~~dbtcloud_environment~~~ resource.
+			Those connections are not linked to a specific project and can be linked to environments from different projects by using the ~~~connection_id~~~ field in the ~~~dbtcloud_environment~~~ resource.
 			
-			For now, only a subset of connections are supported and the other Data Warehouses can continue using the existing resources ~~~dbtcloud_connection~~~ and ~~~dbtcloud_fabric_connection~~~ , 
-			but all Data Warehouses will soon be supported under this resource and the other ones will be deprecated in the future.`,
+			All connections types are supported, and the old resources ~~~dbtcloud_connection~~~, ~~~dbtcloud_bigquery_connection~~~ and ~~~dbtcloud_fabric_connection~~~ are now flagged as deprecated and will be removed from the next major version of the provider.`,
 		),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
@@ -253,6 +253,306 @@ func (r *globalConnectionResource) Schema(
 					"client_secret": schema.StringAttribute{
 						Optional:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
+					},
+				},
+			},
+			"redshift": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Redshift connection configuration",
+				Attributes: map[string]schema.Attribute{
+					"hostname": schema.StringAttribute{
+						Required:    true,
+						Description: "The hostname of the data warehouse.",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(5432),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=5432",
+					},
+					"dbname": schema.StringAttribute{
+						Optional:    true,
+						Description: "The database name for this connection.",
+					},
+					// for SSH tunnel details
+					"ssh_tunnel": schema.SingleNestedAttribute{
+						Optional:    true,
+						Description: "Redshift SSH Tunnel configuration",
+						Attributes: map[string]schema.Attribute{
+							"username": schema.StringAttribute{
+								Required:    true,
+								Description: "The username to use for the SSH tunnel.",
+							},
+							"port": schema.Int64Attribute{
+								Required:    true,
+								Description: "The HTTP port for the SSH tunnel.",
+							},
+							"hostname": schema.StringAttribute{
+								Required:    true,
+								Description: "The hostname for the SSH tunnel.",
+							},
+							"public_key": schema.StringAttribute{
+								Computed:    true,
+								Description: "The SSH public key generated to allow connecting via SSH tunnel.",
+							},
+							"id": schema.Int64Attribute{
+								Computed:    true,
+								Description: "The ID of the SSH tunnel connection.",
+							},
+						},
+					},
+				},
+			},
+			"postgres": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "PostgreSQL connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					"hostname": schema.StringAttribute{
+						Required:    true,
+						Description: "The hostname of the database.",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(5432),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=5432",
+					},
+					"dbname": schema.StringAttribute{
+						Optional:    true,
+						Description: "The database name for this connection.",
+					},
+					// for SSH tunnel details
+					"ssh_tunnel": schema.SingleNestedAttribute{
+						Optional:    true,
+						Description: "PostgreSQL SSH Tunnel configuration",
+						Attributes: map[string]schema.Attribute{
+							"username": schema.StringAttribute{
+								Required:    true,
+								Description: "The username to use for the SSH tunnel.",
+							},
+							"port": schema.Int64Attribute{
+								Required:    true,
+								Description: "The HTTP port for the SSH tunnel.",
+							},
+							"hostname": schema.StringAttribute{
+								Required:    true,
+								Description: "The hostname for the SSH tunnel.",
+							},
+							"public_key": schema.StringAttribute{
+								Computed:    true,
+								Description: "The SSH public key generated to allow connecting via SSH tunnel.",
+							},
+							"id": schema.Int64Attribute{
+								Computed:    true,
+								Description: "The ID of the SSH tunnel connection.",
+							},
+						},
+					},
+				},
+			},
+			"fabric": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Microsoft Fabric connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					"server": schema.StringAttribute{
+						Required:    true,
+						Description: "The server hostname.",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(1433),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=1433",
+					},
+					"database": schema.StringAttribute{
+						Required:    true,
+						Description: "The database to connect to for this connection.",
+					},
+					"retries": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(1),
+						Computed:    true,
+						Description: "The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.",
+					},
+					"login_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(0),
+						Computed:    true,
+						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+					"query_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(0),
+						Computed:    true,
+						Description: "The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+				},
+			},
+			"synapse": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Azure Synapse Analytics connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					"host": schema.StringAttribute{
+						Required:    true,
+						Description: "The server hostname.",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(1433),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=1433",
+					},
+					"database": schema.StringAttribute{
+						Required:    true,
+						Description: "The database to connect to for this connection.",
+					},
+					"retries": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(1),
+						Computed:    true,
+						Description: "The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.",
+					},
+					"login_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(0),
+						Computed:    true,
+						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+					"query_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(0),
+						Computed:    true,
+						Description: "The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+				},
+			},
+			"starburst": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Starburst/Trino connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					// not too useful now, but should be easy to modify if we support for authentication methods
+					"method": schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "The authentication method. Only LDAP for now.",
+						Default:     stringdefault.StaticString("ldap"),
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"ldap"}...),
+						},
+					},
+					"host": schema.StringAttribute{
+						Required:    true,
+						Description: "The hostname of the account to connect to.",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(443),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=443",
+					},
+				},
+			}, "athena": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Athena connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					"region_name": schema.StringAttribute{
+						Required:    true,
+						Description: "AWS region of your Athena instance.",
+					},
+					"database": schema.StringAttribute{
+						Required:    true,
+						Description: "Specify the database (data catalog) to build models into (lowercase only).",
+					},
+					"s3_staging_dir": schema.StringAttribute{
+						Required:    true,
+						Description: "S3 location to store Athena query results and metadata.",
+					},
+					"work_group": schema.StringAttribute{
+						Optional:    true,
+						Description: "Identifier of Athena workgroup.",
+					},
+					"spark_work_group": schema.StringAttribute{
+						Optional:    true,
+						Description: "Identifier of Athena Spark workgroup for running Python models.",
+					},
+					"s3_data_dir": schema.StringAttribute{
+						Optional:    true,
+						Description: "Prefix for storing tables, if different from the connection's S3 staging directory.",
+					},
+					"s3_data_naming": schema.StringAttribute{
+						Optional:    true,
+						Description: "How to generate table paths in the S3 data directory.",
+					},
+					"s3_tmp_table_dir": schema.StringAttribute{
+						Optional:    true,
+						Description: "Prefix for storing temporary tables, if different from the connection's S3 data directory.",
+					},
+					"poll_interval": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Interval in seconds to use for polling the status of query results in Athena.",
+					},
+					"num_retries": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Number of times to retry a failing query.",
+					},
+					"num_boto3_retries": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Number of times to retry boto3 requests (e.g. deleting S3 files for materialized tables).",
+					},
+					"num_iceberg_retries": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Number of times to retry iceberg commit queries to fix ICEBERG_COMMIT_ERROR.",
+					},
+				},
+			},
+			"apache_spark": schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Apache Spark connection configuration.",
+				Attributes: map[string]schema.Attribute{
+					"method": schema.StringAttribute{
+						Required:    true,
+						Description: "Authentication method for the connection (http or thrift).",
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"http", "thrift"}...),
+						},
+					},
+					"host": schema.StringAttribute{
+						Required:    true,
+						Description: "Hostname of the connection",
+					},
+					"port": schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Description: "Port for the connection. Default=443",
+						Default:     int64default.StaticInt64(443),
+					},
+					"cluster": schema.StringAttribute{
+						Required:    true,
+						Description: "Spark cluster for the connection",
+					},
+					"connect_timeout": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Connection time out in seconds. Default=10",
+						Computed:    true,
+						Default:     int64default.StaticInt64(10),
+					},
+					"connect_retries": schema.Int64Attribute{
+						Optional:    true,
+						Description: "Connection retries. Default=0",
+						Computed:    true,
+						Default:     int64default.StaticInt64(0),
+					},
+					"organization": schema.StringAttribute{
+						Optional:    true,
+						Description: "Organization ID",
+					},
+					"user": schema.StringAttribute{
+						Optional:    true,
+						Description: "User",
+					},
+					"auth": schema.StringAttribute{
+						Optional:    true,
+						Description: "Auth",
 					},
 				},
 			},

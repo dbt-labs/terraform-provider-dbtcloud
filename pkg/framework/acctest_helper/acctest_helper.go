@@ -3,9 +3,11 @@ package acctest_helper
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/provider"
@@ -28,17 +30,14 @@ func SharedClient() (*dbt_cloud.Client, error) {
 		hostURL = "https://cloud.getdbt.com/api"
 	}
 
-	client, err := dbt_cloud.NewClient(
-		&accountID,
-		&token,
-		&hostURL,
-	)
-
-	if err != nil {
-		return client, err
+	client := dbt_cloud.Client{
+		HTTPClient: &http.Client{Timeout: 30 * time.Second},
+		HostURL:    hostURL,
+		Token:      token,
+		AccountID:  accountID,
 	}
 
-	return client, nil
+	return &client, nil
 }
 
 const (

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -22,12 +23,6 @@ var (
 	}
 )
 
-var docs string = fmt.Sprintf(`
-Create a Data Warehouse connection for your project in dbt Cloud. The connection will need to be linked to the dbt Cloud project via a %s resource.
-		
-This resource can be used for Databricks, Postgres, Redshift, Snowflake and AlloyDB connections.
-For BigQuery, due to the list of fields being very different, you can use the %s resource.`, "`dbtcloud_project_connection`", "`dbtcloud_bigquery_connection`")
-
 func ResourceConnection() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceConnectionCreate,
@@ -35,7 +30,12 @@ func ResourceConnection() *schema.Resource {
 		UpdateContext: resourceConnectionUpdate,
 		DeleteContext: resourceConnectionDelete,
 
-		Description: docs,
+		Description: helper.DocString(
+			`Resource to create a Data Warehouse connection in dbt Cloud.
+			
+			~> This resource is deprecated and is going to be removed in the next major release, please use the ~~~dbtcloud_global_connection~~~ resource instead to create connections.`,
+		),
+		DeprecationMessage: "Please replace this resource with a `dbtcloud_global_connection` resource. This resource type will be removed in the next major release.",
 
 		Schema: map[string]*schema.Schema{
 			"connection_id": {

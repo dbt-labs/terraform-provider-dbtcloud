@@ -2,18 +2,16 @@
 page_title: "dbtcloud_connection Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Create a Data Warehouse connection for your project in dbt Cloud. The connection will need to be linked to the dbt Cloud project via a dbtcloud_project_connection resource.
-  This resource can be used for Databricks, Postgres, Redshift, Snowflake and AlloyDB connections.
-  For BigQuery, due to the list of fields being very different, you can use the dbtcloud_bigquery_connection resource.
+  Resource to create a Data Warehouse connection in dbt Cloud.
+  ~> This resource is deprecated and is going to be removed in the next major release, please use the dbtcloud_global_connection resource instead to create connections.
 ---
 
 # dbtcloud_connection (Resource)
 
 
-Create a Data Warehouse connection for your project in dbt Cloud. The connection will need to be linked to the dbt Cloud project via a `dbtcloud_project_connection` resource.
-		
-This resource can be used for Databricks, Postgres, Redshift, Snowflake and AlloyDB connections.
-For BigQuery, due to the list of fields being very different, you can use the `dbtcloud_bigquery_connection` resource.
+Resource to create a Data Warehouse connection in dbt Cloud.
+
+~> This resource is deprecated and is going to be removed in the next major release, please use the `dbtcloud_global_connection` resource instead to create connections.
 
 ## Example Usage
 

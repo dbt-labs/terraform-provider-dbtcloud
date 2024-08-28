@@ -2,7 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.12...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.13...HEAD)
+
+# [0.3.13](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.12...v0.3.13)
+
+### Changes
+
+- Add support for all connection types in `dbtcloud_global_connection` (added PostgreSQL, Redshift, Apache Spark, Starburst, Synapse, Fabric and Athena) and add deprecation warnings for all the other connections resources: `dbtcloud_connection`, `dbtcloud_bigquery_connection` and `dbtcloud_fabric_connection` 
+
+### Docs
+
+- Update "Getting Started" guide to use global connections instead of project-scoped connections
+
+### Behind the scenes
+
+- Accelerate CI testing by:
+  - avoiding too many calls to `v2/.../account`
+  - installing Terraform manually in the CI pipeline so that each test doesn't download a new version of the CLI
+  - moving some tests to run in Parallel (could move more in the future)
+- Update go libraries
 
 # [0.3.12](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.11...v0.3.12)
 
