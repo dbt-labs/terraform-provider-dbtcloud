@@ -30,6 +30,7 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudPartialNotificationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudPartialNotificationResourceCreatePartialNotifications(
