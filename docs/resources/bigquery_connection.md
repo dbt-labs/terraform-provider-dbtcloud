@@ -3,7 +3,7 @@ page_title: "dbtcloud_bigquery_connection Resource - dbtcloud"
 subcategory: ""
 description: |-
   Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.
-  ~> This resource is going to be deprecated in the future, please use the dbtcloud_global_connection resource instead to crate BigQuery connections.
+  ~> This resource is deprecated and is going to be removed in the next major release, please use the dbtcloud_global_connection resource instead to create BigQuery connections.
 ---
 
 # dbtcloud_bigquery_connection (Resource)
@@ -11,7 +11,7 @@ description: |-
 
 Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.
 
-~> This resource is going to be deprecated in the future, please use the `dbtcloud_global_connection` resource instead to crate BigQuery connections.
+~> This resource is deprecated and is going to be removed in the next major release, please use the `dbtcloud_global_connection` resource instead to create BigQuery connections.
 
 ## Example Usage
 

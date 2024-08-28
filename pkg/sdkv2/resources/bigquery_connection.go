@@ -27,8 +27,9 @@ func ResourceBigQueryConnection() *schema.Resource {
 		Description: helper.DocString(
 			`Resource to create BigQuery connections in dbt Cloud. Can be set to use OAuth for developers.
 			
-			~> This resource is going to be deprecated in the future, please use the ~~~dbtcloud_global_connection~~~ resource instead to crate BigQuery connections.`,
+			~> This resource is deprecated and is going to be removed in the next major release, please use the ~~~dbtcloud_global_connection~~~ resource instead to create BigQuery connections.`,
 		),
+		DeprecationMessage: "Please replace this resource with a `dbtcloud_global_connection` resource. This resource type will be removed in the next major release.",
 		Schema: map[string]*schema.Schema{
 			"connection_id": {
 				Type:        schema.TypeInt,

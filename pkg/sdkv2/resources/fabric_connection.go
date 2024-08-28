@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -17,7 +18,12 @@ func ResourceFabricConnection() *schema.Resource {
 		UpdateContext: resourceFabricConnectionUpdate,
 		DeleteContext: resourceFabricConnectionDelete,
 
-		Description: "Resource to create Microsoft Fabric connections in dbt Cloud",
+		Description: helper.DocString(
+			`Resource to create a MS Fabric connection in dbt Cloud.
+			
+			~> This resource is deprecated and is going to be removed in the next major release, please use the ~~~dbtcloud_global_connection~~~ resource instead to create any DW connection.`,
+		),
+		DeprecationMessage: "Please replace this resource with a `dbtcloud_global_connection` resource. This resource type will be removed in the next major release.",
 		Schema: map[string]*schema.Schema{
 			"connection_id": {
 				Type:        schema.TypeInt,
