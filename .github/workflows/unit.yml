@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: make setup
 
+      # we install Terraform beforehand, otherwise each test requires downloading it
+      - uses: hashicorp/setup-terraform@v3
+
       - name: make ${{ matrix.target }}
         run: make ${{ matrix.target }}
         env:
