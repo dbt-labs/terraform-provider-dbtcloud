@@ -51,7 +51,7 @@ terraform {
   required_providers {
     dbtcloud = {
       source  = "dbt-labs/dbtcloud"
-      version = "0.2.20"
+      version = "0.3.13"
     }
   }
 }
@@ -69,23 +69,16 @@ resource "dbtcloud_project" "my_project" {
 }
 
 
-// create a connection and link the project to the connection
-// this is an example with Snowflake but for other warehouses please look at the resource docs
-resource "dbtcloud_connection" "my_connection" {
-  project_id = dbtcloud_project.my_project.id
-  type       = "snowflake"
+// create a global connection
+resource "dbtcloud_global_connection" "my_connection" {
   name       = "My Snowflake warehouse"
-  account    = "my-snowflake-account"
-  database   = "MY_DATABASE"
-  role       = "MY_ROLE"
-  warehouse  = "MY_WAREHOUSE"
+  snowflake {  
+    account    = "my-snowflake-account"
+    database   = "MY_DATABASE"
+    role       = "MY_ROLE"
+    warehouse  = "MY_WAREHOUSE"
+  }
 }
-
-resource "dbtcloud_project_connection" "my_project_connection" {
-  project_id    = dbtcloud_project.my_project.id
-  connection_id = dbtcloud_connection.my_connection.connection_id
-}
-
 
 // link a repository to the dbt Cloud project
 // this example adds a github repo for which we know the installation_id but the resource docs have other examples
@@ -103,20 +96,24 @@ resource "dbtcloud_project_repository" "my_project_repository" {
 
 
 // create 2 environments, one for Dev and one for Prod
+// here both are linked to the same Data Warehouse connection
 // for Prod, we need to create a credential as well
 resource "dbtcloud_environment" "my_dev" {
-  dbt_version   = "1.5.0-latest"
-  name          = "Dev"
-  project_id    = dbtcloud_project.my_project.id
-  type          = "development"
+  dbt_version     = "versionless"
+  name            = "Dev"
+  project_id      = dbtcloud_project.my_project.id
+  type            = "development"
+  connection_id   = dbtcloud_global_connection.my_connection.id
 }
 
 resource "dbtcloud_environment" "my_prod" {
-  dbt_version   = "1.5.0-latest"
-  name          = "Prod"
-  project_id    = dbtcloud_project.my_project.id
-  type          = "deployment"
-  credential_id = dbtcloud_snowflake_credential.prod_credential.credential_id
+  dbt_version     = "versionless"
+  name            = "Prod"
+  project_id      = dbtcloud_project.my_project.id
+  type            = "deployment"
+  deployment_type = "production"
+  credential_id   = dbtcloud_snowflake_credential.prod_credential.credential_id
+  connection_id   = dbtcloud_global_connection.my_connection.id
 }
 
 // we use user/password but there are other options on the resource docs

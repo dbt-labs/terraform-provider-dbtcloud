@@ -2,7 +2,7 @@
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v0.3.11)
+  # Terraform resources (v0.3.13)
 | {near: top-center}
 
 direction: right
@@ -30,11 +30,16 @@ job: {
   }
 }
 
-conns: Connections {
+conns: Connections (will be removed in the future,\nuse global_connection) {
   bigquery_connection
   fabric_connection
   connection: {tooltip: Works for Snowflake, Redshift, Postgres and Databricks}
+  
+  bigquery_connection.style.fill: "#C5C6C7"
+  fabric_connection.style.fill: "#C5C6C7"
+  connection.style.fill: "#C5C6C7"
 }
+conns.style.fill: "#C5C6C7"
 
 env_creds: Environment Credentials {
   grid-columns: 2
