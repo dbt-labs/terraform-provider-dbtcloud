@@ -2000,6 +2000,11 @@ func (r *globalConnectionResource) ImportState(
 		connectionType = globalConnectionResponse.Data.AdapterVersion[:lastUnderscoreIndex]
 	}
 
+	// this is the exception where we store the connection details under starburst instead of Trino
+	if connectionType == "trino" {
+		connectionType = "starburst"
+	}
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(connectionID))...)
 	resp.Diagnostics.Append(
 		resp.State.SetAttribute(
