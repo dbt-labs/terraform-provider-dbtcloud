@@ -9,19 +9,21 @@ import (
 )
 
 type Repository struct {
-	ID                                    *int      `json:"id,omitempty"`
-	AccountID                             int       `json:"account_id"`
-	ProjectID                             int       `json:"project_id"`
-	RemoteUrl                             string    `json:"remote_url"`
-	State                                 int       `json:"state"`
-	AzureActiveDirectoryProjectID         *string   `json:"azure_active_directory_project_id,omitempty"`
-	AzureActiveDirectoryRepositoryID      *string   `json:"azure_active_directory_repository_id,omitempty"`
-	AzureBypassWebhookRegistrationFailure *bool     `json:"azure_bypass_webhook_registration_failure,omitempty"`
-	GitCloneStrategy                      string    `json:"git_clone_strategy"`
-	RepositoryCredentialsID               *int      `json:"repository_credentials_id,omitempty"`
-	GitlabProjectID                       *int      `json:"gitlab_project_id"`
-	GithubInstallationID                  *int      `json:"github_installation_id"`
-	DeployKey                             DeployKey `json:"deploy_key,omitempty"`
+	ID                                    *int       `json:"id,omitempty"`
+	AccountID                             int        `json:"account_id"`
+	ProjectID                             int        `json:"project_id"`
+	RemoteUrl                             string     `json:"remote_url"`
+	State                                 int        `json:"state"`
+	AzureActiveDirectoryProjectID         *string    `json:"azure_active_directory_project_id,omitempty"`
+	AzureActiveDirectoryRepositoryID      *string    `json:"azure_active_directory_repository_id,omitempty"`
+	AzureBypassWebhookRegistrationFailure *bool      `json:"azure_bypass_webhook_registration_failure,omitempty"`
+	GitCloneStrategy                      string     `json:"git_clone_strategy"`
+	RepositoryCredentialsID               *int       `json:"repository_credentials_id,omitempty"`
+	GitlabProjectID                       *int       `json:"gitlab_project_id,omitempty"`
+	GithubInstallationID                  *int       `json:"github_installation_id,omitempty"`
+	DeployKey                             *DeployKey `json:"deploy_key,omitempty"`
+	DeployKeyID                           *int       `json:"deploy_key_id,omitempty"`
+	PullRequestURLTemplate                string     `json:"pull_request_url_template,omitempty"`
 }
 
 type DeployKey struct {
@@ -82,6 +84,7 @@ func (c *Client) CreateRepository(
 	azureActiveDirectoryProjectID string,
 	azureActiveDirectoryRepositoryID string,
 	azureBypassWebhookRegistrationFailure bool,
+	pullRequestURLTemplate string,
 ) (*Repository, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -89,11 +92,12 @@ func (c *Client) CreateRepository(
 	}
 
 	newRepository := Repository{
-		AccountID:        c.AccountID,
-		ProjectID:        projectID,
-		RemoteUrl:        remoteUrl,
-		State:            state,
-		GitCloneStrategy: gitCloneStrategy,
+		AccountID:              c.AccountID,
+		ProjectID:              projectID,
+		RemoteUrl:              remoteUrl,
+		State:                  state,
+		GitCloneStrategy:       gitCloneStrategy,
+		PullRequestURLTemplate: pullRequestURLTemplate,
 	}
 	if gitlabProjectID != 0 {
 		newRepository.GitlabProjectID = &gitlabProjectID
@@ -136,6 +140,30 @@ func (c *Client) CreateRepository(
 		return nil, err
 	}
 
+	if pullRequestURLTemplate != "" {
+		// this is odd but we can't provide the pullRequestURLTemplate in the initial create
+		// we need to update the repository with the pullRequestURLTemplate
+
+		// we need to update the repository with the deploy key id that was created
+		if repositoryResponse.Data.DeployKeyID != nil {
+			newRepository.DeployKeyID = repositoryResponse.Data.DeployKeyID
+		}
+		// and we also need to provide the credentials id if it was created
+		if repositoryResponse.Data.RepositoryCredentialsID != nil {
+			newRepository.RepositoryCredentialsID = repositoryResponse.Data.RepositoryCredentialsID
+		}
+
+		updatedRepo, err := c.UpdateRepository(
+			strconv.Itoa(*repositoryResponse.Data.ID),
+			strconv.Itoa(projectID),
+			newRepository,
+		)
+		if err != nil {
+			return nil, err
+		}
+		return updatedRepo, nil
+	}
+
 	return &repositoryResponse.Data, nil
 }
 
@@ -143,6 +171,10 @@ func (c *Client) UpdateRepository(
 	repositoryID, projectID string,
 	repository Repository,
 ) (*Repository, error) {
+
+	// we need to remove the GitLab project ID for updates
+	repository.GitlabProjectID = nil
+
 	repositoryData, err := json.Marshal(repository)
 	if err != nil {
 		return nil, err

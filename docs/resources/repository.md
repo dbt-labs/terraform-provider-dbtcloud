@@ -108,6 +108,7 @@ resource "dbtcloud_repository" "ado_repo" {
 - `github_installation_id` (Number) Identifier for the GitHub App - (for GitHub native integration only)
 - `gitlab_project_id` (Number) Identifier for the Gitlab project -  (for GitLab native integration only)
 - `is_active` (Boolean) Whether the repository is active
+- `pull_request_url_template` (String) URL template for creating a pull request. If it is not set, the default template will create a PR from the current branch to the branch configured in the Development environment.
 
 ### Read-Only
 

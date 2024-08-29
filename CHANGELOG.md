@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.13...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v1.3.14...HEAD)
+
+# [0.3.14](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.13...v0.3.14)
+
+### Changes
+
+- Add support for setting the `pull_request_url_template` in `dbtcloud_repository` 
+
 
 # [0.3.13](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.12...v0.3.13)
 

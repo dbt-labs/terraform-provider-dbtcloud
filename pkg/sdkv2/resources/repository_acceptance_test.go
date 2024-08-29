@@ -109,8 +109,8 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
-  fetch_deploy_key = true
-  depends_on = [dbtcloud_project.test_project]
+  git_clone_strategy = "deploy_key"
+  pull_request_url_template = "https://github.com/my-org/my-repo/compare/qa...{{source}}"
 }
 `, projectName, repoUrl)
 }
@@ -126,6 +126,7 @@ resource "dbtcloud_repository" "test_repository_github_application" {
   project_id = dbtcloud_project.test_project.id
   github_installation_id = 28374841
   git_clone_strategy = "github_app"
+  pull_request_url_template = "https://github.com/my-org/my-repo/compare/qa...{{source}}"
 }
 `, projectName, repoUrl)
 }
