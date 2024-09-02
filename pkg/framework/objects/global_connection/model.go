@@ -254,17 +254,24 @@ type ApacheSparkConfig struct {
 	Cluster        types.String `tfsdk:"cluster"`
 	ConnectTimeout types.Int64  `tfsdk:"connect_timeout"`
 	ConnectRetries types.Int64  `tfsdk:"connect_retries"`
-	// nullables
+	// nullable
 	Organization types.String `tfsdk:"organization"`
 	User         types.String `tfsdk:"user"`
 	Auth         types.String `tfsdk:"auth"`
 }
-type GlobalConnectionDataSourceModel struct {
-	// TBD, and do we use the same as the for the Resource model?
+
+type GlobalConnectionsDatasourceModel struct {
+	Connections []GlobalConnectionSummary `tfsdk:"connections"`
 }
 
-// func ConvertGlobalConnectionModelToData(
-// 	model GlobalConnectionResourceModel,
-// ) dbt_cloud.Notification {
-// TBD
-// }
+type GlobalConnectionSummary struct {
+	ID                    types.Int64  `tfsdk:"id"`
+	Name                  types.String `tfsdk:"name"`
+	CreatedAt             types.String `tfsdk:"created_at"`
+	UpdatedAt             types.String `tfsdk:"updated_at"`
+	AdapterVersion        types.String `tfsdk:"adapter_version"`
+	PrivateLinkEndpointID types.Int64  `tfsdk:"private_link_endpoint_id"`
+	IsSSHTunnelEnabled    types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
+	OauthConfigurationID  types.Int64  `tfsdk:"oauth_configuration_id"`
+	EnvironmentCount      types.Int64  `tfsdk:"environment__count"`
+}

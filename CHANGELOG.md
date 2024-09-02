@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v1.3.14...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v1.3.15...HEAD)
+
+# [0.3.15](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.14...v0.3.15)
+
+### Changes
+
+- Add a `dbtcloud_projects` (with an "s") datasource to return all the projects along with some information about the warehouse connections and repositories connected to those projects. Loops through the API in case there are more than 100 projects
+  - Along with the `check` block, it can be used to check that there are no duplicate project names for example.
+- Add a datasource for `dbtcloud_global_connection` with the same information as the corresponding resource
+- Add a datasource for `dbtcloud_global_connections` (with an "s"), returning all the connections of an account along with details like the number of environments they are used in. This could be used to check that connections  don't have the same names or that connections are all used by projects.
 
 # [0.3.14](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.13...v0.3.14)
 
