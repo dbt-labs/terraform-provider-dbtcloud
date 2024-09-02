@@ -345,6 +345,13 @@ func (c *GlobalConnectionClient[T]) CreateUpdateEncryption(
 	return &resp.Data, nil
 }
 
+type EmptyConfig struct {
+}
+
+func (EmptyConfig) AdapterVersion() string {
+	return "n/a"
+}
+
 type SnowflakeConfig struct {
 	Account                *string                   `json:"account,omitempty"`
 	Database               *string                   `json:"database,omitempty"`
