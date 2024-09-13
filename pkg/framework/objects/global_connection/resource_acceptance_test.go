@@ -554,6 +554,7 @@ resource dbtcloud_global_connection test {
   redshift = {
     hostname = "test.com"
 	port = 9876
+	dbname = "my_database"
   }
 }
 
@@ -570,9 +571,9 @@ resource dbtcloud_global_connection test {
   redshift = {
     hostname = "test.com"
 	port = 1234
+	dbname = "my_database"
 
 	// optional fields
-	dbname = "my_database"
     ssh_tunnel = {
       username = "user"
       hostname = "host2"
@@ -694,6 +695,7 @@ resource dbtcloud_global_connection test {
   postgres = {
     hostname = "test.com"
 	port = 9876
+	dbname = "my_database"
   }
 }
 
@@ -710,9 +712,9 @@ resource dbtcloud_global_connection test {
   postgres = {
     hostname = "test.com"
 	port = 1234
+	dbname = "my_database"
 
 	// optional fields
-	dbname = "my_database"
     ssh_tunnel = {
       username = "user"
       hostname = "host2"
