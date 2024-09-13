@@ -135,7 +135,7 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 		}
 
 		return nil, fmt.Errorf(
-			"the token is valid but does not have access to the account id %d",
+			"the token is valid but does not have access to the account id %d. This might be due to a lack of permissions or because IP restrictions are in place for the account",
 			*account_id,
 		)
 
