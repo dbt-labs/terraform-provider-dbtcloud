@@ -273,7 +273,7 @@ func (r *globalConnectionResource) Schema(
 						Description: "The port to connect to for this connection. Default=5432",
 					},
 					"dbname": resource_schema.StringAttribute{
-						Optional:    true,
+						Required:    true,
 						Description: "The database name for this connection.",
 					},
 					// for SSH tunnel details
@@ -320,7 +320,7 @@ func (r *globalConnectionResource) Schema(
 						Description: "The port to connect to for this connection. Default=5432",
 					},
 					"dbname": resource_schema.StringAttribute{
-						Optional:    true,
+						Required:    true,
 						Description: "The database name for this connection.",
 					},
 					// for SSH tunnel details

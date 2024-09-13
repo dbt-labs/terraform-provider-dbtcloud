@@ -282,11 +282,11 @@ Optional:
 
 Required:
 
+- `dbname` (String) The database name for this connection.
 - `hostname` (String) The hostname of the database.
 
 Optional:
 
-- `dbname` (String) The database name for this connection.
 - `port` (Number) The port to connect to for this connection. Default=5432
 - `ssh_tunnel` (Attributes) PostgreSQL SSH Tunnel configuration (see [below for nested schema](#nestedatt--postgres--ssh_tunnel))
 
@@ -311,11 +311,11 @@ Read-Only:
 
 Required:
 
+- `dbname` (String) The database name for this connection.
 - `hostname` (String) The hostname of the data warehouse.
 
 Optional:
 
-- `dbname` (String) The database name for this connection.
 - `port` (Number) The port to connect to for this connection. Default=5432
 - `ssh_tunnel` (Attributes) Redshift SSH Tunnel configuration (see [below for nested schema](#nestedatt--redshift--ssh_tunnel))
 

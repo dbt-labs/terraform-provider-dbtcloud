@@ -6,7 +6,6 @@ data dbtcloud_projects my_acme_projects {
 
 // or can return all projects
 data dbtcloud_projects my_projects {
-  name_contains = "acme"
 }
 
 // this can be used to make sure that there are no distinct projects with the same names for example
