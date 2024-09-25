@@ -306,8 +306,12 @@ func resourceConnectionRead(
 	clientSecret := ""
 	if connection.Details.AdapterDetails != nil {
 		httpPath = connection.Details.AdapterDetails.Fields["http_path"].Value.(string)
-		catalog = connection.Details.AdapterDetails.Fields["catalog"].Value.(string)
 		hostName = connection.Details.AdapterDetails.Fields["host"].Value.(string)
+		var ok bool
+		catalog, ok = connection.Details.AdapterDetails.Fields["catalog"].Value.(string)
+		if !ok {
+			catalog = ""
+		}
 		clientID = d.Get("oauth_client_id").(string)
 		clientSecret = d.Get("oauth_client_secret").(string)
 	}
