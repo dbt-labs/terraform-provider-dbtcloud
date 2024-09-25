@@ -72,7 +72,7 @@ resource "dbtcloud_project" "my_project" {
 // create a global connection
 resource "dbtcloud_global_connection" "my_connection" {
   name       = "My Snowflake warehouse"
-  snowflake {  
+  snowflake  = {  
     account    = "my-snowflake-account"
     database   = "MY_DATABASE"
     role       = "MY_ROLE"
