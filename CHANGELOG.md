@@ -2,14 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.16...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.17...HEAD)
+
+# [0.3.17](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.16...v0.3.17)
+
+### Fixes
+
+- [#300](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/300) Panic when reading a DBX legacy connection without a catalog
+- Typo in Getting started guide
+
 
 # [0.3.16](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.15...v0.3.16)
 
 ### Changes
 
 - Make `dbname` required for Redshift and Postgres in `dbtcloud_global_connection`
-
 
 # [0.3.15](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.14...v0.3.15)
 
