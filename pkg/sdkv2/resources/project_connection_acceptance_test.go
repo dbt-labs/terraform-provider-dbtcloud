@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -119,7 +118,9 @@ func testAccCheckDbtCloudProjectConnectionDestroy(s *terraform.State) error {
 			"dbtcloud_project_connection",
 		)
 		if err != nil {
-		
+			return err
+		}
+
 		project, err := apiClient.GetProject(projectId)
 		if project != nil {
 			return fmt.Errorf("Project still exists")
