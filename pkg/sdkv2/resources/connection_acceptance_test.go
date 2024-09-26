@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -587,8 +587,13 @@ func testAccCheckDbtCloudConnectionExists(resource string) resource.TestCheckFun
 		if err != nil {
 			return fmt.Errorf("Issue getting the client")
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
-		connectionId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
+		projectId, connectionId, err := helper.SplitIDToStrings(
+			rs.Primary.ID,
+			"dbtcloud_connection",
+		)
+		if err != nil {
+			return err
+		}
 
 		_, err = apiClient.GetConnection(connectionId, projectId)
 		if err != nil {
@@ -608,10 +613,15 @@ func testAccCheckDbtCloudConnectionDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_connection" {
 			continue
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
-		connectionId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
+		projectId, connectionId, err := helper.SplitIDToStrings(
+			rs.Primary.ID,
+			"dbtcloud_connection",
+		)
+		if err != nil {
+			return err
+		}
 
-		_, err := apiClient.GetConnection(connectionId, projectId)
+		_, err = apiClient.GetConnection(connectionId, projectId)
 		if err == nil {
 			return fmt.Errorf("Connection still exists")
 		}

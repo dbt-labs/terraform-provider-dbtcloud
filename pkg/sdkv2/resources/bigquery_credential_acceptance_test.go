@@ -3,12 +3,11 @@ package resources_test
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -73,13 +72,13 @@ func testAccCheckDbtCloudBigQueryCredentialExists(resource string) resource.Test
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
-		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
+
+		projectId, credentialId, err := helper.SplitIDToInts(
+			rs.Primary.ID,
+			"dbtcloud_bigquery_credential",
+		)
 		if err != nil {
-			return fmt.Errorf("Can't get projectId")
-		}
-		credentialId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
-		if err != nil {
-			return fmt.Errorf("Can't get credentialId")
+			return err
 		}
 
 		apiClient, err := acctest_helper.SharedClient()
@@ -104,13 +103,12 @@ func testAccCheckDbtCloudBigQueryCredentialDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_bigquery_credential" {
 			continue
 		}
-		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
+		projectId, credentialId, err := helper.SplitIDToInts(
+			rs.Primary.ID,
+			"dbtcloud_bigquery_credential",
+		)
 		if err != nil {
-			return fmt.Errorf("Can't get projectId")
-		}
-		credentialId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
-		if err != nil {
-			return fmt.Errorf("Can't get credentialId")
+			return err
 		}
 
 		_, err = apiClient.GetBigQueryCredential(projectId, credentialId)

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -180,9 +181,13 @@ func resourceRepositoryRead(
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
-
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, repositoryIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_repository",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	repository, err := c.GetRepository(repositoryIdString, projectIdString)
 	if err != nil {
@@ -247,8 +252,13 @@ func resourceRepositoryUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, repositoryIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_repository",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	if d.HasChange("is_active") || d.HasChange("pull_request_url_template") {
 		repository, err := c.GetRepository(repositoryIdString, projectIdString)
@@ -286,10 +296,15 @@ func resourceRepositoryDelete(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	repositoryIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, repositoryIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_repository",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	_, err := c.DeleteRepository(repositoryIdString, projectIdString)
+	_, err = c.DeleteRepository(repositoryIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

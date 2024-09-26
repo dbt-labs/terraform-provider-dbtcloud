@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -180,12 +179,7 @@ func resourceEnvironmentRead(
 
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, environmentId, err := helper.SplitIDToInts(d.Id(), "dbtcloud_environment")
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -252,12 +246,10 @@ func resourceEnvironmentUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, environmentId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_environment",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -348,12 +340,10 @@ func resourceEnvironmentDelete(
 
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	environmentId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, environmentId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_environment",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}

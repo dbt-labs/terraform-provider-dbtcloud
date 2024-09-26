@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.17...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.18...HEAD)
+
+# [0.3.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.17...v0.3.18)
+
+### Behind the scenes
+
+- Add better error handling when importing resources like in [#299](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/299)
 
 # [0.3.17](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.16...v0.3.17)
 

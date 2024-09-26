@@ -3,10 +3,10 @@ package resources
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -142,12 +142,10 @@ func resourcePostgresCredentialRead(
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	postgresCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, postgresCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_postgres_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -201,12 +199,10 @@ func resourcePostgresCredentialUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	postgresCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, postgresCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_postgres_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -262,10 +258,15 @@ func resourcePostgresCredentialDelete(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	postgresCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, postgresCredentialIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_postgres_credential",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	_, err := c.DeleteCredential(postgresCredentialIdString, projectIdString)
+	_, err = c.DeleteCredential(postgresCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

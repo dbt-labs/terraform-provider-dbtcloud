@@ -3,10 +3,10 @@ package resources
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -104,12 +104,10 @@ func resourceBigQueryCredentialRead(
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	BigQueryCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, BigQueryCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_bigquery_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -149,12 +147,10 @@ func resourceBigQueryCredentialUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	BigQueryCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, BigQueryCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_bigquery_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -192,10 +188,15 @@ func resourceBigQueryCredentialDelete(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	BigQueryCredentialIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, BigQueryCredentialIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_bigquery_credential",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	_, err := c.DeleteCredential(BigQueryCredentialIdString, projectIdString)
+	_, err = c.DeleteCredential(BigQueryCredentialIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}
