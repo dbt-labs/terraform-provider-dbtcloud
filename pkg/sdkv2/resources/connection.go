@@ -228,8 +228,13 @@ func resourceConnectionRead(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, connectionIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_connection",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	connection, err := c.GetConnection(connectionIdString, projectIdString)
 	if err != nil {
@@ -240,7 +245,6 @@ func resourceConnectionRead(
 		return diag.FromErr(err)
 	}
 
-	// TODO: Remove when done better
 	connection.Details.OAuthClientID = d.Get("oauth_client_id").(string)
 	connection.Details.OAuthClientSecret = d.Get("oauth_client_secret").(string)
 
@@ -347,8 +351,13 @@ func resourceConnectionUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, connectionIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_connection",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	if d.HasChange("name") ||
 		d.HasChange("type") ||
@@ -467,10 +476,15 @@ func resourceConnectionDelete(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, connectionIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_connection",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	_, err := c.DeleteConnection(connectionIdString, projectIdString)
+	_, err = c.DeleteConnection(connectionIdString, projectIdString)
 	if err != nil {
 		return diag.FromErr(err)
 	}

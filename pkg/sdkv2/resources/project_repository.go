@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -80,12 +81,13 @@ func resourceProjectRepositoryRead(
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
-
-	projectID, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
+	projectIDString, _, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_project_repository",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	projectIDString := strconv.Itoa(projectID)
 
 	project, err := c.GetProject(projectIDString)
 	if err != nil {

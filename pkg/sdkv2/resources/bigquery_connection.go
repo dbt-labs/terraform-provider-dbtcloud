@@ -312,8 +312,13 @@ func resourceBigQueryConnectionRead(
 
 	var diags diag.Diagnostics
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, connectionIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"dbtcloud_bigquery_connection",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	connection, err := c.GetBigQueryConnection(connectionIdString, projectIdString)
 	if err != nil {
@@ -407,8 +412,13 @@ func resourceBigQueryConnectionUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0]
-	connectionIdString := strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1]
+	projectIdString, connectionIdString, err := helper.SplitIDToStrings(
+		d.Id(),
+		"bigquery_connection",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	if d.HasChange("name") ||
 		d.HasChange("type") ||

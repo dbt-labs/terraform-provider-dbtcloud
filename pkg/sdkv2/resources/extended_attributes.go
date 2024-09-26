@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -104,13 +104,10 @@ func resourceExtendedAttributesRead(
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
-
-	projectID, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	extendedAttributesID, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectID, extendedAttributesID, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_extended_attributes",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -164,12 +161,10 @@ func resourceExtendedAttributesUpdate(
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	extendedAttributesId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, extendedAttributesId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_extended_attributes",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -216,12 +211,10 @@ func resourceExtendedAttributesDelete(
 
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	extendedAttributesId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, extendedAttributesId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_extended_attributes",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}

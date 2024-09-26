@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -159,9 +159,13 @@ func testAccCheckDbtCloudRepositoryExists(resource string) resource.TestCheckFun
 		if err != nil {
 			return fmt.Errorf("Issue getting the client")
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
-		repositoryId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
-
+		projectId, repositoryId, err := helper.SplitIDToStrings(
+			rs.Primary.ID,
+			"dbtcloud_repository",
+		)
+		if err != nil {
+			return err
+		}
 		_, err = apiClient.GetRepository(repositoryId, projectId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
@@ -180,10 +184,14 @@ func testAccCheckDbtCloudRepositoryDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_repository" {
 			continue
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
-		repositoryId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1]
-
-		_, err := apiClient.GetRepository(repositoryId, projectId)
+		projectId, repositoryId, err := helper.SplitIDToStrings(
+			rs.Primary.ID,
+			"dbtcloud_repository",
+		)
+		if err != nil {
+			return err
+		}
+		_, err = apiClient.GetRepository(repositoryId, projectId)
 		if err == nil {
 			return fmt.Errorf("Repository still exists")
 		}

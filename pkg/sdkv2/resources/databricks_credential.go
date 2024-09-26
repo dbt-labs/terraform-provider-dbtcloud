@@ -3,10 +3,10 @@ package resources
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -135,13 +135,10 @@ func resourceDatabricksCredentialRead(
 
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
-
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	databricksCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, databricksCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_databricks_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -189,13 +186,10 @@ func resourceDatabricksCredentialUpdate(
 	m interface{},
 ) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
-
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	databricksCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, databricksCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_databricks_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -317,11 +311,10 @@ func resourceDatabricksCredentialDelete(
 
 	var diags diag.Diagnostics
 
-	projectId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[0])
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	databricksCredentialId, err := strconv.Atoi(strings.Split(d.Id(), dbt_cloud.ID_DELIMITER)[1])
+	projectId, databricksCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_databricks_credential",
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}

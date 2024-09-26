@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -120,7 +119,7 @@ func testAccCheckDbtCloudProjectArtefactsExists(resource string) resource.TestCh
 		if err != nil {
 			return fmt.Errorf("Issue getting the client")
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
+		projectId := rs.Primary.ID
 		project, err := apiClient.GetProject(projectId)
 		if err != nil {
 			return fmt.Errorf("Can't get project")
@@ -172,7 +171,7 @@ func testAccCheckDbtCloudProjectArtefactsDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_project_artefacts" {
 			continue
 		}
-		projectId := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0]
+		projectId := rs.Primary.ID
 		project, err := apiClient.GetProject(projectId)
 		if project != nil {
 			return fmt.Errorf("Project still exists")
