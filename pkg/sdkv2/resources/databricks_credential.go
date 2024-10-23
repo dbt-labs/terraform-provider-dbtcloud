@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -18,6 +19,10 @@ var (
 		"spark",
 	}
 )
+
+func isLegacyDatabricksConnection(d *schema.ResourceData) bool {
+	return d.Get("adapter_id").(int) != 0
+}
 
 func ResourceDatabricksCredential() *schema.Resource {
 	return &schema.Resource{
@@ -35,8 +40,9 @@ func ResourceDatabricksCredential() *schema.Resource {
 			},
 			"adapter_id": {
 				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "Databricks adapter ID for the credential",
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection`)",
 			},
 			"credential_id": {
 				Type:        schema.TypeInt,
@@ -48,6 +54,7 @@ func ResourceDatabricksCredential() *schema.Resource {
 				Optional:    true,
 				Default:     "default",
 				Description: "Target name",
+				Deprecated:  "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 			},
 			"token": {
 				Type:        schema.TypeString,
@@ -69,6 +76,7 @@ func ResourceDatabricksCredential() *schema.Resource {
 			"adapter_type": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				Description:  "The type of the adapter (databricks or spark)",
 				ValidateFunc: validation.StringInSlice(adapterTypes, false),
 			},
@@ -81,6 +89,18 @@ func ResourceDatabricksCredential() *schema.Resource {
 }
 
 func resourceDatabricksCredentialCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	if isLegacyDatabricksConnection(d) {
+		return resourceDatabricksCredentialCreateLegacy(ctx, d, m)
+	} else {
+		return resourceDatabricksCredentialCreateGlobConn(ctx, d, m)
+	}
+}
+
+func resourceDatabricksCredentialCreateLegacy(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
@@ -98,7 +118,7 @@ func resourceDatabricksCredentialCreate(
 	schema := d.Get("schema").(string)
 	adapterType := d.Get("adapter_type").(string)
 
-	databricksCredential, err := c.CreateDatabricksCredential(
+	databricksCredential, err := c.CreateDatabricksCredentialLegacy(
 		projectId,
 		"adapter",
 		targetName,
@@ -107,6 +127,56 @@ func resourceDatabricksCredentialCreate(
 		catalog,
 		schema,
 		adapterType,
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(
+		fmt.Sprintf(
+			"%d%s%d",
+			databricksCredential.Project_Id,
+			dbt_cloud.ID_DELIMITER,
+			*databricksCredential.ID,
+		),
+	)
+
+	resourceDatabricksCredentialRead(ctx, d, m)
+
+	return diags
+}
+
+func resourceDatabricksCredentialCreateGlobConn(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
+
+	var diags diag.Diagnostics
+
+	projectId := d.Get("project_id").(int)
+	targetName := d.Get("target_name").(string)
+	token := d.Get("token").(string)
+	catalog := d.Get("catalog").(string)
+	schema := d.Get("schema").(string)
+	adapterType := d.Get("adapter_type").(string)
+
+	// for now, just supporting databricks
+	if adapterType == "spark" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Spark adapter is not supported currently for global connections credentials. Please raise a GitHub issue if you need it",
+		})
+		return diags
+	}
+
+	databricksCredential, err := c.CreateDatabricksCredential(
+		projectId,
+		token,
+		schema,
+		targetName,
+		catalog,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -181,6 +251,18 @@ func resourceDatabricksCredentialRead(
 }
 
 func resourceDatabricksCredentialUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	if isLegacyDatabricksConnection(d) {
+		return resourceDatabricksCredentialUpdateLegacy(ctx, d, m)
+	} else {
+		return resourceDatabricksCredentialUpdateGlobConn(ctx, d, m)
+	}
+}
+
+func resourceDatabricksCredentialUpdateLegacy(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
@@ -289,7 +371,7 @@ func resourceDatabricksCredentialUpdate(
 
 		databricksCredential.Credential_Details = credentialDetails
 
-		_, err = c.UpdateDatabricksCredential(
+		_, err = c.UpdateDatabricksCredentialLegacy(
 			projectId,
 			databricksCredentialId,
 			*databricksCredential,
@@ -302,7 +384,70 @@ func resourceDatabricksCredentialUpdate(
 	return resourceDatabricksCredentialRead(ctx, d, m)
 }
 
+func resourceDatabricksCredentialUpdateGlobConn(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
+	projectId, databricksCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_databricks_credential",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if d.HasChange("token") ||
+		d.HasChange("target_name") ||
+		d.HasChange("catalog") ||
+		d.HasChange("schema") {
+
+		patchCredentialsDetails, err := dbt_cloud.GenerateDatabricksCredentialDetails(
+			d.Get("token").(string),
+			d.Get("schema").(string),
+			d.Get("target_name").(string),
+			d.Get("catalog").(string),
+		)
+
+		for key, _ := range patchCredentialsDetails.Fields {
+			if d.Get(key) == nil || !d.HasChange(key) {
+				delete(patchCredentialsDetails.Fields, key)
+			}
+		}
+
+		databricksPatch := dbt_cloud.DatabricksCredentialGLobConnPatch{
+			ID:                databricksCredentialId,
+			CredentialDetails: patchCredentialsDetails,
+		}
+
+		_, err = c.UpdateDatabricksCredentialGlobConn(
+			projectId,
+			databricksCredentialId,
+			databricksPatch,
+		)
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	return resourceDatabricksCredentialRead(ctx, d, m)
+}
+
 func resourceDatabricksCredentialDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	if isLegacyDatabricksConnection(d) {
+		return resourceDatabricksCredentialDeleteLegacy(ctx, d, m)
+	} else {
+		return resourceDatabricksCredentialDeleteGlobConn(ctx, d, m)
+	}
+}
+
+func resourceDatabricksCredentialDeleteLegacy(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
@@ -363,7 +508,39 @@ func resourceDatabricksCredentialDelete(
 
 	databricksCredential.Credential_Details = credentialDetails
 
-	_, err = c.UpdateDatabricksCredential(projectId, databricksCredentialId, *databricksCredential)
+	_, err = c.UpdateDatabricksCredentialLegacy(
+		projectId,
+		databricksCredentialId,
+		*databricksCredential,
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diags
+}
+
+func resourceDatabricksCredentialDeleteGlobConn(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	c := m.(*dbt_cloud.Client)
+
+	var diags diag.Diagnostics
+
+	projectId, databricksCredentialId, err := helper.SplitIDToInts(
+		d.Id(),
+		"dbtcloud_databricks_credential",
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	_, err = c.DeleteCredential(
+		strconv.Itoa(databricksCredentialId),
+		strconv.Itoa(projectId),
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}

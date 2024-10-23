@@ -13,11 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
+func TestAccDbtCloudDatabricksCredentialResourceLegacy(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	targetName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -25,7 +27,7 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfig(
+				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
 					projectName,
 					targetName,
 					token,
@@ -43,6 +45,28 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 			},
 			// RENAME
 			// MODIFY
+			{
+				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
+					projectName,
+					targetName2,
+					token2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"target_name",
+						targetName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"token",
+						token2,
+					),
+				),
+			},
 			// IMPORT
 			{
 				ResourceName:            "dbtcloud_databricks_credential.test_credential",
@@ -54,7 +78,7 @@ func TestAccDbtCloudDatabricksCredentialResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudDatabricksCredentialResourceBasicConfig(
+func testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
 	projectName, targetName, token string,
 ) string {
 	return fmt.Sprintf(`
@@ -70,12 +94,117 @@ resource "dbtcloud_connection" "databricks" {
 	http_path  = "/my/path"
 	catalog    = "moo"
   }
+
+resource "dbtcloud_databricks_credential" "test_credential" {
+	project_id = dbtcloud_project.test_project.id
+	adapter_id = dbtcloud_connection.databricks.adapter_id
+	target_name = "%s"
+	token = "%s"
+	schema = "my_schema"
+	adapter_type = "databricks"
+}
+`, projectName, targetName, token)
+}
+
+func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	catalog := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
+					projectName,
+					catalog,
+					token,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"catalog",
+						catalog,
+					),
+				),
+			},
+			// RENAME
+			// MODIFY
+			{
+				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
+					projectName,
+					"",
+					token2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"catalog",
+						"",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential",
+						"token",
+						token2,
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_databricks_credential.test_credential",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"token", "adapter_type"},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
+	projectName, targetName, token string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_global_connection" "databricks" {
+  name = "My Databricks connection"
+  databricks = {
+    host      = "my-databricks-host.cloud.databricks.com"
+    http_path = "/sql/my/http/path"
+    catalog       = "dbt_catalog"
+    client_id     = "yourclientid"
+    client_secret = "yourclientsecret"
+  }
+}
+
+resource "dbtcloud_environment" "prod_environment" {
+  dbt_version     = "versionless"
+  name            = "Prod"
+  project_id      = dbtcloud_project.test_project.id
+  connection_id   = dbtcloud_global_connection.databricks.id
+  type            = "deployment"
+  credential_id   = dbtcloud_databricks_credential.test_credential.credential_id
+  deployment_type = "production"
+}
+
+
 resource "dbtcloud_databricks_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = dbtcloud_connection.databricks.adapter_id
-    target_name = "%s"
-    token = "%s"
-    schema = "my_schema"
+    catalog = "%s"
+    token   = "%s"
+    schema  = "my_schema"
 	adapter_type = "databricks"
 }
 `, projectName, targetName, token)
