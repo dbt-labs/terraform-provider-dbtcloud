@@ -78,6 +78,7 @@ type Job struct {
 	Execution              JobExecution          `json:"execution"`
 	TriggersOnDraftPR      bool                  `json:"triggers_on_draft_pr"`
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
+	RunCompareChanges      bool                  `json:"run_compare_changes"`
 }
 
 type JobWithEnvironment struct {
@@ -133,6 +134,7 @@ func (c *Client) CreateJob(
 	timeoutSeconds int,
 	triggersOnDraftPR bool,
 	jobCompletionTriggerCondition map[string]any,
+	runCompareChanges bool,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -232,6 +234,7 @@ func (c *Client) CreateJob(
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
 		JobType:              jobType,
+		RunCompareChanges:    runCompareChanges,
 	}
 	if dbtVersion != "" {
 		newJob.Dbt_Version = &dbtVersion

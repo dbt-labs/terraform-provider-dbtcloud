@@ -198,6 +198,13 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining').",
 	},
+	"run_compare_changes": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Default:  false,
+		// Once on the plugin framework, put a validation to check that `deferring_environment_id` is set
+		Description: "Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -390,6 +397,9 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 			return diag.FromErr(err)
 		}
 	}
+	if err := d.Set("run_compare_changes", job.RunCompareChanges); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -426,6 +436,7 @@ func resourceJobCreate(
 	selfDeferring := d.Get("self_deferring").(bool)
 	timeoutSeconds := d.Get("timeout_seconds").(int)
 	triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
+	runCompareChanges := d.Get("run_compare_changes").(bool)
 
 	var jobCompletionTrigger map[string]any
 	empty, completionJobID, completionProjectID, completionStatuses := utils.ExtractJobConditionSet(
@@ -476,6 +487,7 @@ func resourceJobCreate(
 		timeoutSeconds,
 		triggersOnDraftPR,
 		jobCompletionTrigger,
+		runCompareChanges,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -516,8 +528,9 @@ func resourceJobUpdate(
 		d.HasChange("deferring_environment_id") ||
 		d.HasChange("self_deferring") ||
 		d.HasChange("timeout_seconds") ||
-		d.HasChange("triggers_on_drat_pr") ||
-		d.HasChange("job_completion_trigger_condition") {
+		d.HasChange("triggers_on_draft_pr") ||
+		d.HasChange("job_completion_trigger_condition") ||
+		d.HasChange("run_compare_changes") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -689,6 +702,10 @@ func resourceJobUpdate(
 				}
 				job.JobCompletionTrigger = &jobCondTrigger
 			}
+		}
+		if d.HasChange("run_compare_changes") {
+			runCompareChanges := d.Get("run_compare_changes").(bool)
+			job.RunCompareChanges = runCompareChanges
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

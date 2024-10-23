@@ -52,8 +52,9 @@ func ResourceEnvironment() *schema.Resource {
 			},
 			"dbt_version": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. In a future version of the provider `versionless` will be the default if no version is provided",
+				Optional:    true,
+				Default:     "versionless",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. Defaults to`versionless` if no version is provided",
 			},
 			"type": {
 				Type:        schema.TypeString,

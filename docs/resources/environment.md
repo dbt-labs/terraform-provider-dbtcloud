@@ -22,7 +22,7 @@ This version of the provider has the `connection_id` as an optional field but it
 
 ```terraform
 resource "dbtcloud_environment" "ci_environment" {
-  // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (Beta on 15 Feb 2024, to always be on the latest dbt version)
+  // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (by default, it is set to versionless if not configured)
   dbt_version   = "versionless"
   name          = "CI"
   project_id    = dbtcloud_project.dbt_project.id
@@ -48,7 +48,7 @@ resource "dbtcloud_environment" "dev_environment" {
   name        = "Dev"
   project_id  = dbtcloud_project.dbt_project.id
   type        = "development"
-  connection_id = dbtcloud_global_connection.my_other_global_connection
+  connection_id = dbtcloud_global_connection.my_other_global_connection.id
 }
 ```
 
@@ -57,7 +57,6 @@ resource "dbtcloud_environment" "dev_environment" {
 
 ### Required
 
-- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. In a future version of the provider `versionless` will be the default if no version is provided
 - `name` (String) Environment name
 - `project_id` (Number) Project ID to create the environment in
 - `type` (String) The type of environment (must be either development or deployment)
@@ -71,6 +70,7 @@ resource "dbtcloud_environment" "dev_environment" {
   - To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project
 - `credential_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
 - `custom_branch` (String) Which custom branch to use in this environment
+- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. Defaults to`versionless` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
 - `extended_attributes_id` (Number) ID of the extended attributes for the environment
 - `is_active` (Boolean) Whether the environment is active

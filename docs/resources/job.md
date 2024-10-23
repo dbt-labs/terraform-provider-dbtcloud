@@ -122,6 +122,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
 - `job_completion_trigger_condition` (Block Set, Max: 1) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `num_threads` (Number) Number of threads to use in the job
+- `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
 - `run_generate_sources` (Boolean) Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.
 - `schedule_cron` (String) Custom cron expression for schedule
 - `schedule_days` (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule

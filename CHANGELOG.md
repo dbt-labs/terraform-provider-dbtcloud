@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.18...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.19...HEAD)
+
+# [0.3.19](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.18...v0.3.19)
+
+### Fixes
+
+- Allow defining some `dbtcloud_databricks_credential` when using global connections which don't generate an `adapter_id` (seed docs for the resource for more details)
+
+### Changes
+
+- Add the ability to compare changes in a `dbtcloud_job` resource
+- Add deprecation notice for `target_name` in `dbtcloud_databricks_credential` as those can't be set in the UI
+- Make `versionless` the default version for environments, but can still be changed
 
 # [0.3.18](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.17...v0.3.18)
 

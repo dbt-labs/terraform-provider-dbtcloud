@@ -29,6 +29,7 @@ description: |-
 - `id` (String) The ID of this resource.
 - `job_completion_trigger_condition` (Set of Object) Which other job should trigger this job when it finishes, and on which conditions. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
 - `name` (String) Given name for the job
+- `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code change in the PR.
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
 - `timeout_seconds` (Number) Number of seconds before the job times out
 - `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge
