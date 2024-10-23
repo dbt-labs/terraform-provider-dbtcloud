@@ -66,4 +66,5 @@ type JobDataSourceModel struct {
 	TriggersOnDraftPr             types.Bool            `tfsdk:"triggers_on_draft_pr"`
 	Environment                   JobEnvironment        `tfsdk:"environment"`
 	JobCompletionTriggerCondition *JobCompletionTrigger `tfsdk:"job_completion_trigger_condition"`
+	RunCompareChanges             types.Bool            `tfsdk:"run_compare_changes"`
 }

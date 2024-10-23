@@ -61,6 +61,7 @@ Read-Only:
 - `job_type` (String) The type of job (e.g. CI, scheduled)
 - `name` (String) The name of the job
 - `project_id` (Number) The ID of the project
+- `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR
 - `run_generate_sources` (Boolean) Whether the job test source freshness
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--jobs--schedule))
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))

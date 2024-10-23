@@ -77,6 +77,10 @@ func (d *jobsDataSource) Schema(
 							Computed:    true,
 							Description: "Whether the job test source freshness",
 						},
+						"run_compare_changes": schema.BoolAttribute{
+							Computed:    true,
+							Description: "Whether the job should compare data changes introduced by the code change in the PR",
+						},
 						"id": schema.Int64Attribute{
 							Computed:    true,
 							Description: "The ID of the job",

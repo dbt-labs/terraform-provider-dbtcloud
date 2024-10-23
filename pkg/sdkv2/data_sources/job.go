@@ -98,6 +98,11 @@ var jobSchema = map[string]*schema.Schema{
 		},
 		Description: "Which other job should trigger this job when it finishes, and on which conditions.",
 	},
+	"run_compare_changes": {
+		Type:        schema.TypeBool,
+		Computed:    true,
+		Description: "Whether the CI job should compare data changes introduced by the code change in the PR.",
+	},
 }
 
 func DatasourceJob() *schema.Resource {
@@ -183,6 +188,9 @@ func datasourceJobRead(
 		if err := d.Set("job_completion_trigger_condition", triggerConditionSet); err != nil {
 			return diag.FromErr(err)
 		}
+	}
+	if err := d.Set("run_compare_changes", job.RunCompareChanges); err != nil {
+		return diag.FromErr(err)
 	}
 
 	d.SetId(jobId)

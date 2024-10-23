@@ -580,9 +580,17 @@ func testAccDbtCloudJobResourceBasicConfigTriggers(
 	git_trigger := "false"
 	schedule_trigger := "false"
 	on_merge_trigger := "false"
+	run_compare_changes := "false"
+	deferringConfig := ""
 
 	if trigger == "git" {
 		git_trigger = "true"
+		deferringConfig = "deferring_environment_id = dbtcloud_environment.test_job_environment.environment_id"
+		if !isDbtCloudPR() {
+			// we don't want to activate it in Cloud PRs as the setting need to be ON
+			// TODO: When TF supports account settings, activate the setting in this test and remove this logic
+			run_compare_changes = "true"
+		}
 	}
 	if trigger == "schedule" {
 		schedule_trigger = "true"
@@ -600,7 +608,7 @@ resource "dbtcloud_environment" "test_job_environment" {
     project_id = dbtcloud_project.test_job_project.id
     name = "%s"
     dbt_version = "%s"
-    type = "development"
+    type = "deployment"
 }
 
 resource "dbtcloud_job" "test_job" {
@@ -616,8 +624,10 @@ resource "dbtcloud_job" "test_job" {
     "schedule": %s,
 	"on_merge": %s
   }
+  run_compare_changes = %s
+  %s
 }
-`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger, run_compare_changes, deferringConfig)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
