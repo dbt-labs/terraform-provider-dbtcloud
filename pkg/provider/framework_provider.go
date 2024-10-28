@@ -11,6 +11,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
@@ -200,5 +201,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		group.GroupResource,
 		service_token.ServiceTokenResource,
 		global_connection.GlobalConnectionResource,
+		lineage_integration.LineageIntegrationResource,
 	}
 }

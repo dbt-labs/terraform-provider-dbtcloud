@@ -56,7 +56,7 @@ func (d *globalConnectionsDataSource) Read(
 		currentConnection.CreatedAt = types.StringValue(connection.CreatedAt)
 		currentConnection.UpdatedAt = types.StringValue(connection.UpdatedAt)
 		currentConnection.AdapterVersion = types.StringValue(connection.AdapterVersion)
-		currentConnection.PrivateLinkEndpointID = types.Int64PointerValue(
+		currentConnection.PrivateLinkEndpointID = types.StringPointerValue(
 			connection.PrivateLinkEndpointID,
 		)
 		currentConnection.IsSSHTunnelEnabled = types.BoolValue(connection.IsSSHTunnelEnabled)

@@ -22,6 +22,12 @@ var projectSchema = map[string]*schema.Schema{
 		Optional:    true,
 		Description: "Given name for project",
 	},
+	"description": {
+		Type:        schema.TypeString,
+		Computed:    true,
+		Optional:    true,
+		Description: "The description of the project",
+	},
 	"connection_id": {
 		Type:        schema.TypeInt,
 		Computed:    true,
@@ -57,7 +63,11 @@ func DatasourceProject() *schema.Resource {
 	}
 }
 
-func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func datasourceProjectRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -67,7 +77,9 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 		projectId := strconv.Itoa(d.Get("project_id").(int))
 
 		if _, ok := d.GetOk("name"); ok {
-			return diag.FromErr(fmt.Errorf("Both project_id and name were provided, only one is allowed"))
+			return diag.FromErr(
+				fmt.Errorf("both project_id and name were provided, only one is allowed"),
+			)
 		}
 
 		var err error
@@ -86,13 +98,16 @@ func datasourceProjectRead(ctx context.Context, d *schema.ResourceData, m interf
 		}
 
 	} else {
-		return diag.FromErr(fmt.Errorf("Either project_id or name must be provided"))
+		return diag.FromErr(fmt.Errorf("either project_id or name must be provided"))
 	}
 
 	if err := d.Set("project_id", project.ID); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", project.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("description", project.Description); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("connection_id", project.ConnectionID); err != nil {

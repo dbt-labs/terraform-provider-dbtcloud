@@ -36,5 +36,5 @@ Read-Only:
 - `is_ssh_tunnel_enabled` (Boolean)
 - `name` (String) Connection name
 - `oauth_configuration_id` (Number)
-- `private_link_endpoint_id` (Number) Private Link Endpoint ID.
+- `private_link_endpoint_id` (String) Private Link Endpoint ID.
 - `updated_at` (String) When the connection was updated

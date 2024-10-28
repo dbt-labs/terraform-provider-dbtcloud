@@ -270,7 +270,7 @@ type GlobalConnectionSummary struct {
 	CreatedAt             types.String `tfsdk:"created_at"`
 	UpdatedAt             types.String `tfsdk:"updated_at"`
 	AdapterVersion        types.String `tfsdk:"adapter_version"`
-	PrivateLinkEndpointID types.Int64  `tfsdk:"private_link_endpoint_id"`
+	PrivateLinkEndpointID types.String `tfsdk:"private_link_endpoint_id"`
 	IsSSHTunnelEnabled    types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
 	OauthConfigurationID  types.Int64  `tfsdk:"oauth_configuration_id"`
 	EnvironmentCount      types.Int64  `tfsdk:"environment__count"`

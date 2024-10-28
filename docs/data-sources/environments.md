@@ -33,6 +33,7 @@ Read-Only:
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment.
 - `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)
+- `enable_model_query_history` (Boolean) Whether model query history is on
 - `environment_id` (Number) The ID of the environment
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `name` (String) The name of the environment

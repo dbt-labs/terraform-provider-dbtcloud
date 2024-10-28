@@ -32,6 +32,11 @@ func TestAccDbtCloudEnvironmentDataSource(t *testing.T) {
 			"custom_branch",
 			"customBranchName",
 		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environment.test",
+			"enable_model_query_history",
+			"true",
+		),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,6 +63,7 @@ func environment(projectName, environmentName string) string {
         type = "development"
         use_custom_branch = true
         custom_branch = "customBranchName"
+		enable_model_query_history = true
     }
 
     data "dbtcloud_environment" "test" {

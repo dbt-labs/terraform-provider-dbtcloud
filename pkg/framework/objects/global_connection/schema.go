@@ -1068,7 +1068,7 @@ func (r *globalConnectionsDataSource) Schema(
 							Computed:    true,
 							Description: "Type of adapter used for the connection",
 						},
-						"private_link_endpoint_id": datasource_schema.Int64Attribute{
+						"private_link_endpoint_id": datasource_schema.StringAttribute{
 							Computed:    true,
 							Description: "Private Link Endpoint ID.",
 						},

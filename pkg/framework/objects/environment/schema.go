@@ -59,6 +59,10 @@ func (r *environmentDataSource) Schema(
 				Computed:    true,
 				Description: "A connection ID (used with Global Connections)",
 			},
+			"enable_model_query_history": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Whether model query history is on",
+			},
 		},
 	}
 }
@@ -123,6 +127,10 @@ func (r *environmentsDataSources) Schema(
 						"connection_id": schema.Int64Attribute{
 							Computed:    true,
 							Description: "A connection ID (used with Global Connections)",
+						},
+						"enable_model_query_history": schema.BoolAttribute{
+							Computed:    true,
+							Description: "Whether model query history is on",
 						},
 					},
 				},

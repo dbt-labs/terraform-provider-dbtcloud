@@ -33,6 +33,7 @@ data "dbtcloud_project" "test_project" {
 
 ### Optional
 
+- `description` (String) The description of the project
 - `name` (String) Given name for project
 - `project_id` (Number) ID of the project to represent
 

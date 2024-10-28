@@ -16,6 +16,12 @@ var projectSchema = map[string]*schema.Schema{
 		Required:    true,
 		Description: "Project name",
 	},
+	"description": {
+		Type:        schema.TypeString,
+		Optional:    true,
+		Default:     "",
+		Description: "Description for the project. Will show in dbt Explorer.",
+	},
 	"dbt_project_subdirectory": {
 		Type:        schema.TypeString,
 		Optional:    true,
@@ -37,7 +43,11 @@ func ResourceProject() *schema.Resource {
 	}
 }
 
-func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
@@ -56,6 +66,9 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if err := d.Set("name", project.Name); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("description", project.Description); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("dbt_project_subdirectory", project.DbtProjectSubdirectory); err != nil {
 		return diag.FromErr(err)
 	}
@@ -63,15 +76,20 @@ func resourceProjectRead(ctx context.Context, d *schema.ResourceData, m interfac
 	return diags
 }
 
-func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 
 	var diags diag.Diagnostics
 
 	name := d.Get("name").(string)
+	description := d.Get("description").(string)
 	dbtProjectSubdirectory := d.Get("dbt_project_subdirectory").(string)
 
-	p, err := c.CreateProject(name, dbtProjectSubdirectory)
+	p, err := c.CreateProject(name, description, dbtProjectSubdirectory)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -83,11 +101,16 @@ func resourceProjectCreate(ctx context.Context, d *schema.ResourceData, m interf
 	return diags
 }
 
-func resourceProjectUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	projectID := d.Id()
 
-	if d.HasChange("name") || d.HasChange("dbt_project_subdirectory") {
+	if d.HasChange("name") || d.HasChange("description") ||
+		d.HasChange("dbt_project_subdirectory") {
 		project, err := c.GetProject(projectID)
 		if err != nil {
 			return diag.FromErr(err)
@@ -96,6 +119,10 @@ func resourceProjectUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		if d.HasChange("name") {
 			name := d.Get("name").(string)
 			project.Name = name
+		}
+		if d.HasChange("description") {
+			description := d.Get("description").(string)
+			project.Description = description
 		}
 		if d.HasChange("dbt_project_subdirectory") {
 			dbtProjectSubdirectory := d.Get("dbt_project_subdirectory").(string)
@@ -111,7 +138,11 @@ func resourceProjectUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	return resourceProjectRead(ctx, d, m)
 }
 
-func resourceProjectDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceProjectDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	c := m.(*dbt_cloud.Client)
 	projectID := d.Id()
 

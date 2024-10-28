@@ -6,16 +6,16 @@ import (
 )
 
 type GlobalConnectionSummary struct {
-	ID                    int64  `json:"id"`
-	CreatedAt             string `json:"created_at"`
-	UpdatedAt             string `json:"updated_at"`
-	AccountID             int64  `json:"account_id"`
-	Name                  string `json:"name"`
-	AdapterVersion        string `json:"adapter_version"`
-	PrivateLinkEndpointID *int64 `json:"private_link_endpoint_id"`
-	IsSSHTunnelEnabled    bool   `json:"is_ssh_tunnel_enabled"`
-	OauthConfigurationID  *int64 `json:"oauth_configuration_id"`
-	EnvironmentCount      int64  `json:"environment__count"`
+	ID                    int64   `json:"id"`
+	CreatedAt             string  `json:"created_at"`
+	UpdatedAt             string  `json:"updated_at"`
+	AccountID             int64   `json:"account_id"`
+	Name                  string  `json:"name"`
+	AdapterVersion        string  `json:"adapter_version"`
+	PrivateLinkEndpointID *string `json:"private_link_endpoint_id"`
+	IsSSHTunnelEnabled    bool    `json:"is_ssh_tunnel_enabled"`
+	OauthConfigurationID  *int64  `json:"oauth_configuration_id"`
+	EnvironmentCount      int64   `json:"environment__count"`
 }
 
 func (c *Client) GetAllConnections() ([]GlobalConnectionSummary, error) {

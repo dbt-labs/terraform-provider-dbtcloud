@@ -34,6 +34,7 @@ type Environment struct {
 	DeploymentType               *string              `json:"deployment_type,omitempty"`
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
 	ConnectionID                 *int                 `json:"connection_id,omitempty"`
+	EnableModelQueryHistory      bool                 `json:"enable_model_query_history,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -79,6 +80,7 @@ func (c *Client) CreateEnvironment(
 	deploymentType string,
 	extendedAttributesID int,
 	connectionID int,
+	enableModelQueryHistory bool,
 ) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -86,13 +88,14 @@ func (c *Client) CreateEnvironment(
 	}
 
 	newEnvironment := Environment{
-		State:             state,
-		Account_Id:        c.AccountID,
-		Project_Id:        projectId,
-		Name:              name,
-		Dbt_Version:       dbtVersion,
-		Type:              type_,
-		Use_Custom_Branch: useCustomBranch,
+		State:                   state,
+		Account_Id:              c.AccountID,
+		Project_Id:              projectId,
+		Name:                    name,
+		Dbt_Version:             dbtVersion,
+		Type:                    type_,
+		Use_Custom_Branch:       useCustomBranch,
+		EnableModelQueryHistory: enableModelQueryHistory,
 	}
 	if credentialId != 0 {
 		newEnvironment.Credential_Id = &credentialId
