@@ -15,6 +15,7 @@ import (
 func TestAccDbtCloudProjectResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectDescription := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -47,7 +48,7 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 			},
 			// MODIFY
 			{
-				Config: testAccDbtCloudProjectResourceFullConfig(projectName2),
+				Config: testAccDbtCloudProjectResourceFullConfig(projectName2, projectDescription),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
 					resource.TestCheckResourceAttr(
@@ -81,13 +82,17 @@ resource "dbtcloud_project" "test_project" {
 `, projectName)
 }
 
-func testAccDbtCloudProjectResourceFullConfig(projectName string) string {
+func testAccDbtCloudProjectResourceFullConfig(
+	projectName string,
+	projectDescription string,
+) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
+  description = "%s"
   dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
 }
-`, projectName)
+`, projectName, projectDescription)
 }
 
 func testAccCheckDbtCloudProjectExists(resource string) resource.TestCheckFunc {
