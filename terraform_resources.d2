@@ -2,7 +2,7 @@
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v0.3.13)
+  # Terraform resources (v0.3.20)
 | {near: top-center}
 
 direction: right
@@ -79,6 +79,7 @@ global_connection -- privatelink_endpoint
 environment -- env_creds
 conns -- privatelink_endpoint
 project -- project_repository
+lineage_integration -- project
 project_repository -- repository
 environment -- environment_variable
 environment -- extended_attributes
