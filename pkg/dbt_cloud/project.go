@@ -11,9 +11,10 @@ import (
 type Project struct {
 	ID                     *int    `json:"id,omitempty"`
 	Name                   string  `json:"name"`
+	Description            string  `json:"description"`
 	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory,omitempty"`
-	ConnectionID           *int    `json:"connection_id,integer,omitempty"`
-	RepositoryID           *int    `json:"repository_id,integer,omitempty"`
+	ConnectionID           *int    `json:"connection_id,omitempty"`
+	RepositoryID           *int    `json:"repository_id,omitempty"`
 	State                  int     `json:"state"`
 	AccountID              int     `json:"account_id"`
 	FreshnessJobId         *int    `json:"freshness_job_id"`
@@ -147,11 +148,16 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 	return &projectResponse.Data, nil
 }
 
-func (c *Client) CreateProject(name string, dbtProjectSubdirectory string) (*Project, error) {
+func (c *Client) CreateProject(
+	name string,
+	description string,
+	dbtProjectSubdirectory string,
+) (*Project, error) {
 	newProject := Project{
-		Name:      name,
-		State:     STATE_ACTIVE,
-		AccountID: c.AccountID,
+		Name:        name,
+		Description: description,
+		State:       STATE_ACTIVE,
+		AccountID:   c.AccountID,
 	}
 	if dbtProjectSubdirectory != "" {
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory

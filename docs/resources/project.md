@@ -16,6 +16,10 @@ description: |-
 resource "dbtcloud_project" "dbt_project" {
   name = "Analytics"
 }
+resource "dbtcloud_project" "dbt_project_with_description" {
+  name = "Analytics with description"
+  description = "My awesome analytics project"
+}
 
 resource "dbtcloud_project" "dbt_project_with_subdir" {
   name                     = "Analytics in Subdir"
@@ -33,6 +37,7 @@ resource "dbtcloud_project" "dbt_project_with_subdir" {
 ### Optional
 
 - `dbt_project_subdirectory` (String) dbt project subdirectory path
+- `description` (String) Description for the project. Will show in dbt Explorer.
 
 ### Read-Only
 
