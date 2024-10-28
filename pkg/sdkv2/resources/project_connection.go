@@ -37,6 +37,7 @@ func ResourceProjectConnection() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Description: "~> This resource is deprecated with the release of global connections and it will be removed in a future version of the provider. Going forward, please set the `connection_id` in the `dbtcloud_environment` resource instead.",
 	}
 }
 
