@@ -119,6 +119,12 @@ func ResourceEnvironment() *schema.Resource {
 					  - To avoid Terraform state issues, when using this field, the ~~~dbtcloud_project_connection~~~ resource should be removed from the project or you need to make sure that the ~~~connection_id~~~ is the same in ~~~dbtcloud_project_connection~~~ and in the ~~~connection_id~~~ of the Development environment of the project`,
 				),
 			},
+			"enable_model_query_history": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.",
+			},
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -146,6 +152,7 @@ func resourceEnvironmentCreate(
 	deploymentType := d.Get("deployment_type").(string)
 	extendedAttributesID := d.Get("extended_attributes_id").(int)
 	connectionID := d.Get("connection_id").(int)
+	enableModelQueryHistory := d.Get("enable_model_query_history").(bool)
 
 	environment, err := c.CreateEnvironment(
 		isActive,
@@ -159,6 +166,7 @@ func resourceEnvironmentCreate(
 		deploymentType,
 		extendedAttributesID,
 		connectionID,
+		enableModelQueryHistory,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -236,6 +244,9 @@ func resourceEnvironmentRead(
 			return diag.FromErr(err)
 		}
 	}
+	if err := d.Set("enable_model_query_history", environment.EnableModelQueryHistory); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -264,7 +275,8 @@ func resourceEnvironmentUpdate(
 		d.HasChange("use_custom_branch") ||
 		d.HasChange("deployment_type") ||
 		d.HasChange("extended_attributes_id") ||
-		d.HasChange("connection_id") {
+		d.HasChange("connection_id") ||
+		d.HasChange("enable_model_query_history") {
 
 		environment, err := c.GetEnvironment(projectId, environmentId)
 		if err != nil {
@@ -322,6 +334,9 @@ func resourceEnvironmentUpdate(
 			} else {
 				environment.ConnectionID = nil
 			}
+		}
+		if d.HasChange("enable_model_query_history") {
+			environment.EnableModelQueryHistory = d.Get("enable_model_query_history").(bool)
 		}
 		_, err = c.UpdateEnvironment(projectId, environmentId, *environment)
 		if err != nil {

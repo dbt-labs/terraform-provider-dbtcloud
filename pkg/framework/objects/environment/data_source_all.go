@@ -79,6 +79,7 @@ func (d *environmentsDataSources) Read(
 		currentEnv.ExtendedAttributesID = types.Int64PointerValue(
 			helper.IntPointerToInt64Pointer(environment.ExtendedAttributesID),
 		)
+		currentEnv.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
 		allEnvs = append(allEnvs, currentEnv)
 	}
 	state.Environments = allEnvs

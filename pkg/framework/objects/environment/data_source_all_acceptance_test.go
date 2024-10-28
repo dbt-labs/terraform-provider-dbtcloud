@@ -76,6 +76,7 @@ func environments(
         type = "deployment"
         use_custom_branch = true
         custom_branch = "customBranchName"
+		enable_model_query_history = true
     }
 
 	resource "dbtcloud_environment" "test_environment2" {
