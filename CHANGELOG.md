@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.19...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.20...HEAD)
+
+# [0.3.20](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.19...v0.3.20)
+
+### Changes
+
+- [#305](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/305) - Add the resource `dbtcloud_lineage_integration` to setup auto-exposures in Tableau
+- Add ability to provide a project description in `dbtcloud_project`
+- Add ability to enable model query history in `dbtcloud_environment`
+
+### Fixes
+
+- [#309](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/309) - Fix the datasource `dbtcloud_global_connections` when PL is used in some connection 
 
 # [0.3.19](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.18...v0.3.19)
 
