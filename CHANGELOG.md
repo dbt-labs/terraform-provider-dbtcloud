@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.20...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.21...HEAD)
+
+# [0.3.21](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.20...v0.3.21)
+
+### Changes
+
+- Allow setting external OAuth config for global connections in Snowflake
+- Add resource `dbtcloud_oauth_configuration` to define external OAuth integrations
+
+### Fixes
+
+- Fix acceptance test for jobs when using the ability to compare changes
 
 # [0.3.20](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.19...v0.3.20)
 
