@@ -157,6 +157,7 @@ resource "dbtcloud_global_connection" "synapse" {
 - `bigquery` (Attributes) (see [below for nested schema](#nestedatt--bigquery))
 - `databricks` (Attributes) Databricks connection configuration (see [below for nested schema](#nestedatt--databricks))
 - `fabric` (Attributes) Microsoft Fabric connection configuration. (see [below for nested schema](#nestedatt--fabric))
+- `oauth_configuration_id` (Number) External OAuth configuration ID (only Snowflake for now)
 - `postgres` (Attributes) PostgreSQL connection configuration. (see [below for nested schema](#nestedatt--postgres))
 - `private_link_endpoint_id` (String) Private Link Endpoint ID. This ID can be found using the `privatelink_endpoint` data source
 - `redshift` (Attributes) Redshift connection configuration (see [below for nested schema](#nestedatt--redshift))
@@ -169,7 +170,6 @@ resource "dbtcloud_global_connection" "synapse" {
 - `adapter_version` (String) Version of the adapter
 - `id` (Number) Connection Identifier
 - `is_ssh_tunnel_enabled` (Boolean) Whether the connection can use an SSH tunnel
-- `oauth_configuration_id` (Number)
 
 <a id="nestedatt--apache_spark"></a>
 ### Nested Schema for `apache_spark`

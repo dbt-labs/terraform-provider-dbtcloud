@@ -59,7 +59,8 @@ func (r *globalConnectionResource) Schema(
 				Description: "Private Link Endpoint ID. This ID can be found using the `privatelink_endpoint` data source",
 			},
 			"oauth_configuration_id": resource_schema.Int64Attribute{
-				Computed: true,
+				Optional:    true,
+				Description: "External OAuth configuration ID (only Snowflake for now)",
 			},
 			"bigquery": resource_schema.SingleNestedAttribute{
 				Optional: true,

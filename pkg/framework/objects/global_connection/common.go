@@ -38,13 +38,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(snowflakeCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// snowflake settings
@@ -89,13 +93,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// BigQuery settings
@@ -214,13 +222,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(databricksCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Databricks settings
@@ -263,13 +275,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(redshiftCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Redshift settings
@@ -324,13 +340,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(postgresCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Postgres settings
@@ -380,13 +400,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(fabricCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Fabric settings
@@ -421,13 +445,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(synapseCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Synapse settings
@@ -462,13 +490,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(starburstCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Starburst settings
@@ -500,13 +532,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(athenaCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Athena settings
@@ -591,13 +627,17 @@ func readGeneric(
 		state.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
-		state.OauthConfigurationId = types.Int64PointerValue(common.OauthConfigurationId)
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {
 			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
 		} else {
 			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
 		}
 
 		// Spark settings
