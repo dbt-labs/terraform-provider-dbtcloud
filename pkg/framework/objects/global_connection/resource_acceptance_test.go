@@ -65,6 +65,10 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+					),
 				),
 			},
 			// modify, removing optional fields to check PATCH when we remove fields
@@ -111,6 +115,18 @@ func testAccDbtCloudSGlobalConnectionSnowflakeResourceBasicConfig(
 ) string {
 	return fmt.Sprintf(`
 
+resource dbtcloud_oauth_configuration test {
+  type = "entra"
+  name = "OAuth config"
+  client_secret = "secret"
+  client_id = "myid"
+  redirect_uri = "http://example.com"
+  token_url = "http://example.com"
+  authorize_url = "http://example.com"
+  application_id_uri = "app-uri"
+}
+
+
 resource dbtcloud_global_connection test {
   name = "%s"
 
@@ -132,8 +148,22 @@ func testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
 	connectionName string,
 ) string {
 	return fmt.Sprintf(`
+
+resource dbtcloud_oauth_configuration test {
+  type = "entra"
+  name = "OAuth config"
+  client_secret = "secret"
+  client_id = "myid"
+  redirect_uri = "http://example.com"
+  token_url = "http://example.com"
+  authorize_url = "http://example.com"
+  application_id_uri = "app-uri"
+}
+
+
 resource dbtcloud_global_connection test {
   name = "%s"
+  oauth_configuration_id = dbtcloud_oauth_configuration.test.id
 
   snowflake = {
     account = "account"

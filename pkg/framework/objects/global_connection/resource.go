@@ -141,6 +141,9 @@ func (r *globalConnectionResource) Create(
 	if !plan.PrivateLinkEndpointId.IsNull() {
 		commonCfg.PrivateLinkEndpointId.Set(plan.PrivateLinkEndpointId.ValueString())
 	}
+	if !plan.OauthConfigurationId.IsNull() {
+		commonCfg.OauthConfigurationId.Set(plan.OauthConfigurationId.ValueInt64())
+	}
 
 	// data warehouse specific
 	switch {
@@ -173,7 +176,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(snowflakeCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.BigQueryConfig != nil:
@@ -253,7 +255,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.DatabricksConfig != nil:
@@ -286,7 +287,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(databricksCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.RedshiftConfig != nil:
@@ -337,7 +337,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(redshiftCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.PostgresConfig != nil:
@@ -391,7 +390,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(postgresCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.FabricConfig != nil:
@@ -421,7 +419,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(fabricCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.SynapseConfig != nil:
@@ -451,7 +448,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(synapseCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.StarburstConfig != nil:
@@ -477,7 +473,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(starburstCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.AthenaConfig != nil:
@@ -529,7 +524,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(athenaCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	case plan.ApacheSparkConfig != nil:
@@ -573,7 +567,6 @@ func (r *globalConnectionResource) Create(
 		// we set the computed values that don't have any default
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
-		plan.OauthConfigurationId = types.Int64PointerValue(commonResp.OauthConfigurationId)
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	default:
@@ -659,6 +652,13 @@ func (r *globalConnectionResource) Update(
 			globalConfigChanges.PrivateLinkEndpointId.Set(plan.PrivateLinkEndpointId.ValueString())
 		}
 	}
+	if plan.OauthConfigurationId != state.OauthConfigurationId {
+		if plan.OauthConfigurationId.IsNull() {
+			globalConfigChanges.OauthConfigurationId.SetNull()
+		} else {
+			globalConfigChanges.OauthConfigurationId.Set(plan.OauthConfigurationId.ValueInt64())
+		}
+	}
 
 	switch {
 	case plan.SnowflakeConfig != nil:
@@ -712,7 +712,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.BigQueryConfig != nil:
@@ -869,7 +868,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.DatabricksConfig != nil:
@@ -922,7 +920,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.RedshiftConfig != nil:
@@ -965,7 +962,6 @@ func (r *globalConnectionResource) Update(
 			}
 			// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 			plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-			plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 			plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 		} else {
 			// if the warehouseConfig didn't change, we keep the existing state values
@@ -1027,7 +1023,6 @@ func (r *globalConnectionResource) Update(
 			}
 			// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 			plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-			plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 			plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 		} else {
 			// if the warehouseConfig didn't change, we keep the existing state values
@@ -1090,7 +1085,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.SynapseConfig != nil:
@@ -1134,7 +1128,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.StarburstConfig != nil:
@@ -1169,7 +1162,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.AthenaConfig != nil:
@@ -1267,7 +1259,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	case plan.ApacheSparkConfig != nil:
@@ -1332,7 +1323,6 @@ func (r *globalConnectionResource) Update(
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.OauthConfigurationId = types.Int64PointerValue(updateCommon.OauthConfigurationId)
 		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
 
 	default:

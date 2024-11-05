@@ -64,10 +64,10 @@ resource "dbtcloud_environment" "dev_environment" {
 ### Optional
 
 - `connection_id` (Number) The ID of the connection to use (can be the `id` of a `dbtcloud_global_connection` or the `connection_id` of a legacy connection). 
-- At the moment, it is optional and the environment will use the connection set in `dbtcloud_project_connection` if `connection_id` is not set in this resource
-- In future versions this field will become required, so it is recommended to set it from now on
-- When configuring this field, it needs to be configured for all the environments of the project
-- To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project
+  - At the moment, it is optional and the environment will use the connection set in `dbtcloud_project_connection` if `connection_id` is not set in this resource
+  - In future versions this field will become required, so it is recommended to set it from now on
+  - When configuring this field, it needs to be configured for all the environments of the project
+  - To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project
 - `credential_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
 - `custom_branch` (String) Which custom branch to use in this environment
 - `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. Defaults to`versionless` if no version is provided

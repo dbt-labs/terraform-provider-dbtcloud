@@ -616,7 +616,7 @@ resource "dbtcloud_job" "test_job" {
   project_id = dbtcloud_project.test_job_project.id
   environment_id = dbtcloud_environment.test_job_environment.environment_id
   execute_steps = [
-    "dbt test"
+    "dbt run"
   ]
   triggers = {
     "github_webhook": %s,
