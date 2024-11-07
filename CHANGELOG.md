@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.21...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...HEAD)
+
+# [0.3.22](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.21...v0.3.22)
+
+### Changes
+
+- Add resource `dbtcloud_account_features` to manage account level features like Advanced CI
+- Add resource `dbtcloud_ip_restrictions_rule` to manage IP restrictions for customers with access to the feature in dbt Cloud
 
 # [0.3.21](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.20...v0.3.21)
 

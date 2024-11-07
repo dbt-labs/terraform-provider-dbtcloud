@@ -1,15 +1,17 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+  }
+}
+
 *.style.font-size: 22
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v0.3.20)
+  # Terraform resources (v0.3.22)
 | {near: top-center}
 
 direction: right
-
-
-license_map
-partial_license_map
 
 project_connection: {
   style: {
@@ -19,10 +21,9 @@ project_connection: {
 }
 
 privatelink_endpoint: {tooltip: Datasource only}
-group: {tooltip: Group permissions as well}
+group
 group_partial_permissions
-service_token: {tooltip: Permissions as well}
-project_artefacts: {tooltip: For setting the project docs and source freshness}
+service_token
 job: {
   style: {
     fill: "#ACE1AF"
@@ -33,7 +34,7 @@ job: {
 conns: Connections (will be removed in the future,\nuse global_connection) {
   bigquery_connection
   fabric_connection
-  connection: {tooltip: Works for Snowflake, Redshift, Postgres and Databricks}
+  connection
   
   bigquery_connection.style.fill: "#C5C6C7"
   fabric_connection.style.fill: "#C5C6C7"
@@ -64,9 +65,7 @@ job -- environment
 job -- environment_variable_job_override
 notification -- job
 partial_notification -- job
-project_artefacts -- job
 
-project_artefacts -- project
 webhook -- job: triggered by {
   style: {
     stroke-dash: 3
@@ -75,6 +74,7 @@ webhook -- job: triggered by {
 environment -- global_connection
 environment -- conns
 global_connection -- privatelink_endpoint
+global_connection -- oauth_configuration
 
 environment -- env_creds
 conns -- privatelink_endpoint
@@ -97,3 +97,11 @@ project_connection -- conns {
 
 (job -- *)[*].style.stroke: green
 (* -- job)[*].style.stroke: green
+
+account_level_settings: "Account level settings" {
+  account_features
+  ip_restrictions_rule
+  license_map
+  partial_license_map
+}
+account_level_settings.style.fill-pattern: dots
