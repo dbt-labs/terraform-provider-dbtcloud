@@ -6,10 +6,12 @@ import (
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/ip_restrictions_rule"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
@@ -204,5 +206,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		global_connection.GlobalConnectionResource,
 		lineage_integration.LineageIntegrationResource,
 		oauth_configuration.OAuthConfigurationResource,
+		account_features.AccountFeaturesResource,
+		ip_restrictions_rule.IPRestrictionsRuleResource,
 	}
 }
