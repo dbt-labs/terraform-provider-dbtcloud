@@ -178,7 +178,9 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		}
 	}
 
-	if (res.StatusCode != http.StatusOK) && (res.StatusCode != 201) {
+	if (res.StatusCode != http.StatusOK) &&
+		(res.StatusCode != http.StatusCreated) &&
+		(res.StatusCode != http.StatusNoContent) {
 		return nil, fmt.Errorf(
 			"%s url: %s, status: %d, body: %s",
 			req.Method,
