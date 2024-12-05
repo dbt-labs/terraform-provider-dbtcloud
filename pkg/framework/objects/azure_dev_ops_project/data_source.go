@@ -3,7 +3,6 @@ package azure_dev_ops_project
 import (
 	"context"
 	"fmt"
-
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,7 +26,7 @@ func (d *azureDevOpsProjectDataSource) Metadata(
 	req datasource.MetadataRequest,
 	resp *datasource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "azure_dev_ops_project"
+	resp.TypeName = req.ProviderTypeName + "_azure_dev_ops_project"
 }
 
 func (d *azureDevOpsProjectDataSource) Read(
