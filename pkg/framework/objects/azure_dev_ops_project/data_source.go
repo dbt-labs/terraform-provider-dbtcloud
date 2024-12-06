@@ -64,11 +64,16 @@ func (d *azureDevOpsProjectDataSource) Read(
 func (d *azureDevOpsProjectDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
-	_ *datasource.ConfigureResponse,
+	resp *datasource.ConfigureResponse,
 ) {
-	if req.ProviderData == nil {
-		return
+	switch c := req.ProviderData.(type) {
+	case nil: // do nothing
+	case *dbt_cloud.Client:
+		d.client = c
+	default:
+		resp.Diagnostics.AddError(
+			"Missing client",
+			"A client is required to configure the Azure DevOps Project data source",
+		)
 	}
-
-	d.client = req.ProviderData.(*dbt_cloud.Client)
 }
