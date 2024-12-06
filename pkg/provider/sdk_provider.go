@@ -51,7 +51,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_user_groups":              data_sources.DatasourceUserGroups(),
 				"dbtcloud_extended_attributes":      data_sources.DatasourceExtendedAttributes(),
 				"dbtcloud_group_users":              data_sources.DatasourceGroupUsers(),
-				"dbtcloud_azure_dev_ops_project":    data_sources.DatasourceAzureDevOpsProject(),
 				"dbtcloud_azure_dev_ops_repository": data_sources.DatasourceAzureDevOpsRepository(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
