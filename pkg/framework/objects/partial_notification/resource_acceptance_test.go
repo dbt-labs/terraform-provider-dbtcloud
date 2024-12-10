@@ -20,11 +20,6 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 	}
 
 	userID := acctest_helper.GetDbtCloudUserId()
-	//if acctest_helper.IsDbtCloudPR() {
-	//	userID = "1"
-	//} else {
-	//	userID = "100"
-	//}
 
 	currentTime := time.Now().Unix()
 	notificationEmail := fmt.Sprintf("%d-partial-resource@nomail.com", currentTime)

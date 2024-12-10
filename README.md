@@ -65,8 +65,8 @@ own account.
 To run the acceptance tests locally, you will need to set the following environment variables to appropriate values
 for your dbt Cloud account:
 ```
-DBT_CLOUD_ACCOUNT_ID=1
-DBT_CLOUD_USER_ID=1
+DBT_CLOUD_ACCOUNT_ID=1234
+DBT_CLOUD_USER_ID=4321
 DBT_CLOUD_USER_EMAIL=<email_adress>
 DBT_CLOUD_TOKEN=<api_token>
 DBT_CLOUD_HOST_URL=https://<host>/api
