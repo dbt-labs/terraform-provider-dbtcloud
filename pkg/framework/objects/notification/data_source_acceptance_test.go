@@ -16,12 +16,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 		t.Skip("Skipping notifications in dbt Cloud CI for now")
 	}
 
-	var userID string
-	if acctest_helper.IsDbtCloudPR() {
-		userID = "1"
-	} else {
-		userID = "100"
-	}
+	userID := acctest_helper.GetDbtCloudUserId()
 
 	currentTime := time.Now().Unix()
 	notificationEmail := fmt.Sprintf("%d-datasource@nomail.com", currentTime)
@@ -58,7 +53,7 @@ func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 	})
 }
 
-func notification(projectName, userID, notificationEmail string) string {
+func notification(projectName string, userID int, notificationEmail string) string {
 	return fmt.Sprintf(`
 	resource "dbtcloud_project" "test_notification_project" {
 		name = "%s"
@@ -86,7 +81,7 @@ func notification(projectName, userID, notificationEmail string) string {
 	}
 
 	resource "dbtcloud_notification" "test_notification_external" {
-		user_id           = %s
+		user_id           = %d
 		on_failure        = [dbtcloud_job.test_notification_job_1.id]
 		notification_type = 4
 		external_email    = "%s"

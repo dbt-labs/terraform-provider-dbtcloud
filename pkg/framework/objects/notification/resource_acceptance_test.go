@@ -2,13 +2,13 @@ package notification_test
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -19,12 +19,7 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 		t.Skip("Skipping notifications in dbt Cloud CI for now")
 	}
 
-	var userID string
-	if acctest_helper.IsDbtCloudPR() {
-		userID = "1"
-	} else {
-		userID = "100"
-	}
+	userID := acctest_helper.GetDbtCloudUserId()
 
 	currentTime := time.Now().Unix()
 	notificationEmail := fmt.Sprintf("%d-resource@nomail.com", currentTime)
@@ -185,12 +180,14 @@ resource "dbtcloud_job" "test_notification_job_2" {
 }
 
 func testAccDbtCloudNotificationResourceCreateNotifications(
-	projectName, userID, notificationEmail string,
+	projectName string,
+	userID int,
+	notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_notification" "test_notification_internal" {
-	user_id           = %s
+	user_id           = %d
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
@@ -198,7 +195,7 @@ resource "dbtcloud_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_notification" "test_notification_external" {
-	user_id           = %s
+	user_id           = %d
 	on_warning        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
@@ -209,12 +206,14 @@ resource "dbtcloud_notification" "test_notification_external" {
 }
 
 func testAccDbtCloudNotificationResourceModifyNotifications(
-	projectName, userID, notificationEmail string,
+	projectName string,
+	userID int,
+	notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_notification" "test_notification_internal" {
-	user_id           = %s
+	user_id           = %d
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = []
@@ -223,7 +222,7 @@ resource "dbtcloud_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_notification" "test_notification_external" {
-	user_id           = %s
+	user_id           = %d
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id]
 	notification_type = 4

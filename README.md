@@ -60,7 +60,18 @@ The CLI [dbtcloud-terraforming](https://github.com/dbt-labs/dbtcloud-terraformin
 ## Running Acceptance Tests
 
 Currently, acceptance tests, run via `make test-acceptance` must be done on your
-own account
+own account.
+
+To run the acceptance tests locally, you will need to set the following environment variables to appropriate values
+for your dbt Cloud account:
+```
+DBT_CLOUD_ACCOUNT_ID=1
+DBT_CLOUD_USER_ID=1
+DBT_CLOUD_USER_EMAIL=<email_adress>
+DBT_CLOUD_TOKEN=<api_token>
+DBT_CLOUD_HOST_URL=https://<host>/api
+DBT_CLOUD_GROUP_IDS=1,2,3
+```
 
 ## Acknowledgement
 
