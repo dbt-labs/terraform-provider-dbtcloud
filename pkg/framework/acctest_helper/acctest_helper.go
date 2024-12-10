@@ -2,6 +2,7 @@ package acctest_helper
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -75,6 +76,58 @@ func TestAccPreCheck(t *testing.T) {
 
 func IsDbtCloudPR() bool {
 	return os.Getenv("DBT_CLOUD_ACCOUNT_ID") == "1"
+}
+
+// GetDbtCloudUserId returns the user ID to use for acceptance tests.
+// Currently, this utilizes some legacy logic to determine the user ID.
+// If the DBT_CLOUD_USER_ID environment variable is fully adopted, this
+// function could be simplified to require that environment variable.
+func GetDbtCloudUserId() int {
+	if IsDbtCloudPR() {
+		return 1
+	} else if os.Getenv("CI") != "" {
+		return 54461
+	} else {
+		id, err := strconv.Atoi(os.Getenv("DBT_CLOUD_USER_ID"))
+		if err != nil {
+			log.Fatalf("Unable to determine UserID for test: %v", err)
+		}
+		return id
+	}
+}
+
+// GetDbtCloudUserEmail returns the user email to use for acceptance tests.
+func GetDbtCloudUserEmail() string {
+	if IsDbtCloudPR() {
+		return "d" + "ev@" + "db" + "tla" + "bs.c" + "om"
+	} else if os.Getenv("CI") != "" {
+		return "beno" + "it" + ".per" + "igaud" + "@" + "fisht" + "ownanalytics" + "." + "com"
+	} else {
+		email := os.Getenv("DBT_CLOUD_USER_EMAIL")
+		if email == "" {
+			log.Fatalf("Unable to determine GroupIds for test")
+		}
+		return email
+	}
+}
+
+// GetDbtCloudGroupIds returns the group IDs to use for acceptance tests.
+// Currently, this utilizes some legacy logic to determine the group IDs.
+// If the DBT_CLOUD_GROUP_IDS environment variable is fully adopted, this
+// function could be simplified to require that environment variable.
+func GetDbtCloudGroupIds() string {
+	var groupIds string
+	if IsDbtCloudPR() {
+		groupIds = "1,2,3"
+	} else if os.Getenv("CI") != "" {
+		groupIds = "531585,531584,531583"
+	} else {
+		groupIds = os.Getenv("DBT_CLOUD_GROUP_IDS")
+		if groupIds == "" {
+			log.Fatalf("Unable to determine GroupIds for test")
+		}
+	}
+	return fmt.Sprintf("[%s]", groupIds)
 }
 
 func HelperTestResourceSchema[R resource.Resource](t *testing.T, r R) {

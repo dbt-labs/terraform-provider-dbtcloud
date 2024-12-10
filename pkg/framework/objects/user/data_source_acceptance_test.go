@@ -10,12 +10,7 @@ import (
 
 func TestAccDbtCloudUserDataSource(t *testing.T) {
 
-	var userEmail string
-	if acctest_helper.IsDbtCloudPR() {
-		userEmail = "d" + "ev@" + "db" + "tla" + "bs.c" + "om"
-	} else {
-		userEmail = "beno" + "it" + ".per" + "igaud" + "@" + "fisht" + "ownanalytics" + "." + "com"
-	}
+	userEmail := acctest_helper.GetDbtCloudUserEmail()
 
 	config := user(userEmail)
 
