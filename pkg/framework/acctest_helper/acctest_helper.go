@@ -81,7 +81,7 @@ func IsDbtCloudPR() bool {
 // GetDbtCloudUserId returns the user ID to use for acceptance tests.
 // Currently, this utilizes some legacy logic to determine the user ID.
 // If the DBT_CLOUD_USER_ID environment variable is fully adopted, this
-// function could be simplified to require that environment variable.
+// function could be simplified.
 func GetDbtCloudUserId() int {
 	if IsDbtCloudPR() {
 		return 1
@@ -97,6 +97,9 @@ func GetDbtCloudUserId() int {
 }
 
 // GetDbtCloudUserEmail returns the user email to use for acceptance tests.
+// Currently, this utilizes some legacy logic to determine the user email.
+// If the DBT_CLOUD_USER_EMAIL environment variable is fully adopted, this
+// function could be simplified.
 func GetDbtCloudUserEmail() string {
 	if IsDbtCloudPR() {
 		return "d" + "ev@" + "db" + "tla" + "bs.c" + "om"
@@ -114,7 +117,7 @@ func GetDbtCloudUserEmail() string {
 // GetDbtCloudGroupIds returns the group IDs to use for acceptance tests.
 // Currently, this utilizes some legacy logic to determine the group IDs.
 // If the DBT_CLOUD_GROUP_IDS environment variable is fully adopted, this
-// function could be simplified to require that environment variable.
+// function could be simplified.
 func GetDbtCloudGroupIds() string {
 	var groupIds string
 	if IsDbtCloudPR() {
