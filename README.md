@@ -71,7 +71,7 @@ DBT_CLOUD_USER_EMAIL=<email_address>
 DBT_CLOUD_TOKEN=<api_token>
 DBT_CLOUD_HOST_URL=https://<host>/api
 DBT_CLOUD_GROUP_IDS=1,2,3
-ACC_TEST_GITHUB_REPO_URL=git@github.com:my-org/dbt-fundamentals.git
+ACC_TEST_GITHUB_REPO_URL=git@github.com:<github-org>/<dbt-project>.git
 ACC_TEST_GITHUB_APP_INSTALLATION_ID=1234
 ```
 
