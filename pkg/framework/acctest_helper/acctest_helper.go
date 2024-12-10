@@ -81,7 +81,7 @@ func IsDbtCloudPR() bool {
 // GetDbtCloudUserId returns the user ID to use for acceptance tests.
 // Currently, this utilizes some legacy logic to determine the user ID.
 // If the DBT_CLOUD_USER_ID environment variable is fully adopted, this
-// function could be simplified.
+// function can be simplified.
 func GetDbtCloudUserId() int {
 	if IsDbtCloudPR() {
 		return 1
@@ -99,7 +99,7 @@ func GetDbtCloudUserId() int {
 // GetDbtCloudUserEmail returns the user email to use for acceptance tests.
 // Currently, this utilizes some legacy logic to determine the user email.
 // If the DBT_CLOUD_USER_EMAIL environment variable is fully adopted, this
-// function could be simplified.
+// function can be simplified.
 func GetDbtCloudUserEmail() string {
 	if IsDbtCloudPR() {
 		return "d" + "ev@" + "db" + "tla" + "bs.c" + "om"
@@ -117,7 +117,7 @@ func GetDbtCloudUserEmail() string {
 // GetDbtCloudGroupIds returns the group IDs to use for acceptance tests.
 // Currently, this utilizes some legacy logic to determine the group IDs.
 // If the DBT_CLOUD_GROUP_IDS environment variable is fully adopted, this
-// function could be simplified.
+// function can be simplified.
 func GetDbtCloudGroupIds() string {
 	var groupIds string
 	if IsDbtCloudPR() {
@@ -131,6 +131,38 @@ func GetDbtCloudGroupIds() string {
 		}
 	}
 	return fmt.Sprintf("[%s]", groupIds)
+}
+
+// GetGitHubRepoUrl returns the GitHub repository URL to use for acceptance tests.
+// Currently, this utilizes some legacy logic to determine the GitHub repository URL.
+// If the ACC_TEST_GITHUB_REPO_URL environment variable is fully adopted, this
+// function can be simplified.
+func GetGitHubRepoUrl() string {
+	if IsDbtCloudPR() || os.Getenv("CI") != "" {
+		return "git://github.com/dbt-labs/jaffle_shop.git"
+	} else {
+		url := os.Getenv("ACC_TEST_GITHUB_REPO_URL")
+		if url == "" {
+			log.Fatalf("Unable to determine GitHub repository url for test")
+		}
+		return url
+	}
+}
+
+// GetGitHubAppInstallationId returns the GitHub app installation ID to use for acceptance tests.
+// Currently, this utilizes some legacy logic to determine the GitHub app installation ID.
+// If the ACC_TEST_GITHUB_APP_INSTALLATION_ID environment variable is fully adopted, this
+// function can be simplified.
+func GetGitHubAppInstallationId() int {
+	if IsDbtCloudPR() || os.Getenv("CI") != "" {
+		return 28374841
+	} else {
+		id, err := strconv.Atoi(os.Getenv("ACC_TEST_GITHUB_APP_INSTALLATION_ID"))
+		if err != nil {
+			log.Fatalf("Unable to determine GitHub app installation id for test: %v", err)
+		}
+		return id
+	}
 }
 
 func HelperTestResourceSchema[R resource.Resource](t *testing.T, r R) {
