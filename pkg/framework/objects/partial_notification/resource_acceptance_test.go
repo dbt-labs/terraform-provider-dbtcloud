@@ -19,12 +19,12 @@ func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
 		t.Skip("Skipping notifications in dbt Cloud CI for now")
 	}
 
-	var userID string
-	if acctest_helper.IsDbtCloudPR() {
-		userID = "1"
-	} else {
-		userID = "100"
-	}
+	userID := acctest_helper.GetDbtCloudUserId()
+	//if acctest_helper.IsDbtCloudPR() {
+	//	userID = "1"
+	//} else {
+	//	userID = "100"
+	//}
 
 	currentTime := time.Now().Unix()
 	notificationEmail := fmt.Sprintf("%d-partial-resource@nomail.com", currentTime)
@@ -180,12 +180,14 @@ resource "dbtcloud_job" "test_notification_job_2" {
 }
 
 func testAccDbtCloudPartialNotificationResourceCreatePartialNotifications(
-	projectName, userID, notificationEmail string,
+	projectName string,
+	userID int,
+	notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_partial_notification" "test_notification_internal" {
-	user_id           = %s
+	user_id           = %d
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
@@ -193,7 +195,7 @@ resource "dbtcloud_partial_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_partial_notification" "test_notification_external" {
-	user_id           = %s
+	user_id           = %d
 	on_warning        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
@@ -206,12 +208,14 @@ resource "dbtcloud_partial_notification" "test_notification_external" {
 }
 
 func testAccDbtCloudPartialNotificationResourceModifyPartialNotifications(
-	projectName, userID, notificationEmail string,
+	projectName string,
+	userID int,
+	notificationEmail string,
 ) string {
 
 	notificationsConfig := fmt.Sprintf(`
 resource "dbtcloud_partial_notification" "test_notification_internal" {
-	user_id           = %s
+	user_id           = %d
 	on_success        = [dbtcloud_job.test_notification_job_1.id]
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = []
@@ -220,7 +224,7 @@ resource "dbtcloud_partial_notification" "test_notification_internal" {
 }
 	
 resource "dbtcloud_partial_notification" "test_notification_external" {
-	user_id           = %s
+	user_id           = %d
 	on_failure        = [dbtcloud_job.test_notification_job_2.id]
 	on_cancel         = [dbtcloud_job.test_notification_job_1.id]
 	notification_type = 4
@@ -228,7 +232,7 @@ resource "dbtcloud_partial_notification" "test_notification_external" {
 }
 
 resource "dbtcloud_partial_notification" "test_notification_external2" {
-	user_id           = %s
+	user_id           = %d
 	on_success        = [dbtcloud_job.test_notification_job_1.id, dbtcloud_job.test_notification_job_2.id]
 	notification_type = 4
 	external_email    = "%s"
