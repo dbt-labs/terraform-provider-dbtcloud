@@ -1,6 +1,7 @@
 package azure_dev_ops_project_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
@@ -13,7 +14,9 @@ func TestAccDbtCloudAzureDevOpsProject(t *testing.T) {
 		t.Skip("Skipping Azure DevOps Project datasource test in CI until a Personal Access Token is available")
 	}
 
+	//TODO: Parameterize these values when a standard method is available for parameterization
 	adoProjectName := "dbt-cloud-ado-project"
+	personalAccessToken := os.Getenv("DBT_CLOUD_PERSONAL_ACCESS_TOKEN")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() { acctest_helper.TestAccPreCheck(t) },
@@ -22,7 +25,7 @@ func TestAccDbtCloudAzureDevOpsProject(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ConfigVariables: config.Variables{
-					"dbt_token":        config.StringVariable("this-will-come-from-somewhere-else-eventually"), // Cannot be a Service Token
+					"dbt_token":        config.StringVariable(personalAccessToken),
 					"ado_project_name": config.StringVariable(adoProjectName),
 				},
 				Config: `
