@@ -61,3 +61,20 @@ func (d *azureDevOpsRepositoryDataSource) Read(
 		return
 	}
 }
+
+func (d *azureDevOpsRepositoryDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
+	switch c := req.ProviderData.(type) {
+	case nil: // do nothing
+	case *dbt_cloud.Client:
+		d.client = c
+	default:
+		resp.Diagnostics.AddError(
+			"Missing client",
+			"A client is required to configure the Azure DevOps repository data source",
+		)
+	}
+}
