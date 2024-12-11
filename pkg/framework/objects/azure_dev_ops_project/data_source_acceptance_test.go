@@ -10,8 +10,9 @@ import (
 )
 
 func TestAccDbtCloudAzureDevOpsProject(t *testing.T) {
-	if acctest_helper.IsDbtCloudPR() {
-		t.Skip("Skipping Azure DevOps Project datasource test in CI until a Personal Access Token is available")
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping Azure DevOps Project datasource test in CI " +
+			"until Azure integration and a personal access token are available")
 	}
 
 	//TODO: Parameterize these values when a standard method is available for parameterization
