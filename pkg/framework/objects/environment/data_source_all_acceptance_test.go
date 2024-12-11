@@ -96,7 +96,8 @@ func environments(
         project_id = dbtcloud_project.test_project2.id
 		depends_on = [dbtcloud_environment.test_environment1, dbtcloud_environment.test_environment2]
     }
-    `, randomProjectName1,
+    `,
+		randomProjectName1,
 		randomProjectName2,
 		randomEnvironmentName1,
 		acctest_config.AcceptanceTestConfig.DbtCloudVersion,
