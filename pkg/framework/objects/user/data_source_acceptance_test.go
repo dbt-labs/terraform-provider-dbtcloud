@@ -2,6 +2,7 @@ package user_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
@@ -10,7 +11,7 @@ import (
 
 func TestAccDbtCloudUserDataSource(t *testing.T) {
 
-	userEmail := acctest_helper.GetDbtCloudUserEmail()
+	userEmail := acctest_config.AcceptanceTestConfig.DbtCloudUserEmail
 
 	config := user(userEmail)
 
