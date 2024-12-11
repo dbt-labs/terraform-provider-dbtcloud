@@ -2,6 +2,7 @@ package notification_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"testing"
 	"time"
 
@@ -12,11 +13,11 @@ import (
 
 func TestAccDbtCloudNotificationDataSource(t *testing.T) {
 
-	if acctest_helper.IsDbtCloudPR() {
+	if acctest_config.IsDbtCloudPR() {
 		t.Skip("Skipping notifications in dbt Cloud CI for now")
 	}
 
-	userID := acctest_helper.GetDbtCloudUserId()
+	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
 
 	currentTime := time.Now().Unix()
 	notificationEmail := fmt.Sprintf("%d-datasource@nomail.com", currentTime)
@@ -90,5 +91,5 @@ func notification(projectName string, userID int, notificationEmail string) stri
 	data "dbtcloud_notification" "test_notification_external" {
 		notification_id = dbtcloud_notification.test_notification_external.id
 	}
-    `, projectName, acctest_helper.DBT_CLOUD_VERSION, userID, notificationEmail)
+    `, projectName, acctest_config.AcceptanceTestConfig.DbtCloudVersion, userID, notificationEmail)
 }

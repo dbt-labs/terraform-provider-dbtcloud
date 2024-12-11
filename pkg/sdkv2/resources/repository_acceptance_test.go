@@ -2,6 +2,7 @@ package resources_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"regexp"
 	"strings"
 	"testing"
@@ -56,8 +57,8 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		},
 	})
 
-	repoUrlGithubApplication := acctest_helper.GetGitHubRepoUrl()
-	githubAppInstallationId := acctest_helper.GetGitHubAppInstallationId()
+	repoUrlGithubApplication := acctest_config.AcceptanceTestConfig.GitHubRepoUrl
+	githubAppInstallationId := acctest_config.AcceptanceTestConfig.GitHubAppInstallationId
 	projectNameGithubApplication := strings.ToUpper(
 		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
 	)

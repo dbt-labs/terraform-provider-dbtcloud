@@ -70,5 +70,5 @@ func environment(projectName, environmentName string) string {
         project_id = dbtcloud_project.test_project.id
         environment_id = dbtcloud_environment.test_environment.environment_id
     }
-    `, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION)
+    `, projectName, environmentName, acctest_config.AcceptanceTestConfig.DbtCloudVersion)
 }
