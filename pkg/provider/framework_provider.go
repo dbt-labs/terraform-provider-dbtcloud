@@ -8,6 +8,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
@@ -183,6 +184,7 @@ func (p *dbtCloudProvider) Configure(
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
+    azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
 		notification.NotificationDataSource,
