@@ -2,6 +2,7 @@ package resources_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"strconv"
 	"testing"
 
@@ -12,8 +13,8 @@ import (
 
 func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 
-	userID := acctest_helper.GetDbtCloudUserId()
-	groupIDs := acctest_helper.GetDbtCloudGroupIds()
+	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
+	groupIDs := acctest_config.AcceptanceTestConfig.DbtCloudGroupIds
 	GroupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{

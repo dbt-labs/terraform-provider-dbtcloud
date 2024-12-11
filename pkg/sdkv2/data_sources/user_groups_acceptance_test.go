@@ -2,6 +2,7 @@ package data_sources_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
@@ -10,7 +11,7 @@ import (
 
 func TestDbtCloudUserGroupsDataSource(t *testing.T) {
 
-	userID := acctest_helper.GetDbtCloudUserId()
+	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
 	config := userGroups(userID)
 
 	check := resource.ComposeAggregateTestCheckFunc(
