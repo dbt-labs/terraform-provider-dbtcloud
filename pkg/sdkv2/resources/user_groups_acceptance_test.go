@@ -14,7 +14,7 @@ import (
 func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 
 	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
-	groupIDs := acctest_config.AcceptanceTestConfig.DbtCloudGroupIds
+	groupIDs := fmt.Sprintf("[%s]", acctest_config.AcceptanceTestConfig.DbtCloudGroupIds)
 	GroupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
