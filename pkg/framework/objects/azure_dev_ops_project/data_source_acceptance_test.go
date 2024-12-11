@@ -10,9 +10,14 @@ import (
 )
 
 func TestAccDbtCloudAzureDevOpsProject(t *testing.T) {
+	//TODO: Remove both env var checks when this gets configurted in CI and the variables are parameterized
 	if os.Getenv("CI") != "" {
 		t.Skip("Skipping Azure DevOps Project datasource test in CI " +
 			"until Azure integration and a personal access token are available")
+	}
+
+	if os.Getenv("DBT_CLOUD_PERSONAL_ACCESS_TOKEN") == "" {
+		t.Skip("Skipping Azure DevOps Project datasource because no personal access token is available")
 	}
 
 	//TODO: Parameterize these values when a standard method is available for parameterization
