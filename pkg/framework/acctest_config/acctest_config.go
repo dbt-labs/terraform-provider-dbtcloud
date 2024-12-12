@@ -10,20 +10,31 @@ var AcceptanceTestConfig = buildAcctestConfig()
 
 func buildAcctestConfig() AcctestConfig {
 	return AcctestConfig{
-		DbtCloudAccountId:    determineIntValue("DBT_CLOUD_ACCOUNT_ID", 1, 1),
-		DbtCloudServiceToken: os.Getenv("DBT_CLOUD_TOKEN"),
-		DbtCloudHostUrl:      determineStringValue("DBT_CLOUD_HOST_URL", "", ""),
-		DbtCloudVersion:      "versionless",
-		DbtCloudUserId:       determineIntValue("DBT_CLOUD_USER_ID", 1, 54461),
+		DbtCloudAccountId:           determineIntValue("DBT_CLOUD_ACCOUNT_ID", 1, 1),
+		DbtCloudServiceToken:        os.Getenv("DBT_CLOUD_TOKEN"),
+		DbtCloudPersonalAccessToken: os.Getenv("DBT_CLOUD_PERSONAL_ACCESS_TOKEN"),
+		DbtCloudHostUrl:             determineStringValue("DBT_CLOUD_HOST_URL", "", ""),
+		DbtCloudVersion:             "versionless",
+
+		DbtCloudUserId: determineIntValue(
+			"ACC_TEST_DBT_CLOUD_USER_ID",
+			1,
+			54461,
+		),
 		DbtCloudUserEmail: determineStringValue(
-			"DBT_CLOUD_USER_EMAIL",
+			"ACC_TEST_DBT_CLOUD_USER_EMAIL",
 			"d"+"ev@"+"db"+"tla"+"bs.c"+"om",
 			"beno"+"it"+".per"+"igaud"+"@"+"fisht"+"ownanalytics"+"."+"com",
 		),
 		DbtCloudGroupIds: determineStringValue(
-			"DBT_CLOUD_GROUP_IDS",
+			"ACC_TEST_DBT_CLOUD_GROUP_IDS",
 			"1,2,3",
 			"531585,531584,531583",
+		),
+		AzureDevOpsProjectName: determineStringValue(
+			"ACC_TEST_AZURE_DEVOPS_PROJECT_NAME",
+			"dbt-cloud-ado-project",
+			"dbt-cloud-ado-project",
 		),
 		GitHubRepoUrl: determineStringValue(
 			"ACC_TEST_GITHUB_REPO_URL",
@@ -39,13 +50,16 @@ func buildAcctestConfig() AcctestConfig {
 }
 
 type AcctestConfig struct {
-	DbtCloudAccountId       int
-	DbtCloudServiceToken    string
-	DbtCloudHostUrl         string
-	DbtCloudVersion         string
+	DbtCloudAccountId           int
+	DbtCloudServiceToken        string
+	DbtCloudPersonalAccessToken string
+	DbtCloudHostUrl             string
+	DbtCloudVersion             string
+
 	DbtCloudUserId          int
 	DbtCloudUserEmail       string
 	DbtCloudGroupIds        string
+	AzureDevOpsProjectName  string
 	GitHubRepoUrl           string
 	GitHubAppInstallationId int
 }
