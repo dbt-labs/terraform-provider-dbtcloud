@@ -2,7 +2,6 @@ package group
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -263,7 +262,7 @@ func (r *groupResource) ImportState(
 	groupIDStr := req.ID
 	groupID, err := strconv.Atoi(groupIDStr)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError("Error parsing group ID for import", err.Error())
 		return
 	}
 

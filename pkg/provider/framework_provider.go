@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"os"
 	"strconv"
 
@@ -184,7 +185,7 @@ func (p *dbtCloudProvider) Configure(
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
-    azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
+    	azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
 		notification.NotificationDataSource,
@@ -196,6 +197,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		project.ProjectsDataSource,
 		global_connection.GlobalConnectionDataSource,
 		global_connection.GlobalConnectionsDataSource,
+		azure_dev_ops_project.AzureDevOpsProjectDataSource,
 	}
 }
 
@@ -212,5 +214,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		oauth_configuration.OAuthConfigurationResource,
 		account_features.AccountFeaturesResource,
 		ip_restrictions_rule.IPRestrictionsRuleResource,
+		license_map.LicenseMapResource,
 	}
 }

@@ -2,7 +2,6 @@ package oauth_configuration
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -267,7 +266,7 @@ func (r *oAuthConfigurationResource) ImportState(
 	oAuthConfigurationIDStr := req.ID
 	oAuthConfigurationID, err := strconv.Atoi(oAuthConfigurationIDStr)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError("Error parsing OAuth configuration ID for import", err.Error())
 		return
 	}
 
