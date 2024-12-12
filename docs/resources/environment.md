@@ -70,7 +70,7 @@ resource "dbtcloud_environment" "dev_environment" {
   - To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project
 - `credential_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
 - `custom_branch` (String) Which custom branch to use in this environment
-- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to`latest` if no version is provided
+- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
 - `enable_model_query_history` (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
 - `extended_attributes_id` (Number) ID of the extended attributes for the environment
