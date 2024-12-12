@@ -162,9 +162,7 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 }
 
 func testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
-	projectName string,
-	environmentName string,
-	dbtVersion string,
+	projectName, environmentName, dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -349,9 +347,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 }
 
 func testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
-	projectName string,
-	environmentName string,
-	dbtVersion string,
+	projectName, environmentName, dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -383,11 +379,7 @@ resource "dbtcloud_environment" "test_env" {
 }
 
 func testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
-	projectName string,
-	environmentName string,
-	customBranch string,
-	useCustomBranch string,
-	dbtVersion string,
+	projectName, environmentName, customBranch, useCustomBranch, dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
