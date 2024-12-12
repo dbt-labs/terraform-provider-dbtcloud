@@ -60,9 +60,7 @@ func ResourceEnvironment() *schema.Resource {
 						(newValue == "latest" || newValue == "versionless") {
 						return true
 					}
-
-					return oldValue == newValue
-
+					return false
 				},
 			},
 			"type": {
