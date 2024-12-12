@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DBT_CLOUD_VERSION = "versionless"
+	DBT_CLOUD_VERSION = "latest"
 )
 
 var testAccProviders map[string]*schema.Provider

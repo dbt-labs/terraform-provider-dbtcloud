@@ -53,8 +53,18 @@ func ResourceEnvironment() *schema.Resource {
 			"dbt_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "versionless",
-				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre` or `versionless`. Defaults to`versionless` if no version is provided",
+				Default:     "latest",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					switch oldValue {
+					case "versionless":
+						return newValue == "latest"
+					case "latest":
+						return newValue == "versionless"
+					default:
+						return false
+					}
+				},
 			},
 			"type": {
 				Type:        schema.TypeString,

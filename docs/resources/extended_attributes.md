@@ -30,7 +30,7 @@ resource "dbtcloud_extended_attributes" "my_attributes" {
 }
 
 resource "dbtcloud_environment" "issue_depl" {
-  dbt_version            = "versionless"
+  dbt_version            = "latest"
   name                   = "My environment"
   project_id             = var.dbt_project.id
   type                   = "deployment"
