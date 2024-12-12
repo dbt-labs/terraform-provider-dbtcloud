@@ -66,11 +66,13 @@ for a dbt Cloud account the tests can interact with. All dbt Cloud resources ref
 (e.g. user id, email address, and group ids) must exist in the dbt Cloud account.
 ```
 DBT_CLOUD_ACCOUNT_ID=1234
-ACC_TEST_DBT_CLOUD_USER_ID=4321
-ACC_TEST_DBT_CLOUD_USER_EMAIL=<email_address>
-DBT_CLOUD_TOKEN=<api_token>
 DBT_CLOUD_HOST_URL=https://<host>/api
+DBT_CLOUD_TOKEN=<api_token>
+DBT_CLOUD_PERSONAL_ACCESS_TOKEN=<api_token>
+ACC_TEST_DBT_CLOUD_USER_EMAIL=<email_address>
+ACC_TEST_DBT_CLOUD_USER_ID=4321
 ACC_TEST_DBT_CLOUD_GROUP_IDS=1,2,3
+ACC_TEST_AZURE_DEVOPS_PROJECT_NAME=test-project
 ACC_TEST_GITHUB_REPO_URL=git@github.com:<github-org>/<dbt-project>.git
 ACC_TEST_GITHUB_APP_INSTALLATION_ID=1234
 ```
