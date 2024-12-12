@@ -41,7 +41,7 @@ func SharedClient() (*dbt_cloud.Client, error) {
 }
 
 const (
-	DBT_CLOUD_VERSION = "versionless"
+	DBT_CLOUD_VERSION = "latest"
 )
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
