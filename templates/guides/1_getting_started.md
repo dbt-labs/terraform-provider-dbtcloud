@@ -99,7 +99,7 @@ resource "dbtcloud_project_repository" "my_project_repository" {
 // here both are linked to the same Data Warehouse connection
 // for Prod, we need to create a credential as well
 resource "dbtcloud_environment" "my_dev" {
-  dbt_version     = "versionless"
+  dbt_version     = "latest"
   name            = "Dev"
   project_id      = dbtcloud_project.my_project.id
   type            = "development"
@@ -107,7 +107,7 @@ resource "dbtcloud_environment" "my_dev" {
 }
 
 resource "dbtcloud_environment" "my_prod" {
-  dbt_version     = "versionless"
+  dbt_version     = "latest"
   name            = "Prod"
   project_id      = dbtcloud_project.my_project.id
   type            = "deployment"

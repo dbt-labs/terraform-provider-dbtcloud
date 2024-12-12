@@ -22,8 +22,8 @@ This version of the provider has the `connection_id` as an optional field but it
 
 ```terraform
 resource "dbtcloud_environment" "ci_environment" {
-  // the dbt_version is major.minor.0-latest , major.minor.0-pre or versionless (by default, it is set to versionless if not configured)
-  dbt_version   = "versionless"
+  // the dbt_version is major.minor.0-latest , major.minor.0-pre or latest (by default, it is set to latest if not configured)
+  dbt_version   = "latest"
   name          = "CI"
   project_id    = dbtcloud_project.dbt_project.id
   type          = "deployment"
@@ -44,7 +44,7 @@ resource "dbtcloud_environment" "prod_environment" {
 
 // Creating a development environment
 resource "dbtcloud_environment" "dev_environment" {
-  dbt_version = "versionless"
+  dbt_version = "latest"
   name        = "Dev"
   project_id  = dbtcloud_project.dbt_project.id
   type        = "development"
