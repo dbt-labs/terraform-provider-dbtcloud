@@ -17,6 +17,7 @@ import (
 // testing for the historical use case where connection_id is not configured at the env level
 func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 
+	dbtVersionLatest := "latest"
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -30,6 +31,7 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
 					projectName,
 					environmentName,
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -50,6 +52,7 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
 					projectName,
 					environmentName2,
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -78,7 +81,7 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
 						"dbt_version",
-						DBT_CLOUD_VERSION,
+						dbtVersionLatest,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
@@ -124,7 +127,7 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
 						"dbt_version",
-						DBT_CLOUD_VERSION,
+						dbtVersionLatest,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
@@ -159,7 +162,9 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 }
 
 func testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
-	projectName, environmentName string,
+	projectName string,
+	environmentName string,
+	dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -173,7 +178,7 @@ resource "dbtcloud_environment" "test_env" {
   project_id = dbtcloud_project.test_project.id
   deployment_type = "production"
 }
-`, projectName, environmentName, DBT_CLOUD_VERSION)
+`, projectName, environmentName, dbtVersion)
 }
 
 func testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
@@ -206,6 +211,7 @@ resource "dbtcloud_bigquery_credential" "test_credential" {
 
 // testing for the global connection use case where connection_id is added at the env level
 func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
+	dbtVersionLatest := "latest"
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -219,6 +225,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 				Config: testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
 					projectName,
 					environmentName,
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -239,6 +246,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 				Config: testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
 					projectName,
 					environmentName2,
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -256,6 +264,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 					environmentName2,
 					"",
 					"false",
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -267,7 +276,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
 						"dbt_version",
-						DBT_CLOUD_VERSION,
+						dbtVersionLatest,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
@@ -297,6 +306,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 					environmentName2,
 					"main",
 					"true",
+					dbtVersionLatest,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
@@ -308,7 +318,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
 						"dbt_version",
-						DBT_CLOUD_VERSION,
+						dbtVersionLatest,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_environment.test_env",
@@ -339,7 +349,9 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 }
 
 func testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
-	projectName, environmentName string,
+	projectName string,
+	environmentName string,
+	dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -367,11 +379,15 @@ resource "dbtcloud_environment" "test_env" {
   connection_id = dbtcloud_global_connection.test.id
   }
   
-  `, projectName, environmentName, DBT_CLOUD_VERSION)
+  `, projectName, environmentName, dbtVersion)
 }
 
 func testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
-	projectName, environmentName, customBranch, useCustomBranch string,
+	projectName string,
+	environmentName string,
+	customBranch string,
+	useCustomBranch string,
+	dbtVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -419,7 +435,38 @@ resource "dbtcloud_bigquery_credential" "test_credential" {
 	num_threads = 16
   }
   
-`, projectName, environmentName, DBT_CLOUD_VERSION, customBranch, useCustomBranch)
+`, projectName, environmentName, dbtVersion, customBranch, useCustomBranch)
+}
+
+// TestAccDbtCloudEnvironmentResourceVersionless tests the environment resource with dbt_version set to versionless
+// This is a special case where if the dbt_version is set to `versionless`, the dbt Cloud API may return `latest`
+func TestAccDbtCloudEnvironmentResourceVersionless(t *testing.T) {
+	dbtVersionless := "versionless"
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+					projectName,
+					environmentName,
+					dbtVersionless,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestMatchResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						regexp.MustCompile("^versionless|latest$"),
+					),
+				),
+			},
+		},
+	})
 }
 
 func testAccCheckDbtCloudEnvironmentExists(resource string) resource.TestCheckFunc {
