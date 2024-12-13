@@ -14,7 +14,7 @@ func buildAcctestConfig() AcctestConfig {
 		DbtCloudServiceToken:        os.Getenv("DBT_CLOUD_TOKEN"),
 		DbtCloudPersonalAccessToken: os.Getenv("DBT_CLOUD_PERSONAL_ACCESS_TOKEN"),
 		DbtCloudHostUrl:             determineStringValue("DBT_CLOUD_HOST_URL", "", ""),
-		DbtCloudVersion:             "versionless",
+		DbtCloudVersion:             "latest",
 
 		DbtCloudUserId: determineIntValue(
 			"ACC_TEST_DBT_CLOUD_USER_ID",

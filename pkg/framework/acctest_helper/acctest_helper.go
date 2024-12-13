@@ -40,10 +40,6 @@ func SharedClient() (*dbt_cloud.Client, error) {
 	return &client, nil
 }
 
-const (
-	DBT_CLOUD_VERSION = "latest"
-)
-
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"dbtcloud": func() (tfprotov6.ProviderServer, error) {
 		upgradedSdkProvider, err := tf5to6server.UpgradeServer(
