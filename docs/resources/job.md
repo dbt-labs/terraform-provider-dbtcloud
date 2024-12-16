@@ -117,18 +117,18 @@ resource "dbtcloud_job" "downstream_job" {
 - `dbt_version` (String) Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions
 - `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
-- `description` (String) Description for the job
+- `description` (String) Long Description for the job
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
-- `job_completion_trigger_condition` (Block Set, Max: 1) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
-- `num_threads` (Number) Number of threads to use in the job
+- `job_completion_trigger_condition` (Block Set) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
+- `num_threads` (Number) Number of threads to use for the job
 - `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
 - `run_generate_sources` (Boolean) Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.
-- `schedule_cron` (String) Custom cron expression for schedule
-- `schedule_days` (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
-- `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule
+- `schedule_cron` (String) Custom `cron` expression to use for the schedule
+- `schedule_days` (Set of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
+- `schedule_hours` (Set of Number) List of hours to execute the job at if running on a schedule
 - `schedule_interval` (Number) Number of hours between job executions if running on a schedule
-- `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
+- `schedule_type` (String) Type of schedule to use, one of `every_day` / `days_of_week` / `custom_cron`
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
 - `timeout_seconds` (Number) Number of seconds to allow the job to run before timing out
@@ -136,7 +136,7 @@ resource "dbtcloud_job" "downstream_job" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the this resource
 
 <a id="nestedblock--job_completion_trigger_condition"></a>
 ### Nested Schema for `job_completion_trigger_condition`
