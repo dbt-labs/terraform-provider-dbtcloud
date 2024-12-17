@@ -26,8 +26,8 @@ description: |-
 - `deferring_job_id` (Number) ID of the job this job defers to
 - `description` (String) Long description for the job
 - `environment_id` (Number) ID of the environment the job is in
-- `id` (String) The ID of this resource.
-- `job_completion_trigger_condition` (Set of Object) Which other job should trigger this job when it finishes, and on which conditions. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
+- `id` (String) The ID of the this resource
+- `job_completion_trigger_condition` (Block Set) Whether the CI job should compare data changes introduced by the code change in the PR. (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `name` (String) Given name for the job
 - `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code change in the PR.
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
@@ -35,11 +35,11 @@ description: |-
 - `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
-<a id="nestedatt--job_completion_trigger_condition"></a>
+<a id="nestedblock--job_completion_trigger_condition"></a>
 ### Nested Schema for `job_completion_trigger_condition`
 
 Read-Only:
 
-- `job_id` (Number)
-- `project_id` (Number)
-- `statuses` (Set of String)
+- `job_id` (Number) The ID of the job that would trigger this job after completion.
+- `project_id` (Number) The ID of the project where the trigger job is running in.
+- `statuses` (Set of String) List of statuses to trigger the job on.
