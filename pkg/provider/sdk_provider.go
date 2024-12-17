@@ -69,7 +69,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_repository":                        resources.ResourceRepository(),
 				"dbtcloud_webhook":                           resources.ResourceWebhook(),
 				"dbtcloud_user_groups":                       resources.ResourceUserGroups(),
-				"dbtcloud_license_map":                       resources.ResourceLicenseMap(),
 				"dbtcloud_extended_attributes":               resources.ResourceExtendedAttributes(),
 				"dbtcloud_environment_variable_job_override": resources.ResourceEnvironmentVariableJobOverride(),
 				"dbtcloud_fabric_connection":                 resources.ResourceFabricConnection(),

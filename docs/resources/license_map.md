@@ -2,13 +2,13 @@
 page_title: "dbtcloud_license_map Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Maps SSO groups to a given license type
 ---
 
 # dbtcloud_license_map (Resource)
 
 
-
+Maps SSO groups to a given license type
 
 ## Example Usage
 
@@ -45,7 +45,7 @@ resource "dbtcloud_license_map" "it_license_map" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (Number) The ID of the license map
 
 ## Import
 

@@ -1,4 +1,4 @@
-package resources_test
+package license_map_test
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudLicenseMapDestroy,
 		Steps: []resource.TestStep{
