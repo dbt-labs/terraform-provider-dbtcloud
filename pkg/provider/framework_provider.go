@@ -2,13 +2,12 @@ package provider
 
 import (
 	"context"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"os"
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
@@ -16,6 +15,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/ip_restrictions_rule"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
@@ -185,7 +185,7 @@ func (p *dbtCloudProvider) Configure(
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
-    	azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
+		azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
 		notification.NotificationDataSource,
@@ -197,7 +197,6 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		project.ProjectsDataSource,
 		global_connection.GlobalConnectionDataSource,
 		global_connection.GlobalConnectionsDataSource,
-		azure_dev_ops_project.AzureDevOpsProjectDataSource,
 	}
 }
 
