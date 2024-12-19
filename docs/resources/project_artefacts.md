@@ -34,7 +34,7 @@ resource "dbtcloud_project_artefacts" "my_project_artefacts" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the project artefacts resource.
 
 ## Import
 
