@@ -5,9 +5,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
-
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
@@ -25,6 +22,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 
