@@ -14,7 +14,7 @@ func TestDbtCloudJobsDataSource(t *testing.T) {
 	randomJobName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	randomJobName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := jobs(randomJobName, randomJobName2)
+	config := jobsAll(randomJobName, randomJobName2)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet("data.dbtcloud_jobs.test", "project_id"),
@@ -66,7 +66,7 @@ func TestDbtCloudJobsDataSource(t *testing.T) {
 	})
 }
 
-func jobs(jobName string, jobName2 string) string {
+func jobsAll(jobName string, jobName2 string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_project" {
         name = "jobs_test_project"

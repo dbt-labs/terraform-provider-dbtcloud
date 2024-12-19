@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
+
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
@@ -192,6 +194,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSource,
 		group.GroupDataSource,
+		job.JobDataSource,
 		job.JobsDataSource,
 		service_token.ServiceTokenDataSource,
 		project.ProjectsDataSource,
@@ -207,6 +210,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		partial_license_map.PartialLicenseMapResource,
 		group.GroupResource,
+		job.JobResource,
 		service_token.ServiceTokenResource,
 		global_connection.GlobalConnectionResource,
 		lineage_integration.LineageIntegrationResource,
