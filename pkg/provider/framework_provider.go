@@ -5,6 +5,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
+
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
@@ -186,33 +189,34 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
 		azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
-		user.UserDataSource,
-		user.UsersDataSource,
-		notification.NotificationDataSource,
 		environment.EnvironmentDataSource,
 		environment.EnvironmentsDataSource,
-		group.GroupDataSource,
-		job.JobsDataSource,
-		service_token.ServiceTokenDataSource,
-		project.ProjectsDataSource,
 		global_connection.GlobalConnectionDataSource,
 		global_connection.GlobalConnectionsDataSource,
+		group.GroupDataSource,
+		job.JobsDataSource,
+		notification.NotificationDataSource,
+		project.ProjectsDataSource,
+		service_token.ServiceTokenDataSource,
+		user.UserDataSource,
+		user.UsersDataSource,
 	}
 }
 
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		notification.NotificationResource,
-		group_partial_permissions.GroupPartialPermissionsResource,
-		partial_notification.PartialNotificationResource,
-		partial_license_map.PartialLicenseMapResource,
-		group.GroupResource,
-		service_token.ServiceTokenResource,
-		global_connection.GlobalConnectionResource,
-		lineage_integration.LineageIntegrationResource,
-		oauth_configuration.OAuthConfigurationResource,
 		account_features.AccountFeaturesResource,
+		global_connection.GlobalConnectionResource,
+		group_partial_permissions.GroupPartialPermissionsResource,
+		group.GroupResource,
 		ip_restrictions_rule.IPRestrictionsRuleResource,
 		license_map.LicenseMapResource,
+		lineage_integration.LineageIntegrationResource,
+		notification.NotificationResource,
+		oauth_configuration.OAuthConfigurationResource,
+		partial_license_map.PartialLicenseMapResource,
+		partial_notification.PartialNotificationResource,
+		project_artefacts.ProjectArtefactsResource,
+		service_token.ServiceTokenResource,
 	}
 }
