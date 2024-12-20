@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22-beta.1...HEAD)
+
+# [0.3.22-beta.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...v0.3.22-beta.1)
+
+### Notes
+- This is a beta release.
+
+### Changes
+- provider: Update `golang.org/x/net` dependency [#329](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/329)
+- provider: Update `golang.org/x/crypto` dependency [#328](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/328)
+- resource/dbtcloud_license_map: Migrate from SDKv2 to Framework [#325](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/325)
+- resource/dbtcloud_environment: Make the default version `latest` [#324](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/324)
+- data-source/dbtcloud_azure_dev_ops_repository: Migrate from SDKv2 to Framework [#323](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/323)
+- data-source/dbtcloud_azure_dev_ops_project: Migrate from SDKv2 to Framework [#321](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/321)
 
 # [0.3.22](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.21...v0.3.22)
 
