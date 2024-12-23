@@ -1,4 +1,4 @@
-package resources_test
+package project_artefacts_test
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudProjectArtefactsDestroy,
 		Steps: []resource.TestStep{
@@ -89,7 +89,7 @@ resource "dbtcloud_project_artefacts" "test_project_artefacts" {
   docs_job_id = dbtcloud_job.test_job.id
   freshness_job_id = dbtcloud_job.test_job.id
 }
-`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
+`, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION, jobName)
 }
 
 func testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName string) string {
