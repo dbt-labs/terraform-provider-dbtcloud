@@ -2,6 +2,7 @@ package resources_test
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"regexp"
 	"strconv"
 	"strings"
@@ -344,6 +345,108 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccDbtCloudEnvironmentResourceProjectUpdate tests that environments are not incorrectly updated when
+// there is an update made to a project. Specifically tests the issue linked below where a project update
+// would cascade a connection_id to all environments in the project.
+// https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/334
+func TestAccDbtCloudEnvironmentResourceProjectUpdate(t *testing.T) {
+	dbtVersionLatest := "latest"
+	environmentNameDev := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentNameProd := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectDescription := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectDescription2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceDualConnectionConfig(
+					projectName,
+					projectDescription,
+					environmentNameDev,
+					environmentNameProd,
+					dbtVersionLatest,
+				),
+				ConfigStateChecks: []statecheck.StateCheck{},
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.dev"),
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.prod"),
+				),
+			},
+			// MODIFY PROJECT
+			{
+				Config: testAccDbtCloudEnvironmentResourceDualConnectionConfig(
+					projectName,
+					projectDescription2,
+					environmentNameDev,
+					environmentNameProd,
+					dbtVersionLatest,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.dev"),
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.prod"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudEnvironmentResourceDualConnectionConfig(
+	projectName, projectDescription, environmentNameDev, environmentNameProd, dbtVersion string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+  description = "%s"
+}
+
+resource dbtcloud_global_connection dev {
+  name = "test connection dev"
+
+  snowflake = {
+    account = "test"
+    role = "role"
+    warehouse = "warehouse"
+    database = "database"
+    allow_sso = false
+  }
+}
+
+resource dbtcloud_global_connection prod {
+  name = "test connection prod"
+
+  snowflake = {
+    account = "test"
+    role = "role"
+    warehouse = "warehouse"
+    database = "database"
+    allow_sso = false
+  }
+}
+
+resource "dbtcloud_environment" "dev" {
+  name        = "%s dev"
+  type = "development"
+  dbt_version = "%s"
+  project_id = dbtcloud_project.test_project.id
+  connection_id = dbtcloud_global_connection.dev.id
+}
+
+resource "dbtcloud_environment" "prod" {
+  name        = "%s prod"
+  type = "deployment"
+  dbt_version = "%s"
+  project_id = dbtcloud_project.test_project.id
+  deployment_type = "production"
+  connection_id = dbtcloud_global_connection.prod.id
+}
+  
+  `, projectName, projectDescription, environmentNameDev, dbtVersion, environmentNameProd, dbtVersion)
 }
 
 func testAccDbtCloudEnvironmentResourceConnectionBasicConfig(
