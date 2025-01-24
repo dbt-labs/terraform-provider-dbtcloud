@@ -112,6 +112,13 @@ func resourceProjectUpdate(
 	if d.HasChange("name") || d.HasChange("description") ||
 		d.HasChange("dbt_project_subdirectory") {
 		project, err := c.GetProject(projectID)
+
+		// When updating a project, the connection ID should always be excluded.
+		// With the introduction of global connections, if a connection ID is passed in this update request,
+		// the connection ID will be cascaded to all environments in the project and will override any
+		// existing connection IDs on those environments.
+		project.ConnectionID = nil
+
 		if err != nil {
 			return diag.FromErr(err)
 		}
