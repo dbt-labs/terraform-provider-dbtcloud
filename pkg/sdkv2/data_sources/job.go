@@ -128,10 +128,10 @@ func datasourceJobRead(
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("project_id", job.Project_Id); err != nil {
+	if err := d.Set("project_id", job.ProjectId); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("environment_id", job.Environment_Id); err != nil {
+	if err := d.Set("environment_id", job.EnvironmentId); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", job.Name); err != nil {
@@ -143,9 +143,9 @@ func datasourceJobRead(
 	if err := d.Set("job_id", job.ID); err != nil {
 		return diag.FromErr(err)
 	}
-	selfDeferring := job.Deferring_Job_Id != nil && *job.Deferring_Job_Id == *job.ID
+	selfDeferring := job.DeferringJobId != nil && *job.DeferringJobId == *job.ID
 	if !selfDeferring {
-		if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
+		if err := d.Set("deferring_job_id", job.DeferringJobId); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -155,7 +155,7 @@ func datasourceJobRead(
 	if err := d.Set("self_deferring", selfDeferring); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("timeout_seconds", job.Execution.Timeout_Seconds); err != nil {
+	if err := d.Set("timeout_seconds", job.Execution.TimeoutSeconds); err != nil {
 		return diag.FromErr(err)
 	}
 	var triggers map[string]interface{}

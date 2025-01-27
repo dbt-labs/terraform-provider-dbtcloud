@@ -9,15 +9,15 @@ import (
 )
 
 type JobTrigger struct {
-	Github_Webhook     bool `json:"github_webhook"`
+	GithubWebhook      bool `json:"github_webhook"`
 	Schedule           bool `json:"schedule"`
 	GitProviderWebhook bool `json:"git_provider_webhook"`
 	OnMerge            bool `json:"on_merge"`
 }
 
 type JobSettings struct {
-	Threads     int    `json:"threads"`
-	Target_Name string `json:"target_name"`
+	Threads    int    `json:"threads"`
+	TargetName string `json:"target_name"`
 }
 
 type scheduleDate struct {
@@ -44,7 +44,7 @@ type JobResponse struct {
 }
 
 type JobExecution struct {
-	Timeout_Seconds int `json:"timeout_seconds"`
+	TimeoutSeconds int `json:"timeout_seconds"`
 }
 
 type JobCompletionTrigger struct {
@@ -59,26 +59,28 @@ type JobCompletionTriggerCondition struct {
 
 type Job struct {
 	ID                     *int                  `json:"id"`
-	Account_Id             int                   `json:"account_id"`
-	Project_Id             int                   `json:"project_id"`
-	Environment_Id         int                   `json:"environment_id"`
+	AccountId              int                   `json:"account_id"`
+	ProjectId              int                   `json:"project_id"`
+	EnvironmentId          int                   `json:"environment_id"`
 	Name                   string                `json:"name"`
+	DbtVersion             *string               `json:"dbt_version"`
+	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
+	DeferringJobId         *int                  `json:"deferring_job_definition_id"`
 	Description            string                `json:"description"`
-	Execute_Steps          []string              `json:"execute_steps"`
-	Dbt_Version            *string               `json:"dbt_version"`
+	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
+	ExecuteSteps           []string              `json:"execute_steps"`
+	Execution              JobExecution          `json:"execution"`
+	GenerateDocs           bool                  `json:"generate_docs"`
+	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 	JobType                string                `json:"job_type,omitempty"`
-	Triggers               JobTrigger            `json:"triggers"`
+	RunCompareChanges      bool                  `json:"run_compare_changes"`
+	RunGenerateSources     bool                  `json:"run_generate_sources"`
+	RunLint                bool                  `json:"run_lint"`
+	Schedule               JobSchedule           `json:"schedule"`
 	Settings               JobSettings           `json:"settings"`
 	State                  int                   `json:"state"`
-	Generate_Docs          bool                  `json:"generate_docs"`
-	Schedule               JobSchedule           `json:"schedule"`
-	Run_Generate_Sources   bool                  `json:"run_generate_sources"`
-	Deferring_Job_Id       *int                  `json:"deferring_job_definition_id"`
-	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
-	Execution              JobExecution          `json:"execution"`
 	TriggersOnDraftPR      bool                  `json:"triggers_on_draft_pr"`
-	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
-	RunCompareChanges      bool                  `json:"run_compare_changes"`
+	Triggers               JobTrigger            `json:"triggers"`
 }
 
 type JobWithEnvironment struct {
@@ -135,6 +137,8 @@ func (c *Client) CreateJob(
 	triggersOnDraftPR bool,
 	jobCompletionTriggerCondition map[string]any,
 	runCompareChanges bool,
+	runLint bool,
+	errorsOnLintFailure bool,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -164,14 +168,14 @@ func (c *Client) CreateJob(
 		jobType = "ci"
 	}
 	jobTriggers := JobTrigger{
-		Github_Webhook:     github_webhook.(bool),
+		GithubWebhook:      github_webhook.(bool),
 		Schedule:           schedule.(bool),
 		GitProviderWebhook: git_provider_webhook.(bool),
 		OnMerge:            onMerge.(bool),
 	}
 	jobSettings := JobSettings{
-		Threads:     numThreads,
-		Target_Name: targetName,
+		Threads:    numThreads,
+		TargetName: targetName,
 	}
 
 	time := scheduleTime{
@@ -201,7 +205,7 @@ func (c *Client) CreateJob(
 		Time: time,
 	}
 	jobExecution := JobExecution{
-		Timeout_Seconds: timeoutSeconds,
+		TimeoutSeconds: timeoutSeconds,
 	}
 
 	jobCompletionTrigger := &JobCompletionTrigger{}
@@ -218,31 +222,33 @@ func (c *Client) CreateJob(
 	}
 
 	newJob := Job{
-		Account_Id:           c.AccountID,
-		Project_Id:           projectId,
-		Environment_Id:       environmentId,
+		AccountId:            c.AccountID,
+		ProjectId:            projectId,
+		EnvironmentId:        environmentId,
 		Name:                 name,
 		Description:          description,
-		Execute_Steps:        executeSteps,
+		ExecuteSteps:         executeSteps,
 		State:                state,
 		Triggers:             jobTriggers,
 		Settings:             jobSettings,
 		Schedule:             jobSchedule,
-		Generate_Docs:        generateDocs,
-		Run_Generate_Sources: runGenerateSources,
+		GenerateDocs:         generateDocs,
+		RunGenerateSources:   runGenerateSources,
 		Execution:            jobExecution,
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
 		JobType:              jobType,
 		RunCompareChanges:    runCompareChanges,
+		RunLint:              runLint,
+		ErrorsOnLintFailure:  errorsOnLintFailure,
 	}
 	if dbtVersion != "" {
-		newJob.Dbt_Version = &dbtVersion
+		newJob.DbtVersion = &dbtVersion
 	}
 	if deferringJobId != 0 {
-		newJob.Deferring_Job_Id = &deferringJobId
+		newJob.DeferringJobId = &deferringJobId
 	} else {
-		newJob.Deferring_Job_Id = nil
+		newJob.DeferringJobId = nil
 	}
 	if deferringEnvironmentID != 0 {
 		newJob.DeferringEnvironmentId = &deferringEnvironmentID
@@ -278,7 +284,7 @@ func (c *Client) CreateJob(
 		updatedJob := newJob
 		deferringJobID := *jobResponse.Data.ID
 		selfID := *jobResponse.Data.ID
-		updatedJob.Deferring_Job_Id = &deferringJobID
+		updatedJob.DeferringJobId = &deferringJobID
 		updatedJob.ID = &selfID
 		return c.UpdateJob(strconv.Itoa(*jobResponse.Data.ID), updatedJob)
 	}
