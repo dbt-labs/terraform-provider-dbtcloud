@@ -105,13 +105,13 @@ var jobSchema = map[string]*schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
-		Description: "Whether the CI job should lint SQL changes.",
+		Description: "Whether the CI job should lint SQL changes. Defaults to `false`.",
 	},
 	"errors_on_lint_failure": {
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     true,
-		Description: "Whether the CI job should fail when a lint error is found.",
+		Description: "Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.",
 	},
 	"schedule_type": {
 		Type:         schema.TypeString,

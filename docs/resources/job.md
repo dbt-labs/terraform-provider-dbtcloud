@@ -61,6 +61,8 @@ resource "dbtcloud_job" "ci_job" {
   num_threads              = 32
   project_id               = dbtcloud_project.dbt_project.id
   run_generate_sources     = false
+  run_lint                 = true
+  errors_on_lint_failure   = true
   triggers = {
     "github_webhook" : true
     "git_provider_webhook" : true
@@ -118,12 +120,14 @@ resource "dbtcloud_job" "downstream_job" {
 - `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `description` (String) Description for the job
+- `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
 - `job_completion_trigger_condition` (Block Set, Max: 1) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `num_threads` (Number) Number of threads to use in the job
 - `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
 - `run_generate_sources` (Boolean) Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.
+- `run_lint` (Boolean) Whether the CI job should lint SQL changes. Defaults to `false`.
 - `schedule_cron` (String) Custom cron expression for schedule
 - `schedule_days` (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
 - `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule
