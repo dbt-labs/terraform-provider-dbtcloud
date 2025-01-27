@@ -2,7 +2,6 @@ package resources_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"regexp"
 	"strconv"
 	"strings"
@@ -372,7 +371,6 @@ func TestAccDbtCloudEnvironmentResourceProjectUpdate(t *testing.T) {
 					environmentNameProd,
 					dbtVersionLatest,
 				),
-				ConfigStateChecks: []statecheck.StateCheck{},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.dev"),
 					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.prod"),
