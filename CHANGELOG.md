@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.23-beta.1...HEAD)
 
+# [0.3.23](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...v0.3.23)
+
+### Changes
+- provider: Update `golang.org/x/net` dependency [#329](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/329)
+- provider: Update `golang.org/x/crypto` dependency [#328](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/328)
+- resource/dbtcloud_project: Prevent overwriting connection_id in environments when updating a project [#334](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/334)
+- resource/dbtcloud_job: Add linting config options [#310](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/310)
+- resource/dbtcloud_license_map: Migrate from SDKv2 to Framework [#325](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/325)
+- resource/dbtcloud_environment: Make the default version `latest` [#324](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/324)
+- data-source/dbtcloud_azure_dev_ops_repository: Migrate from SDKv2 to Framework [#323](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/323)
+- data-source/dbtcloud_azure_dev_ops_project: Migrate from SDKv2 to Framework [#321](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/321)
+
+
 # [0.3.23-beta.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...v0.3.23-beta.1)
 
 ### Notes
