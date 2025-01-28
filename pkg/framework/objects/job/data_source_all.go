@@ -95,36 +95,36 @@ func (d *jobsDataSource) Read(
 
 		currentJob := JobDataSourceModel{
 			Execution: JobExecution{
-				TimeoutSeconds: types.Int64Value(int64(job.Execution.Timeout_Seconds)),
+				TimeoutSeconds: types.Int64Value(int64(job.Execution.TimeoutSeconds)),
 			},
-			GenerateDocs:       types.BoolValue(job.Generate_Docs),
-			RunGenerateSources: types.BoolValue(job.Run_Generate_Sources),
+			GenerateDocs:       types.BoolValue(job.GenerateDocs),
+			RunGenerateSources: types.BoolValue(job.RunGenerateSources),
 			ID: types.Int64PointerValue(
 				helper.IntPointerToInt64Pointer(job.ID),
 			),
-			ProjectID:     types.Int64Value(int64(job.Project_Id)),
-			EnvironmentID: types.Int64Value(int64(job.Environment_Id)),
+			ProjectID:     types.Int64Value(int64(job.ProjectId)),
+			EnvironmentID: types.Int64Value(int64(job.EnvironmentId)),
 			Name:          types.StringValue(job.Name),
 			Description:   types.StringValue(job.Description),
 			DbtVersion: types.StringPointerValue(
-				job.Dbt_Version,
+				job.DbtVersion,
 			),
-			ExecuteSteps: helper.SliceStringToSliceTypesString(job.Execute_Steps),
+			ExecuteSteps: helper.SliceStringToSliceTypesString(job.ExecuteSteps),
 			DeferringJobDefinitionID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
-				job.Deferring_Job_Id),
+				job.DeferringJobId),
 			),
 			DeferringEnvironmentID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
 				job.DeferringEnvironmentId),
 			),
 			Triggers: JobTriggers{
-				GithubWebhook:      types.BoolValue(job.Triggers.Github_Webhook),
+				GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),
 				GitProviderWebhook: types.BoolValue(job.Triggers.GitProviderWebhook),
 				Schedule:           types.BoolValue(job.Triggers.Schedule),
 				OnMerge:            types.BoolValue(job.Triggers.OnMerge),
 			},
 			Settings: JobSettings{
 				Threads:    types.Int64Value(int64(job.Settings.Threads)),
-				TargetName: types.StringValue(job.Settings.Target_Name),
+				TargetName: types.StringValue(job.Settings.TargetName),
 			},
 			Schedule: JobSchedule{
 				Cron: types.StringValue(job.Schedule.Cron),

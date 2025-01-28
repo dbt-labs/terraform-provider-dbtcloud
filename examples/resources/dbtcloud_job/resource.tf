@@ -38,6 +38,8 @@ resource "dbtcloud_job" "ci_job" {
   num_threads              = 32
   project_id               = dbtcloud_project.dbt_project.id
   run_generate_sources     = false
+  run_lint                 = true
+  errors_on_lint_failure   = true
   triggers = {
     "github_webhook" : true
     "git_provider_webhook" : true

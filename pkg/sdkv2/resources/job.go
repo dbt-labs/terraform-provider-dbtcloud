@@ -101,6 +101,18 @@ var jobSchema = map[string]*schema.Schema{
 		Default:     false,
 		Description: "Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.",
 	},
+	"run_lint": {
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Whether the CI job should lint SQL changes. Defaults to `false`.",
+	},
+	"errors_on_lint_failure": {
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     true,
+		Description: "Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.",
+	},
 	"schedule_type": {
 		Type:         schema.TypeString,
 		Optional:     true,
@@ -275,10 +287,10 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("project_id", job.Project_Id); err != nil {
+	if err := d.Set("project_id", job.ProjectId); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("environment_id", job.Environment_Id); err != nil {
+	if err := d.Set("environment_id", job.EnvironmentId); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("name", job.Name); err != nil {
@@ -287,10 +299,10 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("description", job.Description); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("execute_steps", job.Execute_Steps); err != nil {
+	if err := d.Set("execute_steps", job.ExecuteSteps); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("dbt_version", job.Dbt_Version); err != nil {
+	if err := d.Set("dbt_version", job.DbtVersion); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("is_active", job.State == 1); err != nil {
@@ -299,13 +311,13 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("num_threads", job.Settings.Threads); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("target_name", job.Settings.Target_Name); err != nil {
+	if err := d.Set("target_name", job.Settings.TargetName); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("generate_docs", job.Generate_Docs); err != nil {
+	if err := d.Set("generate_docs", job.GenerateDocs); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("run_generate_sources", job.Run_Generate_Sources); err != nil {
+	if err := d.Set("run_generate_sources", job.RunGenerateSources); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("schedule_type", job.Schedule.Date.Type); err != nil {
@@ -329,9 +341,9 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("schedule_cron", job.Schedule.Date.Cron); err != nil {
 		return diag.FromErr(err)
 	}
-	selfDeferring := job.Deferring_Job_Id != nil && strconv.Itoa(*job.Deferring_Job_Id) == jobId
+	selfDeferring := job.DeferringJobId != nil && strconv.Itoa(*job.DeferringJobId) == jobId
 	if !selfDeferring {
-		if err := d.Set("deferring_job_id", job.Deferring_Job_Id); err != nil {
+		if err := d.Set("deferring_job_id", job.DeferringJobId); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -342,7 +354,7 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("timeout_seconds", job.Execution.Timeout_Seconds); err != nil {
+	if err := d.Set("timeout_seconds", job.Execution.TimeoutSeconds); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -400,6 +412,12 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("run_compare_changes", job.RunCompareChanges); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("run_lint", job.RunLint); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("errors_on_lint_failure", job.ErrorsOnLintFailure); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -437,6 +455,8 @@ func resourceJobCreate(
 	timeoutSeconds := d.Get("timeout_seconds").(int)
 	triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
 	runCompareChanges := d.Get("run_compare_changes").(bool)
+	runLint := d.Get("run_lint").(bool)
+	errorsOnLintFailure := d.Get("errors_on_lint_failure").(bool)
 
 	var jobCompletionTrigger map[string]any
 	empty, completionJobID, completionProjectID, completionStatuses := utils.ExtractJobConditionSet(
@@ -488,6 +508,8 @@ func resourceJobCreate(
 		triggersOnDraftPR,
 		jobCompletionTrigger,
 		runCompareChanges,
+		runLint,
+		errorsOnLintFailure,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -530,7 +552,9 @@ func resourceJobUpdate(
 		d.HasChange("timeout_seconds") ||
 		d.HasChange("triggers_on_draft_pr") ||
 		d.HasChange("job_completion_trigger_condition") ||
-		d.HasChange("run_compare_changes") {
+		d.HasChange("run_compare_changes") ||
+		d.HasChange("run_lint") ||
+		d.HasChange("errors_on_lint_failure") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -538,11 +562,11 @@ func resourceJobUpdate(
 
 		if d.HasChange("project_id") {
 			projectID := d.Get("project_id").(int)
-			job.Project_Id = projectID
+			job.ProjectId = projectID
 		}
 		if d.HasChange("environment_id") {
 			envID := d.Get("environment_id").(int)
-			job.Environment_Id = envID
+			job.EnvironmentId = envID
 		}
 		if d.HasChange("name") {
 			name := d.Get("name").(string)
@@ -554,7 +578,7 @@ func resourceJobUpdate(
 		}
 		if d.HasChange("dbt_version") {
 			dbtVersion := d.Get("dbt_version").(string)
-			job.Dbt_Version = &dbtVersion
+			job.DbtVersion = &dbtVersion
 		}
 		if d.HasChange("num_threads") {
 			numThreads := d.Get("num_threads").(int)
@@ -562,27 +586,27 @@ func resourceJobUpdate(
 		}
 		if d.HasChange("target_name") {
 			targetName := d.Get("target_name").(string)
-			job.Settings.Target_Name = targetName
+			job.Settings.TargetName = targetName
 		}
 		if d.HasChange("run_generate_sources") {
 			runGenerateSources := d.Get("run_generate_sources").(bool)
-			job.Run_Generate_Sources = runGenerateSources
+			job.RunGenerateSources = runGenerateSources
 		}
 		if d.HasChange("generate_docs") {
 			generateDocs := d.Get("generate_docs").(bool)
-			job.Generate_Docs = generateDocs
+			job.GenerateDocs = generateDocs
 		}
 		if d.HasChange("execute_steps") {
 			executeSteps := make([]string, len(d.Get("execute_steps").([]interface{})))
 			for i, step := range d.Get("execute_steps").([]interface{}) {
 				executeSteps[i] = step.(string)
 			}
-			job.Execute_Steps = executeSteps
+			job.ExecuteSteps = executeSteps
 		}
 		if d.HasChange("triggers") {
 			var ok bool
 			newTriggers := d.Get("triggers").(map[string]interface{})
-			job.Triggers.Github_Webhook, ok = newTriggers["github_webhook"].(bool)
+			job.Triggers.GithubWebhook, ok = newTriggers["github_webhook"].(bool)
 			if !ok {
 				return diag.FromErr(fmt.Errorf("github_webhook was not provided"))
 			}
@@ -649,9 +673,9 @@ func resourceJobUpdate(
 		if d.HasChange("deferring_job_id") {
 			deferringJobId := d.Get("deferring_job_id").(int)
 			if deferringJobId != 0 {
-				job.Deferring_Job_Id = &deferringJobId
+				job.DeferringJobId = &deferringJobId
 			} else {
-				job.Deferring_Job_Id = nil
+				job.DeferringJobId = nil
 			}
 		}
 		if d.HasChange("deferring_environment_id") {
@@ -667,19 +691,19 @@ func resourceJobUpdate(
 		if d.HasChange("self_deferring") {
 			if d.Get("self_deferring") == true {
 				deferringJobID := *job.ID
-				job.Deferring_Job_Id = &deferringJobID
+				job.DeferringJobId = &deferringJobID
 			} else {
 				deferringJobId := d.Get("deferring_job_id").(int)
 				if deferringJobId != 0 {
-					job.Deferring_Job_Id = &deferringJobId
+					job.DeferringJobId = &deferringJobId
 				} else {
-					job.Deferring_Job_Id = nil
+					job.DeferringJobId = nil
 				}
 			}
 		}
 		if d.HasChange("timeout_seconds") {
 			timeoutSeconds := d.Get("timeout_seconds").(int)
-			job.Execution.Timeout_Seconds = timeoutSeconds
+			job.Execution.TimeoutSeconds = timeoutSeconds
 		}
 		if d.HasChange("triggers_on_draft_pr") {
 			triggersOnDraftPR := d.Get("triggers_on_draft_pr").(bool)
@@ -706,6 +730,14 @@ func resourceJobUpdate(
 		if d.HasChange("run_compare_changes") {
 			runCompareChanges := d.Get("run_compare_changes").(bool)
 			job.RunCompareChanges = runCompareChanges
+		}
+		if d.HasChange("run_lint") {
+			runLint := d.Get("run_lint").(bool)
+			job.RunLint = runLint
+		}
+		if d.HasChange("errors_on_lint_failure") {
+			errorsOnLintFailure := d.Get("errors_on_lint_failure").(bool)
+			job.ErrorsOnLintFailure = errorsOnLintFailure
 		}
 
 		_, err = c.UpdateJob(jobId, *job)

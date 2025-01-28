@@ -236,6 +236,98 @@ func TestAccDbtCloudJobResourceTriggers(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudJobCISettings(t *testing.T) {
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudJobResourceCISettings(
+					jobName,
+					projectName,
+					environmentName,
+					false,
+					true,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "run_lint", "false"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "errors_on_lint_failure", "true"),
+				),
+			},
+			// MODIFY LINTING
+			{
+				Config: testAccDbtCloudJobResourceCISettings(
+					jobName,
+					projectName,
+					environmentName,
+					true,
+					false,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "run_lint", "true"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "errors_on_lint_failure", "false"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_job.ci_job",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobResourceCISettings(
+	jobName string,
+	projectName string,
+	environmentName string,
+	runLint bool,
+	errorOnLinFailure bool,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "ci_env" {
+    project_id = dbtcloud_project.project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "ci_job" {
+    project_id = dbtcloud_project.project.id
+    environment_id = dbtcloud_environment.ci_env.environment_id
+    name = "%s"
+    dbt_version = "%s"
+	execute_steps = [
+	"dbt build -s state:modified+ --fail-fast"
+	]
+    run_lint = %t
+    errors_on_lint_failure = %t
+
+	triggers = {
+		"github_webhook" : true
+		"git_provider_webhook" : true
+        "schedule" : false
+	}
+}
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, runLint, errorOnLinFailure)
+}
+
 func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_job_project" {
