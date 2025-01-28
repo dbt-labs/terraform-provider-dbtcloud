@@ -8,6 +8,9 @@ on:
   schedule:
     # every sunday at 2:45 AM so we catch up issues that might not have been raised yet
     - cron: '45 2 * * 0'
+  push:
+    branches:
+      - main
 
 name: dbt Cloud Integration Tests
 
@@ -15,6 +18,9 @@ jobs:
   unit:
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-ci')"
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.target == 'test-acceptance' || github.ref }}
+      cancel-in-progress: false 
     strategy:
       matrix:
         target:
