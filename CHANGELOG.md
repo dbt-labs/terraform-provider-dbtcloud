@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - provider: Update `golang.org/x/crypto` dependency [#328](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/328)
 - resource/dbtcloud_project: Prevent overwriting connection_id in environments when updating a project [#334](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/334)
 - resource/dbtcloud_job: Add linting config options [#310](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/310)
+- resource/dbtcloud_service_token: Added pagination support for `service_token_permissions` [#280](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/280)
 - resource/dbtcloud_license_map: Migrate from SDKv2 to Framework [#325](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/325)
 - resource/dbtcloud_environment: Make the default version `latest` [#324](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/324)
 - data-source/dbtcloud_azure_dev_ops_repository: Migrate from SDKv2 to Framework [#323](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/323)
