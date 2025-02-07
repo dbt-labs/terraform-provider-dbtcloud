@@ -63,6 +63,7 @@ type Job struct {
 	ProjectId              int                   `json:"project_id"`
 	EnvironmentId          int                   `json:"environment_id"`
 	Name                   string                `json:"name"`
+	CompareChangesFlags    string                `json:"compare_changes_flags"`
 	DbtVersion             *string               `json:"dbt_version"`
 	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
 	DeferringJobId         *int                  `json:"deferring_job_definition_id"`
@@ -139,12 +140,14 @@ func (c *Client) CreateJob(
 	runCompareChanges bool,
 	runLint bool,
 	errorsOnLintFailure bool,
+	jobType string,
+	compareChangesFlags string,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
 		state = STATE_DELETED
 	}
-	jobType := ""
+	finalJobType := ""
 	github_webhook, gw_found := triggers["github_webhook"]
 	if !gw_found {
 		github_webhook = false
@@ -158,14 +161,18 @@ func (c *Client) CreateJob(
 		onMerge = false
 	}
 	if onMerge.(bool) {
-		jobType = "merge"
+		finalJobType = "merge"
 	}
 	git_provider_webhook, gpw_found := triggers["git_provider_webhook"]
 	if !gpw_found {
 		git_provider_webhook = false
 	}
 	if git_provider_webhook.(bool) {
-		jobType = "ci"
+		finalJobType = "ci"
+	}
+	// we default to the provided job type if it is set
+	if jobType != "" {
+		finalJobType = jobType
 	}
 	jobTriggers := JobTrigger{
 		GithubWebhook:      github_webhook.(bool),
@@ -237,10 +244,11 @@ func (c *Client) CreateJob(
 		Execution:            jobExecution,
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
-		JobType:              jobType,
+		JobType:              finalJobType,
 		RunCompareChanges:    runCompareChanges,
 		RunLint:              runLint,
 		ErrorsOnLintFailure:  errorsOnLintFailure,
+		CompareChangesFlags:  compareChangesFlags,
 	}
 	if dbtVersion != "" {
 		newJob.DbtVersion = &dbtVersion

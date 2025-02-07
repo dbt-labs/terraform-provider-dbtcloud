@@ -766,3 +766,76 @@ func testAccCheckDbtCloudJobDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+func TestAccDbtCloudJobResourceJobTypeAndCompareChanges(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudJobResourceJobTypeAndCompareChangesConfig(
+					jobName,
+					projectName,
+					environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "ci"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "compare_changes_flags", "--select state:modified+"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.github_webhook", "false"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.git_provider_webhook", "false"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.schedule", "false"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"triggers.%",
+					"triggers.custom_branch_only",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobResourceJobTypeAndCompareChangesConfig(jobName, projectName, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+    name = "%s"
+    project_id = dbtcloud_project.test_job_project.id
+    environment_id = dbtcloud_environment.test_job_environment.environment_id
+	deferring_environment_id = dbtcloud_environment.test_job_environment.environment_id
+    execute_steps = [
+        "dbt build"
+    ]
+    triggers = {
+        "github_webhook": false,
+        "git_provider_webhook": false,
+        "schedule": false
+    }
+    job_type = "ci"
+    run_compare_changes = true
+    compare_changes_flags = "--select state:modified+"
+}
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
+}
