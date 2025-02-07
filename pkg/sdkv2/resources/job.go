@@ -217,6 +217,19 @@ var jobSchema = map[string]*schema.Schema{
 		// Once on the plugin framework, put a validation to check that `deferring_environment_id` is set
 		Description: "Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)",
 	},
+	"compare_changes_flags": {
+		Type:        schema.TypeString,
+		Optional:    true,
+		Default:     "--select state:modified",
+		Description: "The model selector for checking changes in the compare changes Advanced CI feature",
+	},
+	"job_type": {
+		Type:        schema.TypeString,
+		Optional:    true,
+		Computed:    true,
+		ForceNew:    true,
+		Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
+	},
 }
 
 func ResourceJob() *schema.Resource {
@@ -412,10 +425,16 @@ func resourceJobRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("run_compare_changes", job.RunCompareChanges); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("compare_changes_flags", job.CompareChangesFlags); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("run_lint", job.RunLint); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("errors_on_lint_failure", job.ErrorsOnLintFailure); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("job_type", job.JobType); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -457,7 +476,8 @@ func resourceJobCreate(
 	runCompareChanges := d.Get("run_compare_changes").(bool)
 	runLint := d.Get("run_lint").(bool)
 	errorsOnLintFailure := d.Get("errors_on_lint_failure").(bool)
-
+	jobType := d.Get("job_type").(string)
+	compareChangesFlags := d.Get("compare_changes_flags").(string)
 	var jobCompletionTrigger map[string]any
 	empty, completionJobID, completionProjectID, completionStatuses := utils.ExtractJobConditionSet(
 		d,
@@ -510,6 +530,8 @@ func resourceJobCreate(
 		runCompareChanges,
 		runLint,
 		errorsOnLintFailure,
+		jobType,
+		compareChangesFlags,
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -554,7 +576,8 @@ func resourceJobUpdate(
 		d.HasChange("job_completion_trigger_condition") ||
 		d.HasChange("run_compare_changes") ||
 		d.HasChange("run_lint") ||
-		d.HasChange("errors_on_lint_failure") {
+		d.HasChange("errors_on_lint_failure") ||
+		d.HasChange("compare_changes_flags") {
 		job, err := c.GetJob(jobId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -739,7 +762,10 @@ func resourceJobUpdate(
 			errorsOnLintFailure := d.Get("errors_on_lint_failure").(bool)
 			job.ErrorsOnLintFailure = errorsOnLintFailure
 		}
-
+		if d.HasChange("compare_changes_flags") {
+			compareChangesFlags := d.Get("compare_changes_flags").(string)
+			job.CompareChangesFlags = compareChangesFlags
+		}
 		_, err = c.UpdateJob(jobId, *job)
 		if err != nil {
 			return diag.FromErr(err)
