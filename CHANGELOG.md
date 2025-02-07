@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.23...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.24...HEAD)
+
+# [0.3.24](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.23...v0.3.24)
+
+### Fixes
+- force new resource for any change to `dbtcloud_service_token` since the API was updated to prevent changes to existing tokens [#343](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/343)
+- add the ability to define a specific `job_type` independently of the triggers [#345](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/345)
+- add the ability to define a specific `compare_changes_flags` in `dbtcloud_job` [#341](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/341)
 
 # [0.3.23](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...v0.3.23)
 
