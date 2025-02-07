@@ -56,7 +56,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_webhook.test_webhook",
 						"client_url",
-						"http://localhost/nothing",
+						"https://example.com",
 					),
 				),
 			},
@@ -91,7 +91,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_webhook.test_webhook",
 						"client_url",
-						"http://localhost/new-nothing",
+						"https://example.com/test",
 					),
 				),
 			},
@@ -116,7 +116,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
-	client_url = "http://localhost/nothing"
+	client_url = "https://example.com"
 	event_types = [
 	  "job.run.started",
 	  "job.run.completed"
@@ -157,7 +157,7 @@ resource "dbtcloud_job" "test" {
 resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
-	client_url = "http://localhost/new-nothing"
+	client_url = "https://example.com/test"
 	event_types = [
 	  "job.run.completed"
 	]

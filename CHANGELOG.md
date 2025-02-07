@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - add the ability to define a specific `job_type` independently of the triggers [#345](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/345)
 - add the ability to define a specific `compare_changes_flags` in `dbtcloud_job` [#341](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/341)
 
+
+### Behind the scenes
+- Fix CI pipeline
+
 # [0.3.23](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.22...v0.3.23)
 
 ### Changes

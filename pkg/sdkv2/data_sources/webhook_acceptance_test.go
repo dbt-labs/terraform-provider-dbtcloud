@@ -52,7 +52,7 @@ func webhooks(webhookName string, webhookDesc string) string {
     resource "dbtcloud_webhook" "test_webhook" {
         name = "%s"
         description = "%s"
-        client_url = "http://localhost/nothing"
+        client_url = "https://example.com/test"
         event_types = [
             "job.run.started",
             "job.run.completed"
