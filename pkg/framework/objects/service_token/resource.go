@@ -13,9 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,10 +61,6 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 			"id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The ID of the service token",
-				// this is used so that we don't show that ID is going to change
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"uid": schema.StringAttribute{
 				Description: "Service token UID (part of the token)",
@@ -84,16 +83,25 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 				Optional:    true,
 				Computed:    true,
 				Default:     int64default.StaticInt64(1),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
 			},
 		},
 		Blocks: map[string]schema.Block{
 			"service_token_permissions": schema.SetNestedBlock{
 				Description: "Permissions set for the service token",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"permission_set": schema.StringAttribute{
 							Description: "Set of permissions to apply",
 							Required:    true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.RequiresReplace(),
+							},
 							Validators: []validator.String{
 								stringvalidator.OneOf(dbt_cloud.PermissionSets...),
 							},
@@ -101,12 +109,18 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 						"all_projects": schema.BoolAttribute{
 							Description: "Whether or not to apply this permission to all projects for this service token",
 							Required:    true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.RequiresReplace(),
+							},
 						},
 						// TODO(cwalden): Would this be better as a Set of Int64?
 						// TODO(cwalden): Add a validator to ensure that the project ID is set if `all_projects` is false
 						"project_id": schema.Int64Attribute{
 							Description: "Project ID to apply this permission to for this service token",
 							Optional:    true,
+							PlanModifiers: []planmodifier.Int64{
+								int64planmodifier.RequiresReplace(),
+							},
 						},
 						// TODO(cwalden): Add validator to ensure that this is configurable for the given `permission_set`
 						"writable_environment_categories": schema.SetAttribute{
@@ -124,6 +138,9 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 								types.StringValue("all"),
 							})),
 							ElementType: types.StringType,
+							PlanModifiers: []planmodifier.Set{
+								setplanmodifier.RequiresReplace(),
+							},
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
 									stringvalidator.OneOf(dbt_cloud.EnvironmentCategories...),
@@ -242,62 +259,10 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 
 // Update implements resource.Resource.
 func (st *serviceTokenResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state ServiceTokenResourceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	svcTokID, err := strconv.Atoi(state.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to convert the service token ID to an integer", err.Error())
-		return
-	}
-
-	if !plan.Name.Equal(state.Name) || !plan.State.Equal(state.State) {
-		svcTok, err := st.client.GetServiceToken(svcTokID)
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to get the service token", err.Error())
-			return
-		}
-
-		svcTok.Name = plan.Name.ValueString()
-		svcTok.UID = state.UID.ValueString()
-		svcTok.State = int(plan.State.ValueInt64())
-
-		_, err = st.client.UpdateServiceToken(svcTokID, *svcTok)
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to update the service token", err.Error())
-			return
-		}
-	}
-
-	// Because we can't compare the service token permissions directly, we need to update them every time
-	// TODO(cwalden): Add a way to compare the service token permissions?
-	svcTokPerms, diags := ConvertServiceTokenPermissionModelToData(ctx, plan.ServiceTokenPermissions, svcTokID, st.client.AccountID)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-
-	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(svcTokID, svcTokPerms)
-	if err != nil {
-		resp.Diagnostics.AddError("Unable to update the service token permissions", err.Error())
-		return
-	}
-
-	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *updatedSvcTokPerms)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-
-	state.ServiceTokenPermissions = perms
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-
+	resp.Diagnostics.AddError(
+		"Operation not supported",
+		"Service tokens cannot be updated after creation. To modify a service token, you must delete and recreate it.",
+	)
 }
 
 // Delete implements resource.Resource.
