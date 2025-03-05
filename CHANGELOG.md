@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.24...HEAD)
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.25...HEAD)
+
+# [0.3.25](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.24...v0.3.25)
+
+### Changes
+- [#319](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/319) - Add the resource `dbtcloud_model_notifications` to allow setting model level notifications at the env level
+- Create a new resource for setting Athena credendtials :  `dbtcloud_athena_credential`
+
 
 # [0.3.24](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.23...v0.3.24)
 

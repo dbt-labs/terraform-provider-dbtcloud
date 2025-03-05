@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
@@ -17,6 +18,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
@@ -185,6 +187,7 @@ func (p *dbtCloudProvider) Configure(
 
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		athena_credential.NewAthenaCredentialDataSource,
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
 		azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
 		environment.EnvironmentDataSource,
@@ -193,6 +196,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		global_connection.GlobalConnectionsDataSource,
 		group.GroupDataSource,
 		job.JobsDataSource,
+		model_notifications.ModelNotificationsDataSource,
 		notification.NotificationDataSource,
 		project.ProjectsDataSource,
 		service_token.ServiceTokenDataSource,
@@ -204,12 +208,14 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		account_features.AccountFeaturesResource,
+		athena_credential.NewAthenaCredentialResource,
 		global_connection.GlobalConnectionResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
 		group.GroupResource,
 		ip_restrictions_rule.IPRestrictionsRuleResource,
 		license_map.LicenseMapResource,
 		lineage_integration.LineageIntegrationResource,
+		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
 		partial_license_map.PartialLicenseMapResource,

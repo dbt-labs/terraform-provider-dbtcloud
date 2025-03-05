@@ -8,7 +8,7 @@ vars: {
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v0.3.22)
+  # Terraform resources (v0.3.25)
 | {near: top-center}
 
 direction: right
@@ -44,6 +44,7 @@ conns.style.fill: "#C5C6C7"
 
 env_creds: Environment Credentials {
   grid-columns: 2
+  athena_credential
   databricks_credential
   snowflake_credential
   bigquery_credential
@@ -83,6 +84,7 @@ lineage_integration -- project
 project_repository -- repository
 environment -- environment_variable
 environment -- extended_attributes
+model_notifications -- environment
 
 project -- project_connection {
   style: {
