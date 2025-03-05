@@ -17,6 +17,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
@@ -193,6 +194,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		global_connection.GlobalConnectionsDataSource,
 		group.GroupDataSource,
 		job.JobsDataSource,
+		model_notifications.ModelNotificationsDataSource,
 		notification.NotificationDataSource,
 		project.ProjectsDataSource,
 		service_token.ServiceTokenDataSource,
@@ -210,6 +212,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		ip_restrictions_rule.IPRestrictionsRuleResource,
 		license_map.LicenseMapResource,
 		lineage_integration.LineageIntegrationResource,
+		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
 		partial_license_map.PartialLicenseMapResource,
