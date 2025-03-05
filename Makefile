@@ -21,9 +21,9 @@ test: deps
 	go test -mod=readonly -count=1 ./...
 
 test-acceptance: deps
-	TF_ACC=1 go test -v -mod=readonly -count=1 -parallel 10 ./...
+	TF_ACC=1 go test -v -mod=readonly -count=1 -p 1 -parallel 10 ./...
 
-check-docs: docs
+check-docs: doc
 	git diff --exit-code -- docs
 
 deps:
