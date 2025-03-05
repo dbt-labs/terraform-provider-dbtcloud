@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
@@ -186,6 +187,7 @@ func (p *dbtCloudProvider) Configure(
 
 func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		athena_credential.NewAthenaCredentialDataSource,
 		azure_dev_ops_project.AzureDevOpsProjectDataSource,
 		azure_dev_ops_repository.AzureDevOpsRepositoryDataSource,
 		environment.EnvironmentDataSource,
@@ -206,6 +208,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		account_features.AccountFeaturesResource,
+		athena_credential.NewAthenaCredentialResource,
 		global_connection.GlobalConnectionResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
 		group.GroupResource,
