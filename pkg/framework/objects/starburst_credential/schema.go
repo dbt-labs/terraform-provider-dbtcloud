@@ -36,7 +36,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"user": resource_schema.StringAttribute{
 			Required:    true,
-			Description: "The username of the Starburst/Trino account to connect to",
+			Description: "The username for the Starburst/Trino account ",
 			Validators: []validator.String{
 				stringvalidator.LengthAtLeast(1),
 			},
@@ -44,14 +44,14 @@ var resourceSchema = resource_schema.Schema{
 		"password": resource_schema.StringAttribute{
 			Required:    true,
 			Sensitive:   true,
-			Description: "The username of the Starburst/Trino account to connect to",
+			Description: "The password for the Starburst/Trino account",
 			Validators: []validator.String{
 				stringvalidator.LengthAtLeast(1),
 			},
 		},
 		"database": resource_schema.StringAttribute{
 			Required:    true,
-			Description: "The catalog to connect to",
+			Description: "The catalog to connect use",
 		},
 		"schema": resource_schema.StringAttribute{
 			Required:    true,
