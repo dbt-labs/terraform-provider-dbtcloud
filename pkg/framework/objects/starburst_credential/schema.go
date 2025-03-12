@@ -11,7 +11,7 @@ import (
 )
 
 var resourceSchema = resource_schema.Schema{
-	Description: "Starburst credential resource",
+	Description: "Starburst/Trino credential resource",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,
@@ -29,7 +29,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"project_id": resource_schema.Int64Attribute{
 			Required:    true,
-			Description: "Project ID to create the Starburst credential in",
+			Description: "Project ID to create the Starburst/Trino credential in",
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
 			},
@@ -61,7 +61,7 @@ var resourceSchema = resource_schema.Schema{
 }
 
 var datasourceSchema = datasource_schema.Schema{
-	Description: "Starburst credential data source",
+	Description: "Starburst/Trino credential data source",
 	Attributes: map[string]datasource_schema.Attribute{
 		"id": datasource_schema.StringAttribute{
 			Computed:    true,
