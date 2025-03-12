@@ -3,12 +3,12 @@
 page_title: "dbtcloud_starburst_credential Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Starburst credential data source
+  Starburst/Trino credential data source
 ---
 
 # dbtcloud_starburst_credential (Data Source)
 
-Starburst credential data source
+Starburst/Trino credential data source
 
 ## Example Usage
 
