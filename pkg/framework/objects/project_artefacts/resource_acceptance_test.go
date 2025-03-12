@@ -12,6 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+const (
+	DBT_CLOUD_VERSION = "latest"
+)
+
 func TestAccDbtCloudProjectArtefactsResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -89,7 +93,7 @@ resource "dbtcloud_project_artefacts" "test_project_artefacts" {
   docs_job_id = dbtcloud_job.test_job.id
   freshness_job_id = dbtcloud_job.test_job.id
 }
-`, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION, jobName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 }
 
 func testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName string) string {
