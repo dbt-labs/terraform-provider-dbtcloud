@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"os"
 	"strconv"
 
@@ -200,6 +201,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		notification.NotificationDataSource,
 		project.ProjectsDataSource,
 		service_token.ServiceTokenDataSource,
+		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
 	}
@@ -222,5 +224,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
+		starburst_credential.StarburstCredentialResource,
 	}
 }
