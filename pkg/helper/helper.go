@@ -2,6 +2,7 @@ package helper
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -43,10 +44,11 @@ func SliceStringToSliceTypesString(input []string) []types.String {
 	return result
 }
 
-func SliceStringToSliceTypesInt64(input []int) []types.Int64 {
+func SliceStringToSliceTypesInt64(input []string) []types.Int64 {
 	result := make([]types.Int64, len(input))
-	for i, v := range input {
-		result[i] = types.Int64Value(int64(v))
+	for i, step := range input {
+		var in_int, _ = strconv.Atoi(step)
+		result[i] = SetIntToInt64OrNull(in_int)
 	}
 	return result
 }

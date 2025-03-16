@@ -27,6 +27,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -202,6 +203,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		service_token.ServiceTokenDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
+		webhook.WebhookDataSource,
 	}
 }
 
