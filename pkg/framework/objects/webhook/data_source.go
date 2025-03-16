@@ -57,11 +57,22 @@ func (d *webhookDataSource) Read(
 	state.Active = types.BoolValue(webhook.Active)
 	state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
 	state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
-	// do I still need to do something like this? state.ID = types.Int64Value(int64(webhook.ID))
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (d *webhookDataSource) Configure(
+	_ context.Context,
+	req datasource.ConfigureRequest,
+	_ *datasource.ConfigureResponse,
+) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	d.client = req.ProviderData.(*dbt_cloud.Client)
 }

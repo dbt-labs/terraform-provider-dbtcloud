@@ -37,16 +37,12 @@ type WebhookWrite struct {
 }
 
 func (c *Client) GetWebhook(webhookID string) (*WebhookRead, error) {
-	var cacatz = strconv.Itoa(123)
-	print(cacatz)
-	print(c.AccountID)
-	var cacat = strconv.Itoa(c.AccountID)
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/webhooks/subscription/%s",
 			c.HostURL,
-			cacat,
+			strconv.Itoa(c.AccountID),
 			webhookID,
 		),
 		nil,
