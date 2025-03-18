@@ -29,14 +29,15 @@ If you would like a different behavior, please open an issue on GitHub. To remov
 		},
 		"user_id": resource_schema.Int64Attribute{
 			Description: "The internal ID of a dbt Cloud user.",
+			Required:    true,
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
 			},
 		},
 		"group_ids": schema.SetAttribute{
+			Description: "IDs of the groups to assign to the user. If additional groups were assigned manually in dbt Cloud, they will be removed.",
 			ElementType: types.Int64Type,
 			Required:    true,
-			Description: "IDs of the groups to assign to the user. If additional groups were assigned manually in dbt Cloud, they will be removed.",
 		},
 	},
 }

@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"os"
 	"strconv"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
@@ -225,5 +227,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
+		user_groups.UserGroupResource,
 	}
 }
