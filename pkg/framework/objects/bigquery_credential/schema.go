@@ -27,7 +27,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"project_id": resource_schema.Int64Attribute{
 			Required:    true,
-			Description: "Project ID to create the Athena credential in",
+			Description: "Project ID to create the BigQuery credential in",
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
 			},
