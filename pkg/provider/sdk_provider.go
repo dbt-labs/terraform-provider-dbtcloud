@@ -48,7 +48,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_repository":            data_sources.DatasourceRepository(),
 				"dbtcloud_webhook":               data_sources.DatasourceWebhook(),
 				"dbtcloud_privatelink_endpoint":  data_sources.DatasourcePrivatelinkEndpoint(),
-				"dbtcloud_user_groups":           data_sources.DatasourceUserGroups(),
 				"dbtcloud_extended_attributes":   data_sources.DatasourceExtendedAttributes(),
 				"dbtcloud_group_users":           data_sources.DatasourceGroupUsers(),
 			},

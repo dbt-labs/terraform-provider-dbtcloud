@@ -206,6 +206,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
+		user_groups.UserGroupDataSource,
 	}
 }
 
