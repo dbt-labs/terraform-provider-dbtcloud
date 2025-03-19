@@ -2,27 +2,28 @@ package user_groups
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
-	_ resource.Resource                = &userGroupResource{}
-	_ resource.ResourceWithConfigure   = &userGroupResource{}
-	_ resource.ResourceWithImportState = &userGroupResource{}
+	_ resource.Resource                = &userGroupsResource{}
+	_ resource.ResourceWithConfigure   = &userGroupsResource{}
+	_ resource.ResourceWithImportState = &userGroupsResource{}
 )
 
-func UserGroupResource() resource.Resource {
-	return &userGroupResource{}
+func UserGroupsResource() resource.Resource {
+	return &userGroupsResource{}
 }
 
-type userGroupResource struct {
+type userGroupsResource struct {
 	client *dbt_cloud.Client
 }
 
-func (u *userGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (u *userGroupsResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -30,40 +31,65 @@ func (u *userGroupResource) Configure(_ context.Context, req resource.ConfigureR
 	u.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func (u *userGroupResource) Create(_ context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (u *userGroupsResource) Create(_ context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	panic("unimplemented")
 }
 
-func (u *userGroupResource) Delete(_ context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (u *userGroupsResource) Delete(_ context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	panic("unimplemented")
 }
 
-func (u *userGroupResource) ImportState(_ context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (u *userGroupsResource) ImportState(_ context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	panic("unimplemented")
 }
 
-func (u *userGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (u *userGroupsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state UserGroupsResourceModel	
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
-	userGroupID := state.ID.ValueInt64()
+	userID := state.UserID.ValueInt64()
+	retrievedUserGroups, err := u.client.GetUserGroups(int(userID))
 
-	resp.Diagnostics.AddWarning(
-		"user group id is",
-		fmt.Sprintf("The user group id is %d", userGroupID),
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			resp.Diagnostics.AddWarning(
+				"Resource not found",
+				"The  was not found and has been removed from the state.",
+			)
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error getting the user groups", err.Error())
+		return
+	}
+
+	state.ID = types.Int64Value(userID)
+	state.UserID = types.Int64Value(userID)
+
+	groupIDs := []int{}
+	
+	for _, group := range retrievedUserGroups.Groups {
+		groupIDs = append(groupIDs, *group.ID)
+	}
+
+	state.GroupIDs, _ = types.SetValueFrom(
+		context.Background(),
+		types.Int64Type,
+		groupIDs,
 	)
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (u *userGroupResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (u *userGroupsResource) Schema(_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resourceSchema
 }
 
-func (u *userGroupResource) Update(_ context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (u *userGroupsResource) Update(_ context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	panic("unimplemented")
 }
 
-func (u *userGroupResource) Metadata(_ context.Context,req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (u *userGroupsResource) Metadata(_ context.Context,req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_user_groups"
 }

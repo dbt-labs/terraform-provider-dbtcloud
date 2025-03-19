@@ -227,6 +227,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
-		user_groups.UserGroupResource,
+		user_groups.UserGroupsResource,
 	}
 }
