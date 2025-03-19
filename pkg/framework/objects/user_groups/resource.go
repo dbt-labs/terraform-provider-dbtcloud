@@ -82,7 +82,7 @@ func (u *userGroupsResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	plan.ID = types.Int64Value(userID)
+	plan.ID = types.StringValue(fmt.Sprintf("%d", userID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -100,7 +100,7 @@ func (u *userGroupsResource) ImportState(ctx context.Context, req resource.Impor
 
 	groupIDsSet, _ := types.SetValue(types.Int64Type, nil)
 	state := UserGroupsResourceModel{
-		ID:       types.Int64Value(int64(userID)),
+		ID:       types.StringValue(userIDStr),
 		UserID:   types.Int64Value(int64(userID)),
 		GroupIDs: groupIDsSet,
 	}
@@ -133,7 +133,7 @@ func (u *userGroupsResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	state.ID = types.Int64Value(userID)
+	state.ID = types.StringValue(fmt.Sprintf("%d", userID))
 	state.UserID = types.Int64Value(userID)
 
 	groupIDs := []int{}
@@ -197,6 +197,8 @@ func (u *userGroupsResource) Update(ctx context.Context, req resource.UpdateRequ
 			)
 			return
 		}
+		
+		plan.ID = types.StringValue(fmt.Sprintf("%d", userID))
 	}
 	
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

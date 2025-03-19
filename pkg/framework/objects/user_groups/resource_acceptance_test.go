@@ -40,7 +40,7 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 					),
 				),
 			},
-			// MODIFY
+			//MODIFY
 			{
 				Config: testAccDbtCloudUserGroupsResourceRemoveRole(userID, GroupName, groupIDs),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,7 +53,8 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.0",
 					),
-					// we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
+					//we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
+					// TODO: This test depends on the number of groups defined in the acceptance test config, which is not guaranteed.
 					resource.TestCheckNoResourceAttr(
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.3",

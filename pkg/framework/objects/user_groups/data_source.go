@@ -2,6 +2,7 @@ package user_groups
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -63,7 +64,7 @@ func (d *userGroupDataSource) Read(
 		return
 	}
 
-	userID := data.ID.ValueInt64()
+	userID := data.UserID.ValueInt64()
 	retrievedUserGroups, err := d.client.GetUserGroups(int(userID))
 
 	if err != nil {
@@ -79,7 +80,7 @@ func (d *userGroupDataSource) Read(
 		return
 	}
 
-	data.ID = types.Int64Value(userID)
+	data.ID = types.StringValue(fmt.Sprintf("%d", userID))
 	data.UserID = types.Int64Value(userID)
 
 	groupIDs := []int{}
