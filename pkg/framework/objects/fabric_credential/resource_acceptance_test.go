@@ -1,4 +1,4 @@
-package resources_test
+package fabric_credential_test
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func TestAccDbtCloudFabricCredentialResource(t *testing.T) {
 	clientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudFabricCredentialDestroy,
 		Steps: []resource.TestStep{
