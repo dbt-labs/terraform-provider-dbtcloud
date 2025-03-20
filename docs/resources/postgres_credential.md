@@ -2,13 +2,13 @@
 page_title: "dbtcloud_postgres_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Postgres credential resource.
 ---
 
 # dbtcloud_postgres_credential (Resource)
 
 
-
+Postgres credential resource.
 
 ## Example Usage
 
@@ -30,7 +30,7 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
 ### Required
 
 - `default_schema` (String) Default schema name
-- `project_id` (Number) Project ID to create the Postgres/Redshift/AlloyDB credential in
+- `project_id` (Number) Project ID to create the Postgres/Redshift/AlloyDB credential in.
 - `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections
 - `username` (String) Username for Postgres/Redshift/AlloyDB
 
@@ -43,8 +43,8 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
 
 ### Read-Only
 
-- `credential_id` (Number) The system Postgres/Redshift/AlloyDB credential ID
-- `id` (String) The ID of this resource.
+- `credential_id` (Number) The system Postgres/Redshift/AlloyDB credential ID.
+- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 
 ## Import
 

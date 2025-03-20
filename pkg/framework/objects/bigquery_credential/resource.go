@@ -1,4 +1,4 @@
-package starburst_credential
+package bigquery_credential
 
 import (
 	"context"
@@ -14,23 +14,23 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &starburstCredentialResource{}
-	_ resource.ResourceWithConfigure   = &starburstCredentialResource{}
-	_ resource.ResourceWithImportState = &starburstCredentialResource{}
+	_ resource.Resource                = &bigqueryCredentialResource{}
+	_ resource.ResourceWithConfigure   = &bigqueryCredentialResource{}
+	_ resource.ResourceWithImportState = &bigqueryCredentialResource{}
 )
 
-// StarburstCredentialResource is a helper function to simplify the provider implementation.
-func StarburstCredentialResource() resource.Resource {
-	return &starburstCredentialResource{}
+// BigqueryCredentialResource is a helper function to simplify the provider implementation.
+func BigqueryCredentialResource() resource.Resource {
+	return &bigqueryCredentialResource{}
 }
 
-// starburstCredentialResource is the resource implementation.
-type starburstCredentialResource struct {
+// bigqueryCredentialResource is the resource implementation.S
+type bigqueryCredentialResource struct {
 	client *dbt_cloud.Client
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *starburstCredentialResource) Configure(
+func (r *bigqueryCredentialResource) Configure(
 	ctx context.Context,
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
@@ -55,16 +55,16 @@ func (r *starburstCredentialResource) Configure(
 }
 
 // Metadata returns the resource type name.
-func (r *starburstCredentialResource) Metadata(
+func (r *bigqueryCredentialResource) Metadata(
 	ctx context.Context,
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_starburst_credential"
+	resp.TypeName = req.ProviderTypeName + "_bigquery_credential"
 }
 
 // Schema defines the schema for the resource.
-func (r *starburstCredentialResource) Schema(
+func (r *bigqueryCredentialResource) Schema(
 	ctx context.Context,
 	req resource.SchemaRequest,
 	resp *resource.SchemaResponse,
@@ -73,38 +73,36 @@ func (r *starburstCredentialResource) Schema(
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *starburstCredentialResource) Create(
+func (r *bigqueryCredentialResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
 	// Retrieve values from plan
-	var plan StarburstCredentialResourceModel
+	var plan BigqueryCredentialResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	isActive := plan.IsActive.ValueBool()
 	projectID := int(plan.ProjectID.ValueInt64())
-	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
-	database := plan.Database.ValueString()
-	schema := plan.Schema.ValueString()
+	dataset := plan.Dataset.ValueString()
+	numThreads := int(plan.NumThreads.ValueInt64())
 
 	// Create new credential
-	credential, err := r.client.CreateStarburstCredential(
-		ctx,
+	credential, err := r.client.CreateBigQueryCredential(
 		projectID,
-		user,
-		password,
-		database,
-		schema,
+		"bigquery",
+		isActive,
+		dataset,
+		numThreads,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating Starburst credential",
-			"Could not create Starburst credential, unexpected error: "+err.Error(),
+			"Error creating Bigquery credential",
+			"Could not create Bigquery credential, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -122,13 +120,13 @@ func (r *starburstCredentialResource) Create(
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *starburstCredentialResource) Read(
+func (r *bigqueryCredentialResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
 	// Get current state
-	var state StarburstCredentialResourceModel
+	var state BigqueryCredentialResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -139,7 +137,7 @@ func (r *starburstCredentialResource) Read(
 	projectID := int(state.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
-	credential, err := r.client.GetStarburstCredential(projectID, credentialID)
+	credential, err := r.client.GetBigQueryCredential(projectID, credentialID)
 	if err != nil {
 		if strings.Contains(err.Error(), "resource-not-found") {
 			resp.State.RemoveResource(ctx)
@@ -147,14 +145,18 @@ func (r *starburstCredentialResource) Read(
 		}
 
 		resp.Diagnostics.AddError(
-			"Error reading Starburst credential",
-			"Could not read Starburst credential ID "+state.ID.ValueString()+": "+err.Error(),
+			"Error reading Bigquery credential",
+			"Could not read Bigquery credential ID "+state.ID.ValueString()+": "+err.Error(),
 		)
 		return
 	}
 
 	// Refresh state values
-	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+	state.CredentialID = types.Int64Value(int64(*credential.ID))
+	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
+	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
+	state.Dataset = types.StringValue(credential.Dataset)
+	state.NumThreads = types.Int64Value(int64(credential.Threads))
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -165,13 +167,13 @@ func (r *starburstCredentialResource) Read(
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *starburstCredentialResource) Update(
+func (r *bigqueryCredentialResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
 	// Retrieve values from plan
-	var plan StarburstCredentialResourceModel
+	var plan BigqueryCredentialResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -179,7 +181,7 @@ func (r *starburstCredentialResource) Update(
 	}
 
 	// Get current state
-	var state StarburstCredentialResourceModel
+	var state BigqueryCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -187,51 +189,38 @@ func (r *starburstCredentialResource) Update(
 	}
 
 	projectID := int(plan.ProjectID.ValueInt64())
-	credentialID := int(state.CredentialID.ValueInt64()) // TODO: plan
-	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
-	database := plan.Database.ValueString()
-	schema := plan.Schema.ValueString()
+	credentialID := int(state.CredentialID.ValueInt64())
+	dataset := plan.Dataset.ValueString()
+	numThreads := int(plan.NumThreads.ValueInt64())
 
-	// Generate credential details
-	credentialDetails, err := dbt_cloud.GenerateStarburstCredentialDetails(
-		user,
-		password,
-		database,
-		schema,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating Starburst credential",
-			"Could not generate credential details: "+err.Error(),
+	if (state.Dataset.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+		credential, err := r.client.GetBigQueryCredential(projectID, credentialID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading Bigquery credential",
+				"Could not read Bigquery credential ID "+state.ID.ValueString()+": "+err.Error(),
+			)
+			return
+		}
+
+		if state.Dataset.ValueString() != dataset {
+			credential.Dataset = dataset
+		}
+		if state.NumThreads.ValueInt64() != int64(numThreads) {
+			credential.Threads = numThreads
+		}
+
+		_, err = r.client.UpdateBigQueryCredential(
+			projectID,
+			credentialID,
+			*credential,
 		)
-		return
-	}
-
-	// Create update object
-	updateCredential := dbt_cloud.StarburstCredentialRequest{
-		ID:                &credentialID,
-		AccountID:         r.client.AccountID,
-		ProjectID:         projectID,
-		Type:              "adapter",
-		State:             1,
-		Threads:           4,
-		CredentialDetails: credentialDetails,
-		AdapterVersion:    "trino_v0",
-	}
-
-	// Update credential
-	_, err = r.client.UpdateStarburstCredential(
-		projectID,
-		credentialID,
-		updateCredential,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating Starburst credential",
-			"Could not update Starburst credential, unexpected error: "+err.Error(),
-		)
-		return
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating Bigquery credential",
+				"Could not update Bigquery credential, unexpected error: "+err.Error(),
+			)
+		}
 	}
 
 	// Set state to fully populated data
@@ -243,13 +232,13 @@ func (r *starburstCredentialResource) Update(
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *starburstCredentialResource) Delete(
+func (r *bigqueryCredentialResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
 	// Retrieve values from state
-	var state StarburstCredentialResourceModel
+	var state BigqueryCredentialResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -266,15 +255,15 @@ func (r *starburstCredentialResource) Delete(
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error deleting Starburst credential",
-			"Could not delete Starburst credential, unexpected error: "+err.Error(),
+			"Error deleting Bigquery credential",
+			"Could not delete Bigquery credential, unexpected error: "+err.Error(),
 		)
 		return
 	}
 }
 
 // ImportState imports the resource into Terraform state.
-func (r *starburstCredentialResource) ImportState(
+func (r *bigqueryCredentialResource) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
@@ -316,12 +305,6 @@ func (r *starburstCredentialResource) ImportState(
 		return
 	}
 
-	credentialResponse, err := r.client.GetStarburstCredential(projectID, credentialID)
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting starburst credential", err.Error())
-		return
-	}
-
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("id"),
@@ -336,15 +319,5 @@ func (r *starburstCredentialResource) ImportState(
 		ctx,
 		path.Root("credential_id"),
 		credentialID,
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("schema"),
-		credentialResponse.UnencryptedCredentialDetails.Schema,
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("database"),
-		credentialResponse.UnencryptedCredentialDetails.Database,
 	)...)
 }

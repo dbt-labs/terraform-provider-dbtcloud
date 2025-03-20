@@ -2,13 +2,13 @@
 page_title: "dbtcloud_bigquery_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Bigquery credential resource
 ---
 
 # dbtcloud_bigquery_credential (Resource)
 
 
-
+Bigquery credential resource
 
 ## Example Usage
 
@@ -35,8 +35,8 @@ resource "dbtcloud_bigquery_credential" "my_credential" {
 
 ### Read-Only
 
-- `credential_id` (Number) The system BigQuery credential ID
-- `id` (String) The ID of this resource.
+- `credential_id` (Number) The internal credential ID
+- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 
 ## Import
 

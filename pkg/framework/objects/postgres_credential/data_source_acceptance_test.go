@@ -1,4 +1,4 @@
-package data_sources_test
+package postgres_credential_test
 
 import (
 	"fmt"

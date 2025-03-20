@@ -3,12 +3,12 @@
 page_title: "dbtcloud_bigquery_credential Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Bigquery credential data source
 ---
 
 # dbtcloud_bigquery_credential (Data Source)
 
-
+Bigquery credential data source
 
 
 
@@ -23,6 +23,6 @@ description: |-
 ### Read-Only
 
 - `dataset` (String) Default dataset name
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of this data source. Contains the project ID and the credential ID.
 - `is_active` (Boolean) Whether the BigQuery credential is active
 - `num_threads` (Number) Number of threads to use
