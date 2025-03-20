@@ -103,3 +103,7 @@ func determineIntValue(envVarKey string, dbtCloudPRValue int, ciValue int) int {
 		return -1
 	}
 }
+
+const (
+	DBT_CLOUD_VERSION = "latest"
+)

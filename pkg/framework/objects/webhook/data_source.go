@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -35,7 +34,7 @@ func (d *webhookDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var state webhookDataSourceModel
+	var state WebhookDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
@@ -52,8 +51,9 @@ func (d *webhookDataSource) Read(
 	state.Name = types.StringValue(webhook.Name)
 	state.Description = types.StringValue(webhook.Description)
 	state.ClientURL = types.StringValue(webhook.ClientUrl)
-	state.EventTypes = helper.SliceStringToSliceTypesString(webhook.EventTypes)
-	state.JobIDs = helper.SliceStringToSliceTypesInt64(webhook.JobIds)
+	state.EventTypes, _ = types.SetValueFrom(context.Background(), types.StringType, webhook.EventTypes)
+	state.JobIDs, _ = types.SetValue(types.Int64Type, webhook.JobIds)
+
 	state.Active = types.BoolValue(webhook.Active)
 	state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
 	state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
@@ -75,4 +75,12 @@ func (d *webhookDataSource) Configure(
 	}
 
 	d.client = req.ProviderData.(*dbt_cloud.Client)
+}
+
+func (d *webhookDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
+	resp.Schema = dataSourceSchema
 }
