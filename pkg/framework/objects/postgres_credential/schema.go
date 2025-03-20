@@ -54,6 +54,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"is_active": resource_schema.BoolAttribute{
 			Optional: true,
+			Computed: true,
 			Default:  booldefault.StaticBool(true),
 			Description: "Whether the Postgres/Redshift/AlloyDB credential is active",
 		},
@@ -80,6 +81,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"target_name": resource_schema.StringAttribute{
 			Optional: true,
+			Computed: true,
 			Default: stringdefault.StaticString("default"),
 			Description: "Default schema name",
 		},

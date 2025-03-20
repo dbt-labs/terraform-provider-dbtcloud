@@ -113,7 +113,7 @@ func (p *postgresCredentialResource) ImportState(ctx context.Context, req resour
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("password"),
-		credential.Password,
+		"", // Set to empty string when importing
 	)...)
 }
 
@@ -241,14 +241,17 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.Type = types.StringValue(credential.Type)
 	state.TargetName = types.StringValue(credential.Target_Name)
-	state.Password = types.StringValue(credential.Password)
+	
+	// Do not read the password value from the API to avoid refresh differences, keep it as it is in the state
+	if state.Password.IsNull() {
+		state.Password = types.StringValue("")
+	}
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 func (p *postgresCredentialResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
