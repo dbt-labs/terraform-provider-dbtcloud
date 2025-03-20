@@ -24,6 +24,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
@@ -206,6 +207,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user.UserDataSource,
 		user.UsersDataSource,
 		bigquery_credential.BigqueryCredentialDataSource,
+		postgres_credential.PostgresCredentialDataSource,
 	}
 }
 
