@@ -81,7 +81,27 @@ func TestAccDbtCloudFabricCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_fabric_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password", "client_secret"},
+				ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user"},
+				ImportStateCheck: func(s []*terraform.InstanceState) error {
+					if len(s) != 1 {
+						return fmt.Errorf("expected 1 state, got %d", len(s))
+					}
+					state := s[0]
+					if state.Attributes["adapter_id"] == "" {
+						return fmt.Errorf("missing adapter_id in import state")
+					}
+					if state.Attributes["client_id"] == "" {
+						return fmt.Errorf("missing client_id in import state")
+					}
+					if state.Attributes["tenant_id"] == "" {
+						return fmt.Errorf("missing tenant_id in import state")
+					}
+					if state.Attributes["schema"] == "" {
+						return fmt.Errorf("missing schema in import state")
+					}
+
+					return nil
+				},
 			},
 		},
 	})
@@ -101,15 +121,15 @@ resource "dbtcloud_fabric_connection" "fabric" {
 	database = "testdb"
 	server = "example.com"
 	port = 1234
-  }
+}
 
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
     adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
-	schema = "my_schema"
-	user = "%s"
-	password = "%s"
-	schema_authorization = "sp"
+    schema = "my_schema"
+    user = "%s"
+    password = "%s"
+    schema_authorization = "sp"
 }
 `, projectName, user, password)
 }
@@ -128,15 +148,15 @@ resource "dbtcloud_fabric_connection" "fabric" {
 	database = "testdb"
 	server = "example.com"
 	port = 1234
-  }
+}
 
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
     adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
-	schema = "my_schema_new"
-	client_id = "%s"
-	tenant_id = "%s"
-	client_secret = "%s"
+    schema = "my_schema_new"
+    client_id = "%s"
+    tenant_id = "%s"
+    client_secret = "%s"
 }
 `, projectName, clientId, tenantId, clientSecret)
 }

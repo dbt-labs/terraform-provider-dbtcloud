@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -329,19 +328,30 @@ func (r *fabricCredentialResource) ImportState(
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("id"),
-		fmt.Sprintf("%d:%d", projectID, credentialID),
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("project_id"),
-		projectID,
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("credential_id"),
-		credentialID,
-	)...)
+	// Get credential details from API
+	credential, err := r.client.GetFabricCredential(projectID, credentialID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting fabric credential", err.Error())
+		return
+	}
+
+	// Map response body to schema and populate computed values
+	state := FabricCredentialResourceModel{
+		ID:                  types.StringValue(fmt.Sprintf("%d:%d", projectID, credentialID)),
+		ProjectID:           types.Int64Value(int64(projectID)),
+		CredentialID:        types.Int64Value(int64(credentialID)),
+		AdapterID:           types.Int64Value(int64(credential.Adapter_Id)),
+		Schema:              types.StringValue(credential.UnencryptedCredentialDetails.Schema),
+		SchemaAuthorization: types.StringValue(credential.UnencryptedCredentialDetails.SchemaAuthorization),
+		User:                types.StringValue(credential.UnencryptedCredentialDetails.User),
+		ClientId:            types.StringValue(credential.UnencryptedCredentialDetails.ClientId),
+		TenantId:            types.StringValue(credential.UnencryptedCredentialDetails.TenantId),
+	}
+
+	// Set state to fully populated data
+	diags := resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
