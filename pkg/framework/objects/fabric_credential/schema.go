@@ -30,6 +30,10 @@ var resourceSchema = resource_schema.Schema{
 				int64planmodifier.RequiresReplace(),
 			},
 		},
+		"adapter_id": resource_schema.Int64Attribute{
+			Required:    true,
+			Description: "Fabric adapter ID for the credential",
+		},
 		"credential_id": resource_schema.Int64Attribute{
 			Computed:    true,
 			Description: "The internal credential ID",
