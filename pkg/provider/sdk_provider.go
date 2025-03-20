@@ -59,7 +59,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_environment_variable":              resources.ResourceEnvironmentVariable(),
 				"dbtcloud_databricks_credential":             resources.ResourceDatabricksCredential(),
 				"dbtcloud_snowflake_credential":              resources.ResourceSnowflakeCredential(),
-				"dbtcloud_postgres_credential":               resources.ResourcePostgresCredential(),
 				"dbtcloud_connection":                        resources.ResourceConnection(),
 				"dbtcloud_bigquery_connection":               resources.ResourceBigQueryConnection(),
 				"dbtcloud_repository":                        resources.ResourceRepository(),

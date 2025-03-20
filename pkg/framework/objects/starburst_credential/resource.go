@@ -187,7 +187,7 @@ func (r *starburstCredentialResource) Update(
 	}
 
 	projectID := int(plan.ProjectID.ValueInt64())
-	credentialID := int(state.CredentialID.ValueInt64())
+	credentialID := int(state.CredentialID.ValueInt64()) // TODO: plan
 	user := plan.User.ValueString()
 	password := plan.Password.ValueString()
 	database := plan.Database.ValueString()

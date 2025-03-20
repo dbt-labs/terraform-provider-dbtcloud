@@ -230,5 +230,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
 		bigquery_credential.BigqueryCredentialResource,
+		postgres_credential.PostgresCredentialResource,
 	}
 }
