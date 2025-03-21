@@ -12,99 +12,134 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+var LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION string = "0.3.26"
+
 func TestAccDbtCloudWebhookResource(t *testing.T) {
-
-	if acctest_config.IsDbtCloudPR() {
-		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
-	}
-
 	webhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	webhookName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
+	var basicConfigTestStep = resource.TestStep{
+		Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"name",
+				webhookName,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_webhook.test_webhook",
+				"hmac_secret",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_webhook.test_webhook",
+				"account_identifier",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"event_types.#",
+				"2",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"job_ids.#",
+				"0",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"client_url",
+				"https://example.com",
+			),
+		),
+	}
+
+	var modifyConfigTestStep = resource.TestStep{
+		Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"name",
+				webhookName2,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_webhook.test_webhook",
+				"hmac_secret",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_webhook.test_webhook",
+				"account_identifier",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"event_types.#",
+				"1",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"job_ids.#",
+				"1",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_webhook.test_webhook",
+				"client_url",
+				"https://example.com/test",
+			),
+		),
+	}
+
+	importStateTestStep := resource.TestStep{
+		ResourceName:      "dbtcloud_webhook.test_webhook",
+		ImportState:       true,
+		ImportStateVerify: true,
+		ImportStateVerifyIgnore: []string{
+			"hmac_secret",
+		},
+	}
+
+	// test the Framework implementation
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudWebhookDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"name",
-						webhookName,
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_webhook.test_webhook",
-						"hmac_secret",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_webhook.test_webhook",
-						"account_identifier",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"event_types.#",
-						"2",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"job_ids.#",
-						"0",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"client_url",
-						"https://example.com",
-					),
-				),
-			},
-			// MODIFY
-			{
-				Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"name",
-						webhookName2,
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_webhook.test_webhook",
-						"hmac_secret",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_webhook.test_webhook",
-						"account_identifier",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"event_types.#",
-						"1",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"job_ids.#",
-						"1",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_webhook.test_webhook",
-						"client_url",
-						"https://example.com/test",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:      "dbtcloud_webhook.test_webhook",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"hmac_secret",
-				},
-			},
+			basicConfigTestStep,
+			modifyConfigTestStep,
+			importStateTestStep,
+		},
+	})
+
+	// NOTE: we're breaking these down into separate resource.Test()s due to a bug in Terraform test plugin
+	// Namely, the provider at the step level breaks down, if you try to define the same provider in multiple steps
+
+	// CREATE: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(basicConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(basicConfigTestStep),
+		},
+	})
+
+	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
+		},
+	})
+
+	// CREATE: test that running an import in SDKv2 and then the same thing in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
 		},
 	})
 }
