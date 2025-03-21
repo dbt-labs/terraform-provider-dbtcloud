@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -110,12 +109,8 @@ func (r *webhookResource) Read(
 		return
 	}
 
-	fmt.Printf("HTTP Status Code Type: %v\n", reflect.TypeOf(*retrievedWebhook.HttpStatusCode))
-	fmt.Printf("Account Identifier Type: %v\n", reflect.TypeOf(*retrievedWebhook.AccountIdentifier))
-
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
-	fmt.Printf("State after READ: %+v\n", state)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -179,7 +174,6 @@ func (r *webhookResource) Create(
 	// Set the state with all fields
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
-	fmt.Printf("State after CREATE: %+v\n", plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -257,7 +251,6 @@ func (r *webhookResource) Update(
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
-	fmt.Printf("State after UPDATE: %+v\n", state)
 	if resp.Diagnostics.HasError() {
 		return
 	}
