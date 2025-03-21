@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -35,6 +37,7 @@ func (d *webhookDataSource) Read(
 	resp *datasource.ReadResponse,
 ) {
 	var state WebhookDataSourceModel
+	var diags diag.Diagnostics
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
@@ -51,14 +54,23 @@ func (d *webhookDataSource) Read(
 	state.Name = types.StringValue(webhook.Name)
 	state.Description = types.StringValue(webhook.Description)
 	state.ClientURL = types.StringValue(webhook.ClientUrl)
-	state.EventTypes, _ = types.SetValueFrom(context.Background(), types.StringType, webhook.EventTypes)
-	state.JobIDs, _ = types.SetValue(types.Int64Type, webhook.JobIds)
 
+	state.EventTypes, diags = helper.SliceStringToTypesListStringValue(webhook.EventTypes)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	state.JobIDs, diags = helper.SliceStringToTypesListInt64Value(webhook.JobIds)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 	state.Active = types.BoolValue(webhook.Active)
 	state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
 	state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
 
-	diags := resp.State.Set(ctx, &state)
+	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
