@@ -5,6 +5,10 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
+
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
@@ -201,6 +205,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		notification.NotificationDataSource,
 		project.ProjectsDataSource,
 		service_token.ServiceTokenDataSource,
+		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
 		webhook.WebhookDataSource,
@@ -225,5 +230,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		webhook.WebhookResource,
+		starburst_credential.StarburstCredentialResource,
 	}
 }
