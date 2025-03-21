@@ -2,10 +2,11 @@ package project_artefacts_test
 
 import (
 	"fmt"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"

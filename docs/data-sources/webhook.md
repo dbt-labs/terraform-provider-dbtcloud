@@ -3,12 +3,12 @@
 page_title: "dbtcloud_webhook Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve webhook details
 ---
 
 # dbtcloud_webhook (Data Source)
 
-
+Retrieve webhook details
 
 
 
@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `webhook_id` (String) Webhooks ID
+- `webhook_id` (String, Deprecated) Webhook's ID
 
 ### Read-Only
 
@@ -27,6 +27,6 @@ description: |-
 - `description` (String) Webhooks Description
 - `event_types` (List of String) Webhooks Event Types
 - `http_status_code` (String) Webhooks HTTP Status Code
-- `id` (String) The ID of this resource.
+- `id` (String) Webhook's ID
 - `job_ids` (List of Number) List of job IDs to trigger the webhook
 - `name` (String) Webhooks Name

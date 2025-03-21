@@ -1,10 +1,11 @@
-package resources_test
+package webhook_test
 
 import (
 	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,7 +14,7 @@ import (
 
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 
-	if isDbtCloudPR() {
+	if acctest_config.IsDbtCloudPR() {
 		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
 	}
 
@@ -22,7 +23,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudWebhookDestroy,
 		Steps: []resource.TestStep{
@@ -163,7 +164,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 	]
 	job_ids = [dbtcloud_job.test.id]
   }
-`, projectName, DBT_CLOUD_VERSION, webhookName)
+`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {
