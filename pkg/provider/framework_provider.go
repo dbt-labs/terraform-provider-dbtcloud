@@ -5,6 +5,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
+
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
@@ -27,7 +30,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -205,6 +207,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
+		user_groups.UserGroupDataSource,
 		bigquery_credential.BigqueryCredentialDataSource,
 	}
 }
@@ -227,6 +230,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
+		user_groups.UserGroupsResource,
 		bigquery_credential.BigqueryCredentialResource,
 	}
 }
