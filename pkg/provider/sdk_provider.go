@@ -67,7 +67,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_extended_attributes":               resources.ResourceExtendedAttributes(),
 				"dbtcloud_environment_variable_job_override": resources.ResourceEnvironmentVariableJobOverride(),
 				"dbtcloud_fabric_connection":                 resources.ResourceFabricConnection(),
-				"dbtcloud_fabric_credential":                 resources.ResourceFabricCredential(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}
