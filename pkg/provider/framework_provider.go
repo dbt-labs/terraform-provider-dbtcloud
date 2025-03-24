@@ -5,7 +5,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
