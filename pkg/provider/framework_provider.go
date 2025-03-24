@@ -239,7 +239,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		postgres_credential.PostgresCredentialResource,
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
-		bigquery_credential.BigqueryCredentialResource,
 		webhook.WebhookResource,
 	}
 }
