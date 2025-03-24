@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -70,5 +72,5 @@ func environment(projectName, environmentName string) string {
         project_id = dbtcloud_project.test_project.id
         environment_id = dbtcloud_environment.test_environment.environment_id
     }
-    `, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION)
+    `, projectName, environmentName, acctest_config.AcceptanceTestConfig.DbtCloudVersion)
 }

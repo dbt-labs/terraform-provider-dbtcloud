@@ -1,10 +1,11 @@
-package resources_test
+package user_groups_test
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -13,23 +14,12 @@ import (
 
 func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 
-	var userID int
-	var groupIDs string
-	if isDbtCloudPR() {
-		userID = 1
-		groupIDs = "[1,2,3]"
-	} else if value := os.Getenv("CI"); value != "" {
-		userID = 54461
-		groupIDs = "[531585, 531584, 531583]"
-	} else {
-		userID = 4
-		groupIDs = "[104, 105, 106]"
-	}
-
+	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
+	groupIDs := fmt.Sprintf("[%s]", acctest_config.AcceptanceTestConfig.DbtCloudGroupIds)
 	GroupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +40,7 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 					),
 				),
 			},
-			// MODIFY
+			//MODIFY
 			{
 				Config: testAccDbtCloudUserGroupsResourceRemoveRole(userID, GroupName, groupIDs),
 				Check: resource.ComposeTestCheckFunc(
@@ -63,7 +53,8 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.0",
 					),
-					// we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
+					//we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
+					// TODO: This test depends on the number of groups defined in the acceptance test config, which is not guaranteed.
 					resource.TestCheckNoResourceAttr(
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.3",

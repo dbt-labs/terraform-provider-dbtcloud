@@ -2,16 +2,20 @@ package provider
 
 import (
 	"context"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"os"
 	"strconv"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/fabric_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
@@ -28,6 +32,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -204,6 +209,9 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
+		user_groups.UserGroupDataSource,
+		bigquery_credential.BigqueryCredentialDataSource,
+		webhook.WebhookDataSource,
 	}
 }
 
@@ -225,5 +233,9 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
+		fabric_credential.FabricCredentialResource,
+		user_groups.UserGroupsResource,
+		bigquery_credential.BigqueryCredentialResource,
+		webhook.WebhookResource,
 	}
 }

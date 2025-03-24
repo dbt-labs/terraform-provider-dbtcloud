@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+	helperTestResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
 func SharedClient() (*dbt_cloud.Client, error) {
@@ -39,10 +41,6 @@ func SharedClient() (*dbt_cloud.Client, error) {
 
 	return &client, nil
 }
-
-const (
-	DBT_CLOUD_VERSION = "latest"
-)
 
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"dbtcloud": func() (tfprotov6.ProviderServer, error) {
@@ -71,10 +69,6 @@ func TestAccPreCheck(t *testing.T) {
 	if v := os.Getenv("DBT_CLOUD_TOKEN"); v == "" {
 		t.Fatal("DBT_CLOUD_TOKEN must be set for acceptance tests")
 	}
-}
-
-func IsDbtCloudPR() bool {
-	return os.Getenv("DBT_CLOUD_ACCOUNT_ID") == "1"
 }
 
 func HelperTestResourceSchema[R resource.Resource](t *testing.T, r R) {
@@ -112,5 +106,31 @@ func HelperTestDataSourceSchema[DS datasource.DataSource](t *testing.T, ds DS) {
 
 	if diags.HasError() {
 		t.Fatalf("Error in schema validation: %v", diags)
+	}
+}
+
+func MakeExternalProviderTestStep(ts helperTestResource.TestStep, frameworkVersion string) helperTestResource.TestStep {
+	return helperTestResource.TestStep{
+		ExternalProviders: map[string]helperTestResource.ExternalProvider{
+			"dbtcloud": {
+				VersionConstraint: frameworkVersion,
+				Source:            "dbt-labs/dbtcloud",
+			},
+		},
+		Config: ts.Config,
+		Check:  ts.Check,
+	}
+}
+
+func MakeCurrentProviderNoOpTestStep(ts helperTestResource.TestStep) helperTestResource.TestStep {
+	return helperTestResource.TestStep{
+		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		Config:                   ts.Config,
+		ConfigPlanChecks: helperTestResource.ConfigPlanChecks{
+			PreApply: []plancheck.PlanCheck{
+				plancheck.ExpectEmptyPlan(),
+			},
+		},
+		Check: nil,
 	}
 }
