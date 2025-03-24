@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+var LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION string = "0.3.26"
+
 var AcceptanceTestConfig = buildAcctestConfig()
 
 func buildAcctestConfig() AcctestConfig {

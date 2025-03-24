@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-var LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION string = "0.3.26"
-
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 	webhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	webhookName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
@@ -118,7 +116,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(basicConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(basicConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(basicConfigTestStep),
 		},
 	})
@@ -128,7 +126,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
 		},
 	})
@@ -138,7 +136,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
 		},
 	})
