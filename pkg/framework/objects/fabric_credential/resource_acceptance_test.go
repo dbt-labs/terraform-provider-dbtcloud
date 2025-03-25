@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-var LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION string = "0.3.26"
 
 func TestConformanceBasicConfig(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -24,7 +23,7 @@ func TestConformanceBasicConfig(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, user, password)),
 		},
 	})
@@ -41,7 +40,7 @@ func TestConformanceModifyConfig(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret), LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret)),
 		},
 	})
@@ -57,7 +56,7 @@ func TestConformanceImportConfig(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
 			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, user, password)),
 		},
 	})
