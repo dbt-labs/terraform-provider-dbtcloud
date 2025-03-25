@@ -1,10 +1,9 @@
-package webhook_test
+package data_sources_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,7 +11,7 @@ import (
 
 func TestDbtCloudWebhookDataSource(t *testing.T) {
 
-	if acctest_config.IsDbtCloudPR() {
+	if isDbtCloudPR() {
 		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
 	}
 
