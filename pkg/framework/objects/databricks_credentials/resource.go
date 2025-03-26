@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -93,16 +94,56 @@ func (d *databricksCredentialResource) Create(context.Context, resource.CreateRe
 	panic("unimplemented")
 }
 
-func (d *databricksCredentialResource) Delete(context.Context, resource.DeleteRequest, *resource.DeleteResponse) {
-	panic("unimplemented")
+func (d *databricksCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state DatabricksCredentialDataSourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	
+	projectID := int(state.ProjectID.ValueInt64())
+	credentialID := int(state.CredentialID.ValueInt64())
+
+	_, err := d.client.DeleteCredential(
+		strconv.Itoa(credentialID),
+		strconv.Itoa(projectID),
+	)
+	if err != nil {
+		resp.Diagnostics.AddError("Error deleting Databricks credential", "Could not delete Databricks credential ID "+state.ID.ValueString()+": "+err.Error())
+		return
+	}	
 }
 
 func (d *databricksCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_databricks_credential"
 }
 
-func (d *databricksCredentialResource) Read(context.Context, resource.ReadRequest, *resource.ReadResponse) {
-	panic("unimplemented")
+func (d *databricksCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state DatabricksCredentialDataSourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	
+	projectID := int(state.ProjectID.ValueInt64())
+	credentialID := int(state.CredentialID.ValueInt64())
+
+	credential, err := d.client.GetDatabricksCredential(projectID, credentialID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading Databricks credential", "Could not read Databricks credential ID "+state.ID.ValueString()+": "+err.Error())
+		return
+	}
+
+	// TODO: Test if this is sufficient
+	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *databricksCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

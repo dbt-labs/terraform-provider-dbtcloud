@@ -114,7 +114,7 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
 		Steps: []resource.TestStep{
