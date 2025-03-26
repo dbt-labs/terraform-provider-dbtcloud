@@ -1,4 +1,4 @@
-package databricks_credentials
+package databricks_credential
 
 import (
 	"context"
@@ -59,12 +59,61 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		resp.Diagnostics.AddError("Error getting databricks credential", err.Error())
 		return
 	}
-	// TODO: Test if this is sufficient
+	
+	// Set ID
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("id"),
-		fmt.Sprintf("%d:%d", credentialResponse.Project_Id, credentialResponse.ID),
+		fmt.Sprintf("%d:%d", projectID, credentialID),
 	)...)
+	
+	// Set project_id
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("project_id"),
+		projectID,
+	)...)
+	
+	// Set credential_id
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("credential_id"),
+		credentialID,
+	)...)
+	
+	// Only set adapter_id if it's a legacy connection with a non-zero value
+	if credentialResponse.Adapter_Id != 0 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(
+			ctx,
+			path.Root("adapter_id"),
+			credentialResponse.Adapter_Id,
+		)...)
+	}
+	
+	// Set target_name
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("target_name"),
+		credentialResponse.Target_Name,
+	)...)
+	
+	// Set schema from API response
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("schema"),
+		credentialResponse.UnencryptedCredentialDetails.Schema,
+	)...)
+	
+	// Set catalog
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("catalog"),
+		credentialResponse.UnencryptedCredentialDetails.Catalog,
+	)...)
+	
+	// Set adapter_type - this is required but not returned from the API
+	// Since it's in the ImportStateVerifyIgnore list, we can skip it
+	
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -268,7 +317,7 @@ func (d *databricksCredentialResource) Metadata(ctx context.Context, req resourc
 }
 
 func (d *databricksCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state DatabricksCredentialDataSourceModel
+	var state DatabricksCredentialResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -284,8 +333,11 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	// TODO: Test if this is sufficient
+	// Set the returned values in state
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+	
+	// Keep existing values for fields not returned by the API
+	// These include token and adapter_type which need to be preserved
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

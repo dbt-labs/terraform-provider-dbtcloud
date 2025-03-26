@@ -1,4 +1,4 @@
-package databricks_credentials
+package databricks_credential
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -83,6 +83,7 @@ var resourceSchema = resource_schema.Schema{
 		"target_name": resource_schema.StringAttribute{
 			Description: "Target name",
 			Optional:    true,
+			Computed:    true,
 			Default:    stringdefault.StaticString("default"),
 			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
@@ -94,6 +95,7 @@ var resourceSchema = resource_schema.Schema{
 		"catalog": resource_schema.StringAttribute{
 			Description: "The catalog where to create models (only for the databricks adapter)",
 			Optional:    true,
+			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 		},
 		"schema": resource_schema.StringAttribute{

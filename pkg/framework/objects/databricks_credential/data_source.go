@@ -1,4 +1,4 @@
-package databricks_credentials
+package databricks_credential
 
 import (
 	"context"
@@ -23,7 +23,23 @@ type databricksCredentialDataSource struct {
 }
 
 func (d *databricksCredentialDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = req.ProviderData.(*dbt_cloud.Client)
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*dbt_cloud.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf(
+				"Expected *dbt_cloud.Client, got: %T. Please report this issue to the provider developers.",
+				req.ProviderData,
+			),
+		)
+		return
+	}
+
+	d.client = client
 }
 
 func (d *databricksCredentialDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -51,6 +67,9 @@ func (d *databricksCredentialDataSource) Read(ctx context.Context, req datasourc
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
 	state.AdapterID = types.Int64Value(int64(credential.Adapter_Id))
+	state.TargetName = types.StringValue(credential.Target_Name)
+	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+	state.Catalog = types.StringValue(credential.UnencryptedCredentialDetails.Catalog)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

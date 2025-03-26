@@ -1,4 +1,4 @@
-package databricks_credentials
+package databricks_credential
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
