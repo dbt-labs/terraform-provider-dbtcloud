@@ -3,8 +3,11 @@ package databricks_credentials
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -22,8 +25,48 @@ type databricksCredentialResource struct {
 	client *dbt_cloud.Client
 }
 
-func (d *databricksCredentialResource) ImportState(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse) {
-	panic("unimplemented")
+func (d *databricksCredentialResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, ":")
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: project_id:credential_id. Got: %q", req.ID),
+		)
+		return
+	}
+
+	projectID, err := strconv.Atoi(idParts[0])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Could not convert project_id to integer. Got: %q", idParts[0]),
+		)
+		return
+	}
+
+	credentialID, err := strconv.Atoi(idParts[1])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Could not convert credential_id to integer. Got: %q", idParts[1]),
+		)
+		return
+	}
+
+	credentialResponse, err := d.client.GetDatabricksCredential(projectID, credentialID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting databricks credential", err.Error())
+		return
+	}
+	// TODO: Test if this is sufficient
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("id"),
+		fmt.Sprintf("%d:%d", credentialResponse.Project_Id, credentialResponse.ID),
+	)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *databricksCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
