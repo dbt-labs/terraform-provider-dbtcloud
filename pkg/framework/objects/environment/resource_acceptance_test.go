@@ -1,4 +1,4 @@
-package resources_test
+package environment_test
 
 import (
 	"fmt"
@@ -8,155 +8,152 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+func TestConformanceBasicConfig(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, environmentName)),
+		},
+	})
+}
+
+func TestConformanceModifyConfig(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "", "false"), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "", "false")),
+		},
+	})
+}
+
+func TestConformanceModifyConfigCustomBranch(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "main", "true"), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "main", "true")),
+		},
+	})
+}
+
+func getBasicConfigTestStep(projectName, environmentName string) resource.TestStep {
+	return resource.TestStep{
+		Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+			projectName,
+			environmentName,
+			acctest_config.DBT_CLOUD_VERSION,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"name",
+				environmentName,
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"deployment_type",
+				"production",
+			),
+		),
+	}
+}
+
+func getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, custom_branch, use_custom_branch string) resource.TestStep {
+	return resource.TestStep{
+		Config: testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
+			projectName,
+			environmentName,
+			custom_branch,
+			use_custom_branch,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"name",
+				environmentName,
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"dbt_version",
+				acctest_config.DBT_CLOUD_VERSION,
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"custom_branch",
+				custom_branch,
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"use_custom_branch",
+				use_custom_branch,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_environment.test_env",
+				"credential_id",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"deployment_type",
+				"production",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment.test_env",
+				"connection_id",
+				"0",
+			),
+		),
+	}
+}
+
+func getImportConfigTestStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:            "dbtcloud_environment.test_env",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{},
+	}
+}
+
 // testing for the historical use case where connection_id is not configured at the env level
 func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
-
-	dbtVersionLatest := "latest"
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
-					projectName,
-					environmentName,
-					dbtVersionLatest,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"name",
-						environmentName,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"deployment_type",
-						"production",
-					),
-				),
-			},
-			// RENAME
-			{
-				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
-					projectName,
-					environmentName2,
-					dbtVersionLatest,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"name",
-						environmentName2,
-					),
-				),
-			},
-			// MODIFY ADDING CRED
-			{
-				Config: testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
-					projectName,
-					environmentName2,
-					"",
-					"false",
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"name",
-						environmentName2,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"dbt_version",
-						dbtVersionLatest,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"custom_branch",
-						"",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"use_custom_branch",
-						"false",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_environment.test_env",
-						"credential_id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"deployment_type",
-						"production",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"connection_id",
-						"0",
-					),
-				),
-			},
-			// MODIFY CUSTOM BRANCH
-			{
-				Config: testAccDbtCloudEnvironmentResourceNoConnectionModifiedConfig(
-					projectName,
-					environmentName2,
-					"main",
-					"true",
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"name",
-						environmentName2,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"dbt_version",
-						dbtVersionLatest,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"custom_branch",
-						"main",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"use_custom_branch",
-						"true",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_environment.test_env",
-						"credential_id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"connection_id",
-						"0",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_environment.test_env",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
-			},
+			getBasicConfigTestStep(projectName, environmentName),
+			getBasicConfigTestStep(projectName, environmentName2),
+			getBasicConfigWithModifiedConfigTestStep(projectName, environmentName2, "", "false"),
+			getBasicConfigWithModifiedConfigTestStep(projectName, environmentName2, "main", "true"),
+			getImportConfigTestStep(),
 		},
 	})
 }
@@ -204,7 +201,7 @@ resource "dbtcloud_bigquery_credential" "test_credential" {
 	num_threads = 16
   }
   
-`, projectName, environmentName, DBT_CLOUD_VERSION, customBranch, useCustomBranch)
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, customBranch, useCustomBranch)
 }
 
 // testing for the global connection use case where connection_id is added at the env level
@@ -215,7 +212,7 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
@@ -359,7 +356,7 @@ func TestAccDbtCloudEnvironmentResourceProjectUpdate(t *testing.T) {
 	projectDescription2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
@@ -539,7 +536,7 @@ func TestAccDbtCloudEnvironmentResourceVersionless(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
