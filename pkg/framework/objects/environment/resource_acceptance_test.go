@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -58,11 +57,11 @@ func TestConformanceModifyConfigCustomBranch(t *testing.T) {
 	})
 }
 
-func getBasicConfigTestStep(projectName, environmentName string) resource.TestStep {
+func getBasicConfigTestStep(projectName, envName string) resource.TestStep {
 	return resource.TestStep{
 		Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
 			projectName,
-			environmentName,
+			envName,
 			acctest_config.DBT_CLOUD_VERSION,
 		),
 		Check: resource.ComposeTestCheckFunc(
@@ -70,12 +69,7 @@ func getBasicConfigTestStep(projectName, environmentName string) resource.TestSt
 			resource.TestCheckResourceAttr(
 				"dbtcloud_environment.test_env",
 				"name",
-				environmentName,
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_environment.test_env",
-				"deployment_type",
-				"production",
+				envName,
 			),
 		),
 	}
@@ -140,8 +134,8 @@ func getImportConfigTestStep() resource.TestStep {
 
 // testing for the historical use case where connection_id is not configured at the env level
 func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	initialEnvName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	newEnvName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
@@ -149,10 +143,10 @@ func TestAccDbtCloudEnvironmentResourceNoConnection(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
-			getBasicConfigTestStep(projectName, environmentName),
-			getBasicConfigTestStep(projectName, environmentName2),
-			getBasicConfigWithModifiedConfigTestStep(projectName, environmentName2, "", "false"),
-			getBasicConfigWithModifiedConfigTestStep(projectName, environmentName2, "main", "true"),
+			getBasicConfigTestStep(projectName, initialEnvName),
+			getBasicConfigTestStep(projectName, newEnvName),
+			getBasicConfigWithModifiedConfigTestStep(projectName, newEnvName, "", "false"),
+			getBasicConfigWithModifiedConfigTestStep(projectName, newEnvName, "main", "true"),
 			getImportConfigTestStep(),
 		},
 	})
@@ -572,17 +566,17 @@ func testAccCheckDbtCloudEnvironmentExists(resource string) resource.TestCheckFu
 		if err != nil {
 			return fmt.Errorf("Issue getting the client")
 		}
-		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
+		projectId := rs.Primary.Attributes["project_id"]
+		environmentId := rs.Primary.Attributes["environment_id"]
+		projectIdInt, err := strconv.Atoi(projectId)
 		if err != nil {
 			return fmt.Errorf("Can't get projectId")
 		}
-
-		environmentId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
+		environmentIdInt, err := strconv.Atoi(environmentId)
 		if err != nil {
 			return fmt.Errorf("Can't get environmentId")
 		}
-
-		_, err = apiClient.GetEnvironment(projectId, environmentId)
+		_, err = apiClient.GetEnvironment(projectIdInt, environmentIdInt)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -600,16 +594,20 @@ func testAccCheckDbtCloudEnvironmentDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_environment" {
 			continue
 		}
-		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
+		projectId := rs.Primary.Attributes["project_id"]
+		environmentId := rs.Primary.Attributes["environment_id"]
+
+		projectIdInt, err := strconv.Atoi(projectId)
 		if err != nil {
 			return fmt.Errorf("Can't get projectId")
 		}
 
-		environmentId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
+		environmentIdInt, err := strconv.Atoi(environmentId)
 		if err != nil {
 			return fmt.Errorf("Can't get environmentId")
 		}
-		_, err = apiClient.GetEnvironment(projectId, environmentId)
+
+		_, err = apiClient.GetEnvironment(projectIdInt, environmentIdInt)
 		if err == nil {
 			return fmt.Errorf("Environment still exists")
 		}

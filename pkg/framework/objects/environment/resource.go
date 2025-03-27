@@ -2,7 +2,6 @@ package environment
 
 import (
 	"context"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -33,32 +32,6 @@ func (r *environmentResource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_environment"
 }
 
-// getEnvironmentDetails retrieves and maps environment details from the API
-func (r *environmentResource) getEnvironmentDetails(projectID, environmentID int64) (*EnvironmentResourceModel, error) {
-	environment, err := r.client.GetEnvironment(int(projectID), int(environmentID))
-	if err != nil {
-		return nil, err
-	}
-
-	state := &EnvironmentResourceModel{
-		CredentialsID: types.Int64PointerValue(
-			helper.IntPointerToInt64Pointer(environment.Credential_Id),
-		),
-		Name:            types.StringValue(environment.Name),
-		DbtVersion:      types.StringValue(environment.Dbt_Version),
-		Type:            types.StringValue(environment.Type),
-		UseCustomBranch: types.BoolValue(environment.Use_Custom_Branch),
-		CustomBranch:    types.StringPointerValue(environment.Custom_Branch),
-		DeploymentType:  types.StringPointerValue(environment.DeploymentType),
-		ExtendedAttributesID: types.Int64PointerValue(
-			helper.IntPointerToInt64Pointer(environment.ExtendedAttributesID),
-		),
-		EnableModelQueryHistory: types.BoolValue(environment.EnableModelQueryHistory),
-	}
-
-	return state, nil
-}
-
 func (r *environmentResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -68,21 +41,36 @@ func (r *environmentResource) Read(
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
-	updatedState, err := r.getEnvironmentDetails(state.ProjectID.ValueInt64(), state.EnvironmentID.ValueInt64())
+	environment, err := r.client.GetEnvironment(int(state.ProjectID.ValueInt64()), int(state.EnvironmentID.ValueInt64()))
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The environment was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("Error getting the environment", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
+	state.EnvironmentID = types.Int64Value(int64(*environment.Environment_Id))
+	state.ID = state.EnvironmentID
+	state.Name = types.StringValue(environment.Name)
+	state.ProjectID = types.Int64Value(int64(environment.Project_Id))
+	state.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
+	state.DbtVersion = types.StringValue(environment.Dbt_Version)
+	state.Type = types.StringValue(environment.Type)
+	state.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
+	state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
+	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	if environment.ExtendedAttributesID != nil {
+		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
+	} else {
+		state.ExtendedAttributesID = types.Int64Value(0)
+	}
+	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+	state.ConnectionID = types.Int64PointerValue(
+		helper.IntPointerToInt64Pointer(environment.ConnectionID),
+	)
+	state.CredentialID = types.Int64PointerValue(
+		helper.IntPointerToInt64Pointer(environment.Credential_Id),
+	)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *environmentResource) Create(
@@ -106,7 +94,7 @@ func (r *environmentResource) Create(
 		plan.Type.ValueString(),
 		plan.UseCustomBranch.ValueBool(),
 		plan.CustomBranch.ValueString(),
-		int(plan.CredentialsID.ValueInt64()),
+		int(plan.CredentialID.ValueInt64()),
 		plan.DeploymentType.ValueString(),
 		int(plan.ExtendedAttributesID.ValueInt64()),
 		int(plan.ConnectionID.ValueInt64()),
@@ -118,7 +106,28 @@ func (r *environmentResource) Create(
 		return
 	}
 
+	plan.ID = types.Int64Value(int64(*environment.ID))
+	plan.Name = types.StringValue(environment.Name)
 	plan.EnvironmentID = types.Int64Value(int64(*environment.Environment_Id))
+	plan.ProjectID = types.Int64Value(int64(environment.Project_Id))
+	plan.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
+	plan.DbtVersion = types.StringValue(environment.Dbt_Version)
+	plan.Type = types.StringValue(environment.Type)
+	plan.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
+	plan.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
+	plan.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	if environment.ExtendedAttributesID != nil {
+		plan.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
+	} else {
+		plan.ExtendedAttributesID = types.Int64Value(0)
+	}
+	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+	plan.ConnectionID = types.Int64PointerValue(
+		helper.IntPointerToInt64Pointer(environment.ConnectionID),
+	)
+	plan.CredentialID = types.Int64PointerValue(
+		helper.IntPointerToInt64Pointer(environment.Credential_Id),
+	)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -131,11 +140,6 @@ func (r *environmentResource) Update(
 	var plan, state EnvironmentResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
@@ -150,64 +154,46 @@ func (r *environmentResource) Update(
 
 	if plan.Name.ValueString() != state.Name.ValueString() {
 		envToUpdate.Name = plan.Name.ValueString()
-	} else {
-		envToUpdate.Name = state.Name.ValueString()
+	}
+
+	if plan.CredentialID.ValueInt64() != state.CredentialID.ValueInt64() {
+		envToUpdate.Credential_Id = helper.Int64ToIntPointer(plan.CredentialID.ValueInt64())
 	}
 
 	if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
 		envToUpdate.Dbt_Version = plan.DbtVersion.ValueString()
-	} else {
-		envToUpdate.Dbt_Version = state.DbtVersion.ValueString()
 	}
 
 	if plan.Type.ValueString() != state.Type.ValueString() {
 		envToUpdate.Type = plan.Type.ValueString()
-	} else {
-		envToUpdate.Type = state.Type.ValueString()
 	}
 
 	if plan.UseCustomBranch.ValueBool() != state.UseCustomBranch.ValueBool() {
 		envToUpdate.Use_Custom_Branch = plan.UseCustomBranch.ValueBool()
-	} else {
-		envToUpdate.Use_Custom_Branch = state.UseCustomBranch.ValueBool()
 	}
 
 	if plan.CustomBranch.ValueString() != state.CustomBranch.ValueString() {
 		customBranch := plan.CustomBranch.ValueString()
-		envToUpdate.Custom_Branch = &customBranch
-	} else {
-		customBranch := state.CustomBranch.ValueString()
 		envToUpdate.Custom_Branch = &customBranch
 	}
 
 	if plan.DeploymentType.ValueString() != state.DeploymentType.ValueString() {
 		deploymentType := plan.DeploymentType.ValueString()
 		envToUpdate.DeploymentType = &deploymentType
-	} else {
-		deploymentType := state.DeploymentType.ValueString()
-		envToUpdate.DeploymentType = &deploymentType
 	}
 
 	if plan.ExtendedAttributesID.ValueInt64() != state.ExtendedAttributesID.ValueInt64() {
 		extendedAttrID := int(plan.ExtendedAttributesID.ValueInt64())
-		envToUpdate.ExtendedAttributesID = &extendedAttrID
-	} else {
-		extendedAttrID := int(state.ExtendedAttributesID.ValueInt64())
 		envToUpdate.ExtendedAttributesID = &extendedAttrID
 	}
 
 	if plan.ConnectionID.ValueInt64() != state.ConnectionID.ValueInt64() {
 		connID := int(plan.ConnectionID.ValueInt64())
 		envToUpdate.ConnectionID = &connID
-	} else {
-		connID := int(state.ConnectionID.ValueInt64())
-		envToUpdate.ConnectionID = &connID
 	}
 
 	if plan.EnableModelQueryHistory.ValueBool() != state.EnableModelQueryHistory.ValueBool() {
 		envToUpdate.EnableModelQueryHistory = plan.EnableModelQueryHistory.ValueBool()
-	} else {
-		envToUpdate.EnableModelQueryHistory = state.EnableModelQueryHistory.ValueBool()
 	}
 
 	_, err = r.client.UpdateEnvironment(

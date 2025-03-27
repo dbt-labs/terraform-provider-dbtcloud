@@ -10,6 +10,7 @@ import (
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -156,6 +157,13 @@ func (r *environmentResource) Schema(
 	resp.Schema = resource_schema.Schema{
 		Description: "Retrieve data for a single environment",
 		Attributes: map[string]resource_schema.Attribute{
+			"id": resource_schema.Int64Attribute{
+				Computed:    true,
+				Description: "The ID of the license map",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"environment_id": resource_schema.Int64Attribute{
 				Computed:    true,
 				Description: "The ID of the environment",
@@ -170,10 +178,9 @@ func (r *environmentResource) Schema(
 				Required:    true,
 				Description: "(Number) Project ID to create the environment in",
 			},
-			"credentials_id": resource_schema.Int64Attribute{
+			"credential_id": resource_schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     int64default.StaticInt64(0),
 				Description: "The project ID to which the environment belong",
 			},
 			"name": resource_schema.StringAttribute{
@@ -206,15 +213,12 @@ func (r *environmentResource) Schema(
 				Description: "Whether to use a custom git branch in this environment",
 			},
 			"custom_branch": resource_schema.StringAttribute{
-				Computed:    true,
 				Optional:    true,
-				Default:     stringdefault.StaticString(""),
 				Description: "The custom branch name to use",
 			},
 			"deployment_type": resource_schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Default:     stringdefault.StaticString(""),
 				Description: "(String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
 			},
 			"extended_attributes_id": resource_schema.Int64Attribute{
