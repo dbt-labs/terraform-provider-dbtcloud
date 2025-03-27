@@ -340,17 +340,20 @@ func (r *repositoryResource) Update(
 		updateRepository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
 	}
 
-	if !plan.AzureActiveDirectoryProjectID.IsNull() {
+	if !plan.AzureActiveDirectoryProjectID.IsNull() &&
+		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
 		azureProjectID := plan.AzureActiveDirectoryProjectID.ValueString()
 		updateRepository.AzureActiveDirectoryProjectID = &azureProjectID
 	}
 
-	if !plan.AzureActiveDirectoryRepositoryID.IsNull() {
+	if !plan.AzureActiveDirectoryRepositoryID.IsNull() &&
+		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
 		azureRepoID := plan.AzureActiveDirectoryRepositoryID.ValueString()
 		updateRepository.AzureActiveDirectoryRepositoryID = &azureRepoID
 	}
 
-	if !plan.AzureBypassWebhookRegistrationFailure.IsNull() {
+	if !plan.AzureBypassWebhookRegistrationFailure.IsNull() &&
+		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
 		azureBypass := plan.AzureBypassWebhookRegistrationFailure.ValueBool()
 		updateRepository.AzureBypassWebhookRegistrationFailure = &azureBypass
 	}

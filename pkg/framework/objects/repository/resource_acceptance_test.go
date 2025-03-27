@@ -21,82 +21,113 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 	repoUrlGithub := "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
-		Steps: []resource.TestStep{
-			// Create Github repository
-			{
-				Config: testAccDbtCloudRepositoryResourceGithubConfig(repoUrlGithub, projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists(
-						"dbtcloud_repository.test_repository_github",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_repository.test_repository_github",
-						"remote_url",
-						repoUrlGithub,
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_repository.test_repository_github",
-						"deploy_key",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_repository.test_repository_github",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
-			},
-		},
-	})
-
-	repoUrlGithubApplication := acctest_config.AcceptanceTestConfig.GitHubRepoUrl
+	repoUrlGithubApplication := "git://github.com/victorasu/jaffle-shop.git"
 	githubAppInstallationId := acctest_config.AcceptanceTestConfig.GitHubAppInstallationId
 	projectNameGithubApplication := strings.ToUpper(
 		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
 	)
 
+	var createByDeployKeyTestStep = resource.TestStep{
+		// CREATE Github repository
+		Config: testAccDbtCloudRepositoryResourceGithubConfig(repoUrlGithub, projectName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudRepositoryExists(
+				"dbtcloud_repository.test_repository_github_app",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_repository.test_repository_github_app",
+				"remote_url",
+				repoUrlGithub,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_repository.test_repository_github_app",
+				"deploy_key",
+			),
+		),
+	}
+
+	var createByCloneTestStep = resource.TestStep{
+		// CREATE Github repository via clone
+		Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(
+			repoUrlGithubApplication,
+			projectNameGithubApplication,
+			githubAppInstallationId,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudRepositoryExists(
+				"dbtcloud_repository.test_repository_github",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_repository.test_repository_github",
+				"remote_url",
+				repoUrlGithubApplication,
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_repository.test_repository_github",
+				"git_clone_strategy",
+				"github_app",
+			),
+		),
+	}
+
+	var importDeployTestStep = resource.TestStep{
+		// IMPORT
+		ResourceName:            "dbtcloud_repository.test_repository_github_app",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+	}
+
+	var importCloneTestStep = resource.TestStep{
+		// IMPORT
+		ResourceName:            "dbtcloud_repository.test_repository_github",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
 		Steps: []resource.TestStep{
-			// Create Github repository via the GitHub Application
-			{
-				Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(
-					repoUrlGithubApplication,
-					projectNameGithubApplication,
-					githubAppInstallationId,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudRepositoryExists(
-						"dbtcloud_repository.test_repository_github_application",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_repository.test_repository_github_application",
-						"remote_url",
-						repoUrlGithubApplication,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_repository.test_repository_github_application",
-						"git_clone_strategy",
-						"github_app",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_repository.test_repository_github_application",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
-			},
+			createByDeployKeyTestStep,
+			importDeployTestStep,
 		},
 	})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
+		Steps: []resource.TestStep{
+			createByCloneTestStep,
+			importCloneTestStep,
+		},
+	})
+
+	// This could be done in the opposite way, where running with 'go test -short' would skip
+	// the conformance tests. However, we should aim to only run conformance tests when we need to
+	if testing.Short() {
+		t.Log("Running conformance tests")
+		resource.Test(t, resource.TestCase{
+			PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+			CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+			Steps: []resource.TestStep{
+				acctest_helper.MakeExternalProviderTestStep(createByDeployKeyTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+				acctest_helper.MakeCurrentProviderNoOpTestStep(createByDeployKeyTestStep),
+			},
+		})
+
+		resource.Test(t, resource.TestCase{
+			PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+			CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
+			Steps: []resource.TestStep{
+				acctest_helper.MakeExternalProviderTestStep(createByCloneTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+				acctest_helper.MakeCurrentProviderNoOpTestStep(createByCloneTestStep),
+			},
+		})
+	}
 }
 
 func testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName string) string {
@@ -105,7 +136,7 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_repository" "test_repository_github" {
+resource "dbtcloud_repository" "test_repository_github_app" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
   git_clone_strategy = "deploy_key"
@@ -124,7 +155,7 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_repository" "test_repository_github_application" {
+resource "dbtcloud_repository" "test_repository_github" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
   github_installation_id = %d
