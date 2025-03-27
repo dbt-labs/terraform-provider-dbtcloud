@@ -207,8 +207,8 @@ func (r *environmentResource) Update(
 	}
 
 	_, err := r.client.UpdateEnvironment(
-		int(state.ProjectID.ValueInt64()),
-		int(state.EnvironmentID.ValueInt64()),
+		envToUpdate.Project_Id,
+		envToUpdate.Environment_Id,
 		envToUpdate,
 	)
 	if err != nil {
