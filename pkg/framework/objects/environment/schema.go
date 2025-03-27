@@ -173,6 +173,7 @@ func (r *environmentResource) Schema(
 			"credentials_id": resource_schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     int64default.StaticInt64(0),
 				Description: "The project ID to which the environment belong",
 			},
 			"name": resource_schema.StringAttribute{
@@ -223,7 +224,7 @@ func (r *environmentResource) Schema(
 				Description: "The ID of the extended attributes applied",
 			},
 			"connection_id": resource_schema.Int64Attribute{
-				Computed:    true,
+				Optional:    true,
 				Description: "A connection ID (used with Global Connections)",
 			},
 			"enable_model_query_history": resource_schema.BoolAttribute{

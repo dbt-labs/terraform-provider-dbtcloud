@@ -34,13 +34,13 @@ func (r *environmentResource) Metadata(
 }
 
 // getEnvironmentDetails retrieves and maps environment details from the API
-func (r *environmentResource) getEnvironmentDetails(projectID, environmentID int64) (*EnvironmentDataSourceModel, error) {
+func (r *environmentResource) getEnvironmentDetails(projectID, environmentID int64) (*EnvironmentResourceModel, error) {
 	environment, err := r.client.GetEnvironment(int(projectID), int(environmentID))
 	if err != nil {
 		return nil, err
 	}
 
-	state := &EnvironmentDataSourceModel{
+	state := &EnvironmentResourceModel{
 		CredentialsID: types.Int64PointerValue(
 			helper.IntPointerToInt64Pointer(environment.Credential_Id),
 		),
@@ -64,7 +64,7 @@ func (r *environmentResource) Read(
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state EnvironmentDataSourceModel
+	var state EnvironmentResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
@@ -142,7 +142,11 @@ func (r *environmentResource) Update(
 		return
 	}
 
-	var envToUpdate dbt_cloud.Environment
+	envToUpdate, err := r.client.GetEnvironment(int(plan.ProjectID.ValueInt64()), int(plan.EnvironmentID.ValueInt64()))
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting the environment", err.Error())
+		return
+	}
 
 	if plan.Name.ValueString() != state.Name.ValueString() {
 		envToUpdate.Name = plan.Name.ValueString()
@@ -206,10 +210,10 @@ func (r *environmentResource) Update(
 		envToUpdate.EnableModelQueryHistory = state.EnableModelQueryHistory.ValueBool()
 	}
 
-	_, err := r.client.UpdateEnvironment(
-		envToUpdate.Project_Id,
-		envToUpdate.Environment_Id,
-		envToUpdate,
+	_, err = r.client.UpdateEnvironment(
+		int(plan.ProjectID.ValueInt64()),
+		int(plan.EnvironmentID.ValueInt64()),
+		*envToUpdate,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating environment", err.Error())
@@ -224,7 +228,7 @@ func (r *environmentResource) Delete(
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state EnvironmentDataSourceModel
+	var state EnvironmentResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 
@@ -255,5 +259,9 @@ func (r *environmentResource) Configure(
 	req resource.ConfigureRequest,
 	resp *resource.ConfigureResponse,
 ) {
+	if req.ProviderData == nil {
+		return
+	}
+
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
