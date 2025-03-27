@@ -60,7 +60,7 @@ var resourceSchema = resource_schema.Schema{
 			},
 		},
 		"project_id": resource_schema.Int64Attribute{
-			Description: "Project ID",
+			Description: "Project ID to create the Databricks credential in",
 			Required:    true,
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
@@ -74,7 +74,7 @@ var resourceSchema = resource_schema.Schema{
 			},	
 		},
 		"adapter_id": resource_schema.Int64Attribute{
-			Description: "Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection)",
+			Description: "Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection')",
 			Optional:    true,
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
