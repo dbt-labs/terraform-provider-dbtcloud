@@ -23,7 +23,7 @@ type EnvironmentsDataSourceModel struct {
 }
 
 type EnvironmentResourceModel struct {
-	ID                      types.Int64  `tfsdk:"id"`
+	ID                      types.String `tfsdk:"id"`
 	EnvironmentID           types.Int64  `tfsdk:"environment_id"`
 	CredentialID            types.Int64  `tfsdk:"credential_id"`
 	ProjectID               types.Int64  `tfsdk:"project_id"`

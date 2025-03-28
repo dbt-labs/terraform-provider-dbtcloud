@@ -157,11 +157,11 @@ func (r *environmentResource) Schema(
 	resp.Schema = resource_schema.Schema{
 		Description: "Retrieve data for a single environment",
 		Attributes: map[string]resource_schema.Attribute{
-			"id": resource_schema.Int64Attribute{
+			"id": resource_schema.StringAttribute{
 				Computed:    true,
 				Description: "The ID of the license map",
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment_id": resource_schema.Int64Attribute{
@@ -186,6 +186,9 @@ func (r *environmentResource) Schema(
 			"name": resource_schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the environment",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"dbt_version": resource_schema.StringAttribute{
 				Computed:    true,
@@ -215,6 +218,8 @@ func (r *environmentResource) Schema(
 			"custom_branch": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "The custom branch name to use",
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 			},
 			"deployment_type": resource_schema.StringAttribute{
 				Computed:    true,
@@ -229,7 +234,12 @@ func (r *environmentResource) Schema(
 			},
 			"connection_id": resource_schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(0),
 				Description: "A connection ID (used with Global Connections)",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"enable_model_query_history": resource_schema.BoolAttribute{
 				Computed:    true,

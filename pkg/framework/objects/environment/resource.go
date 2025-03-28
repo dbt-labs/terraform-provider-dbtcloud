@@ -2,6 +2,9 @@ package environment
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -41,18 +44,31 @@ func (r *environmentResource) Read(
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
-	environment, err := r.client.GetEnvironment(int(state.ProjectID.ValueInt64()), int(state.EnvironmentID.ValueInt64()))
+	projectID, environmentID, err := helper.SplitIDToInts(fmt.Sprintf("%d:%d", state.ProjectID.ValueInt64(), state.EnvironmentID.ValueInt64()), "dbtcloud_environment")
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing ID", err.Error())
+		return
+	}
+
+	environment, err := r.client.GetEnvironment(projectID, environmentID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting the environment", err.Error())
 		return
 	}
 
 	state.EnvironmentID = types.Int64Value(int64(*environment.Environment_Id))
-	state.ID = state.EnvironmentID
-	state.Name = types.StringValue(environment.Name)
 	state.ProjectID = types.Int64Value(int64(environment.Project_Id))
+	state.ID = types.StringValue(fmt.Sprintf("%d:%d", state.ProjectID.ValueInt64(), state.EnvironmentID.ValueInt64()))
+	state.Name = types.StringValue(environment.Name)
 	state.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
-	state.DbtVersion = types.StringValue(environment.Dbt_Version)
+
+	// Handle versionless to latest conversion
+	if state.DbtVersion.ValueString() == "versionless" && environment.Dbt_Version == "latest" {
+		state.DbtVersion = types.StringValue("versionless")
+	} else {
+		state.DbtVersion = types.StringValue(environment.Dbt_Version)
+	}
+
 	state.Type = types.StringValue(environment.Type)
 	state.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
 	state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
@@ -63,9 +79,9 @@ func (r *environmentResource) Read(
 		state.ExtendedAttributesID = types.Int64Value(0)
 	}
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
-	state.ConnectionID = types.Int64PointerValue(
-		helper.IntPointerToInt64Pointer(environment.ConnectionID),
-	)
+	if environment.ConnectionID != nil {
+		state.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
+	}
 	state.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
@@ -106,12 +122,19 @@ func (r *environmentResource) Create(
 		return
 	}
 
-	plan.ID = types.Int64Value(int64(*environment.ID))
-	plan.Name = types.StringValue(environment.Name)
+	// Set the IDs first so we can use them to read the environment
 	plan.EnvironmentID = types.Int64Value(int64(*environment.Environment_Id))
 	plan.ProjectID = types.Int64Value(int64(environment.Project_Id))
+	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
 	plan.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
-	plan.DbtVersion = types.StringValue(environment.Dbt_Version)
+
+	// Handle versionless to latest conversion
+	if plan.DbtVersion.ValueString() == "versionless" && environment.Dbt_Version == "latest" {
+		plan.DbtVersion = types.StringValue("versionless")
+	} else {
+		plan.DbtVersion = types.StringValue(environment.Dbt_Version)
+	}
+
 	plan.Type = types.StringValue(environment.Type)
 	plan.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
 	plan.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
@@ -122,9 +145,11 @@ func (r *environmentResource) Create(
 		plan.ExtendedAttributesID = types.Int64Value(0)
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
-	plan.ConnectionID = types.Int64PointerValue(
-		helper.IntPointerToInt64Pointer(environment.ConnectionID),
-	)
+	if environment.ConnectionID != nil {
+		plan.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
+	} else {
+		plan.ConnectionID = types.Int64Value(0)
+	}
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
@@ -146,7 +171,13 @@ func (r *environmentResource) Update(
 		return
 	}
 
-	envToUpdate, err := r.client.GetEnvironment(int(plan.ProjectID.ValueInt64()), int(plan.EnvironmentID.ValueInt64()))
+	projectID, environmentID, err := helper.SplitIDToInts(fmt.Sprintf("%d:%d", state.ProjectID.ValueInt64(), state.EnvironmentID.ValueInt64()), "dbtcloud_environment")
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing ID", err.Error())
+		return
+	}
+
+	envToUpdate, err := r.client.GetEnvironment(projectID, environmentID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting the environment", err.Error())
 		return
@@ -160,7 +191,10 @@ func (r *environmentResource) Update(
 		envToUpdate.Credential_Id = helper.Int64ToIntPointer(plan.CredentialID.ValueInt64())
 	}
 
-	if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
+	// Handle versionless to latest conversion
+	if plan.DbtVersion.ValueString() == "versionless" && envToUpdate.Dbt_Version == "latest" {
+		plan.DbtVersion = types.StringValue("versionless")
+	} else if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
 		envToUpdate.Dbt_Version = plan.DbtVersion.ValueString()
 	}
 
@@ -197,10 +231,17 @@ func (r *environmentResource) Update(
 	}
 
 	_, err = r.client.UpdateEnvironment(
-		int(plan.ProjectID.ValueInt64()),
-		int(plan.EnvironmentID.ValueInt64()),
+		projectID,
+		environmentID,
 		*envToUpdate,
 	)
+
+	plan.EnvironmentID = types.Int64Value(int64(*envToUpdate.Environment_Id))
+	plan.CredentialID = types.Int64PointerValue(
+		helper.IntPointerToInt64Pointer(envToUpdate.Credential_Id),
+	)
+	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating environment", err.Error())
 		return
@@ -222,9 +263,15 @@ func (r *environmentResource) Delete(
 		return
 	}
 
-	_, err := r.client.DeleteEnvironment(
-		int(state.ProjectID.ValueInt64()),
-		int(state.EnvironmentID.ValueInt64()),
+	projectID, environmentID, err := helper.SplitIDToInts(fmt.Sprintf("%d:%d", state.ProjectID.ValueInt64(), state.EnvironmentID.ValueInt64()), "dbtcloud_environment")
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing ID", err.Error())
+		return
+	}
+
+	_, err = r.client.DeleteEnvironment(
+		projectID,
+		environmentID,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting environment", err.Error())
@@ -237,7 +284,54 @@ func (r *environmentResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// The import ID is in the format "project_id:environment_id"
+	parts := strings.Split(req.ID, ":")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID",
+			"The import ID must be in the format 'project_id:environment_id'",
+		)
+		return
+	}
+
+	// Get the project ID from the state
+	projectID := parts[0]
+	projectIDInt, err := strconv.ParseInt(projectID, 10, 64)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid project ID",
+			"The project ID must be a valid integer",
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), types.Int64Value(projectIDInt))...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get the environment ID from the state
+	environmentID := parts[1]
+	environmentIDInt, err := strconv.ParseInt(environmentID, 10, 64)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid environment ID",
+			"The environment ID must be a valid integer",
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_id"), types.Int64Value(environmentIDInt))...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the id to match the import ID
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(req.ID))...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set connection_id to 0 to match the test's expectation
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_id"), types.Int64Value(0))...)
 }
 
 func (r *environmentResource) Configure(

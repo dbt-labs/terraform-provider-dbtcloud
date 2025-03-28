@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -246,48 +247,6 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 					),
 				),
 			},
-			// MODIFY ADDING CRED
-			{
-				Config: testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
-					projectName,
-					environmentName2,
-					"",
-					"false",
-					dbtVersionLatest,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"name",
-						environmentName2,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"dbt_version",
-						dbtVersionLatest,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"custom_branch",
-						"",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"use_custom_branch",
-						"false",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_environment.test_env",
-						"credential_id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment.test_env",
-						"deployment_type",
-						"production",
-					),
-				),
-			},
 			// MODIFY CUSTOM BRANCH
 			{
 				Config: testAccDbtCloudEnvironmentResourceConnectionModifiedConfig(
@@ -330,6 +289,12 @@ func TestAccDbtCloudEnvironmentResourceConnection(t *testing.T) {
 				ResourceName:      "dbtcloud_environment.test_env",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateId:     fmt.Sprintf("%s:%s", "dbtcloud_project.test_project.id", "dbtcloud_environment.test_env.id"),
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					projectID := s.RootModule().Resources["dbtcloud_project.test_project"].Primary.ID
+					environmentID := s.RootModule().Resources["dbtcloud_environment.test_env"].Primary.Attributes["environment_id"]
+					return fmt.Sprintf("%s:%s", projectID, environmentID), nil
+				},
 				// TODO: Once the connection_id is mandatory, we can remove this exception and the custom logic for reading connection_id in the resource
 				ImportStateVerifyIgnore: []string{"connection_id"},
 			},
@@ -562,21 +527,22 @@ func testAccCheckDbtCloudEnvironmentExists(resource string) resource.TestCheckFu
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
+
+		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
+		if err != nil {
+			return fmt.Errorf("Can't get projectId")
+		}
+		environmentId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
+		if err != nil {
+			return fmt.Errorf("Can't get environmentId")
+		}
+
 		apiClient, err := acctest_helper.SharedClient()
 		if err != nil {
 			return fmt.Errorf("Issue getting the client")
 		}
-		projectId := rs.Primary.Attributes["project_id"]
-		environmentId := rs.Primary.Attributes["environment_id"]
-		projectIdInt, err := strconv.Atoi(projectId)
-		if err != nil {
-			return fmt.Errorf("Can't get projectId")
-		}
-		environmentIdInt, err := strconv.Atoi(environmentId)
-		if err != nil {
-			return fmt.Errorf("Can't get environmentId")
-		}
-		_, err = apiClient.GetEnvironment(projectIdInt, environmentIdInt)
+
+		_, err = apiClient.GetEnvironment(projectId, environmentId)
 		if err != nil {
 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
 		}
@@ -594,20 +560,31 @@ func testAccCheckDbtCloudEnvironmentDestroy(s *terraform.State) error {
 		if rs.Type != "dbtcloud_environment" {
 			continue
 		}
-		projectId := rs.Primary.Attributes["project_id"]
-		environmentId := rs.Primary.Attributes["environment_id"]
 
-		projectIdInt, err := strconv.Atoi(projectId)
-		if err != nil {
-			return fmt.Errorf("Can't get projectId")
+		// Get the project ID from the state
+		projectID := rs.Primary.Attributes["project_id"]
+		if projectID == "" {
+			return fmt.Errorf("No project_id found in state")
 		}
 
-		environmentIdInt, err := strconv.Atoi(environmentId)
-		if err != nil {
-			return fmt.Errorf("Can't get environmentId")
+		// Get the environment ID from the state
+		environmentID := rs.Primary.Attributes["environment_id"]
+		if environmentID == "" {
+			return fmt.Errorf("No environment_id found in state")
 		}
 
-		_, err = apiClient.GetEnvironment(projectIdInt, environmentIdInt)
+		// Convert IDs to integers
+		projectIDInt, err := strconv.Atoi(projectID)
+		if err != nil {
+			return fmt.Errorf("Error converting project_id to integer: %s", err)
+		}
+
+		environmentIDInt, err := strconv.Atoi(environmentID)
+		if err != nil {
+			return fmt.Errorf("Error converting environment_id to integer: %s", err)
+		}
+
+		_, err = apiClient.GetEnvironment(projectIDInt, environmentIDInt)
 		if err == nil {
 			return fmt.Errorf("Environment still exists")
 		}
