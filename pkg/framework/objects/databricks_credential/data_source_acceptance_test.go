@@ -1,4 +1,4 @@
-package data_sources_test
+package databricks_credential_test
 
 import (
 	"fmt"
