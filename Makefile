@@ -23,6 +23,10 @@ test: deps
 test-acceptance: deps
 	TF_ACC=1 go test -v -mod=readonly -count=1 -p 1 -parallel 10 ./...
 
+test-conformance: deps
+	TF_ACC=1 TF_CONF=1 go test -v -mod=readonly -count=1 -p 1 -parallel 10 ./...
+
+
 check-docs: doc
 	git diff --exit-code -- docs
 
