@@ -218,8 +218,6 @@ func (r *environmentResource) Schema(
 			"custom_branch": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "The custom branch name to use",
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
 			},
 			"deployment_type": resource_schema.StringAttribute{
 				Computed:    true,

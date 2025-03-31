@@ -279,47 +279,41 @@ func (r *environmentResource) Delete(
 	}
 }
 
+func splitEnvironmentID(id string) (int, int, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid environment ID")
+	}
+	part1, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid project ID")
+	}
+	part2, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid environment ID")
+	}
+
+	return int(part1), int(part2), nil
+}
+
 func (r *environmentResource) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
 	// The import ID is in the format "project_id:environment_id"
-	parts := strings.Split(req.ID, ":")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Invalid import ID",
-			"The import ID must be in the format 'project_id:environment_id'",
-		)
+	projectID, environmentID, err := splitEnvironmentID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error splitting environment ID", err.Error())
 		return
 	}
 
-	// Get the project ID from the state
-	projectID := parts[0]
-	projectIDInt, err := strconv.ParseInt(projectID, 10, 64)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid project ID",
-			"The project ID must be a valid integer",
-		)
-		return
-	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), types.Int64Value(projectIDInt))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the environment ID from the state
-	environmentID := parts[1]
-	environmentIDInt, err := strconv.ParseInt(environmentID, 10, 64)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Invalid environment ID",
-			"The environment ID must be a valid integer",
-		)
-		return
-	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_id"), types.Int64Value(environmentIDInt))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_id"), environmentID)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
