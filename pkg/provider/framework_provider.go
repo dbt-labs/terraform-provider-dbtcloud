@@ -242,5 +242,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
+		snowflake_credential.SnowflakeCredentialResource,
 	}
 }

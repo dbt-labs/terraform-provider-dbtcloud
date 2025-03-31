@@ -1,4 +1,4 @@
-package resources_test
+package snowflake_credential_test
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +138,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	})
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
 		Steps: []resource.TestStep{
