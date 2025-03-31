@@ -2,7 +2,7 @@ NAME=dbtcloud
 BINARY=terraform-provider-$(NAME)
 
 # Go Regexp does not allow negative lookaheads, so we have to do this instead
-EXCLUDE_CONF='^Test([^C]|C[^o]|Co[^n]|Con[^f]).*$'
+EXCLUDE_CONF='^Test([^C]|C[^o]|Co[^n]|Con[^f]).*'
 
 default: install
 
