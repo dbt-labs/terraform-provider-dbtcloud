@@ -74,10 +74,6 @@ func IsCI() bool {
 	return os.Getenv("CI") != ""
 }
 
-func IsConformance() bool {
-	return os.Getenv("TF_CONF") == "1"
-}
-
 func determineStringValue(envVarKey string, dbtCloudPRValue string, ciValue string) string {
 	val := os.Getenv(envVarKey)
 	if val != "" {
