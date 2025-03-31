@@ -77,15 +77,19 @@ func (r *environmentResource) Read(
 	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
 	if environment.ExtendedAttributesID != nil {
 		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
+	} else {
+		state.ExtendedAttributesID = types.Int64Null()
 	}
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
 	if environment.ConnectionID != nil {
 		state.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
+	} else {
+		state.ConnectionID = types.Int64Value(0)
 	}
 	if environment.Credential_Id != nil {
-		state.CredentialID = types.Int64PointerValue(
-			helper.IntPointerToInt64Pointer(environment.Credential_Id),
-		)
+		state.CredentialID = types.Int64Value(int64(*environment.Credential_Id))
+	} else {
+		state.CredentialID = types.Int64Null()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -143,6 +147,8 @@ func (r *environmentResource) Create(
 	plan.DeploymentType = types.StringPointerValue(environment.DeploymentType)
 	if environment.ExtendedAttributesID != nil {
 		plan.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
+	} else {
+		plan.ExtendedAttributesID = types.Int64Null()
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
 	if environment.ConnectionID != nil {
@@ -237,9 +243,16 @@ func (r *environmentResource) Update(
 	)
 
 	plan.EnvironmentID = types.Int64Value(int64(*envToUpdate.Environment_Id))
-	plan.CredentialID = types.Int64PointerValue(
-		helper.IntPointerToInt64Pointer(envToUpdate.Credential_Id),
-	)
+	if envToUpdate.Credential_Id != nil {
+		plan.CredentialID = types.Int64Value(int64(*envToUpdate.Credential_Id))
+	} else {
+		plan.CredentialID = types.Int64Null()
+	}
+	if envToUpdate.ExtendedAttributesID != nil {
+		plan.ExtendedAttributesID = types.Int64Value(int64(*envToUpdate.ExtendedAttributesID))
+	} else {
+		plan.ExtendedAttributesID = types.Int64Null()
+	}
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
 
 	if err != nil {
