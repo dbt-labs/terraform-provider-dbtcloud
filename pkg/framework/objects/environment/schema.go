@@ -184,7 +184,7 @@ func (r *environmentResource) Schema(
 			"credential_id": resource_schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     int64default.StaticInt64(0),
+				Default:     nil,
 				Description: "The project ID to which the environment belong",
 			},
 			"name": resource_schema.StringAttribute{
@@ -222,7 +222,7 @@ func (r *environmentResource) Schema(
 			"custom_branch": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString(""),
+				Default:     nil,
 				Description: "The custom branch name to use",
 			},
 			"deployment_type": resource_schema.StringAttribute{
