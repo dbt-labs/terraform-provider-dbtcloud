@@ -84,9 +84,11 @@ func (r *environmentResource) Read(
 	if environment.ConnectionID != nil {
 		state.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
 	}
-	state.CredentialID = types.Int64PointerValue(
-		helper.IntPointerToInt64Pointer(environment.Credential_Id),
-	)
+	if environment.Credential_Id != nil {
+		state.CredentialID = types.Int64PointerValue(
+			helper.IntPointerToInt64Pointer(environment.Credential_Id),
+		)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
