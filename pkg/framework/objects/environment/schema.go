@@ -233,7 +233,7 @@ func (r *environmentResource) Schema(
 			"extended_attributes_id": resource_schema.Int64Attribute{
 				Computed:    true,
 				Optional:    true,
-				Default:     int64default.StaticInt64(0),
+				Default:     nil,
 				Description: "The ID of the extended attributes applied",
 			},
 			"connection_id": resource_schema.Int64Attribute{

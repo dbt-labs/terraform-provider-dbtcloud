@@ -77,8 +77,6 @@ func (r *environmentResource) Read(
 	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
 	if environment.ExtendedAttributesID != nil {
 		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
-	} else {
-		state.ExtendedAttributesID = types.Int64Value(0)
 	}
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
 	if environment.ConnectionID != nil {
@@ -145,8 +143,6 @@ func (r *environmentResource) Create(
 	plan.DeploymentType = types.StringPointerValue(environment.DeploymentType)
 	if environment.ExtendedAttributesID != nil {
 		plan.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
-	} else {
-		plan.ExtendedAttributesID = types.Int64Value(0)
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
 	if environment.ConnectionID != nil {

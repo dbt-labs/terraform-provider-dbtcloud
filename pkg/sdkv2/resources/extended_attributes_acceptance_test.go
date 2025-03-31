@@ -18,96 +18,100 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
+	create_step := resource.TestStep{
+		Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step1"),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudExtendedAttributesExists(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"project_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+				"{\"catalog\":\"dbt_catalog\",\"http_path\":\"/sql/your/http/path\",\"my_nested_field\":{\"subfield\":\"my_value\"},\"type\":\"databricks\"}",
+			),
+		),
+	}
+
+	modify_step := resource.TestStep{
+		Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step2"),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudExtendedAttributesExists(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"project_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+				"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
+			),
+		),
+	}
+
+	remove_step := resource.TestStep{
+		Config: testAccDbtCloudExtendedAttributesResourceUnlinked(projectName),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudExtendedAttributesExists(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"project_id",
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_extended_attributes.test_extended_attributes",
+				"extended_attributes",
+				"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
+			),
+		),
+	}
+
+	import_step := resource.TestStep{
+		ResourceName:            "dbtcloud_extended_attributes.test_extended_attributes",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{},
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudExtendedAttributesDestroy,
 		Steps: []resource.TestStep{
-			// CREATE
-			{
-				Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step1"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"project_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-						"{\"catalog\":\"dbt_catalog\",\"http_path\":\"/sql/your/http/path\",\"my_nested_field\":{\"subfield\":\"my_value\"},\"type\":\"databricks\"}",
-					),
-				),
-			},
-			// MODIFY
-			{
-				Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step2"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"project_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-						"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
-					),
-				),
-			},
-			// REMOVE FROM ENVIRONMENT
-			{
-				Config: testAccDbtCloudExtendedAttributesResourceUnlinked(projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudExtendedAttributesExists(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"project_id",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_extended_attributes.test_extended_attributes",
-						"extended_attributes",
-						"{\"catalog\":\"dbt_catalog_new\",\"type\":\"databricks\"}",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_extended_attributes.test_extended_attributes",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
-			},
+			create_step,
+			modify_step,
+			remove_step,
+			import_step,
 		},
 	})
 }
