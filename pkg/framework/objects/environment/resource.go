@@ -71,7 +71,9 @@ func (r *environmentResource) Read(
 
 	state.Type = types.StringValue(environment.Type)
 	state.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
-	state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
+	if environment.Custom_Branch != nil {
+		state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
+	}
 	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
 	if environment.ExtendedAttributesID != nil {
 		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))

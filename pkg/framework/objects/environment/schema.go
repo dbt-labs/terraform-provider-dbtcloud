@@ -167,6 +167,9 @@ func (r *environmentResource) Schema(
 			"environment_id": resource_schema.Int64Attribute{
 				Computed:    true,
 				Description: "The ID of the environment",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_active": resource_schema.BoolAttribute{
 				Optional:    true,
