@@ -49,22 +49,26 @@ resource "dbtcloud_environment" "dev_environment" {
 
 ### Required
 
-- `environment_id` (Number) The ID of the environment
-- `is_active` (Boolean) Whether the environment is active
+- `name` (String) The name of the environment
 - `project_id` (Number) (Number) Project ID to create the environment in
+- `type` (String) (String) The type of environment (must be either development or deployment)
 
-### Read-Only
+### Optional
 
 - `connection_id` (Number) A connection ID (used with Global Connections)
-- `credentials_id` (Number) The project ID to which the environment belong
+- `credential_id` (Number) The project ID to which the environment belong
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
 - `enable_model_query_history` (Boolean) (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
-- `name` (String) The name of the environment
-- `type` (String) (String) The type of environment (must be either development or deployment)
+- `is_active` (Boolean) Whether the environment is active
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
+
+### Read-Only
+
+- `environment_id` (Number) The ID of the environment
+- `id` (String) The ID of the license map
 
 ## Import
 

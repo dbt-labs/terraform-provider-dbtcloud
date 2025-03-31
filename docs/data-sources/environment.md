@@ -18,12 +18,12 @@ Retrieve data for a single environment
 ### Required
 
 - `environment_id` (Number) The ID of the environment
-- `project_id` (Number) The project ID to which the environment belong
+- `project_id` (Number) The project ID to which the environment belongs
 
 ### Read-Only
 
 - `connection_id` (Number) A connection ID (used with Global Connections)
-- `credentials_id` (Number) The project ID to which the environment belong
+- `credentials_id` (Number) Credential ID for this environment. A credential is not required for development environments, as dbt Cloud defaults to the user's credentials, but deployment environments will have this.
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment.
 - `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)

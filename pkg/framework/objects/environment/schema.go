@@ -31,11 +31,11 @@ func (r *environmentDataSource) Schema(
 			},
 			"project_id": schema.Int64Attribute{
 				Required:    true,
-				Description: "The project ID to which the environment belong",
+				Description: "The project ID to which the environment belongs",
 			},
 			"credentials_id": schema.Int64Attribute{
 				Computed:    true,
-				Description: "The project ID to which the environment belong",
+				Description: "Credential ID for this environment. A credential is not required for development environments, as dbt Cloud defaults to the user's credentials, but deployment environments will have this.",
 			},
 			"name": schema.StringAttribute{
 				Computed:    true,
