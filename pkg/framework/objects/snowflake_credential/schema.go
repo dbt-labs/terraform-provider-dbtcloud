@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
@@ -117,7 +118,9 @@ var resourceSchema = resource_schema.Schema{
 		"password": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
-			Description: "The password for the Starburst/Trino account",
+			Description: "The password for the Snowflake account",
+			Computed:    true,
+			Default:     stringdefault.StaticString(""),
 			Validators: []validator.String{
 				stringvalidator.ConflictsWith(
 					path.MatchRoot("private_key"),
@@ -128,6 +131,8 @@ var resourceSchema = resource_schema.Schema{
 		"private_key": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
+			Computed:    true,
+			Default:     stringdefault.StaticString(""),
 			Description: "The private key for the Snowflake account",
 			Validators: []validator.String{
 				stringvalidator.ConflictsWith(path.MatchRoot("password")),
@@ -136,6 +141,8 @@ var resourceSchema = resource_schema.Schema{
 		"private_key_passphrase": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
+			Computed:    true,
+			Default:     stringdefault.StaticString(""),
 			Description: "The passphrase for the private key",
 			Validators: []validator.String{
 				stringvalidator.ConflictsWith(path.MatchRoot("password")),

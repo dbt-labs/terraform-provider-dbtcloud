@@ -167,17 +167,7 @@ func (r *snowflakeCredentialResource) Read(
 		return
 	}
 
-	// Map all fields from API response to state
-	state.User = types.StringValue(credential.User)
-	state.AuthType = types.StringValue(credential.Auth_Type)
-	state.Database = types.StringValue(credential.Database)
-	state.Role = types.StringValue(credential.Role)
-	state.Warehouse = types.StringValue(credential.Warehouse)
 	state.Schema = types.StringValue(credential.Schema)
-	state.IsActive = types.BoolValue(credential.State == 1)
-	state.NumThreads = types.Int64Value(int64(credential.Threads))
-	state.CredentialID = types.Int64Value(int64(credentialID))
-	state.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, credentialID))
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -394,4 +384,25 @@ func (r *snowflakeCredentialResource) ImportState(
 		path.Root("is_active"),
 		credential.State == 1,
 	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("database"),
+		credential.Database,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("role"),
+		credential.Role,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("warehouse"),
+		credential.Warehouse,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("password"),
+		credential.Password,
+	)...)
+
 }
