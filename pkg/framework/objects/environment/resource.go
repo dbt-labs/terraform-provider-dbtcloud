@@ -297,16 +297,16 @@ func splitEnvironmentID(id string) (int, int, error) {
 	if len(parts) != 2 {
 		return 0, 0, fmt.Errorf("invalid environment ID")
 	}
-	part1, err := strconv.ParseInt(parts[0], 10, 64)
+	part1, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid project ID")
 	}
-	part2, err := strconv.ParseInt(parts[1], 10, 64)
+	part2, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid environment ID")
 	}
 
-	return int(part1), int(part2), nil
+	return part1, part2, nil
 }
 
 func (r *environmentResource) ImportState(
