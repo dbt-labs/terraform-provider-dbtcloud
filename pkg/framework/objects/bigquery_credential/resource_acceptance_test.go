@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -13,38 +14,51 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
+var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var dataset = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	dataset := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var createCredentialTestStep = resource.TestStep{
+	Config: testAccDbtCloudBigQueryCredentialResourceBasicConfig(projectName, dataset),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudBigQueryCredentialExists(
+			"dbtcloud_bigquery_credential.test_credential",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_bigquery_credential.test_credential",
+			"dataset",
+			dataset,
+		),
+	),
+}
+
+func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
+	var importStateTestStep = resource.TestStep{
+		ResourceName:            "dbtcloud_bigquery_credential.test_credential",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"password"},
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudBigQueryCredentialDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudBigQueryCredentialResourceBasicConfig(projectName, dataset),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudBigQueryCredentialExists(
-						"dbtcloud_bigquery_credential.test_credential",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_bigquery_credential.test_credential",
-						"dataset",
-						dataset,
-					),
-				),
-			},
+			createCredentialTestStep,
 			// RENAME
 			// MODIFY
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_bigquery_credential.test_credential",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			importStateTestStep,
+		},
+	})
+}
+
+func TestConfDbtCloudBigQueryCredentialResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudBigQueryCredentialDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(createCredentialTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(createCredentialTestStep),
 		},
 	})
 }

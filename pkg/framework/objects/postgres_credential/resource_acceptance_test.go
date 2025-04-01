@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -13,60 +14,74 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
+var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var default_schema = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var username = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var password = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	default_schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	username := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+var createCredentialTestStep = resource.TestStep{
+	Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(
+		projectName,
+		default_schema,
+		username,
+		password,
+	),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudPostgresCredentialExists(
+			"dbtcloud_postgres_credential.test_credential",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_postgres_credential.test_credential",
+			"default_schema",
+			default_schema,
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_postgres_credential.test_credential",
+			"username",
+			username,
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_postgres_credential.test_credential",
+			"target_name",
+			"default",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_postgres_credential.test_credential",
+			"type",
+			"postgres",
+		),
+	),
+}
+
+func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
+	var importStateTestStep = resource.TestStep{
+		ResourceName:            "dbtcloud_postgres_credential.test_credential",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"password"},
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudPostgresCredentialResourceBasicConfig(
-					projectName,
-					default_schema,
-					username,
-					password,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudPostgresCredentialExists(
-						"dbtcloud_postgres_credential.test_credential",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_postgres_credential.test_credential",
-						"default_schema",
-						default_schema,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_postgres_credential.test_credential",
-						"username",
-						username,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_postgres_credential.test_credential",
-						"target_name",
-						"default",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_postgres_credential.test_credential",
-						"type",
-						"postgres",
-					),
-				),
-			},
+			createCredentialTestStep,
 			// RENAME
 			// MODIFY
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_postgres_credential.test_credential",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			importStateTestStep,
+		},
+	})
+
+}
+
+func TestConfDbtCloudPostgresCredentialResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(createCredentialTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(createCredentialTestStep),
 		},
 	})
 }
