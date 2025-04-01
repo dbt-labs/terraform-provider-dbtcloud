@@ -38,7 +38,7 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
 
 - `database` (String) The catalog to connect use
 - `is_active` (Boolean) Whether the Snowflake credential is active
-- `password` (String, Sensitive) The password for the Starburst/Trino account
+- `password` (String, Sensitive) The password for the Snowflake account
 - `private_key` (String, Sensitive) The private key for the Snowflake account
 - `private_key_passphrase` (String, Sensitive) The passphrase for the private key
 - `role` (String) The role to assume
