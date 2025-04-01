@@ -29,6 +29,14 @@ func IntPointerToInt64Pointer(value *int) *int64 {
 	return &ret
 }
 
+func Int64ToIntPointer(value int64) *int {
+	if value == 0 {
+		return nil
+	}
+	ret := int(value)
+	return &ret
+}
+
 // API data types to TF types
 func SetIntToInt64OrNull(value int) types.Int64 {
 	if value == 0 {
