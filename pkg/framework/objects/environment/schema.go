@@ -66,8 +66,12 @@ func (r *environmentDataSource) Schema(
 				Description: "The ID of the extended attributes applied",
 			},
 			"connection_id": schema.Int64Attribute{
-				Computed:    true,
-				Description: "A connection ID (used with Global Connections)",
+				Computed: true,
+				Description: "The ID of the connection to use (can be the `id` of a `dbtcloud_global_connection` or the `connection_id` of a legacy connection). " +
+					"At the moment, it is optional and the environment will use the connection set in `dbtcloud_project_connection` if `connection_id` is not set in this resource. " +
+					"In future versions this field will become required, so it is recommended to set it from now on. " +
+					"When configuring this field, it needs to be configured for all the environments of the project. " +
+					"To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project",
 			},
 			"enable_model_query_history": schema.BoolAttribute{
 				Computed:    true,
@@ -104,7 +108,7 @@ func (r *environmentsDataSources) Schema(
 						},
 						"credentials_id": schema.Int64Attribute{
 							Computed:    true,
-							Description: "Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments",
+							Description: "Credential ID for this environment. A credential is not required for development environments, as dbt Cloud defaults to the user's credentials, but deployment environments will have this.",
 						},
 						"name": schema.StringAttribute{
 							Computed:    true,
@@ -155,18 +159,21 @@ func (r *environmentResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = resource_schema.Schema{
-		Description: "Retrieve data for a single environment",
+		Description: "Resource to manage dbt Cloud environments for the different dbt Cloud projects." +
+			" In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created." +
+			" ~> In August 2024, dbt Cloud released the \"global connection\" feature, allowing connections to be defined at the account level and reused across environments and projects." +
+			" This version of the provider has the connection_id as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.",
 		Attributes: map[string]resource_schema.Attribute{
 			"id": resource_schema.StringAttribute{
 				Computed:    true,
-				Description: "The ID of the license map",
+				Description: "The ID of environment.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"environment_id": resource_schema.Int64Attribute{
 				Computed:    true,
-				Description: "The ID of the environment",
+				Description: "The ID of the environment. Duplicated. Here for backward compatibility.",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
@@ -179,13 +186,13 @@ func (r *environmentResource) Schema(
 			},
 			"project_id": resource_schema.Int64Attribute{
 				Required:    true,
-				Description: "(Number) Project ID to create the environment in",
+				Description: "Project ID to create the environment in",
 			},
 			"credential_id": resource_schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     nil,
-				Description: "The project ID to which the environment belong",
+				Description: "The project ID to which the environment belongs.",
 			},
 			"name": resource_schema.StringAttribute{
 				Required:    true,
@@ -198,14 +205,14 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Default:     stringdefault.StaticString("latest"),
-				Description: "(String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
 				Validators: []validator.String{
 					stringvalidator.OneOf("latest", "versionless"),
 				},
 			},
 			"type": resource_schema.StringAttribute{
 				Required:    true,
-				Description: "(String) The type of environment (must be either development or deployment)",
+				Description: "The type of environment (must be either development or deployment)",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -228,7 +235,7 @@ func (r *environmentResource) Schema(
 			"deployment_type": resource_schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "(String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
+				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
 			},
 			"extended_attributes_id": resource_schema.Int64Attribute{
 				Computed:    true,
@@ -248,7 +255,7 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Default:     booldefault.StaticBool(false),
-				Description: "(Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.",
+				Description: "Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.",
 			},
 		},
 	}
