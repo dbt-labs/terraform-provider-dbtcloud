@@ -13,6 +13,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/fabric_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
@@ -214,6 +215,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		postgres_credential.PostgresCredentialDataSource,
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
+		databricks_credential.DatabricksCredentialDataSource,
 	}
 }
 
@@ -240,5 +242,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
+		databricks_credential.DatabricksCredentialResource,
 	}
 }
