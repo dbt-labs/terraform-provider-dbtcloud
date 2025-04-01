@@ -13,6 +13,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/fabric_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection"
@@ -30,6 +31,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
@@ -206,6 +208,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		model_notifications.ModelNotificationsDataSource,
 		notification.NotificationDataSource,
 		project.ProjectsDataSource,
+		repository.RepositoryDataSource,
 		service_token.ServiceTokenDataSource,
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
@@ -214,6 +217,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		postgres_credential.PostgresCredentialDataSource,
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
+		databricks_credential.DatabricksCredentialDataSource,
 	}
 }
 
@@ -233,6 +237,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,
+		repository.RepositoryResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
 		bigquery_credential.BigqueryCredentialResource,
@@ -240,6 +245,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
+		databricks_credential.DatabricksCredentialResource,
 		environment.EnvironmentResource,
 	}
 }
