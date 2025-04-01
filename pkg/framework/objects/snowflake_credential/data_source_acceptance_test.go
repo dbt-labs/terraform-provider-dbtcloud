@@ -1,4 +1,4 @@
-package data_sources_test
+package snowflake_credential_test
 
 import (
 	"fmt"
