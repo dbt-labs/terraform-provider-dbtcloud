@@ -86,7 +86,6 @@ func (r *snowflakeCredentialResource) Create(
 		return
 	}
 
-	is_active := plan.State.ValueInt64() == 1
 	project_id := int(plan.ProjectID.ValueInt64())
 	auth_type := plan.AuthType.ValueString()
 	database := plan.Database.ValueString()
@@ -97,7 +96,8 @@ func (r *snowflakeCredentialResource) Create(
 	password := plan.Password.ValueString()
 	private_key := plan.PrivateKey.ValueString()
 	private_key_passphrase := plan.PrivateKeyPassphrase.ValueString()
-	num_threads := int(plan.Threads.ValueInt64())
+	num_threads := int(plan.NumThreads.ValueInt64())
+	is_active := plan.IsActive.ValueBool()
 
 	// Create new credential
 	credential, err := r.client.CreateSnowflakeCredential(
@@ -167,13 +167,17 @@ func (r *snowflakeCredentialResource) Read(
 		return
 	}
 
-	if credential.Auth_Type == "password" {
-		state.Password = types.StringValue(credential.Password)
-	}
-	if credential.Auth_Type == "keypair" {
-		state.PrivateKey = types.StringValue(credential.PrivateKey)
-		state.PrivateKeyPassphrase = types.StringValue(credential.PrivateKeyPassphrase)
-	}
+	// Map all fields from API response to state
+	state.User = types.StringValue(credential.User)
+	state.AuthType = types.StringValue(credential.Auth_Type)
+	state.Database = types.StringValue(credential.Database)
+	state.Role = types.StringValue(credential.Role)
+	state.Warehouse = types.StringValue(credential.Warehouse)
+	state.Schema = types.StringValue(credential.Schema)
+	state.IsActive = types.BoolValue(credential.State == 1)
+	state.NumThreads = types.Int64Value(int64(credential.Threads))
+	state.CredentialID = types.Int64Value(int64(credentialID))
+	state.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, credentialID))
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -205,7 +209,7 @@ func (r *snowflakeCredentialResource) Update(
 		return
 	}
 
-	projectID := int(state.ProjectID.ValueInt64())
+	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
 	if (state.AuthType != plan.AuthType) ||
@@ -216,7 +220,9 @@ func (r *snowflakeCredentialResource) Update(
 		(state.User != plan.User) ||
 		(state.Password != plan.Password) ||
 		(state.PrivateKey != plan.PrivateKey) ||
-		(state.PrivateKeyPassphrase != plan.PrivateKeyPassphrase) {
+		(state.PrivateKeyPassphrase != plan.PrivateKeyPassphrase) ||
+		(state.IsActive != plan.IsActive) ||
+		(state.NumThreads != plan.NumThreads) {
 		credential, err := r.client.GetSnowflakeCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -235,7 +241,14 @@ func (r *snowflakeCredentialResource) Update(
 		credential.Password = plan.Password.ValueString()
 		credential.PrivateKey = plan.PrivateKey.ValueString()
 		credential.PrivateKeyPassphrase = plan.PrivateKeyPassphrase.ValueString()
-		credential.Threads = int(plan.Threads.ValueInt64())
+		credential.Threads = int(plan.NumThreads.ValueInt64())
+
+		// Set State based on IsActive
+		if plan.IsActive.ValueBool() {
+			credential.State = 1
+		} else {
+			credential.State = 0
+		}
 
 		_, err = r.client.UpdateSnowflakeCredential(projectID, credentialID, *credential)
 		if err != nil {
@@ -247,6 +260,7 @@ func (r *snowflakeCredentialResource) Update(
 		}
 	}
 
+	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, credentialID))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -329,6 +343,17 @@ func (r *snowflakeCredentialResource) ImportState(
 		return
 	}
 
+	// Get the credential from the API to populate all required fields
+	credential, err := r.client.GetSnowflakeCredential(projectID, credentialID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading Snowflake credential",
+			"Could not read Snowflake credential during import: "+err.Error(),
+		)
+		return
+	}
+
+	// Set all required fields in the state
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("id"),
@@ -343,5 +368,30 @@ func (r *snowflakeCredentialResource) ImportState(
 		ctx,
 		path.Root("credential_id"),
 		credentialID,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("auth_type"),
+		credential.Auth_Type,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("schema"),
+		credential.Schema,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("user"),
+		credential.User,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("num_threads"),
+		credential.Threads,
+	)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("is_active"),
+		credential.State == 1,
 	)...)
 }

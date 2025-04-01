@@ -20,11 +20,7 @@ type SnowflakeCredentialDataSourceModel struct {
 type SnowflakeCredentialResourceModel struct {
 	ID                   types.String `tfsdk:"id"`
 	CredentialID         types.Int64  `tfsdk:"credential_id"`
-	AccountID            types.Int64  `tfsdk:"account_id"`
 	ProjectID            types.Int64  `tfsdk:"project_id"`
-	Type                 types.String `tfsdk:"type"`
-	State                types.Int64  `tfsdk:"state"`
-	Threads              types.Int64  `tfsdk:"threads"`
 	User                 types.String `tfsdk:"user"`
 	Password             types.String `tfsdk:"password"`
 	AuthType             types.String `tfsdk:"auth_type"`
@@ -34,4 +30,6 @@ type SnowflakeCredentialResourceModel struct {
 	Schema               types.String `tfsdk:"schema"`
 	PrivateKey           types.String `tfsdk:"private_key"`
 	PrivateKeyPassphrase types.String `tfsdk:"private_key_passphrase"`
+	IsActive             types.Bool   `tfsdk:"is_active"`
+	NumThreads           types.Int64  `tfsdk:"num_threads"`
 }
