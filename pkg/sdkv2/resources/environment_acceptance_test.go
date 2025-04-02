@@ -522,11 +522,14 @@ resource "dbtcloud_environment" "test_env" {
   enable_model_query_history = true
 }
 
-resource "dbtcloud_bigquery_credential" "test_credential" {
-	project_id  = dbtcloud_project.test_project.id
-	dataset     = "my_bq_dataset"
-	num_threads = 16
-  }
+resource "dbtcloud_snowflake_credential" "test_credential" {
+  project_id  = dbtcloud_project.test_project.id
+  auth_type   = "password"
+  num_threads = 16
+  schema      = "analytics"
+  user        = "my_snowflake_user"
+  password    = "my_snowflake_password"
+}
   
 `, projectName, environmentName, dbtVersion, customBranch, useCustomBranch)
 }
