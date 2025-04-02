@@ -1,9 +1,10 @@
-package data_sources_test
+package extended_attributes_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -76,5 +77,5 @@ func extendedAttributes() string {
       project_id = dbtcloud_project.test_project.id
       environment_id = dbtcloud_environment.test_environment.environment_id
   }
-    `, DBT_CLOUD_VERSION)
+    `, acctest_config.DBT_CLOUD_VERSION)
 }
