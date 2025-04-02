@@ -516,7 +516,7 @@ resource "dbtcloud_environment" "test_env" {
   custom_branch = "%s"
   use_custom_branch = %s
   project_id = dbtcloud_project.test_project.id
-  credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
+  credential_id = dbtcloud_snowflake_credential.test_credential.credential_id
   deployment_type = "production"
   connection_id = dbtcloud_global_connection.test2.id
   enable_model_query_history = true
