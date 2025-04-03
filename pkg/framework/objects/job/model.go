@@ -51,6 +51,7 @@ type JobDataSourceModel struct {
 	GenerateDocs                  types.Bool            `tfsdk:"generate_docs"`
 	RunGenerateSources            types.Bool            `tfsdk:"run_generate_sources"`
 	ID                            types.Int64           `tfsdk:"id"`
+	JobId                         types.Int64           `tfsdk:"job_id"`
 	ProjectID                     types.Int64           `tfsdk:"project_id"`
 	EnvironmentID                 types.Int64           `tfsdk:"environment_id"`
 	Name                          types.String          `tfsdk:"name"`

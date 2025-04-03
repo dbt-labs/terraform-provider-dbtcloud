@@ -202,6 +202,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		global_connection.GlobalConnectionDataSource,
 		global_connection.GlobalConnectionsDataSource,
 		group.GroupDataSource,
+		job.JobDataSource,
 		job.JobsDataSource,
 		model_notifications.ModelNotificationsDataSource,
 		notification.NotificationDataSource,
