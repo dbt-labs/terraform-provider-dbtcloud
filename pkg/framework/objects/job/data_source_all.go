@@ -70,17 +70,13 @@ func (d *jobsDataSource) Read(
 	allJobs := []JobDataSourceModel{}
 	for _, job := range apiJobs {
 
-		// we need to handle the case the condition is nil
+
 		var jobCompletionTriggerCondition *JobCompletionTrigger
 		if job.JobCompletionTrigger != nil {
 			jobCompletionTriggerCondition = &JobCompletionTrigger{
 				Condition: JobCompletionTriggerCondition{
-					JobID: types.Int64Value(
-						int64(job.JobCompletionTrigger.Condition.JobID),
-					),
-					ProjectID: types.Int64Value(
-						int64(job.JobCompletionTrigger.Condition.ProjectID),
-					),
+					JobID:     types.Int64Value(int64(job.JobCompletionTrigger.Condition.JobID)),
+					ProjectID: types.Int64Value(int64(job.JobCompletionTrigger.Condition.ProjectID)),
 					Statuses: lo.Map(
 						job.JobCompletionTrigger.Condition.Statuses,
 						func(status int, _ int) types.String {
@@ -94,7 +90,7 @@ func (d *jobsDataSource) Read(
 		}
 
 		currentJob := JobDataSourceModel{
-			Execution: JobExecution{
+			Execution: &JobExecution{
 				TimeoutSeconds: types.Int64Value(int64(job.Execution.TimeoutSeconds)),
 			},
 			GenerateDocs:       types.BoolValue(job.GenerateDocs),
@@ -116,23 +112,23 @@ func (d *jobsDataSource) Read(
 			DeferringEnvironmentID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
 				job.DeferringEnvironmentId),
 			),
-			Triggers: JobTriggers{
+			Triggers: &JobTriggers{
 				GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),
 				GitProviderWebhook: types.BoolValue(job.Triggers.GitProviderWebhook),
 				Schedule:           types.BoolValue(job.Triggers.Schedule),
 				OnMerge:            types.BoolValue(job.Triggers.OnMerge),
 			},
-			Settings: JobSettings{
+			Settings: &JobSettings{
 				Threads:    types.Int64Value(int64(job.Settings.Threads)),
 				TargetName: types.StringValue(job.Settings.TargetName),
 			},
-			Schedule: JobSchedule{
+			Schedule: &JobSchedule{
 				Cron: types.StringValue(job.Schedule.Cron),
 			},
 			JobType:           types.StringValue(job.JobType),
 			TriggersOnDraftPr: types.BoolValue(job.TriggersOnDraftPR),
 			RunCompareChanges: types.BoolValue(job.RunCompareChanges),
-			Environment: JobEnvironment{
+			Environment: &JobEnvironment{
 				ProjectID:      types.Int64Value(int64(job.Environment.Project_Id)),
 				ID:             types.Int64Value(int64(*job.Environment.ID)),
 				Name:           types.StringValue(job.Environment.Name),

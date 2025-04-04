@@ -2,8 +2,9 @@ package job_test
 
 import (
 	"fmt"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -15,7 +16,7 @@ func TestDbtCloudJobsDataSource(t *testing.T) {
 	randomJobName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	randomJobName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := jobs(randomJobName, randomJobName2)
+	config := jobsResourceConfig(randomJobName, randomJobName2)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet("data.dbtcloud_jobs.test", "project_id"),
@@ -67,7 +68,7 @@ func TestDbtCloudJobsDataSource(t *testing.T) {
 	})
 }
 
-func jobs(jobName string, jobName2 string) string {
+func jobsResourceConfig(jobName string, jobName2 string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_project" {
         name = "jobs_test_project"
