@@ -45,27 +45,31 @@ locals {
 <a id="nestedatt--jobs"></a>
 ### Nested Schema for `jobs`
 
+Optional:
+
+- `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--jobs--environment))
+- `execution` (Attributes) (see [below for nested schema](#nestedatt--jobs--execution))
+- `job_completion_trigger_condition` (Attributes) Whether the job is triggered by the completion of another job (see [below for nested schema](#nestedatt--jobs--job_completion_trigger_condition))
+- `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))
+- `triggers` (Attributes) (see [below for nested schema](#nestedatt--jobs--triggers))
+
 Read-Only:
 
 - `dbt_version` (String) The version of dbt used for the job. If not set, the environment version will be used.
 - `deferring_environment_id` (Number) The ID of the environment this job defers to
 - `deferring_job_definition_id` (Number) [Deprecated - deferral is now set at the environment level] The ID of the job definition this job defers to
 - `description` (String) The description of the job
-- `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--jobs--environment))
 - `environment_id` (Number) The ID of environment
 - `execute_steps` (List of String) The list of steps to run in the job
-- `execution` (Attributes) (see [below for nested schema](#nestedatt--jobs--execution))
 - `generate_docs` (Boolean) Whether the job generate docs
 - `id` (Number) The ID of the job
-- `job_completion_trigger_condition` (Attributes) Whether the job is triggered by the completion of another job (see [below for nested schema](#nestedatt--jobs--job_completion_trigger_condition))
+- `job_id` (Number) The ID of the job
 - `job_type` (String) The type of job (e.g. CI, scheduled)
 - `name` (String) The name of the job
 - `project_id` (Number) The ID of the project
 - `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR
 - `run_generate_sources` (Boolean) Whether the job test source freshness
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--jobs--schedule))
-- `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))
-- `triggers` (Attributes) (see [below for nested schema](#nestedatt--jobs--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
 <a id="nestedatt--jobs--environment"></a>
@@ -106,14 +110,6 @@ Read-Only:
 
 
 
-<a id="nestedatt--jobs--schedule"></a>
-### Nested Schema for `jobs.schedule`
-
-Read-Only:
-
-- `cron` (String) The cron schedule for the job. Only used if triggers.schedule is true
-
-
 <a id="nestedatt--jobs--settings"></a>
 ### Nested Schema for `jobs.settings`
 
@@ -132,3 +128,11 @@ Read-Only:
 - `github_webhook` (Boolean) Whether the job runs automatically on PR creation
 - `on_merge` (Boolean) Whether the job runs automatically once a PR is merged
 - `schedule` (Boolean) Whether the job runs on a schedule
+
+
+<a id="nestedatt--jobs--schedule"></a>
+### Nested Schema for `jobs.schedule`
+
+Read-Only:
+
+- `cron` (String) The cron schedule for the job. Only used if triggers.schedule is true
