@@ -237,20 +237,4 @@ func (d *jobsDataSource) Schema(
 	}
 }
 
-func (d *jobDataSource) Schema(
-	ctx context.Context,
-	req datasource.SchemaRequest,
-	resp *datasource.SchemaResponse,
-) {
-	jobAttributes := getJobAttributes()
 
-	jobAttributes["job_id"] = schema.Int64Attribute{
-		Required: true,
-		Description: "The ID of the job",
-	}
-	
-	resp.Schema = schema.Schema{
-		Description: "Retrieve a job by ID",
-		Attributes: jobAttributes,
-	}
-}
