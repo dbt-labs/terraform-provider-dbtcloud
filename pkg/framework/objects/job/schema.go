@@ -13,7 +13,6 @@ func getJobAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"execution": schema.SingleNestedAttribute{
 			Computed: true,
-			Optional: true,
 			Attributes: map[string]schema.Attribute{
 				"timeout_seconds": schema.Int64Attribute{
 					Computed:    true,
@@ -72,7 +71,6 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"triggers": schema.SingleNestedAttribute{
 			Computed: true,
-			Optional: true,
 			Attributes: map[string]schema.Attribute{
 				"github_webhook": schema.BoolAttribute{
 					Computed:    true,
@@ -94,7 +92,6 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"settings": schema.SingleNestedAttribute{
 			Computed: true,
-			Optional: true,
 			Attributes: map[string]schema.Attribute{
 				"threads": schema.Int64Attribute{
 					Computed:    true,
@@ -125,7 +122,6 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"environment": schema.SingleNestedAttribute{
 			Computed:    true,
-			Optional: true,
 			Description: "Details of the environment the job is running in",
 			Attributes: map[string]schema.Attribute{
 				"project_id": schema.Int64Attribute{
