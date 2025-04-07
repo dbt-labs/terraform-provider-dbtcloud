@@ -87,6 +87,7 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	state.Execution = &JobExecution{
 		TimeoutSeconds: types.Int64Value(int64(job.Execution.TimeoutSeconds)),
 	}
+	state.TimeoutSeconds = types.Int64Value(int64(job.Execution.TimeoutSeconds))
 	state.GenerateDocs = types.BoolValue(job.GenerateDocs)
 	state.RunGenerateSources = types.BoolValue(job.RunGenerateSources)
 	state.ID = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.ID))
@@ -97,6 +98,8 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	state.DbtVersion = types.StringPointerValue(job.DbtVersion)
 	state.ExecuteSteps = helper.SliceStringToSliceTypesString(job.ExecuteSteps)
 	state.DeferringJobDefinitionID = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.DeferringJobId))
+	state.DeferringJobId = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.DeferringJobId))
+	state.SelfDeferring = types.BoolValue(job.DeferringJobId != nil && *job.DeferringJobId == *job.ID)
 	state.DeferringEnvironmentID = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.DeferringEnvironmentId))
 	state.Triggers = &JobTriggers{
 		GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),

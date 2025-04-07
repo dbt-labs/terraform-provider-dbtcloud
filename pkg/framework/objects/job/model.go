@@ -48,6 +48,7 @@ type JobSchedule struct {
 
 type JobDataSourceModel struct {
 	Execution                     *JobExecution         `tfsdk:"execution"`
+	TimeoutSeconds                types.Int64         `tfsdk:"timeout_seconds"`
 	GenerateDocs                  types.Bool            `tfsdk:"generate_docs"`
 	RunGenerateSources            types.Bool            `tfsdk:"run_generate_sources"`
 	ID                            types.Int64           `tfsdk:"id"`
@@ -59,7 +60,9 @@ type JobDataSourceModel struct {
 	DbtVersion                    types.String          `tfsdk:"dbt_version"`
 	ExecuteSteps                  []types.String        `tfsdk:"execute_steps"`
 	DeferringJobDefinitionID      types.Int64           `tfsdk:"deferring_job_definition_id"`
+	DeferringJobId                types.Int64           `tfsdk:"deferring_job_id"`
 	DeferringEnvironmentID        types.Int64           `tfsdk:"deferring_environment_id"`
+	SelfDeferring                 types.Bool           `tfsdk:"self_deferring"`
 	Triggers                      *JobTriggers          `tfsdk:"triggers"`
 	Settings                      *JobSettings          `tfsdk:"settings"`
 	Schedule                      *JobSchedule          `tfsdk:"schedule"`
