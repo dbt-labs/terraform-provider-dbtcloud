@@ -29,7 +29,7 @@ Retrieve data for multiple environments
 Read-Only:
 
 - `connection_id` (Number) A connection ID (used with Global Connections)
-- `credentials_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
+- `credentials_id` (Number) Credential ID for this environment. A credential is not required for development environments, as dbt Cloud defaults to the user's credentials, but deployment environments will have this.
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment.
 - `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)
