@@ -9,7 +9,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -67,49 +66,16 @@ func (j *jobDataSource) ValidateConfig(
 	}
 }
 
-func (j *jobDataSource) Schema(
-	ctx context.Context,
-	req datasource.SchemaRequest,
-	resp *datasource.SchemaResponse,
-) {
-	jobAttributes := getJobAttributes()
-	
-	jobAttributes["job_id"] = schema.Int64Attribute{
-		Required: true,
-		Description: "The ID of the job",
-	}
-	
-	resp.Schema = schema.Schema{
-		Description: "Get detailed information for a specific dbt Cloud job.",
-		Attributes: jobAttributes,
-	}
-}
-
 func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	tflog.Info(ctx, "Reading dbt Cloud job data source - this should appear in logs")
 	
 	var state JobDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	
-	// Print the entire state for debugging
-	tflog.Info(ctx, fmt.Sprintf("Config state: %+v", state))
-	
-	// Debug to help see if this is being called with the correct job id
-	if state.JobId.IsNull() {
-		msg := "JobId is null, JobId must be specified"
-		tflog.Error(ctx, msg)
-		resp.Diagnostics.AddError("JobId is null", msg)
-		return
-	}
-
 	jobIdValue := state.JobId.ValueInt64()
-	tflog.Info(ctx, fmt.Sprintf("Reading job with ID: %d", jobIdValue))
 	
-	// Convert the Int64 to a string for the API call
 	jobId := strconv.FormatInt(jobIdValue, 10)
 
-	tflog.Info(ctx, fmt.Sprintf("Calling API for job with ID: %s", jobId))
 	job, err := j.client.GetJob(jobId)
 
 	if err != nil {
@@ -117,28 +83,7 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		resp.Diagnostics.AddError("Error getting the job", err.Error())
 		return
 	}
-	tflog.Info(ctx, "Successfully retrieved job from API")
 
-	// Handle job completion trigger condition if present
-	var jobCompletionTriggerCondition *JobCompletionTrigger
-	if job.JobCompletionTrigger != nil {
-		jobCompletionTriggerCondition = &JobCompletionTrigger{
-			Condition: JobCompletionTriggerCondition{
-				JobID:     types.Int64Value(int64(job.JobCompletionTrigger.Condition.JobID)),
-				ProjectID: types.Int64Value(int64(job.JobCompletionTrigger.Condition.ProjectID)),
-				Statuses: lo.Map(
-					job.JobCompletionTrigger.Condition.Statuses,
-					func(status int, _ int) types.String {
-						return types.StringValue(
-							utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string),
-						)
-					},
-				),
-			},
-		}
-	}
-
-	// Populate state with job data
 	state.Execution = &JobExecution{
 		TimeoutSeconds: types.Int64Value(int64(job.Execution.TimeoutSeconds)),
 	}
@@ -169,7 +114,23 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	state.JobType = types.StringValue(job.JobType)
 	state.TriggersOnDraftPr = types.BoolValue(job.TriggersOnDraftPR)
 	state.RunCompareChanges = types.BoolValue(job.RunCompareChanges)
-	state.JobCompletionTriggerCondition = jobCompletionTriggerCondition
+
+	if job.JobCompletionTrigger != nil {
+		state.JobCompletionTriggerCondition = &JobCompletionTrigger{
+			Condition: JobCompletionTriggerCondition{
+				JobID:     types.Int64Value(int64(job.JobCompletionTrigger.Condition.JobID)),
+				ProjectID: types.Int64Value(int64(job.JobCompletionTrigger.Condition.ProjectID)),
+				Statuses: lo.Map(
+					job.JobCompletionTrigger.Condition.Statuses,
+					func(status int, _ int) types.String {
+						return types.StringValue(
+							utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string),
+						)
+					},
+				),
+			},
+		}
+	}
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

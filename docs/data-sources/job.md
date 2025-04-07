@@ -3,12 +3,12 @@
 page_title: "dbtcloud_job Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Retrieve a job by ID
+  Get detailed information for a specific dbt Cloud job.
 ---
 
 # dbtcloud_job (Data Source)
 
-Retrieve a job by ID
+Get detailed information for a specific dbt Cloud job.
 
 
 
