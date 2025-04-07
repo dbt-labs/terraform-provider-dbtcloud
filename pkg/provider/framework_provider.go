@@ -246,5 +246,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,
+		environment.EnvironmentResource,
 	}
 }
