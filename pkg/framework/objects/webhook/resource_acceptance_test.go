@@ -12,82 +12,83 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+var webhookName = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+var webhookName2 = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+var projectName = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+
+var basicConfigTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"name",
+			webhookName,
+		),
+		resource.TestCheckResourceAttrSet(
+			"dbtcloud_webhook.test_webhook",
+			"hmac_secret",
+		),
+		resource.TestCheckResourceAttrSet(
+			"dbtcloud_webhook.test_webhook",
+			"account_identifier",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"event_types.#",
+			"2",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"job_ids.#",
+			"0",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"client_url",
+			"https://example.com",
+		),
+	),
+}
+
+var modifyConfigTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"name",
+			webhookName2,
+		),
+		resource.TestCheckResourceAttrSet(
+			"dbtcloud_webhook.test_webhook",
+			"hmac_secret",
+		),
+		resource.TestCheckResourceAttrSet(
+			"dbtcloud_webhook.test_webhook",
+			"account_identifier",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"event_types.#",
+			"1",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"job_ids.#",
+			"1",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"client_url",
+			"https://example.com/test",
+		),
+	),
+}
+
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 	if acctest_config.IsDbtCloudPR() {
 		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
-	}
-	webhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	webhookName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-
-	var basicConfigTestStep = resource.TestStep{
-		Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"name",
-				webhookName,
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_webhook.test_webhook",
-				"hmac_secret",
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_webhook.test_webhook",
-				"account_identifier",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"event_types.#",
-				"2",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"job_ids.#",
-				"0",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"client_url",
-				"https://example.com",
-			),
-		),
-	}
-
-	var modifyConfigTestStep = resource.TestStep{
-		Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"name",
-				webhookName2,
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_webhook.test_webhook",
-				"hmac_secret",
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_webhook.test_webhook",
-				"account_identifier",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"event_types.#",
-				"1",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"job_ids.#",
-				"1",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_webhook.test_webhook",
-				"client_url",
-				"https://example.com/test",
-			),
-		),
 	}
 
 	importStateTestStep := resource.TestStep{
@@ -111,6 +112,9 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		},
 	})
 
+}
+
+func TestConfDbtCloudWebhookResource(t *testing.T) {
 	// NOTE: we're breaking these down into separate resource.Test()s due to a bug in Terraform test plugin
 	// Namely, the provider at the step level breaks down, if you try to define the same provider in multiple steps
 
@@ -133,7 +137,6 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
 		},
 	})
-
 }
 
 func testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName string) string {
