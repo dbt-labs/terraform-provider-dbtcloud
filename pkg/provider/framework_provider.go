@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -223,6 +224,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		databricks_credential.DatabricksCredentialDataSource,
 		snowflake_credential.SnowflakeCredentialDataSource,
 		extended_attributes.ExtendedAttributesDataSource,
+		teradata_credential.TeradataCredentialDataSource,
 	}
 }
 
@@ -254,5 +256,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		environment.EnvironmentResource,
 		snowflake_credential.SnowflakeCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
+		teradata_credential.TeradataCredentialResource,
 	}
 }

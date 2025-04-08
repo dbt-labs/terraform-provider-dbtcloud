@@ -42,6 +42,7 @@ data dbtcloud_global_connection my_connection {
 - `snowflake` (Attributes) Snowflake connection configuration (see [below for nested schema](#nestedatt--snowflake))
 - `starburst` (Attributes) Starburst/Trino connection configuration. (see [below for nested schema](#nestedatt--starburst))
 - `synapse` (Attributes) Azure Synapse Analytics connection configuration. (see [below for nested schema](#nestedatt--synapse))
+- `teradata` (Attributes) Teradata connection configuration. (see [below for nested schema](#nestedatt--teradata))
 
 <a id="nestedatt--apache_spark"></a>
 ### Nested Schema for `apache_spark`
@@ -222,3 +223,15 @@ Read-Only:
 - `port` (Number) The port to connect to for this connection. Default=1433
 - `query_timeout` (Number) The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.
 - `retries` (Number) The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.
+
+
+<a id="nestedatt--teradata"></a>
+### Nested Schema for `teradata`
+
+Read-Only:
+
+- `host` (String) The hostname of the database.
+- `port` (String) The port to connect to for this connection. Default=1025
+- `request_timeout` (Number) The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.
+- `retries` (Number) The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.
+- `tmode` (String) The transaction mode to use for the connection.

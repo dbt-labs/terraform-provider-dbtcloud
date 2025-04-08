@@ -568,6 +568,29 @@ func (r *globalConnectionResource) Create(
 		plan.ID = types.Int64PointerValue(commonResp.ID)
 		plan.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+	case plan.TeradataConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.TeradataConfig](r.client)
+
+		teradaCfg := dbt_cloud.TeradataConfig{
+			Host:           plan.TeradataConfig.Host.ValueStringPointer(),
+			Port:           plan.TeradataConfig.Port.ValueStringPointer(),
+			TMode:          plan.TeradataConfig.TMode.ValueStringPointer(),
+			Retries:        plan.TeradataConfig.Retries.ValueInt64Pointer(),
+			RequestTimeout: plan.TeradataConfig.RequestTimeout.ValueInt64Pointer(),
+		}
+
+		commonResp, _, err := c.Create(commonCfg, teradaCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(teradaCfg.AdapterVersion())
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
 	default:
 		panic("Unknown connection type")
@@ -1311,6 +1334,47 @@ func (r *globalConnectionResource) Update(
 			}
 		}
 
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.TeradataConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.TeradataConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.TeradataConfig{}
+
+		// Teradata specific ones
+		if plan.TeradataConfig.Host != state.TeradataConfig.Host {
+			warehouseConfigChanges.Host = plan.TeradataConfig.Host.ValueStringPointer()
+		}
+
+		if plan.TeradataConfig.Port != state.TeradataConfig.Port {
+			warehouseConfigChanges.Port = plan.TeradataConfig.Port.ValueStringPointer()
+		}
+
+		if plan.TeradataConfig.Retries != state.TeradataConfig.Retries {
+			warehouseConfigChanges.Retries = plan.TeradataConfig.Retries.ValueInt64Pointer()
+		}
+
+		if plan.TeradataConfig.RequestTimeout != state.TeradataConfig.RequestTimeout {
+			warehouseConfigChanges.RequestTimeout = plan.TeradataConfig.RequestTimeout.ValueInt64Pointer()
+		}
+
+		if plan.TeradataConfig.TMode != state.TeradataConfig.TMode {
+			warehouseConfigChanges.TMode = plan.TeradataConfig.TMode.ValueStringPointer()
+		}
+		
 		updateCommon, _, err := c.Update(
 			state.ID.ValueInt64(),
 			globalConfigChanges,

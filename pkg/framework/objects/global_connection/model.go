@@ -110,6 +110,15 @@ var mappingAdapterDetails = map[string]ConfigDetails{
 			return nil
 		},
 	},
+	"teradata": {
+		EmptyConfigName: TeradataConfig{},
+		IsEmptyConfig: func(model *GlobalConnectionResourceModel) bool {
+			return model.TeradataConfig == nil
+		},
+		GetSSHTunnelConfig: func(model *GlobalConnectionResourceModel) *SSHTunnelConfig {
+			return nil
+		},
+	},
 }
 
 var supportedGlobalConfigTypes = lo.Keys(mappingAdapterDetails)
@@ -131,6 +140,7 @@ type GlobalConnectionResourceModel struct {
 	StarburstConfig       *StarburstConfig   `tfsdk:"starburst"`
 	AthenaConfig          *AthenaConfig      `tfsdk:"athena"`
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
+	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
 }
 
 type SSHTunnelConfig struct {
@@ -258,6 +268,14 @@ type ApacheSparkConfig struct {
 	Organization types.String `tfsdk:"organization"`
 	User         types.String `tfsdk:"user"`
 	Auth         types.String `tfsdk:"auth"`
+}
+
+type TeradataConfig struct {
+	Port           types.String `tfsdk:"port"`
+	TMode          types.String `tfsdk:"tmode"`
+	Host           types.String `tfsdk:"host"`
+	Retries        types.Int64  `tfsdk:"retries"`
+	RequestTimeout types.Int64  `tfsdk:"request_timeout"`
 }
 
 type GlobalConnectionsDatasourceModel struct {
