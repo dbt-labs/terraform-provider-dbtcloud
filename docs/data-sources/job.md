@@ -3,12 +3,12 @@
 page_title: "dbtcloud_job Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Get detailed information for a specific dbt Cloud job.
 ---
 
 # dbtcloud_job (Data Source)
 
-
+Get detailed information for a specific dbt Cloud job.
 
 
 
@@ -17,22 +17,34 @@ description: |-
 
 ### Required
 
-- `job_id` (Number) ID of the job
-- `project_id` (Number) ID of the project the job is in
+- `job_id` (Number) The ID of the job
+
+### Optional
+
+- `job_completion_trigger_condition` (Attributes List) Which other job should trigger this job when it finishes, and on which conditions. Format for the property will change in the next release to match the one from the one from dbtcloud_jobs. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
 
 ### Read-Only
 
-- `deferring_environment_id` (Number) ID of the environment this job defers to
-- `deferring_job_id` (Number) ID of the job this job defers to
-- `description` (String) Long description for the job
-- `environment_id` (Number) ID of the environment the job is in
-- `id` (String) The ID of this resource.
-- `job_completion_trigger_condition` (Set of Object) Which other job should trigger this job when it finishes, and on which conditions. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
-- `name` (String) Given name for the job
-- `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code change in the PR.
+- `dbt_version` (String) The version of dbt used for the job. If not set, the environment version will be used.
+- `deferring_environment_id` (Number) The ID of the environment this job defers to
+- `deferring_job_id` (Number, Deprecated) [Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to
+- `description` (String) The description of the job
+- `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--environment))
+- `environment_id` (Number) The ID of environment
+- `execute_steps` (List of String) The list of steps to run in the job
+- `execution` (Attributes) (see [below for nested schema](#nestedatt--execution))
+- `generate_docs` (Boolean) Whether the job generate docs
+- `id` (Number) The ID of the job
+- `job_type` (String) The type of job (e.g. CI, scheduled)
+- `name` (String) The name of the job
+- `project_id` (Number) The ID of the project
+- `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR
+- `run_generate_sources` (Boolean) Whether the job test source freshness
+- `schedule` (Attributes) (see [below for nested schema](#nestedatt--schedule))
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
-- `timeout_seconds` (Number) Number of seconds before the job times out
-- `triggers` (Map of Boolean) Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge
+- `settings` (Attributes) (see [below for nested schema](#nestedatt--settings))
+- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out
+- `triggers` (Attributes) (see [below for nested schema](#nestedatt--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
 <a id="nestedatt--job_completion_trigger_condition"></a>
@@ -40,6 +52,54 @@ description: |-
 
 Read-Only:
 
-- `job_id` (Number)
+- `job_id` (Number) The ID of the job that would trigger this job after completion.
+- `project_id` (Number) The ID of the project where the trigger job is running in.
+- `statuses` (Set of String) List of statuses to trigger the job on.
+
+
+<a id="nestedatt--environment"></a>
+### Nested Schema for `environment`
+
+Read-Only:
+
+- `deployment_type` (String) Type of deployment environment: staging, production
+- `id` (Number) ID of the environment
+- `name` (String) Name of the environment
 - `project_id` (Number)
-- `statuses` (Set of String)
+- `type` (String) Environment type: development or deployment
+
+
+<a id="nestedatt--execution"></a>
+### Nested Schema for `execution`
+
+Read-Only:
+
+- `timeout_seconds` (Number) The number of seconds before the job times out
+
+
+<a id="nestedatt--schedule"></a>
+### Nested Schema for `schedule`
+
+Read-Only:
+
+- `cron` (String) The cron schedule for the job. Only used if triggers.schedule is true
+
+
+<a id="nestedatt--settings"></a>
+### Nested Schema for `settings`
+
+Read-Only:
+
+- `target_name` (String) Value for `target.name` in the Jinja context
+- `threads` (Number) Number of threads to run dbt with
+
+
+<a id="nestedatt--triggers"></a>
+### Nested Schema for `triggers`
+
+Read-Only:
+
+- `git_provider_webhook` (Boolean) Whether the job runs automatically on PR creation
+- `github_webhook` (Boolean) Whether the job runs automatically on PR creation
+- `on_merge` (Boolean) Whether the job runs automatically once a PR is merged
+- `schedule` (Boolean) Whether the job runs on a schedule
