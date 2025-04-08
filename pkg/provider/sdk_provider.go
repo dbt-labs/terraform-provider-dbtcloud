@@ -47,7 +47,7 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_job":                               resources.ResourceJob(),
 				"dbtcloud_project":                           resources.ResourceProject(),
 				"dbtcloud_project_connection":                resources.ResourceProjectConnection(),
-				"dbtcloud_project_repository":                resources.ResourceProjectRepository(),
+				"dbtcloud_environment":                       resources.ResourceEnvironment(),
 				"dbtcloud_environment_variable":              resources.ResourceEnvironmentVariable(),
 				"dbtcloud_connection":                        resources.ResourceConnection(),
 				"dbtcloud_bigquery_connection":               resources.ResourceBigQueryConnection(),
