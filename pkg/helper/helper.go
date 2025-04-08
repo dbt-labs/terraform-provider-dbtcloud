@@ -29,6 +29,14 @@ func IntPointerToInt64Pointer(value *int) *int64 {
 	return &ret
 }
 
+func Int64ToIntPointer(value int64) *int {
+	if value == 0 {
+		return nil
+	}
+	ret := int(value)
+	return &ret
+}
+
 // API data types to TF types
 func SetIntToInt64OrNull(value int) types.Int64 {
 	if value == 0 {
@@ -138,4 +146,12 @@ func SliceStringToSliceInt64(slice []string) []int64 {
 		result[i], _ = strconv.ParseInt(v, 10, 64)
 	}
 	return result
+}
+
+func NormalizeJSONString(jsonString string) string {
+	jsonString = strings.ReplaceAll(jsonString, " ", "")
+	jsonString = strings.ReplaceAll(jsonString, "\r", "")
+	jsonString = strings.ReplaceAll(jsonString, "\n", "")
+	jsonString = strings.ReplaceAll(jsonString, "\t", "")
+	return jsonString
 }

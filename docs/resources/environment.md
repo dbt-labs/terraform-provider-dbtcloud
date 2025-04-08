@@ -2,21 +2,13 @@
 page_title: "dbtcloud_environment Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Resource to manage dbt Cloud environments for the different dbt Cloud projects.
-  In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created.
-  ~> In August 2024, dbt Cloud released the "global connection" feature, allowing connections to be defined at the account level and reused across environments and projects.
-  This version of the provider has the connection_id as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.
+  Resource to manage dbt Cloud environments for the different dbt Cloud projects. In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created. ~> In August 2024, dbt Cloud released the "global connection" feature, allowing connections to be defined at the account level and reused across environments and projects. This version of the provider has the connection_id as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.
 ---
 
 # dbtcloud_environment (Resource)
 
 
-Resource to manage dbt Cloud environments for the different dbt Cloud projects.
-
-In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created.
-
-~> In August 2024, dbt Cloud released the "global connection" feature, allowing connections to be defined at the account level and reused across environments and projects.
-This version of the provider has the `connection_id` as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.
+Resource to manage dbt Cloud environments for the different dbt Cloud projects. In a given dbt Cloud project, one development environment can be defined and as many deployment environments as needed can be created. ~> In August 2024, dbt Cloud released the "global connection" feature, allowing connections to be defined at the account level and reused across environments and projects. This version of the provider has the connection_id as an optional field but it is recommended to start setting it up in your projects. In future versions, this field will become mandatory.
 
 ## Example Usage
 
@@ -57,30 +49,26 @@ resource "dbtcloud_environment" "dev_environment" {
 
 ### Required
 
-- `name` (String) Environment name
+- `name` (String) The name of the environment
 - `project_id` (Number) Project ID to create the environment in
 - `type` (String) The type of environment (must be either development or deployment)
 
 ### Optional
 
-- `connection_id` (Number) The ID of the connection to use (can be the `id` of a `dbtcloud_global_connection` or the `connection_id` of a legacy connection). 
-  - At the moment, it is optional and the environment will use the connection set in `dbtcloud_project_connection` if `connection_id` is not set in this resource
-  - In future versions this field will become required, so it is recommended to set it from now on
-  - When configuring this field, it needs to be configured for all the environments of the project
-  - To avoid Terraform state issues, when using this field, the `dbtcloud_project_connection` resource should be removed from the project or you need to make sure that the `connection_id` is the same in `dbtcloud_project_connection` and in the `connection_id` of the Development environment of the project
-- `credential_id` (Number) Credential ID to create the environment with. A credential is not required for development environments but is required for deployment environments
-- `custom_branch` (String) Which custom branch to use in this environment
+- `connection_id` (Number) A connection ID (used with Global Connections)
+- `credential_id` (Number) The project ID to which the environment belongs.
+- `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
 - `enable_model_query_history` (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
-- `extended_attributes_id` (Number) ID of the extended attributes for the environment
+- `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `is_active` (Boolean) Whether the environment is active
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
 
 ### Read-Only
 
-- `environment_id` (Number) Environment ID within the project
-- `id` (String) The ID of this resource.
+- `environment_id` (Number) The ID of the environment. Duplicated. Here for backward compatibility.
+- `id` (String) The ID of environment.
 
 ## Import
 
