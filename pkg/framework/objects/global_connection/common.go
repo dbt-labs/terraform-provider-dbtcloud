@@ -670,6 +670,33 @@ func readGeneric(
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: N/A for Spark
 
+	case state.TeradataConfig != nil || strings.HasPrefix(adapter, "teradata_"):
+		if state.TeradataConfig == nil {
+			state.TeradataConfig = &TeradataConfig{}
+		}
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.TeradataConfig](client)
+		common, teradataCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				return nil, "removeFromState", nil
+			}
+			return nil, "", err
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(teradataCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+
+		// Teradata settings
+		state.TeradataConfig.Host = types.StringPointerValue(teradataCfg.Host)
+		state.TeradataConfig.Port = types.StringPointerValue(teradataCfg.Port)
+		state.TeradataConfig.TMode = types.StringPointerValue(teradataCfg.TMode)
+		state.TeradataConfig.RequestTimeout = types.Int64PointerValue(teradataCfg.RequestTimeout)
+		state.TeradataConfig.Retries = types.Int64PointerValue(teradataCfg.Retries)
+
 	default:
 		panic("Unknown connection type")
 	}

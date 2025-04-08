@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -218,6 +219,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
 		databricks_credential.DatabricksCredentialDataSource,
+		teradata_credential.TeradataCredentialDataSource,
 	}
 }
 
@@ -247,5 +249,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,
 		environment.EnvironmentResource,
+		teradata_credential.TeradataCredentialResource,
 	}
 }

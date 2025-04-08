@@ -454,7 +454,8 @@ func (r *globalConnectionResource) Schema(
 						Description: "The port to connect to for this connection. Default=443",
 					},
 				},
-			}, "athena": resource_schema.SingleNestedAttribute{
+			},
+			"athena": resource_schema.SingleNestedAttribute{
 				Optional:    true,
 				Description: "Athena connection configuration.",
 				Attributes: map[string]resource_schema.Attribute{
@@ -556,6 +557,42 @@ func (r *globalConnectionResource) Schema(
 					"auth": resource_schema.StringAttribute{
 						Optional:    true,
 						Description: "Auth",
+					},
+				},
+			},
+			"teradata": resource_schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Teradata connection configuration.",
+				Attributes: map[string]resource_schema.Attribute{
+					"port": resource_schema.StringAttribute{
+						Optional:    true,
+						Default:     stringdefault.StaticString("1025"),
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=1025",
+					},
+					//only ANSI supported in cloud at the moment
+					"tmode": resource_schema.StringAttribute{
+						Required:    true,
+						Description: "The transaction mode to use for the connection.",
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"ANSI"}...),
+						},
+					},
+					"host": resource_schema.StringAttribute{
+						Required:    true,
+						Description: "The hostname of the database.",
+					},
+					"retries": resource_schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(1),
+						Computed:    true,
+						Description: "The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.",
+					},
+					"request_timeout": resource_schema.Int64Attribute{
+						Optional:    true,
+						Default:     int64default.StaticInt64(0),
+						Computed:    true,
+						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 					},
 				},
 			},
@@ -1029,6 +1066,36 @@ func (r *globalConnectionDataSource) Schema(
 					"auth": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Auth",
+					},
+				},
+			},
+			"teradata": datasource_schema.SingleNestedAttribute{
+				Computed:    true,
+				Description: "Teradata connection configuration.",
+				Attributes: map[string]datasource_schema.Attribute{
+					"host": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The hostname of the database.",
+					},
+					"port": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The port to connect to for this connection. Default=1025",
+					},
+					//only ANSI supported in cloud at the moment
+					"tmode": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The transaction mode to use for the connection.",
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"ANSI"}...),
+						},
+					},
+					"retries": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The number of automatic times to retry a query before failing. Defaults to 1. Queries with syntax errors will not be retried. This setting can be used to overcome intermittent network issues.",
+					},
+					"request_timeout": resource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 					},
 				},
 			},
