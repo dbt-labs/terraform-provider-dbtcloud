@@ -22,7 +22,8 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"timeout_seconds": schema.Int64Attribute{
 			Computed:    true,
-			Description: "[Deprecated - Moved to execution.timeout_seconds] Number of seconds before the job times out",
+			DeprecationMessage: "Moved to execution.timeout_seconds",
+			Description: "Number of seconds before the job times out",
 		},
 		"generate_docs": schema.BoolAttribute{
 			Computed:    true,
@@ -67,11 +68,13 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"deferring_job_id": schema.Int64Attribute{
 			Computed:    true,
-			Description: "[Deprecated - deferral is now set at the environment level] The ID of the job definition this job defers to",
+			DeprecationMessage: "Deferral is now set at the environment level",
+			Description: "The ID of the job definition this job defers to",
 		},
 		"deferring_job_definition_id": schema.Int64Attribute{
 			Computed:    true,
-			Description: "[Deprecated - deferral is now set at the environment level] The ID of the job definition this job defers to",
+			DeprecationMessage: "Deferral is now set at the environment level",
+			Description: "The ID of the job definition this job defers to",
 		},
 		"self_deferring": schema.BoolAttribute{
 			Computed:    true,
@@ -102,12 +105,6 @@ func getJobAttributes() map[string]schema.Attribute {
 				},
 			},
 		},
-		// todo - decide what to do with this
-		// "triggers_old": schema.MapAttribute{
-		// 	Computed:    true,
-		// 	ElementType: types.BoolType,
-		// 	Description: "Flags for which types of triggers to use, keys of github_webhook, git_provider_webhook, schedule, on_merge",
-		// },
 		"settings": schema.SingleNestedAttribute{
 			Computed: true,
 			Attributes: map[string]schema.Attribute{
