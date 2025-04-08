@@ -53,8 +53,7 @@ Read-Only:
 
 - `dbt_version` (String) The version of dbt used for the job. If not set, the environment version will be used.
 - `deferring_environment_id` (Number) The ID of the environment this job defers to
-- `deferring_job_definition_id` (Number, Deprecated) The ID of the job definition this job defers to
-- `deferring_job_id` (Number, Deprecated) The ID of the job definition this job defers to
+- `deferring_job_definition_id` (Number, Deprecated) [Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to
 - `description` (String) The description of the job
 - `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--jobs--environment))
 - `environment_id` (Number) The ID of environment
@@ -69,9 +68,8 @@ Read-Only:
 - `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR
 - `run_generate_sources` (Boolean) Whether the job test source freshness
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--jobs--schedule))
-- `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))
-- `timeout_seconds` (Number, Deprecated) Number of seconds before the job times out
+- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out
 - `triggers` (Attributes) (see [below for nested schema](#nestedatt--jobs--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 

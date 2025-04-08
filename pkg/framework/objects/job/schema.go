@@ -23,7 +23,7 @@ func getJobAttributes() map[string]schema.Attribute {
 		"timeout_seconds": schema.Int64Attribute{
 			Computed:    true,
 			DeprecationMessage: "Moved to execution.timeout_seconds",
-			Description: "Number of seconds before the job times out",
+			Description: "[Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out",
 		},
 		"generate_docs": schema.BoolAttribute{
 			Computed:    true,
@@ -65,20 +65,6 @@ func getJobAttributes() map[string]schema.Attribute {
 			Computed:    true,
 			ElementType: types.StringType,
 			Description: "The list of steps to run in the job",
-		},
-		"deferring_job_id": schema.Int64Attribute{
-			Computed:    true,
-			DeprecationMessage: "Deferral is now set at the environment level",
-			Description: "The ID of the job definition this job defers to",
-		},
-		"deferring_job_definition_id": schema.Int64Attribute{
-			Computed:    true,
-			DeprecationMessage: "Deferral is now set at the environment level",
-			Description: "The ID of the job definition this job defers to",
-		},
-		"self_deferring": schema.BoolAttribute{
-			Computed:    true,
-			Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
 		},
 		"deferring_environment_id": schema.Int64Attribute{
 			Computed:    true,
@@ -204,11 +190,22 @@ func (j *jobDataSource) Schema(
 		Required:    true,
 		Description: "The ID of the job",
 	}
+
+	jobAttributes["deferring_job_id"] = schema.Int64Attribute{
+		Computed:    true,
+		DeprecationMessage: "Deferral is now set at the environment level",
+		Description: "[Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to",
+	}
+	
+	jobAttributes["self_deferring"] = schema.BoolAttribute{
+		Computed:    true,
+		Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
+	}
+
 	jobAttributes["job_completion_trigger_condition"] = schema.ListNestedAttribute{
 		Computed:    true,
 		Optional: true,
-		DeprecationMessage: "Format for the property will change in the next release to match the one from the one from dbtcloud_jobs.",
-		Description: "Which other job should trigger this job when it finishes, and on which conditions.",
+		Description: "Which other job should trigger this job when it finishes, and on which conditions. Format for the property will change in the next release to match the one from the one from dbtcloud_jobs.",
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"job_id": schema.Int64Attribute{
@@ -244,6 +241,11 @@ func (d *jobsDataSource) Schema(
 	jobAttributes["job_id"] = schema.Int64Attribute{
 		Computed:    true,
 		Description: "The ID of the job",
+	}
+	jobAttributes["deferring_job_definition_id"] = schema.Int64Attribute{
+		Computed:    true,
+		DeprecationMessage: "Deferral is now set at the environment level",
+		Description: "[Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to",
 	}
 	jobAttributes["job_completion_trigger_condition"] = schema.SingleNestedAttribute{
 		Computed:    true,

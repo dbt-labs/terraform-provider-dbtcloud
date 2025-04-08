@@ -21,14 +21,13 @@ Get detailed information for a specific dbt Cloud job.
 
 ### Optional
 
-- `job_completion_trigger_condition` (Attributes List, Deprecated) Which other job should trigger this job when it finishes, and on which conditions. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
+- `job_completion_trigger_condition` (Attributes List) Which other job should trigger this job when it finishes, and on which conditions. Format for the property will change in the next release to match the one from the one from dbtcloud_jobs. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
 
 ### Read-Only
 
 - `dbt_version` (String) The version of dbt used for the job. If not set, the environment version will be used.
 - `deferring_environment_id` (Number) The ID of the environment this job defers to
-- `deferring_job_definition_id` (Number, Deprecated) The ID of the job definition this job defers to
-- `deferring_job_id` (Number, Deprecated) The ID of the job definition this job defers to
+- `deferring_job_id` (Number, Deprecated) [Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to
 - `description` (String) The description of the job
 - `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--environment))
 - `environment_id` (Number) The ID of environment
@@ -44,7 +43,7 @@ Get detailed information for a specific dbt Cloud job.
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--schedule))
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--settings))
-- `timeout_seconds` (Number, Deprecated) Number of seconds before the job times out
+- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out
 - `triggers` (Attributes) (see [below for nested schema](#nestedatt--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
