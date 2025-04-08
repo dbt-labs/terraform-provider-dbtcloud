@@ -3,12 +3,12 @@
 page_title: "dbtcloud_extended_attributes Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Extended attributes data source
 ---
 
 # dbtcloud_extended_attributes (Data Source)
 
-
+Extended attributes data source
 
 ## Example Usage
 
@@ -24,11 +24,11 @@ data "dbtcloud_extended_attributes" "my_extended_attributes" {
 
 ### Required
 
-- `extended_attributes_id` (Number) ID of the extended attributes
-- `project_id` (Number) Project ID the extended attributes refers to
+- `extended_attributes_id` (Number) Extended attributes ID
+- `project_id` (Number) Project ID
 
 ### Read-Only
 
-- `extended_attributes` (String) A JSON string listing the extended attributes mapping
-- `id` (String) The ID of this resource.
+- `extended_attributes` (String) Extended attributes
+- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 - `state` (Number) The state of the extended attributes (1 = active, 2 = inactive)
