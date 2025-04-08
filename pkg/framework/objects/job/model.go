@@ -72,3 +72,31 @@ type JobDataSourceModel struct {
 	JobCompletionTriggerCondition *JobCompletionTrigger `tfsdk:"job_completion_trigger_condition"`
 	RunCompareChanges             types.Bool            `tfsdk:"run_compare_changes"`
 }
+
+// TODO remove this in the next major release
+type SingleJobDataSourceModel struct {
+	Execution                     *JobExecution                  `tfsdk:"execution"`
+	TimeoutSeconds                types.Int64                    `tfsdk:"timeout_seconds"`
+	GenerateDocs                  types.Bool                     `tfsdk:"generate_docs"`
+	RunGenerateSources            types.Bool                     `tfsdk:"run_generate_sources"`
+	ID                            types.Int64                    `tfsdk:"id"`
+	JobId                         types.Int64                    `tfsdk:"job_id"`
+	ProjectID                     types.Int64                    `tfsdk:"project_id"`
+	EnvironmentID                 types.Int64                    `tfsdk:"environment_id"`
+	Name                          types.String                   `tfsdk:"name"`
+	Description                   types.String                   `tfsdk:"description"`
+	DbtVersion                    types.String                   `tfsdk:"dbt_version"`
+	ExecuteSteps                  []types.String                 `tfsdk:"execute_steps"`
+	DeferringJobDefinitionID      types.Int64                    `tfsdk:"deferring_job_definition_id"`
+	DeferringJobId                types.Int64                    `tfsdk:"deferring_job_id"`
+	DeferringEnvironmentID        types.Int64                    `tfsdk:"deferring_environment_id"`
+	SelfDeferring                 types.Bool                     `tfsdk:"self_deferring"`
+	Triggers                      *JobTriggers                   `tfsdk:"triggers"`
+	Settings                      *JobSettings                   `tfsdk:"settings"`
+	Schedule                      *JobSchedule                   `tfsdk:"schedule"`
+	JobType                       types.String                   `tfsdk:"job_type"`
+	TriggersOnDraftPr             types.Bool                     `tfsdk:"triggers_on_draft_pr"`
+	Environment                   *JobEnvironment                `tfsdk:"environment"`
+	JobCompletionTriggerCondition []*JobCompletionTriggerCondition `tfsdk:"job_completion_trigger_condition"`
+	RunCompareChanges             types.Bool                     `tfsdk:"run_compare_changes"`
+}

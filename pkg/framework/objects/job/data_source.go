@@ -49,7 +49,7 @@ func (j *jobDataSource) ValidateConfig(
 	req datasource.ValidateConfigRequest,
 	resp *datasource.ValidateConfigResponse,
 ) {
-	var data JobDataSourceModel
+	var data SingleJobDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -68,7 +68,7 @@ func (j *jobDataSource) ValidateConfig(
 
 func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	
-	var state JobDataSourceModel
+	var state SingleJobDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	
@@ -119,8 +119,8 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	state.RunCompareChanges = types.BoolValue(job.RunCompareChanges)
 
 	if job.JobCompletionTrigger != nil {
-		state.JobCompletionTriggerCondition = &JobCompletionTrigger{
-			Condition: JobCompletionTriggerCondition{
+		state.JobCompletionTriggerCondition = []*JobCompletionTriggerCondition{
+			{
 				JobID:     types.Int64Value(int64(job.JobCompletionTrigger.Condition.JobID)),
 				ProjectID: types.Int64Value(int64(job.JobCompletionTrigger.Condition.ProjectID)),
 				Statuses: lo.Map(

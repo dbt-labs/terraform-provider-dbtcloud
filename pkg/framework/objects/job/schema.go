@@ -163,28 +163,6 @@ func getJobAttributes() map[string]schema.Attribute {
 				},
 			},
 		},
-		"job_completion_trigger_condition": schema.SingleNestedAttribute{
-			Computed:    true,
-			Optional: true,
-			Description: "Whether the job is triggered by the completion of another job",
-			Attributes: map[string]schema.Attribute{
-				"condition": schema.SingleNestedAttribute{
-					Computed: true,
-					Attributes: map[string]schema.Attribute{
-						"job_id": schema.Int64Attribute{
-							Computed: true,
-						},
-						"project_id": schema.Int64Attribute{
-							Computed: true,
-						},
-						"statuses": schema.SetAttribute{
-							Computed:    true,
-							ElementType: types.StringType,
-						},
-					},
-				},
-			},
-		},
 	}
 }
 
@@ -224,15 +202,38 @@ func (j *jobDataSource) Schema(
 	resp *datasource.SchemaResponse,
 ) {
 	jobAttributes := getJobAttributes()
-	
+
 	jobAttributes["job_id"] = schema.Int64Attribute{
-		Required: true,
+		Required:    true,
 		Description: "The ID of the job",
 	}
-	
+	jobAttributes["job_completion_trigger_condition"] = schema.ListNestedAttribute{
+		Computed:    true,
+		Optional: true,
+		DeprecationMessage: "Format for the property will change in the next release to match the one from the one from dbtcloud_jobs.",
+		Description: "Which other job should trigger this job when it finishes, and on which conditions.",
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"job_id": schema.Int64Attribute{
+					Computed:    true,
+					Description: "The ID of the job that would trigger this job after completion.",
+				},
+				"project_id": schema.Int64Attribute{
+					Computed:    true,
+					Description: "The ID of the project where the trigger job is running in.",
+				},
+				"statuses": schema.SetAttribute{
+					Computed:    true,
+					ElementType: types.StringType,
+					Description: "List of statuses to trigger the job on.",
+				},
+			},
+		},
+	}
+
 	resp.Schema = schema.Schema{
 		Description: "Get detailed information for a specific dbt Cloud job.",
-		Attributes: jobAttributes,
+		Attributes:  jobAttributes,
 	}
 }
 
@@ -244,9 +245,32 @@ func (d *jobsDataSource) Schema(
 
 	jobAttributes := getJobAttributes()
 	jobAttributes["job_id"] = schema.Int64Attribute{
-		Computed: true,
+		Computed:    true,
 		Description: "The ID of the job",
 	}
+	jobAttributes["job_completion_trigger_condition"] = schema.SingleNestedAttribute{
+		Computed:    true,
+		Optional:    true,
+		Description: "Whether the job is triggered by the completion of another job",
+		Attributes: map[string]schema.Attribute{
+			"condition": schema.SingleNestedAttribute{
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"job_id": schema.Int64Attribute{
+						Computed: true,
+					},
+					"project_id": schema.Int64Attribute{
+						Computed: true,
+					},
+					"statuses": schema.SetAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+					},
+				},
+			},
+		},
+	}
+
 	resp.Schema = schema.Schema{
 		Description: "Retrieve all the jobs for a given dbt Cloud project or environment along with the environment details for the jobs. This will return both the jobs created from Terraform but also the jobs created in the dbt Cloud UI.",
 		Attributes: map[string]schema.Attribute{
@@ -268,5 +292,3 @@ func (d *jobsDataSource) Schema(
 		},
 	}
 }
-
-

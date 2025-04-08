@@ -21,7 +21,7 @@ Get detailed information for a specific dbt Cloud job.
 
 ### Optional
 
-- `job_completion_trigger_condition` (Attributes) Whether the job is triggered by the completion of another job (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
+- `job_completion_trigger_condition` (Attributes List, Deprecated) Which other job should trigger this job when it finishes, and on which conditions. (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
 
 ### Read-Only
 
@@ -53,17 +53,9 @@ Get detailed information for a specific dbt Cloud job.
 
 Read-Only:
 
-- `condition` (Attributes) (see [below for nested schema](#nestedatt--job_completion_trigger_condition--condition))
-
-<a id="nestedatt--job_completion_trigger_condition--condition"></a>
-### Nested Schema for `job_completion_trigger_condition.condition`
-
-Read-Only:
-
-- `job_id` (Number)
-- `project_id` (Number)
-- `statuses` (Set of String)
-
+- `job_id` (Number) The ID of the job that would trigger this job after completion.
+- `project_id` (Number) The ID of the project where the trigger job is running in.
+- `statuses` (Set of String) List of statuses to trigger the job on.
 
 
 <a id="nestedatt--environment"></a>
