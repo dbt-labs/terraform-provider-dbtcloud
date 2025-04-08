@@ -2,13 +2,13 @@
 page_title: "dbtcloud_snowflake_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Snowflake credential resource
 ---
 
 # dbtcloud_snowflake_credential (Resource)
 
 
-
+Snowflake credential resource
 
 ## Example Usage
 
@@ -31,23 +31,23 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
 - `auth_type` (String) The type of Snowflake credential ('password' or 'keypair')
 - `num_threads` (Number) Number of threads to use
 - `project_id` (Number) Project ID to create the Snowflake credential in
-- `schema` (String) Default schema name
-- `user` (String) Username for Snowflake
+- `schema` (String) The schema where to create models
+- `user` (String) The username for the Snowflake account
 
 ### Optional
 
-- `database` (String) Database to connect to
+- `database` (String) The catalog to connect use
 - `is_active` (Boolean) Whether the Snowflake credential is active
-- `password` (String, Sensitive) Password for Snowflake
-- `private_key` (String, Sensitive) Private key for Snowflake
-- `private_key_passphrase` (String, Sensitive) Private key passphrase for Snowflake
-- `role` (String) Role to assume
-- `warehouse` (String) Warehouse to use
+- `password` (String, Sensitive) The password for the Snowflake account
+- `private_key` (String, Sensitive) The private key for the Snowflake account
+- `private_key_passphrase` (String, Sensitive) The passphrase for the private key
+- `role` (String) The role to assume
+- `warehouse` (String) The warehouse to use
 
 ### Read-Only
 
-- `credential_id` (Number) The system Snowflake credential ID
-- `id` (String) The ID of this resource.
+- `credential_id` (Number) The internal credential ID
+- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 
 ## Import
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
@@ -219,6 +220,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
 		databricks_credential.DatabricksCredentialDataSource,
+		snowflake_credential.SnowflakeCredentialDataSource,
 		extended_attributes.ExtendedAttributesDataSource,
 	}
 }
@@ -249,6 +251,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,
 		environment.EnvironmentResource,
+		snowflake_credential.SnowflakeCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
 	}
 }
