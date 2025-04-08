@@ -147,3 +147,11 @@ func SliceStringToSliceInt64(slice []string) []int64 {
 	}
 	return result
 }
+
+func NormalizeJSONString(jsonString string) string {
+	jsonString = strings.ReplaceAll(jsonString, " ", "")
+	jsonString = strings.ReplaceAll(jsonString, "\r", "")
+	jsonString = strings.ReplaceAll(jsonString, "\n", "")
+	jsonString = strings.ReplaceAll(jsonString, "\t", "")
+	return jsonString
+}

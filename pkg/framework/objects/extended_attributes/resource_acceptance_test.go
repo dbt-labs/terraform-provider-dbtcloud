@@ -1,4 +1,4 @@
-package resources_test
+package extended_attributes_test
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,7 +19,69 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
-	create_step := resource.TestStep{
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudExtendedAttributesDestroy,
+		Steps: []resource.TestStep{
+			// CREATE
+			getBasicConfigTestStep(projectName),
+			// MODIFY
+			getModifyConfigTestStep(projectName),
+			// REMOVE FROM ENVIRONMENT
+			getRemoveFromEnvironmentTestStep(projectName),
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_extended_attributes.test_extended_attributes",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func TestConformanceBasicConfig(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudExtendedAttributesDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName)),
+		},
+	})
+}
+
+func TestConformanceModifyConfig(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudExtendedAttributesDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName)),
+		},
+	})
+}
+
+func TestConformanceRemoveFromEnvironment(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudExtendedAttributesDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getRemoveFromEnvironmentTestStep(projectName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getRemoveFromEnvironmentTestStep(projectName)),
+		},
+	})
+}
+
+func getBasicConfigTestStep(projectName string) resource.TestStep {
+	return resource.TestStep{
 		Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step1"),
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudExtendedAttributesExists(
@@ -43,8 +106,10 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 			),
 		),
 	}
+}
 
-	modify_step := resource.TestStep{
+func getModifyConfigTestStep(projectName string) resource.TestStep {
+	return resource.TestStep{
 		Config: testAccDbtCloudExtendedAttributesResourceConfig(projectName, "step2"),
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudExtendedAttributesExists(
@@ -69,8 +134,10 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 			),
 		),
 	}
+}
 
-	remove_step := resource.TestStep{
+func getRemoveFromEnvironmentTestStep(projectName string) resource.TestStep {
+	return resource.TestStep{
 		Config: testAccDbtCloudExtendedAttributesResourceUnlinked(projectName),
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudExtendedAttributesExists(
@@ -95,25 +162,6 @@ func TestAccDbtCloudExtendedAttributesResource(t *testing.T) {
 			),
 		),
 	}
-
-	import_step := resource.TestStep{
-		ResourceName:            "dbtcloud_extended_attributes.test_extended_attributes",
-		ImportState:             true,
-		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{},
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudExtendedAttributesDestroy,
-		Steps: []resource.TestStep{
-			create_step,
-			modify_step,
-			remove_step,
-			import_step,
-		},
-	})
 }
 
 func testAccDbtCloudExtendedAttributesResourceConfig(projectName, step string) string {
@@ -121,30 +169,14 @@ func testAccDbtCloudExtendedAttributesResourceConfig(projectName, step string) s
 	var extendedAttributes string
 
 	if step == "step1" {
-		extendedAttributes = `jsonencode(
-			{
-			  type      = "databricks"
-			  catalog   = "dbt_catalog"
-			  http_path = "/sql/your/http/path"
-			  my_nested_field = {
-				subfield = "my_value"
-			  }
-			}
-		  )
-		`
+		extendedAttributes = `jsonencode({"type": "databricks", "catalog": "dbt_catalog", "http_path": "/sql/your/http/path", "my_nested_field": {"subfield": "my_value"}})`
 	} else if step == "step2" {
-		// try the "Heredoc" syntax instead of the jsonencode function
-		extendedAttributes = `<<EOF
-		{
-		  "catalog": "dbt_catalog_new",
-		  "type": "databricks"
-		}
-		EOF`
+		extendedAttributes = `jsonencode({"catalog": "dbt_catalog_new", "type": "databricks"})`
 	}
 
 	return fmt.Sprintf(`
 	resource "dbtcloud_project" "test_project" {
-        name        = "%s"
+        name = "%s"
     }
 
     resource "dbtcloud_environment" "test_environment" {
@@ -160,13 +192,13 @@ func testAccDbtCloudExtendedAttributesResourceConfig(projectName, step string) s
         project_id = dbtcloud_project.test_project.id
       }
 
-`, projectName, DBT_CLOUD_VERSION, extendedAttributes)
+`, projectName, acctest_config.DBT_CLOUD_VERSION, extendedAttributes)
 }
 
 func testAccDbtCloudExtendedAttributesResourceUnlinked(projectName string) string {
 	return fmt.Sprintf(`
 	resource "dbtcloud_project" "test_project" {
-        name        = "%s"
+        name = "%s"
     }
 
     resource "dbtcloud_environment" "test_environment" {
@@ -177,15 +209,10 @@ func testAccDbtCloudExtendedAttributesResourceUnlinked(projectName string) strin
     }
 
     resource "dbtcloud_extended_attributes" "test_extended_attributes" {
-        extended_attributes = jsonencode(
-			{
-			  type      = "databricks"
-			  catalog   = "dbt_catalog_new"
-			}
-		  )
+        extended_attributes = jsonencode({"type": "databricks", "catalog": "dbt_catalog_new"})
         project_id = dbtcloud_project.test_project.id
       }
-`, projectName, DBT_CLOUD_VERSION)
+`, projectName, acctest_config.DBT_CLOUD_VERSION)
 }
 
 func testAccCheckDbtCloudExtendedAttributesExists(resource string) resource.TestCheckFunc {
