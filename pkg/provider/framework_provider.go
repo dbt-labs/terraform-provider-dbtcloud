@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
@@ -205,6 +206,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		global_connection.GlobalConnectionDataSource,
 		global_connection.GlobalConnectionsDataSource,
 		group.GroupDataSource,
+		job.JobDataSource,
 		job.JobsDataSource,
 		model_notifications.ModelNotificationsDataSource,
 		notification.NotificationDataSource,
@@ -219,6 +221,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
 		databricks_credential.DatabricksCredentialDataSource,
+		snowflake_credential.SnowflakeCredentialDataSource,
 		teradata_credential.TeradataCredentialDataSource,
 	}
 }
@@ -249,6 +252,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,
 		environment.EnvironmentResource,
+		snowflake_credential.SnowflakeCredentialResource,
 		teradata_credential.TeradataCredentialResource,
 	}
 }
