@@ -3,8 +3,10 @@ package job
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -394,6 +396,7 @@ func (j *jobResource) Schema(
 			},
 			"schedule_hours": resource_schema.ListAttribute{
 				Optional:    true,
+				ElementType: types.Int64Type,
 				Description: "List of hours to execute the job at if running on a schedule",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -405,6 +408,7 @@ func (j *jobResource) Schema(
 			},
 			"schedule_days": resource_schema.ListAttribute{
 				Optional:    true,
+				ElementType: types.Int64Type,
 				Description: "List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -551,38 +555,44 @@ func (j *jobResource) Schema(
 					),
 				},
 			},
-			"self_deferring": resource_schema.Int64Attribute{
+			"self_deferring": resource_schema.BoolAttribute{
 				Optional:    true,
-				Description: " Whether this job defers on a previous run of itself",
-				Validators: []validator.Int64{
-					int64validator.ConflictsWith(
+				Description:" Whether this job defers on a previous run of itself",
+				Validators: []validator.Bool{
+					boolvalidator.ConflictsWith(
 						path.MatchRoot("deferring_job_id"),
 					),
 				},
 			},
 			"triggers_on_draft_pr": resource_schema.BoolAttribute{
 				Optional:    true,
+				Computed: true,
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether the CI job should be automatically triggered on draft PRs",
 			},
-			"job_completion_trigger_condition": schema.SingleNestedAttribute{
+			"job_completion_trigger_condition": schema.SetNestedAttribute{
 				Optional: true,
 				// using  a set or a list with 1 item is the way in the SDKv2 to define nested objects
 				Description: "Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining').",
-				Attributes: map[string]schema.Attribute{
-					"job_id": schema.Int64Attribute{
-						Required:    true,
-						Description: "The ID of the job that would trigger this job after completion.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"job_id": schema.Int64Attribute{
+							Required:    true,
+							Description: "The ID of the job that would trigger this job after completion.",
+						},
+						"project_id": schema.Int64Attribute{
+							Required:    true,
+							Description: "The ID of the project where the trigger job is running in.",
+						},
+						"statuses": schema.SetAttribute{
+							Required:    true,
+							ElementType: types.StringType,
+							Description: "List of statuses to trigger the job on. Possible values are `success`, `error` and `canceled`.",
+						},
 					},
-					"project_id": schema.Int64Attribute{
-						Required:    true,
-						Description: "The ID of the project where the trigger job is running in.",
-					},
-					"statuses": schema.SetAttribute{
-						Required:    true,
-						ElementType: types.StringType,
-						Description: "List of statuses to trigger the job on. Possible values are `success`, `error` and `canceled`.",
-					},
+				},
+				Validators: []validator.Set{
+					setvalidator.SizeAtMost(1),
 				},
 			},
 			"compare_changes_flags": resource_schema.StringAttribute{

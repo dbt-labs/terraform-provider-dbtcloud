@@ -126,7 +126,7 @@ type JobResourceModel struct {
 	RunLint                       types.Bool            `tfsdk:"run_lint"`
 	ErrorsOnLintFailure           types.Bool            `tfsdk:"errors_on_lint_failure"`
 	ScheduleType                  types.String          `tfsdk:"schedule_type"`
-	ScheduleInterval              []types.Int64          `tfsdk:"schedule_interval"`
+	ScheduleInterval              types.Int64          `tfsdk:"schedule_interval"`
 	ScheduleHours                 []types.Int64          `tfsdk:"schedule_hours"`
 	ScheduleDays                  []types.Int64          `tfsdk:"schedule_days"`
 	ScheduleCron                  types.String          `tfsdk:"schedule_cron"`    // add deprecated move to schedule
