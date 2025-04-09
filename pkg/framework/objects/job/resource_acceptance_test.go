@@ -1,48 +1,78 @@
 package job_test
 
-// import (
-// 	"fmt"
-// 	"regexp"
-// 	"strings"
-// 	"testing"
+import (
+	"fmt"
+	"regexp"
+	"strings"
+	"testing"
 
-// 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
-// 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
-// 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-// 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-// )
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+func TestConformanceBasicConfig(t *testing.T){
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))	
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
+		CheckDestroy: testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(jobName, projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(jobName, projectName, environmentName)),
+		},
+	})
+}
+
+func getBasicConfigTestStep(jobName, projectName, environmentName string) resource.TestStep {
+	return resource.TestStep{
+		Config: testAccDbtCloudJobResourceBasicConfig(
+			jobName,
+			projectName,
+			environmentName,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+			resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+		),	
+	}
+}
 
 // func TestAccDbtCloudJobResource(t *testing.T) {
 
 // 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	// for deferral
-// 	jobName3 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// 	// jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// 	// // for deferral
+// 	// jobName3 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 // 	// for job chaining
-// 	jobName4 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// 	// jobName4 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 // 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 // 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-// 	var configDeferral string
-// 	var checkDeferral resource.TestCheckFunc
+// 	// var configDeferral string
+// 	// var checkDeferral resource.TestCheckFunc
 
-// 	configDeferral = testAccDbtCloudJobResourceDeferringConfig(
-// 		jobName,
-// 		jobName2,
-// 		jobName3,
-// 		projectName,
-// 		environmentName,
-// 		"env",
-// 	)
-// 	checkDeferral = resource.ComposeTestCheckFunc(
-// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
-// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
-// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_environment_id"),
-// 	)
+// 	// configDeferral = testAccDbtCloudJobResourceDeferringConfig(
+// 	// 	jobName,
+// 	// 	jobName2,
+// 	// 	jobName3,
+// 	// 	projectName,
+// 	// 	environmentName,
+// 	// 	"env",
+// 	// )
+// 	// checkDeferral = resource.ComposeTestCheckFunc(
+// 	// 	testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// 	// 	testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_2"),
+// 	// 	testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_3"),
+// 	// 	resource.TestCheckResourceAttrSet("dbtcloud_job.test_job_2", "deferring_environment_id"),
+// 	// )
 
 // 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 // 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 // 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 // 		Steps: []resource.TestStep{
@@ -57,134 +87,134 @@ package job_test
 // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
 // 				),
 // 			},
-// 			// RENAME
-// 			{
-// 				Config: testAccDbtCloudJobResourceBasicConfig(
-// 					jobName2,
-// 					projectName,
-// 					environmentName,
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-// 				),
-// 			},
-// 			// MODIFY
-// 			{
-// 				Config: testAccDbtCloudJobResourceFullConfig(
-// 					jobName2,
-// 					projectName,
-// 					environmentName,
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-// 					resource.TestCheckResourceAttr(
-// 						"dbtcloud_job.test_job",
-// 						"dbt_version",
-// 						DBT_CLOUD_VERSION,
-// 					),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-// 					resource.TestCheckResourceAttr(
-// 						"dbtcloud_job.test_job",
-// 						"timeout_seconds",
-// 						"180",
-// 					),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-// 					resource.TestCheckResourceAttrSet(
-// 						"dbtcloud_job.test_job",
-// 						"run_generate_sources",
-// 					),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
-// 				),
-// 			},
-// 			// JOB CHAINING
-// 			{
-// 				Config: testAccDbtCloudJobResourceJobChaining(
-// 					jobName2,
-// 					projectName,
-// 					environmentName,
-// 					jobName4,
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
-// 					resource.TestCheckResourceAttr(
-// 						"dbtcloud_job.test_job_4",
-// 						"job_completion_trigger_condition.#",
-// 						"1",
-// 					),
-// 					resource.TestCheckResourceAttrSet(
-// 						"dbtcloud_job.test_job_4",
-// 						"job_completion_trigger_condition.0.job_id",
-// 					),
-// 					resource.TestCheckResourceAttrSet(
-// 						"dbtcloud_job.test_job_4",
-// 						"job_completion_trigger_condition.0.project_id",
-// 					),
-// 					resource.TestCheckTypeSetElemAttr(
-// 						"dbtcloud_job.test_job_4",
-// 						"job_completion_trigger_condition.0.statuses.*",
-// 						"error",
-// 					),
-// 					resource.TestCheckTypeSetElemAttr(
-// 						"dbtcloud_job.test_job_4",
-// 						"job_completion_trigger_condition.0.statuses.*",
-// 						"success",
-// 					),
-// 				),
-// 			},
-// 			// DEFERRING JOBS (depends on whether DBT_LEGACY_JOB_DEFERRAL is set, e.g. whether the new CI is set)
-// 			{
-// 				Config: configDeferral,
-// 				Check:  checkDeferral,
-// 			},
-// 			// REMOVE DEFERRAL
-// 			{
-// 				Config: testAccDbtCloudJobResourceFullConfig(
-// 					jobName2,
-// 					projectName,
-// 					environmentName,
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-// 					resource.TestCheckResourceAttr(
-// 						"dbtcloud_job.test_job",
-// 						"dbt_version",
-// 						DBT_CLOUD_VERSION,
-// 					),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-// 					resource.TestCheckResourceAttr(
-// 						"dbtcloud_job.test_job",
-// 						"timeout_seconds",
-// 						"180",
-// 					),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-// 					resource.TestCheckResourceAttrSet(
-// 						"dbtcloud_job.test_job",
-// 						"run_generate_sources",
-// 					),
-// 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
-// 				),
-// 			},
-// 			// IMPORT
-// 			{
-// 				ResourceName:      "dbtcloud_job.test_job",
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 				// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
-// 				ImportStateVerifyIgnore: []string{
-// 					"triggers.%",
-// 					"triggers.custom_branch_only",
-// 				},
-// 			},
+// 			// // RENAME
+// 			// {
+// 			// 	Config: testAccDbtCloudJobResourceBasicConfig(
+// 			// 		jobName2,
+// 			// 		projectName,
+// 			// 		environmentName,
+// 			// 	),
+// 			// 	Check: resource.ComposeTestCheckFunc(
+// 			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// 			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+// 			// 	),
+// 			// },
+// 			// // MODIFY
+// 			// {
+// 			// 	Config: testAccDbtCloudJobResourceFullConfig(
+// 			// 		jobName2,
+// 			// 		projectName,
+// 			// 		environmentName,
+// 			// 	),
+// 			// 	Check: resource.ComposeTestCheckFunc(
+// 			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// 			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+// 			// 		resource.TestCheckResourceAttr(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"dbt_version",
+// 			// 			DBT_CLOUD_VERSION,
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
+// 			// 		resource.TestCheckResourceAttr(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"timeout_seconds",
+// 			// 			"180",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
+// 			// 		resource.TestCheckResourceAttrSet(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"run_generate_sources",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
+// 			// 	),
+// 			// },
+// 			// // JOB CHAINING
+// 			// {
+// 			// 	Config: testAccDbtCloudJobResourceJobChaining(
+// 			// 		jobName2,
+// 			// 		projectName,
+// 			// 		environmentName,
+// 			// 		jobName4,
+// 			// 	),
+// 			// 	Check: resource.ComposeTestCheckFunc(
+// 			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// 			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
+// 			// 		resource.TestCheckResourceAttr(
+// 			// 			"dbtcloud_job.test_job_4",
+// 			// 			"job_completion_trigger_condition.#",
+// 			// 			"1",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet(
+// 			// 			"dbtcloud_job.test_job_4",
+// 			// 			"job_completion_trigger_condition.0.job_id",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet(
+// 			// 			"dbtcloud_job.test_job_4",
+// 			// 			"job_completion_trigger_condition.0.project_id",
+// 			// 		),
+// 			// 		resource.TestCheckTypeSetElemAttr(
+// 			// 			"dbtcloud_job.test_job_4",
+// 			// 			"job_completion_trigger_condition.0.statuses.*",
+// 			// 			"error",
+// 			// 		),
+// 			// 		resource.TestCheckTypeSetElemAttr(
+// 			// 			"dbtcloud_job.test_job_4",
+// 			// 			"job_completion_trigger_condition.0.statuses.*",
+// 			// 			"success",
+// 			// 		),
+// 			// 	),
+// 			// },
+// 			// // DEFERRING JOBS (depends on whether DBT_LEGACY_JOB_DEFERRAL is set, e.g. whether the new CI is set)
+// 			// {
+// 			// 	Config: configDeferral,
+// 			// 	Check:  checkDeferral,
+// 			// },
+// 			// // REMOVE DEFERRAL
+// 			// {
+// 			// 	Config: testAccDbtCloudJobResourceFullConfig(
+// 			// 		jobName2,
+// 			// 		projectName,
+// 			// 		environmentName,
+// 			// 	),
+// 			// 	Check: resource.ComposeTestCheckFunc(
+// 			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// 			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+// 			// 		resource.TestCheckResourceAttr(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"dbt_version",
+// 			// 			DBT_CLOUD_VERSION,
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
+// 			// 		resource.TestCheckResourceAttr(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"timeout_seconds",
+// 			// 			"180",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
+// 			// 		resource.TestCheckResourceAttrSet(
+// 			// 			"dbtcloud_job.test_job",
+// 			// 			"run_generate_sources",
+// 			// 		),
+// 			// 		resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
+// 			// 	),
+// 			// },
+// 			// // IMPORT
+// 			// {
+// 			// 	ResourceName:      "dbtcloud_job.test_job",
+// 			// 	ImportState:       true,
+// 			// 	ImportStateVerify: true,
+// 			// 	// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
+// 			// 	ImportStateVerifyIgnore: []string{
+// 			// 		"triggers.%",
+// 			// 		"triggers.custom_branch_only",
+// 			// 	},
+// 			// },
 // 		},
 // 	})
 // }
@@ -328,34 +358,34 @@ package job_test
 // `, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, runLint, errorOnLinFailure)
 // }
 
-// func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
-// 	return fmt.Sprintf(`
-// resource "dbtcloud_project" "test_job_project" {
-//     name = "%s"
-// }
+func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
 
-// resource "dbtcloud_environment" "test_job_environment" {
-//     project_id = dbtcloud_project.test_job_project.id
-//     name = "%s"
-//     dbt_version = "%s"
-//     type = "development"
-// }
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "development"
+}
 
-// resource "dbtcloud_job" "test_job" {
-//   name        = "%s"
-//   project_id = dbtcloud_project.test_job_project.id
-//   environment_id = dbtcloud_environment.test_job_environment.environment_id
-//   execute_steps = [
-//     "dbt test"
-//   ]
-//   triggers = {
-//     "github_webhook": false,
-//     "git_provider_webhook": false,
-//     "schedule": false,
-//   }
-// }
-// `, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
-// }
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+}
 
 // func testAccDbtCloudJobResourceFullConfig(jobName, projectName, environmentName string) string {
 // 	return fmt.Sprintf(`
@@ -549,70 +579,70 @@ package job_test
 // `, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, selfDefer)
 // }
 
-// func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
+// // func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
 
-// 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-// 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccDbtCloudJobResourceScheduleConfig(
-// 					jobName,
-// 					projectName,
-// 					environmentName,
-// 					"every_day",
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-// 				),
-// 			},
-// 			// MODIFY SCHEDULE
-// 			{
-// 				Config: testAccDbtCloudJobResourceScheduleConfig(
-// 					jobName,
-// 					projectName,
-// 					environmentName,
-// 					"days_of_week",
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-// 				),
-// 			},
-// 			// MODIFY SCHEDULE
-// 			{
-// 				Config: testAccDbtCloudJobResourceScheduleConfig(
-// 					jobName,
-// 					projectName,
-// 					environmentName,
-// 					"custom_cron",
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-// 				),
-// 			},
+// // 	resource.Test(t, resource.TestCase{
+// // 		PreCheck:                 func() { testAccPreCheck(t) },
+// // 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+// // 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+// // 		Steps: []resource.TestStep{
+// // 			{
+// // 				Config: testAccDbtCloudJobResourceScheduleConfig(
+// // 					jobName,
+// // 					projectName,
+// // 					environmentName,
+// // 					"every_day",
+// // 				),
+// // 				Check: resource.ComposeTestCheckFunc(
+// // 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+// // 				),
+// // 			},
+// // 			// MODIFY SCHEDULE
+// // 			{
+// // 				Config: testAccDbtCloudJobResourceScheduleConfig(
+// // 					jobName,
+// // 					projectName,
+// // 					environmentName,
+// // 					"days_of_week",
+// // 				),
+// // 				Check: resource.ComposeTestCheckFunc(
+// // 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+// // 				),
+// // 			},
+// // 			// MODIFY SCHEDULE
+// // 			{
+// // 				Config: testAccDbtCloudJobResourceScheduleConfig(
+// // 					jobName,
+// // 					projectName,
+// // 					environmentName,
+// // 					"custom_cron",
+// // 				),
+// // 				Check: resource.ComposeTestCheckFunc(
+// // 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+// // 				),
+// // 			},
 
-// 			// IMPORT
-// 			{
-// 				ResourceName:      "dbtcloud_job.test_job",
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 				// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
-// 				ImportStateVerifyIgnore: []string{
-// 					"triggers.%",
-// 					"triggers.custom_branch_only",
-// 				},
-// 			},
-// 		},
-// 	})
-// }
+// // 			// IMPORT
+// // 			{
+// // 				ResourceName:      "dbtcloud_job.test_job",
+// // 				ImportState:       true,
+// // 				ImportStateVerify: true,
+// // 				// we don't check triggers.custom_branch_only as we currently allow people to keep triggers.custom_branch_only in their config to not break peopple's Terraform project
+// // 				ImportStateVerifyIgnore: []string{
+// // 					"triggers.%",
+// // 					"triggers.custom_branch_only",
+// // 				},
+// // 			},
+// // 		},
+// // 	})
+// // }
 
 // func testAccDbtCloudJobResourceScheduleConfig(
 // 	jobName, projectName, environmentName, scheduleType string,
@@ -722,90 +752,90 @@ package job_test
 // `, projectName, environmentName, DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger, run_compare_changes, deferringConfig)
 // }
 
-// func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
-// 	return func(state *terraform.State) error {
-// 		rs, ok := state.RootModule().Resources[resource]
-// 		if !ok {
-// 			return fmt.Errorf("Not found: %s", resource)
-// 		}
-// 		if rs.Primary.ID == "" {
-// 			return fmt.Errorf("No Record ID is set")
-// 		}
-// 		apiClient, err := acctest_helper.SharedClient()
-// 		if err != nil {
-// 			return fmt.Errorf("Issue getting the client")
-// 		}
-// 		_, err = apiClient.GetJob(rs.Primary.ID)
-// 		if err != nil {
-// 			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
-// 		}
-// 		return nil
-// 	}
-// }
+func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		rs, ok := state.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Record ID is set")
+		}
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("Issue getting the client")
+		}
+		_, err = apiClient.GetJob(rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
+		}
+		return nil
+	}
+}
 
-// func testAccCheckDbtCloudJobDestroy(s *terraform.State) error {
-// 	apiClient, err := acctest_helper.SharedClient()
-// 	if err != nil {
-// 		return fmt.Errorf("Issue getting the client")
-// 	}
+func testAccCheckDbtCloudJobDestroy(s *terraform.State) error {
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client")
+	}
 
-// 	for _, rs := range s.RootModule().Resources {
-// 		if rs.Type != "dbtcloud_job" {
-// 			continue
-// 		}
-// 		_, err := apiClient.GetJob(rs.Primary.ID)
-// 		if err == nil {
-// 			return fmt.Errorf("Job still exists")
-// 		}
-// 		notFoundErr := "resource-not-found"
-// 		expectedErr := regexp.MustCompile(notFoundErr)
-// 		if !expectedErr.Match([]byte(err.Error())) {
-// 			return fmt.Errorf("expected %s, got %s", notFoundErr, err)
-// 		}
-// 	}
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "dbtcloud_job" {
+			continue
+		}
+		_, err := apiClient.GetJob(rs.Primary.ID)
+		if err == nil {
+			return fmt.Errorf("Job still exists")
+		}
+		notFoundErr := "resource-not-found"
+		expectedErr := regexp.MustCompile(notFoundErr)
+		if !expectedErr.Match([]byte(err.Error())) {
+			return fmt.Errorf("expected %s, got %s", notFoundErr, err)
+		}
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
-// func TestAccDbtCloudJobResourceJobTypeAndCompareChanges(t *testing.T) {
-// 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-// 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // func TestAccDbtCloudJobResourceJobTypeAndCompareChanges(t *testing.T) {
+// // 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+// // 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-// 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccDbtCloudJobResourceJobTypeAndCompareChangesConfig(
-// 					jobName,
-// 					projectName,
-// 					environmentName,
-// 				),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "ci"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "compare_changes_flags", "--select state:modified+"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.github_webhook", "false"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.git_provider_webhook", "false"),
-// 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.schedule", "false"),
-// 				),
-// 			},
-// 			// IMPORT
-// 			{
-// 				ResourceName:      "dbtcloud_job.test_job",
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 				ImportStateVerifyIgnore: []string{
-// 					"triggers.%",
-// 					"triggers.custom_branch_only",
-// 				},
-// 			},
-// 		},
-// 	})
-// }
+// // 	resource.Test(t, resource.TestCase{
+// // 		PreCheck:                 func() { testAccPreCheck(t) },
+// // 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+// // 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+// // 		Steps: []resource.TestStep{
+// // 			{
+// // 				Config: testAccDbtCloudJobResourceJobTypeAndCompareChangesConfig(
+// // 					jobName,
+// // 					projectName,
+// // 					environmentName,
+// // 				),
+// // 				Check: resource.ComposeTestCheckFunc(
+// // 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "ci"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "compare_changes_flags", "--select state:modified+"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.github_webhook", "false"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.git_provider_webhook", "false"),
+// // 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "triggers.schedule", "false"),
+// // 				),
+// // 			},
+// // 			// IMPORT
+// // 			{
+// // 				ResourceName:      "dbtcloud_job.test_job",
+// // 				ImportState:       true,
+// // 				ImportStateVerify: true,
+// // 				ImportStateVerifyIgnore: []string{
+// // 					"triggers.%",
+// // 					"triggers.custom_branch_only",
+// // 				},
+// // 			},
+// // 		},
+// // 	})
+// // }
 
 // func testAccDbtCloudJobResourceJobTypeAndCompareChangesConfig(jobName, projectName, environmentName string) string {
 // 	return fmt.Sprintf(`
