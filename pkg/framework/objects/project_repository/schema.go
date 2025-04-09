@@ -11,7 +11,7 @@ func Schema() schema.Schema {
 	return schema.Schema{
 		Description: "Manages a dbt Cloud project repository.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
+			"id": schema.StringAttribute{
 				Description: "The ID of the project repository.",
 				Computed:    true,
 			},

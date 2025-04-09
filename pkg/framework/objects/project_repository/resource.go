@@ -93,7 +93,7 @@ func (r *projectRepositoryResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Set resource ID
-	plan.ID = plan.ProjectID
+	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", plan.ProjectID.ValueInt64(), dbt_cloud.ID_DELIMITER, plan.RepositoryID.ValueInt64()))
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -130,7 +130,12 @@ func (r *projectRepositoryResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Update state with refreshed values
-	state.ProjectID = state.ID
+	idParts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
+	if len(idParts) == 2 {
+		if projectIDNum, err := strconv.ParseInt(idParts[0], 10, 64); err == nil {
+			state.ProjectID = types.Int64Value(projectIDNum)
+		}
+	}
 	if project.RepositoryID != nil {
 		state.RepositoryID = types.Int64Value(int64(*project.RepositoryID))
 	} else {
@@ -225,7 +230,7 @@ func (r *projectRepositoryResource) ImportState(ctx context.Context, req resourc
 	}
 
 	// Set the ID and required fields
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(projectID))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), int64(projectID))...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("repository_id"), int64(repositoryID))...)
 }

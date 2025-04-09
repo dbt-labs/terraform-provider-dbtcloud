@@ -6,7 +6,7 @@ import (
 
 // Model represents the resource model for a project repository
 type Model struct {
-	ID           types.Int64 `tfsdk:"id"`
-	ProjectID    types.Int64 `tfsdk:"project_id"`
-	RepositoryID types.Int64 `tfsdk:"repository_id"`
+	ID           types.String `tfsdk:"id"`
+	ProjectID    types.Int64  `tfsdk:"project_id"`
+	RepositoryID types.Int64  `tfsdk:"repository_id"`
 }
