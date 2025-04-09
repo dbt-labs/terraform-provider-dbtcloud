@@ -29,7 +29,7 @@ resource "dbtcloud_project_repository" "dbt_project_repository" {
 
 ### Read-Only
 
-- `id` (Number) The ID of the project repository.
+- `id` (String) The ID of the project repository.
 
 ## Import
 
