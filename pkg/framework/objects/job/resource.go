@@ -49,10 +49,6 @@ func (j *jobResource) Read(context.Context, resource.ReadRequest, *resource.Read
 	panic("unimplemented")
 }
 
-func (j *jobResource) Schema(context.Context, resource.SchemaRequest, *resource.SchemaResponse) {
-	panic("unimplemented")
-}
-
 func (j *jobResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
 	panic("unimplemented")
 }

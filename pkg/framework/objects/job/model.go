@@ -99,7 +99,7 @@ type SingleJobDataSourceModel struct {
 }
 
 type JobResourceModel struct {
-	Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
+	// Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
 	TimeoutSeconds                types.Int64           `tfsdk:"timeout_seconds"`      // moved under execution , add deprecation message
 	GenerateDocs                  types.Bool            `tfsdk:"generate_docs"`        // exists
 	RunGenerateSources            types.Bool            `tfsdk:"run_generate_sources"` // exists
@@ -111,14 +111,13 @@ type JobResourceModel struct {
 	Description                   types.String          `tfsdk:"description"`          // exists
 	DbtVersion                    types.String          `tfsdk:"dbt_version"`          // exists
 	ExecuteSteps                  []types.String        `tfsdk:"execute_steps"`        // exists
-	DeferringJobDefinitionID      types.Int64           `tfsdk:"deferring_job_definition_id"`
 	DeferringEnvironmentID        types.Int64           `tfsdk:"deferring_environment_id"` // exists
 	Triggers                      *JobTriggers          `tfsdk:"triggers"`                 // exists
-	Settings                      *JobSettings          `tfsdk:"settings"`                 // has no of threads and target name
-	Schedule                      *JobSchedule          `tfsdk:"schedule"`                 // has cron expression
+	// Settings                      *JobSettings          `tfsdk:"settings"`                 // has no of threads and target name
+	// Schedule                      *JobSchedule          `tfsdk:"schedule"`                 // has cron expression
 	JobType                       types.String          `tfsdk:"job_type"`                 // exists
 	TriggersOnDraftPr             types.Bool            `tfsdk:"triggers_on_draft_pr"`     // exists
-	Environment                   *JobEnvironment       `tfsdk:"environment"`
+	// Environment                   *JobEnvironment       `tfsdk:"environment"`
 	JobCompletionTriggerCondition *JobCompletionTrigger `tfsdk:"job_completion_trigger_condition"` // exists
 	RunCompareChanges             types.Bool            `tfsdk:"run_compare_changes"`              // exists
 	IsActive                      types.Bool            `tfsdk:"is_active"`
