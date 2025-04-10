@@ -2,12 +2,14 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -26,8 +28,17 @@ func JobResource() resource.Resource {
 	return &jobResource{}
 }
 
-func (j *jobResource) ImportState(context.Context, resource.ImportStateRequest, *resource.ImportStateResponse) {
-	panic("unimplemented")
+func (j *jobResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	jobID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Parsing Job ID",
+			fmt.Sprintf("Could not parse job_id from import ID %q: %v", req.ID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), jobID)...)
 }
 
 func (j *jobResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
@@ -141,7 +152,7 @@ func (j *jobResource) Create(ctx context.Context,req resource.CreateRequest,resp
 		name,
 		description,
 		executeSteps,
-		createDbtVersion, // Use safe value
+		createDbtVersion,
 		isActive,
 		triggers,
 		numThreads,
@@ -153,8 +164,8 @@ func (j *jobResource) Create(ctx context.Context,req resource.CreateRequest,resp
 		scheduleHours,
 		scheduleDays,
 		scheduleCron,
-		createDeferringJobID, // Use safe value
-		createDeferringEnvironmentID, // Use safe value
+		createDeferringJobID,
+		createDeferringEnvironmentID,
 		selfDeferring,
 		timeoutSeconds,
 		triggersOnDraftPR,
@@ -199,7 +210,7 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	job, err := j.client.GetJob(jobIDStr)
 	if err != nil {
-		// If the resource is already deleted, we can safely return
+
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			return
 		}
@@ -345,6 +356,157 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (j *jobResource) Update(context.Context, resource.UpdateRequest, *resource.UpdateResponse) {
-	panic("unimplemented")
+func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state JobResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	jobID := state.ID.ValueInt64()
+	jobIDStr := strconv.FormatInt(jobID, 10)
+
+	job, err := j.client.GetJob(jobIDStr)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error retrieving job",
+			"Could not retrieve job with ID "+jobIDStr+": "+err.Error(),
+		)
+		return
+	}
+
+	job.ProjectId = int(plan.ProjectID.ValueInt64())
+	job.EnvironmentId = int(plan.EnvironmentID.ValueInt64())
+	job.Name = plan.Name.ValueString()
+	job.Description = plan.Description.ValueString()
+
+	if plan.DbtVersion.IsNull() {
+		job.DbtVersion = nil
+	} else {
+		dbtVersion := plan.DbtVersion.ValueString()
+		job.DbtVersion = &dbtVersion
+	}
+
+	job.Settings.Threads = int(plan.NumThreads.ValueInt64())
+	job.Settings.TargetName = plan.TargetName.ValueString()
+	job.GenerateDocs = plan.GenerateDocs.ValueBool()
+	job.RunGenerateSources = plan.RunGenerateSources.ValueBool()
+
+	executeSteps := make([]string, len(plan.ExecuteSteps))
+	for i, step := range plan.ExecuteSteps {
+		executeSteps[i] = step.ValueString()
+	}
+	job.ExecuteSteps = executeSteps
+
+	if plan.Triggers != nil {
+		job.Triggers.GithubWebhook = plan.Triggers.GithubWebhook.ValueBool()
+		job.Triggers.GitProviderWebhook = plan.Triggers.GitProviderWebhook.ValueBool()
+		job.Triggers.Schedule = plan.Triggers.Schedule.ValueBool()
+		job.Triggers.OnMerge = plan.Triggers.OnMerge.ValueBool()
+	}
+
+	scheduleType := plan.ScheduleType.ValueString()
+	job.Schedule.Date.Type = scheduleType
+
+	scheduleInterval := int(plan.ScheduleInterval.ValueInt64())
+	job.Schedule.Time.Interval = scheduleInterval
+
+	if len(plan.ScheduleHours) > 0 {
+		scheduleHours := make([]int, len(plan.ScheduleHours))
+		for i, hour := range plan.ScheduleHours {
+			scheduleHours[i] = int(hour.ValueInt64())
+		}
+		job.Schedule.Time.Hours = &scheduleHours
+		job.Schedule.Time.Type = "at_exact_hours" // Explicitly set type when hours are provided
+		job.Schedule.Time.Interval = 0 // Reset interval when using specific hours
+	} else {
+		job.Schedule.Time.Hours = nil
+		job.Schedule.Time.Type = "every_hour" // Reset to default type if hours are removed
+		job.Schedule.Time.Interval = scheduleInterval // Ensure interval is set if hours are nil
+	}
+
+	if len(plan.ScheduleDays) > 0 {
+		scheduleDays := make([]int, len(plan.ScheduleDays))
+		for i, day := range plan.ScheduleDays {
+			scheduleDays[i] = int(day.ValueInt64())
+		}
+		job.Schedule.Date.Days = &scheduleDays
+	} else {
+		job.Schedule.Date.Days = nil
+	}
+
+	if plan.ScheduleCron.IsNull() || plan.ScheduleCron.ValueString() == "" {
+		job.Schedule.Date.Cron = nil
+	} else {
+		scheduleCron := plan.ScheduleCron.ValueString()
+		job.Schedule.Date.Cron = &scheduleCron
+	}
+
+	if scheduleType == "days_of_week" || scheduleType == "every_day" {
+		job.Schedule.Date.Cron = nil
+	}
+	if scheduleType == "custom_cron" || scheduleType == "every_day" {
+		job.Schedule.Date.Days = nil
+	}
+
+
+	selfDeferring := plan.SelfDeferring.ValueBool()
+	if selfDeferring {
+		deferringJobID := int(jobID)
+		job.DeferringJobId = &deferringJobID
+		job.DeferringEnvironmentId = nil // Self deferring is mutually exclusive with environment deferring
+	} else {
+		if plan.DeferringJobId.IsNull() || plan.DeferringJobId.ValueInt64() == 0 {
+			job.DeferringJobId = nil
+		} else {
+			deferringJobId := int(plan.DeferringJobId.ValueInt64())
+			job.DeferringJobId = &deferringJobId
+		}
+
+		if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
+			job.DeferringEnvironmentId = nil
+		} else {
+			deferringEnvId := int(plan.DeferringEnvironmentID.ValueInt64())
+			job.DeferringEnvironmentId = &deferringEnvId
+		}
+	}
+
+	job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
+	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
+	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
+	job.RunLint = plan.RunLint.ValueBool()
+	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
+	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
+
+	if plan.JobCompletionTriggerCondition == nil {
+		job.JobCompletionTrigger = nil
+	} else {
+		condition := plan.JobCompletionTriggerCondition.Condition
+		statuses := make([]int, len(condition.Statuses))
+		for i, status := range condition.Statuses {
+			statuses[i] = utils.JobCompletionTriggerConditionsMappingHumanCode[status.ValueString()]
+		}
+		jobCondTrigger := dbt_cloud.JobCompletionTrigger{
+			Condition: dbt_cloud.JobCompletionTriggerCondition{
+				JobID:     int(condition.JobID.ValueInt64()),
+				ProjectID: int(condition.ProjectID.ValueInt64()),
+				Statuses:  statuses,
+			},
+		}
+		job.JobCompletionTrigger = &jobCondTrigger
+	}
+
+	_, err = j.client.UpdateJob(jobIDStr, *job)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating job",
+			"Could not update job with ID "+jobIDStr+": "+err.Error(),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
