@@ -41,8 +41,32 @@ func (j *jobResource) Create(context.Context, resource.CreateRequest, *resource.
 	panic("unimplemented")
 }
 
-func (j *jobResource) Delete(context.Context, resource.DeleteRequest, *resource.DeleteResponse) {
-	panic("unimplemented")
+func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state JobResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	jobID := state.ID.ValueInt64()
+	jobIDStr := strconv.FormatInt(jobID, 10)
+
+	job, err := j.client.GetJob(jobIDStr)
+	if err != nil {
+		// If the resource is already deleted, we can safely return
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			return
+		}
+		resp.Diagnostics.AddError("Client Error", "Unable to retrieve job before deletion")
+		return
+	}
+
+	job.State = dbt_cloud.STATE_DELETED
+	_, err = j.client.UpdateJob(jobIDStr, *job)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", "Unable to delete job")
+		return
+	}
 }
 
 func (j *jobResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -117,6 +141,11 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 
 
+
+
+
+
+
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
 	// we set the state to the current config value, so it doesn't do anything
 	// todo check the custom branch stuff and on merge
@@ -143,6 +172,9 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	// if noOnMergeConfig && onMergeRemoteFalse {
 	// 	delete(triggers, "on_merge")
 	// }
+
+
+
 
 
 
