@@ -31,6 +31,13 @@ var resourceSchema = resource_schema.Schema{
 				int64planmodifier.RequiresReplace(),
 			},
 		},
+		"account_id": resource_schema.Int64Attribute{
+			Computed:    true,
+			Description: "The account id",
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.UseStateForUnknown(),
+			},
+		},
 		"project_id": resource_schema.Int64Attribute{
 			Required:    true,
 			Description: "Project ID to create the environment variable job override in",

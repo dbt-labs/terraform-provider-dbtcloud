@@ -8,6 +8,7 @@ import (
 type EnvironmentVariableJobOverrideResourceModel struct {
 	ID                               types.String `tfsdk:"id"`
 	ProjectID                        types.Int64  `tfsdk:"project_id"`
+	AccountID                        types.Int64  `tfsdk:"account_id"`
 	Name                             types.String `tfsdk:"name"`
 	JobDefinitionID                  types.Int64  `tfsdk:"job_definition_id"`
 	RawValue                         types.String `tfsdk:"raw_value"`

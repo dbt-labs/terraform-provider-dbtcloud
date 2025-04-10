@@ -119,6 +119,7 @@ func (r *environmentVariableJobOverrideResource) Create(
 		*environmentVariableJobOverride.ID,
 	))
 
+	plan.AccountID = types.Int64Value(int64(environmentVariableJobOverride.AccountID))
 	plan.EnvironmentVariableJobOverrideID = types.Int64Value(int64(*environmentVariableJobOverride.ID))
 
 	// Set state to fully populated data
@@ -173,6 +174,8 @@ func (r *environmentVariableJobOverrideResource) Read(
 		dbt_cloud.ID_DELIMITER,
 		*environmentVariableJobOverride.ID,
 	))
+
+	state.AccountID = types.Int64Value(int64(environmentVariableJobOverride.AccountID))
 	state.EnvironmentVariableJobOverrideID = types.Int64Value(int64(*environmentVariableJobOverride.ID))
 
 	// Set refreshed state
@@ -210,6 +213,7 @@ func (r *environmentVariableJobOverrideResource) Update(
 
 	envVarJobOverride := dbt_cloud.EnvironmentVariableJobOverride{
 		ProjectID:       projectID,
+		AccountID:       int(state.AccountID.ValueInt64()),
 		Name:            plan.Name.ValueString(),
 		ID:              helper.Int64ToIntPointer(id),
 		JobDefinitionID: int(plan.JobDefinitionID.ValueInt64()),
@@ -320,10 +324,47 @@ func (r *environmentVariableJobOverrideResource) ImportState(
 		jobDefinitionID,
 	)...)
 
-	envVarJobOverrideID := idParts[2]
+	envVarJobOverrideID, err := strconv.Atoi(idParts[2])
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf(
+				"Could not convert environment_variable_job_override_id to integer. Got: %q",
+				idParts[2],
+			),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("environment_variable_job_override_id"),
 		envVarJobOverrideID,
+	)...)
+
+	envVarJobOverride, err := r.client.GetEnvironmentVariableJobOverride(projectID, jobDefinitionID, envVarJobOverrideID)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf(
+				"Could not get environment variable job override. Got: %q",
+				err.Error(),
+			),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("name"),
+		envVarJobOverride.Name,
+	)...)
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(
+		ctx,
+		path.Root("raw_value"),
+		envVarJobOverride.RawValue,
 	)...)
 }

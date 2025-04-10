@@ -35,78 +35,130 @@ func TestAccDbtCloudEnvironmentVariableJobOverrideResource(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudEnvironmentVariableJobOverrideResourceBasicConfig(
-					projectName,
-					environmentName,
-					environmentVariableName,
-					jobName,
-					environmentVariableJobOverrideValue,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment_variable.test_env_var",
-						"name",
-						fmt.Sprintf("DBT_%s", environmentVariableName),
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"name",
-						fmt.Sprintf("DBT_%s", environmentVariableName),
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"raw_value",
-						environmentVariableJobOverrideValue,
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"environment_variable_job_override_id",
-					),
-				),
-			},
-			// RENAME
-			// MODIFY
-			{
-				Config: testAccDbtCloudEnvironmentVariableJobOverrideResourceBasicConfig(
-					projectName,
-					environmentName,
-					environmentVariableName,
-					jobName,
-					environmentVariableJobOverrideValueNew,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"name",
-						fmt.Sprintf("DBT_%s", environmentVariableName),
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"raw_value",
-						environmentVariableJobOverrideValueNew,
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_environment_variable_job_override.test_env_var_job_override",
-						"environment_variable_job_override_id",
-					),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:            "dbtcloud_environment_variable_job_override.test_env_var_job_override",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
-			},
+			getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue),
+			getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew),
+			getImportStateTestStep(),
 		},
 	})
+}
+
+func TestConformanceBasicConfig(t *testing.T) {
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableJobOverrideValue := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue)),
+		},
+	})
+}
+
+func TestConformanceModifyConfig(t *testing.T) {
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableJobOverrideValueNew := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+
+	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew)),
+		},
+	})
+}
+
+func getImportStateTestStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:            "dbtcloud_environment_variable_job_override.test_env_var_job_override",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{},
+	}
+}
+
+func getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew string) resource.TestStep {
+	return resource.TestStep{
+		Config: testAccDbtCloudEnvironmentVariableJobOverrideResourceBasicConfig(
+			projectName,
+			environmentName,
+			environmentVariableName,
+			jobName,
+			environmentVariableJobOverrideValueNew,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"name",
+				fmt.Sprintf("DBT_%s", environmentVariableName),
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"raw_value",
+				environmentVariableJobOverrideValueNew,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"environment_variable_job_override_id",
+			),
+		),
+	}
+}
+
+func getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue string) resource.TestStep {
+	return resource.TestStep{
+		Config: testAccDbtCloudEnvironmentVariableJobOverrideResourceBasicConfig(
+			projectName,
+			environmentName,
+			environmentVariableName,
+			jobName,
+			environmentVariableJobOverrideValue,
+		),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment_variable.test_env_var",
+				"name",
+				fmt.Sprintf("DBT_%s", environmentVariableName),
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"name",
+				fmt.Sprintf("DBT_%s", environmentVariableName),
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"raw_value",
+				environmentVariableJobOverrideValue,
+			),
+			resource.TestCheckResourceAttrSet(
+				"dbtcloud_environment_variable_job_override.test_env_var_job_override",
+				"environment_variable_job_override_id",
+			),
+		),
+	}
 }
 
 func testAccDbtCloudEnvironmentVariableJobOverrideResourceBasicConfig(

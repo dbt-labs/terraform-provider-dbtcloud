@@ -33,6 +33,7 @@ resource "dbtcloud_environment_variable_job_override" "my_env_var_job_override" 
 
 ### Read-Only
 
+- `account_id` (Number) The account id
 - `environment_variable_job_override_id` (Number) The internal ID of this resource. Contains the project ID and the environment variable job override ID.
 - `id` (String) The ID of this resource. Contains the project ID and the environment variable job override ID.
 
