@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable_job_override"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
@@ -262,5 +263,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		teradata_credential.TeradataCredentialResource,
 		project_repository.ProjectRepositoryResource,
 		environment_variable.EnvironmentVariableResource,
+		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
 	}
 }

@@ -1,4 +1,4 @@
-package resources_test
+package environment_variable_job_override_test
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,7 +31,7 @@ func TestAccDbtCloudEnvironmentVariableJobOverrideResource(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
 		Steps: []resource.TestStep{
@@ -160,7 +161,7 @@ resource dbtcloud_environment_variable_job_override test_env_var_job_override {
 }
 
 
-`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName, jobName, environmentVariableJobOverrideValue)
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentVariableName, environmentName, jobName, environmentVariableJobOverrideValue)
 }
 
 func testAccCheckDbtCloudEnvironmentVariableJobOverrideExists(
