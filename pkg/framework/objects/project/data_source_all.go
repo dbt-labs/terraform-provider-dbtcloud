@@ -111,3 +111,11 @@ func (d *projectsDataSource) Configure(
 
 	d.client = req.ProviderData.(*dbt_cloud.Client)
 }
+
+func (d *projectsDataSource) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
+	resp.Schema = datasourceSchema
+}
