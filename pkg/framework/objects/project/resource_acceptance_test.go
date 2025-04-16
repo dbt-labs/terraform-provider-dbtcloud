@@ -13,7 +13,7 @@ import (
 func TestAccDbtCloudProjectResource(t *testing.T) {
 	projectName := "testproject1"
 	projectDescription := "testprojectdescription"
-	// projectName2 := "testproject2"
+	projectName2 := "testproject2"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -34,13 +34,13 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 			},
 			// RENAME
 			{
-				Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
+				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_project.test_project",
 						"name",
-						projectName,
+						projectName2,
 					),
 				),
 			},
