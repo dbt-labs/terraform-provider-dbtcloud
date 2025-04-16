@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -49,7 +50,7 @@ func (j *jobResource) Configure(_ context.Context, req resource.ConfigureRequest
 	j.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func (j *jobResource) Create(ctx context.Context,req resource.CreateRequest,resp *resource.CreateResponse) {
+func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan JobResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -78,8 +79,8 @@ func (j *jobResource) Create(ctx context.Context,req resource.CreateRequest,resp
 	triggers := map[string]any{
 		"github_webhook":       plan.Triggers.GithubWebhook.ValueBool(),
 		"git_provider_webhook": plan.Triggers.GitProviderWebhook.ValueBool(),
-		"schedule":           plan.Triggers.Schedule.ValueBool(),
-		"on_merge":           plan.Triggers.OnMerge.ValueBool(),
+		"schedule":             plan.Triggers.Schedule.ValueBool(),
+		"on_merge":             plan.Triggers.OnMerge.ValueBool(),
 	}
 	numThreads := int(plan.NumThreads.ValueInt64())
 	targetName := plan.TargetName.ValueString()
@@ -254,6 +255,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	state.ID = types.Int64Value(int64(*retrievedJob.ID))
+	state.JobId = types.Int64Value(int64(*retrievedJob.ID))
 	state.ProjectID = types.Int64Value(int64(retrievedJob.ProjectId))
 	state.EnvironmentID = types.Int64Value(int64(retrievedJob.EnvironmentId))
 	state.Name = types.StringValue(retrievedJob.Name)
@@ -296,41 +298,40 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.DeferringEnvironmentID = types.Int64Value(int64(*retrievedJob.DeferringEnvironmentId))
 	state.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
 
+	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
+	// we set the state to the current config value, so it doesn't do anything
+	// todo check the custom branch stuff and on merge
 
-
-
-
+	var triggers map[string]interface{}
+	triggersInput, _ := json.Marshal(retrievedJob.Triggers)
+	json.Unmarshal(triggersInput, &triggers)
 
 
 
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
 	// we set the state to the current config value, so it doesn't do anything
-	// todo check the custom branch stuff and on merge
+	var customBranchValue types.Bool
+	diags := req.State.GetAttribute(ctx, path.Root("triggers").AtMapKey("custom_branch_only"), &customBranchValue)
 
-	// var triggers map[string]interface{}
-	// triggersInput, _ := json.Marshal(job.Triggers)
-	// json.Unmarshal(triggersInput, &triggers)
+	if !diags.HasError() && !customBranchValue.IsNull() {
+		triggers["custom_branch_only"] = customBranchValue.ValueBool()
+	}
 
-	// // for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
-	// // we set the state to the current config value, so it doesn't do anything
-	// listedTriggers := d.Get("triggers").(map[string]interface{})
-	// listedCustomBranchOnly, ok := listedTriggers["custom_branch_only"].(bool)
-	// if ok {
-	// 	triggers["custom_branch_only"] = listedCustomBranchOnly
-	// }
-
-	// // we remove triggers.on_merge if it is not set in the config and it is set to false in the remote
-	// // that way it works if people don't define it, but also works to import jobs that have it set to true
-	// // TODO: remove this when we make on_merge mandatory
-	// _, ok = listedTriggers["on_merge"].(bool)
-	// noOnMergeConfig := !ok
-	// onMergeRemoteVal, _ := triggers["on_merge"].(bool)
-	// onMergeRemoteFalse := !onMergeRemoteVal
-	// if noOnMergeConfig && onMergeRemoteFalse {
-	// 	delete(triggers, "on_merge")
-	// }
-
-
+	
+	// we remove triggers.on_merge if it is not set in the config and it is set to false in the remote
+	// that way it works if people don't define it, but also works to import jobs that have it set to true
+	// TODO: remove this when we make on_merge mandatory
+	// TODO: Code not very readable
+	var onMergeValue types.Bool
+	hasOnMergeAttr := !req.State.GetAttribute(ctx, path.Root("triggers").AtMapKey("on_merge"), &onMergeValue).HasError()
+	noOnMergeConfig := !hasOnMergeAttr || onMergeValue.IsNull()
+	
+	onMergeRemoteVal, _ := triggers["on_merge"].(bool)
+	onMergeRemoteFalse := !onMergeRemoteVal
+	
+	if noOnMergeConfig && onMergeRemoteFalse {
+		delete(triggers, "on_merge")
+	}
 
 
 
@@ -341,11 +342,6 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		Schedule:           types.BoolValue(retrievedJob.Triggers.Schedule),
 		OnMerge:            types.BoolValue(retrievedJob.Triggers.OnMerge),
 	}
-
-
-
-
-
 	
 	state.RunCompareChanges = types.BoolValue(retrievedJob.RunCompareChanges)
 	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
@@ -420,12 +416,12 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			scheduleHours[i] = int(hour.ValueInt64())
 		}
 		job.Schedule.Time.Hours = &scheduleHours
-		job.Schedule.Time.Type = "at_exact_hours" // Explicitly set type when hours are provided
-		job.Schedule.Time.Interval = 0 // Reset interval when using specific hours
+		job.Schedule.Time.Type = "at_exact_hours"
+		job.Schedule.Time.Interval = 0
 	} else {
 		job.Schedule.Time.Hours = nil
-		job.Schedule.Time.Type = "every_hour" // Reset to default type if hours are removed
-		job.Schedule.Time.Interval = scheduleInterval // Ensure interval is set if hours are nil
+		job.Schedule.Time.Type = "every_hour"
+		job.Schedule.Time.Interval = scheduleInterval
 	}
 
 	if len(plan.ScheduleDays) > 0 {
@@ -445,6 +441,8 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.Schedule.Date.Cron = &scheduleCron
 	}
 
+	// we set this after the subfields to remove the fields not matching the schedule type
+	// if it was before, some of those fields would be set again
 	if scheduleType == "days_of_week" || scheduleType == "every_day" {
 		job.Schedule.Date.Cron = nil
 	}
@@ -452,25 +450,24 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.Schedule.Date.Days = nil
 	}
 
+	if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
+		job.DeferringEnvironmentId = nil
+	} else {
+		deferringEnvId := int(plan.DeferringEnvironmentID.ValueInt64())
+		job.DeferringEnvironmentId = &deferringEnvId
+	}
 
 	selfDeferring := plan.SelfDeferring.ValueBool()
 	if selfDeferring {
 		deferringJobID := int(jobID)
 		job.DeferringJobId = &deferringJobID
-		job.DeferringEnvironmentId = nil // Self deferring is mutually exclusive with environment deferring
+		// job.DeferringEnvironmentId = nil // Self deferring is mutually exclusive with environment deferring
 	} else {
 		if plan.DeferringJobId.IsNull() || plan.DeferringJobId.ValueInt64() == 0 {
 			job.DeferringJobId = nil
 		} else {
 			deferringJobId := int(plan.DeferringJobId.ValueInt64())
 			job.DeferringJobId = &deferringJobId
-		}
-
-		if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
-			job.DeferringEnvironmentId = nil
-		} else {
-			deferringEnvId := int(plan.DeferringEnvironmentID.ValueInt64())
-			job.DeferringEnvironmentId = &deferringEnvId
 		}
 	}
 
