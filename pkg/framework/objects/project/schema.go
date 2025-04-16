@@ -203,21 +203,5 @@ var resourceSchema = resource_schema.Schema{
 				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-		"repository_id": resource_schema.Int64Attribute{
-			Description: "Repository ID",
-			Optional:    true,
-			Computed:    true,
-			PlanModifiers: []planmodifier.Int64{
-				int64planmodifier.UseStateForUnknown(),
-			},
-		},
-		"connection_id": resource_schema.Int64Attribute{
-			Description: "Connection ID",
-			Optional:    true,
-			Computed:    true,
-			PlanModifiers: []planmodifier.Int64{
-				int64planmodifier.UseStateForUnknown(),
-			},
-		},
 	},
 }

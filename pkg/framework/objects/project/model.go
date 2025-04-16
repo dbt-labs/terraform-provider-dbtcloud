@@ -51,6 +51,4 @@ type ProjectResourceModel struct {
 	Name                   types.String `tfsdk:"name"`
 	Description            types.String `tfsdk:"description"`
 	DbtProjectSubdirectory types.String `tfsdk:"dbt_project_subdirectory"`
-	RepositoryID           types.Int64  `tfsdk:"repository_id"`
-	ProjectConnectionID    types.Int64  `tfsdk:"connection_id"`
 }

@@ -96,18 +96,6 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 		plan.DbtProjectSubdirectory = types.StringNull()
 	}
 
-	if project.RepositoryID != nil {
-		plan.RepositoryID = types.Int64Value(int64(*project.RepositoryID))
-	} else {
-		plan.RepositoryID = types.Int64Null()
-	}
-
-	if project.ConnectionID != nil {
-		plan.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
-	} else {
-		plan.ProjectConnectionID = types.Int64Null()
-	}
-
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -152,18 +140,6 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 		state.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
 	} else {
 		state.DbtProjectSubdirectory = types.StringNull()
-	}
-
-	if project.RepositoryID != nil {
-		state.RepositoryID = types.Int64Value(int64(*project.RepositoryID))
-	} else {
-		state.RepositoryID = types.Int64Null()
-	}
-
-	if project.ConnectionID != nil {
-		state.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
-	} else {
-		state.ProjectConnectionID = types.Int64Null()
 	}
 
 	// Set refreshed state
@@ -223,20 +199,6 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 		updateProject.DbtProjectSubdirectory = &dbtProjectSubdir
 	}
 
-	// Important: set ConnectionID to nil to avoid global connection update issue
-	updateProject.ConnectionID = nil
-
-	// Only update RepositoryID if it's specified in the plan
-	if !plan.RepositoryID.IsNull() {
-		repositoryID := int(plan.RepositoryID.ValueInt64())
-		updateProject.RepositoryID = &repositoryID
-	}
-
-	if !plan.ProjectConnectionID.IsNull() {
-		connectionID := int(plan.ProjectConnectionID.ValueInt64())
-		updateProject.ConnectionID = &connectionID
-	}
-
 	// Perform the update
 	project, err := r.client.UpdateProject(projectIDString, *updateProject)
 	if err != nil {
@@ -255,18 +217,6 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 		plan.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
 	} else {
 		plan.DbtProjectSubdirectory = types.StringNull()
-	}
-
-	if project.RepositoryID != nil {
-		plan.RepositoryID = types.Int64Value(int64(*project.RepositoryID))
-	} else {
-		plan.RepositoryID = types.Int64Null()
-	}
-
-	if project.ConnectionID != nil {
-		plan.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
-	} else {
-		plan.ProjectConnectionID = types.Int64Null()
 	}
 
 	diags = resp.State.Set(ctx, plan)
