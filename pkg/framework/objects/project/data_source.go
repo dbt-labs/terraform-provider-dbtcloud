@@ -118,9 +118,9 @@ func (d *projectDataSource) Read(
 	state.Description = types.StringValue(project.Description)
 
 	if project.ConnectionID != nil {
-		state.Connection.ID = types.Int64Value(int64(*project.ConnectionID))
+		state.ProjectConnection.ID = types.Int64Value(int64(*project.ConnectionID))
 	} else {
-		state.Connection.ID = types.Int64Null()
+		state.ProjectConnection.ID = types.Int64Null()
 	}
 
 	if project.RepositoryID != nil {

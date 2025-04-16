@@ -103,9 +103,9 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	if project.ConnectionID != nil {
-		plan.ConnectionID = types.Int64Value(int64(*project.ConnectionID))
+		plan.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
 	} else {
-		plan.ConnectionID = types.Int64Null()
+		plan.ProjectConnectionID = types.Int64Null()
 	}
 
 	// Set state to fully populated data
@@ -161,9 +161,9 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	if project.ConnectionID != nil {
-		state.ConnectionID = types.Int64Value(int64(*project.ConnectionID))
+		state.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
 	} else {
-		state.ConnectionID = types.Int64Null()
+		state.ProjectConnectionID = types.Int64Null()
 	}
 
 	// Set refreshed state
@@ -232,8 +232,8 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 		updateProject.RepositoryID = &repositoryID
 	}
 
-	if !plan.ConnectionID.IsNull() {
-		connectionID := int(plan.ConnectionID.ValueInt64())
+	if !plan.ProjectConnectionID.IsNull() {
+		connectionID := int(plan.ProjectConnectionID.ValueInt64())
 		updateProject.ConnectionID = &connectionID
 	}
 
@@ -264,9 +264,9 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	if project.ConnectionID != nil {
-		plan.ConnectionID = types.Int64Value(int64(*project.ConnectionID))
+		plan.ProjectConnectionID = types.Int64Value(int64(*project.ConnectionID))
 	} else {
-		plan.ConnectionID = types.Int64Null()
+		plan.ProjectConnectionID = types.Int64Null()
 	}
 
 	diags = resp.State.Set(ctx, plan)

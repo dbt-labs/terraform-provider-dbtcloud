@@ -70,7 +70,7 @@ func (d *projectsDataSource) Read(
 		currentProject.UpdatedAt = types.StringValue(project.UpdatedAt)
 
 		if project.Connection != nil {
-			currentProject.Connection = &ProjectConnection{
+			currentProject.ProjectConnection = &ProjectConnection{
 				ID:             types.Int64PointerValue(project.Connection.ID),
 				Name:           types.StringPointerValue(project.Connection.Name),
 				AdapterVersion: types.StringPointerValue(project.Connection.AdapterVersion),

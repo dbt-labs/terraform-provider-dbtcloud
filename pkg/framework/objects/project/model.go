@@ -15,7 +15,7 @@ type ProjectConnectionRepository struct {
 	DbtProjectSubdirectory types.String       `tfsdk:"dbt_project_subdirectory"`
 	CreatedAt              types.String       `tfsdk:"created_at"`
 	UpdatedAt              types.String       `tfsdk:"updated_at"`
-	Connection             *ProjectConnection `tfsdk:"connection"`
+	ProjectConnection      *ProjectConnection `tfsdk:"project_connection"`
 	Repository             *ProjectRepository `tfsdk:"repository"`
 }
 
@@ -27,7 +27,7 @@ type ProjectDataSourceModel struct {
 	DbtProjectSubdirectory types.String       `tfsdk:"dbt_project_subdirectory"`
 	CreatedAt              types.String       `tfsdk:"created_at"`
 	UpdatedAt              types.String       `tfsdk:"updated_at"`
-	Connection             *ProjectConnection `tfsdk:"connection"`
+	ProjectConnection      *ProjectConnection `tfsdk:"project_connection"`
 	Repository             *ProjectRepository `tfsdk:"repository"`
 	FreshnessJobID         types.Int64        `tfsdk:"freshness_job_id"`
 	DocsJobID              types.Int64        `tfsdk:"docs_job_id"`
@@ -52,5 +52,5 @@ type ProjectResourceModel struct {
 	Description            types.String `tfsdk:"description"`
 	DbtProjectSubdirectory types.String `tfsdk:"dbt_project_subdirectory"`
 	RepositoryID           types.Int64  `tfsdk:"repository_id"`
-	ConnectionID           types.Int64  `tfsdk:"connection_id"`
+	ProjectConnectionID    types.Int64  `tfsdk:"connection_id"`
 }

@@ -67,7 +67,7 @@ var datasourceSchema = datasource_schema.Schema{
 							},
 						},
 					},
-					"connection": datasource_schema.SingleNestedAttribute{
+					"project_connection": datasource_schema.SingleNestedAttribute{
 						Computed:    true,
 						Description: "Details for the connection linked to the project",
 						Attributes: map[string]datasource_schema.Attribute{
@@ -140,7 +140,7 @@ var singleDatasourceSchema = datasource_schema.Schema{
 				},
 			},
 		},
-		"connection": datasource_schema.SingleNestedAttribute{
+		"project_connection": datasource_schema.SingleNestedAttribute{
 			Computed:    true,
 			Description: "Details for the connection linked to the project",
 			Attributes: map[string]datasource_schema.Attribute{
