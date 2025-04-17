@@ -5,69 +5,102 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+var projectName = "testproject1"
+var projectDescription = "testprojectdescription"
+var projectName2 = "testproject2"
+
+var createStep = resource.TestStep{
+	Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"name",
+			projectName,
+		),
+	),
+}
+
+var renameStep = resource.TestStep{
+	Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"name",
+			projectName2,
+		),
+	),
+}
+
+var modifyStep = resource.TestStep{
+	Config: testAccDbtCloudProjectResourceFullConfig(projectName, projectDescription),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"name",
+			projectName,
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"dbt_project_subdirectory",
+			"/project/subdirectory_where/dbt-is",
+		),
+	),
+}
+
 func TestAccDbtCloudProjectResource(t *testing.T) {
-	projectName := "testproject1"
-	projectDescription := "testprojectdescription"
-	projectName2 := "testproject2"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudProjectDestroy,
 		Steps: []resource.TestStep{
-			// Initial creation
-			{
-				Config: testAccDbtCloudProjectResourceBasicConfig(projectName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_project.test_project",
-						"name",
-						projectName,
-					),
-				),
-			},
-			// RENAME
-			{
-				Config: testAccDbtCloudProjectResourceBasicConfig(projectName2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_project.test_project",
-						"name",
-						projectName2,
-					),
-				),
-			},
-			// MODIFY
-			{
-				Config: testAccDbtCloudProjectResourceFullConfig(projectName, projectDescription),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_project.test_project",
-						"name",
-						projectName,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_project.test_project",
-						"dbt_project_subdirectory",
-						"/project/subdirectory_where/dbt-is",
-					),
-				),
-			},
-			// IMPORT
+			createStep,
+			renameStep,
+			modifyStep,
 			{
 				ResourceName:            "dbtcloud_project.test_project",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{},
 			},
+		},
+	})
+}
+
+func TestConfDbtCloudProjectResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudProjectDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(createStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(createStep),
+		},
+	})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudProjectDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(renameStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(renameStep),
+		},
+	})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudProjectDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(modifyStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyStep),
 		},
 	})
 }
