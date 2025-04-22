@@ -132,7 +132,13 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	runCompareChanges := plan.RunCompareChanges.ValueBool()
 	runLint := plan.RunLint.ValueBool()
 	errorsOnLintFailure := plan.ErrorsOnLintFailure.ValueBool()
-	jobType := plan.JobType.ValueString()
+	
+	// Set a default job_type if not specified
+	jobType := "other"
+	if !plan.JobType.IsNull() {
+		jobType = plan.JobType.ValueString()
+	}
+	
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
 	createDbtVersion := ""
@@ -187,7 +193,10 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	if createdJob != nil && createdJob.ID != nil {
 		plan.ID = types.Int64Value(int64(*createdJob.ID))
-		plan.JobId= types.Int64Value(int64(*createdJob.ID))
+		plan.JobId = types.Int64Value(int64(*createdJob.ID))
+		
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		return
 	} else {
 		resp.Diagnostics.AddError(
 			"Error creating job",
@@ -195,8 +204,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		)
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -261,7 +268,11 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.Name = types.StringValue(retrievedJob.Name)
 	state.Description = types.StringValue(retrievedJob.Description)
 	state.ExecuteSteps = helper.SliceStringToSliceTypesString(retrievedJob.ExecuteSteps)
-	state.DbtVersion = types.StringValue(*retrievedJob.DbtVersion)
+	if retrievedJob.DbtVersion != nil {
+		state.DbtVersion = types.StringValue(*retrievedJob.DbtVersion)
+	} else {
+		state.DbtVersion = types.StringValue("")
+	}
 	state.IsActive = types.BoolValue(retrievedJob.State == 1)
 	state.NumThreads = types.Int64Value(int64(retrievedJob.Settings.Threads))
 	state.TargetName = types.StringValue(retrievedJob.Settings.TargetName)
@@ -278,24 +289,43 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if retrievedJob.Schedule.Time.Hours != nil {
 		state.ScheduleHours = helper.SliceIntToSliceTypesInt64(*retrievedJob.Schedule.Time.Hours)
 	} else {
-		state.ScheduleHours = []types.Int64{}
+		var scheduleHoursNull []types.Int64
+		state.ScheduleHours = scheduleHoursNull
 	}
 	
 	if retrievedJob.Schedule.Date.Days != nil {
 		state.ScheduleDays = helper.SliceIntToSliceTypesInt64(*retrievedJob.Schedule.Date.Days)
 	} else {
-		state.ScheduleDays = []types.Int64{}
+		var scheduleDaysNull []types.Int64
+		state.ScheduleDays = scheduleDaysNull
 	}
-	state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
+	
+	if retrievedJob.Schedule.Date.Cron != nil {
+		state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
+	} else {
+		state.ScheduleCron = types.StringValue("")
+	}
 
+	// Check if the job is self-deferring
 	selfDeferring := retrievedJob.DeferringJobId != nil && strconv.Itoa(*retrievedJob.DeferringJobId) == jobIDStr
-	state.SelfDeferring = types.BoolValue(selfDeferring)
-
-	if !selfDeferring {
-		state.DeferringJobId = types.Int64Value(int64(*retrievedJob.DeferringJobId))
+	
+	// Only set self_deferring to null if it was null in the state, otherwise keep the value
+	if !state.SelfDeferring.IsNull() {
+		state.SelfDeferring = types.BoolValue(selfDeferring)
 	}
 
-	state.DeferringEnvironmentID = types.Int64Value(int64(*retrievedJob.DeferringEnvironmentId))
+	if !selfDeferring && retrievedJob.DeferringJobId != nil {
+		state.DeferringJobId = types.Int64Value(int64(*retrievedJob.DeferringJobId))
+	} else {
+		state.DeferringJobId = types.Int64Null()
+	}
+
+	if retrievedJob.DeferringEnvironmentId != nil {
+		state.DeferringEnvironmentID = types.Int64Value(int64(*retrievedJob.DeferringEnvironmentId))
+	} else {
+		state.DeferringEnvironmentID = types.Int64Null()
+	}
+
 	state.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
 
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
@@ -347,7 +377,32 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
-	state.JobType = types.StringValue(retrievedJob.JobType)
+	
+	// Only set job_type if it's non-empty from the API, otherwise preserve the existing value
+	if retrievedJob.JobType != "" {
+		state.JobType = types.StringValue(retrievedJob.JobType)
+	} else if state.JobType.IsNull() {
+		// Default to "other" if not set
+		state.JobType = types.StringValue("other")
+	}
+
+	if retrievedJob.JobCompletionTrigger != nil {
+		statusesStr := make([]types.String, 0)
+		for _, status := range retrievedJob.JobCompletionTrigger.Condition.Statuses {
+			statusStr := utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string)
+			statusesStr = append(statusesStr, types.StringValue(statusStr))
+		}
+		
+		state.JobCompletionTriggerCondition = &JobCompletionTrigger{
+			Condition: JobCompletionTriggerCondition{
+				JobID:     types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.JobID)),
+				ProjectID: types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.ProjectID)),
+				Statuses:  statusesStr,
+			},
+		}
+	} else {
+		state.JobCompletionTriggerCondition = nil
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
