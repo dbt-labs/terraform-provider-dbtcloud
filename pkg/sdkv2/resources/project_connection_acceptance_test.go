@@ -67,7 +67,7 @@ resource "dbtcloud_global_connection" "test_connection" {
 
 resource "dbtcloud_project_connection" "test_project_connection" {
   project_id = dbtcloud_project.test_project.id
-  connection_id = dbtcloud_connection.test_connection.connection_id
+  connection_id = dbtcloud_global_connection.test_connection.connection_id
 }
 `, projectName, connectionName)
 }
