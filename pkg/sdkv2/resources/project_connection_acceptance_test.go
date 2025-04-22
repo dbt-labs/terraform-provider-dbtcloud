@@ -53,16 +53,16 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_connection" "test_connection" {
+resource "dbtcloud_global_connection" "test_connection" {
   name        = "%s"
-  type = "snowflake"
-  project_id = dbtcloud_project.test_project.id
-  account = "test"
-  database = "db"
-  warehouse = "wh"
-  role = "user"
-  allow_sso = false
-  allow_keep_alive = false
+  snowflake  = {  
+    account    = "test"
+    database   = "db"
+    role       = "user"
+    warehouse  = "wh"
+	allow_sso = false
+  	allow_keep_alive = false
+  }
 }
 
 resource "dbtcloud_project_connection" "test_project_connection" {
