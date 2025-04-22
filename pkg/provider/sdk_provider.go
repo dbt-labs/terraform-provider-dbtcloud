@@ -46,7 +46,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_project":            resources.ResourceProject(),
 				"dbtcloud_project_connection": resources.ResourceProjectConnection(),
 				"dbtcloud_connection":         resources.ResourceConnection(),
-				"dbtcloud_fabric_connection":  resources.ResourceFabricConnection(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}
