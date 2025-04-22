@@ -183,17 +183,8 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_fabric_connection" "fabric" {
-	project_id = dbtcloud_project.test_project.id
-	name = "Fabric"
-	database = "testdb"
-	server = "example.com"
-	port = 1234
-}
-
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
     schema = "my_schema"
     user = "%s"
     password = "%s"
@@ -210,17 +201,8 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_fabric_connection" "fabric" {
-	project_id = dbtcloud_project.test_project.id
-	name = "Fabric"
-	database = "testdb"
-	server = "example.com"
-	port = 1234
-}
-
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
     schema = "my_schema_new"
     client_id = "%s"
     tenant_id = "%s"
