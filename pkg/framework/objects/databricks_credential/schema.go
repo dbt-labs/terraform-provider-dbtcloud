@@ -21,18 +21,10 @@ var dataSourceSchema = datasource_schema.Schema{
 		"project_id": datasource_schema.Int64Attribute{
 			Description: "Project ID",
 			Required:    true,
-		},		
+		},
 		"credential_id": datasource_schema.Int64Attribute{
 			Description: "Credential ID",
 			Required:    true,
-		},
-		"adapter_id": datasource_schema.Int64Attribute{
-			Description: "Databricks adapter ID for the credential",
-			Computed:    true,
-		},
-		"target_name": datasource_schema.StringAttribute{
-			Description: "Target name",
-			Computed:    true,
 		},
 		"num_threads": datasource_schema.Int64Attribute{
 			Description: "The number of threads to use",
@@ -71,21 +63,7 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.UseStateForUnknown(),
-			},	
-		},
-		"adapter_id": resource_schema.Int64Attribute{
-			Description: "Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection')",
-			Optional:    true,
-			PlanModifiers: []planmodifier.Int64{
-				int64planmodifier.RequiresReplace(),
 			},
-		},
-		"target_name": resource_schema.StringAttribute{
-			Description: "Target name",
-			Optional:    true,
-			Computed:    true,
-			Default:    stringdefault.StaticString("default"),
-			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
 		"token": resource_schema.StringAttribute{
 			Description: "Token for Databricks user",
@@ -103,8 +81,8 @@ var resourceSchema = resource_schema.Schema{
 			Required:    true,
 		},
 		"adapter_type": resource_schema.StringAttribute{
-			Description:  "The type of the adapter (databricks or spark)",
-			Required:     true,
+			Description: "The type of the adapter (databricks or spark)",
+			Required:    true,
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},

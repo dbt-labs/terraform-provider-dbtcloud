@@ -20,7 +20,6 @@ type RepositoryDataSourceModel struct {
 	AzureActiveDirectoryProjectID         types.String `tfsdk:"azure_active_directory_project_id"`
 	AzureActiveDirectoryRepositoryID      types.String `tfsdk:"azure_active_directory_repository_id"`
 	AzureBypassWebhookRegistrationFailure types.Bool   `tfsdk:"azure_bypass_webhook_registration_failure"`
-	FetchDeployKey                        types.Bool   `tfsdk:"fetch_deploy_key"`
 }
 
 // RepositoryResourceModel represents the resource model for repositories
@@ -39,5 +38,4 @@ type RepositoryResourceModel struct {
 	AzureActiveDirectoryProjectID         types.String `tfsdk:"azure_active_directory_project_id"`
 	AzureActiveDirectoryRepositoryID      types.String `tfsdk:"azure_active_directory_repository_id"`
 	AzureBypassWebhookRegistrationFailure types.Bool   `tfsdk:"azure_bypass_webhook_registration_failure"`
-	FetchDeployKey                        types.Bool   `tfsdk:"fetch_deploy_key"`
 }

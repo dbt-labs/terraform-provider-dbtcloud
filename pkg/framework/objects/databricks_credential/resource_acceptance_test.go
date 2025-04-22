@@ -6,104 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-
-func TestConformanceBasicConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, targetName, token), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, targetName, token)),
-		},
-	})
-}
-
-func TestConformanceModifyConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, targetName, targetName2, token, token2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, targetName, targetName2, token, token2)),
-		},
-	})
-}
-
-
-func TestAccDbtCloudDatabricksCredentialResourceLegacy(t *testing.T) {
-
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	var basicConfigTestStep = getBasicConfigTestStep(projectName, targetName, token)
-	var modifyConfigTestStep = getModifyConfigTestStep(projectName, targetName, targetName2, token, token2)
-	
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
-		Steps: []resource.TestStep{
-			basicConfigTestStep,
-			modifyConfigTestStep,	
-			{
-				ResourceName:            "dbtcloud_databricks_credential.test_credential",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"token", "adapter_type"},
-			},
-		},
-	})
-}
-
-func testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
-	projectName, targetName, token string,
-) string {
-	return fmt.Sprintf(`
-resource "dbtcloud_project" "test_project" {
-  name        = "%s"
-}
-resource "dbtcloud_connection" "databricks" {
-	project_id = dbtcloud_project.test_project.id
-	type       = "adapter"
-	name       = "Databricks"
-	database   = ""
-	host_name  = "databricks.com"
-	http_path  = "/my/path"
-	catalog    = "moo"
-  }
-
-resource "dbtcloud_databricks_credential" "test_credential" {
-	project_id = dbtcloud_project.test_project.id
-	adapter_id = dbtcloud_connection.databricks.adapter_id
-	target_name = "%s"
-	token = "%s"
-	schema = "my_schema"
-	adapter_type = "databricks"
-}
-`, projectName, targetName, token)
-}
 
 func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 
@@ -170,34 +78,12 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 }
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
-	projectName, targetName, token string,
+	projectName, catalogName, token string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
-
-resource "dbtcloud_global_connection" "databricks" {
-  name = "My Databricks connection"
-  databricks = {
-    host      = "my-databricks-host.cloud.databricks.com"
-    http_path = "/sql/my/http/path"
-    catalog       = "dbt_catalog"
-    client_id     = "yourclientid"
-    client_secret = "yourclientsecret"
-  }
-}
-
-resource "dbtcloud_environment" "prod_environment" {
-  dbt_version     = "versionless"
-  name            = "Prod"
-  project_id      = dbtcloud_project.test_project.id
-  connection_id   = dbtcloud_global_connection.databricks.id
-  type            = "deployment"
-  credential_id   = dbtcloud_databricks_credential.test_credential.credential_id
-  deployment_type = "production"
-}
-
 
 resource "dbtcloud_databricks_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
@@ -206,7 +92,7 @@ resource "dbtcloud_databricks_credential" "test_credential" {
     schema  = "my_schema"
 	adapter_type = "databricks"
 }
-`, projectName, targetName, token)
+`, projectName, catalogName, token)
 }
 
 func testAccCheckDbtCloudDatabricksCredentialExists(resource string) resource.TestCheckFunc {
@@ -268,50 +154,4 @@ func testAccCheckDbtCloudDatabricksCredentialDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-
-func getBasicConfigTestStep(projectName, targetName, token string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
-			projectName,
-			targetName,
-			token,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudDatabricksCredentialExists(
-				"dbtcloud_databricks_credential.test_credential",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"target_name",
-				targetName,
-			),
-		),
-	}
-}
-
-func getModifyConfigTestStep(projectName, targetName, targetName2, token, token2 string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
-			projectName,
-			targetName2,
-			token2,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudDatabricksCredentialExists(
-				"dbtcloud_databricks_credential.test_credential",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"target_name",
-				targetName2,
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"token",
-				token2,
-			),
-		),
-	}
 }

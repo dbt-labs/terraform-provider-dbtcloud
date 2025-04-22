@@ -35,7 +35,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
@@ -247,7 +246,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		oauth_configuration.OAuthConfigurationResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
-		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,

@@ -43,5 +43,4 @@ data "dbtcloud_privatelink_endpoint" "test_with_name_and_url" {
 
 - `cidr_range` (String) The CIDR range of the PrivateLink Endpoint
 - `id` (String) The internal ID of the PrivateLink Endpoint
-- `state` (Number, Deprecated) PrivatelinkEndpoint state should be 1 = active, as 2 = deleted
 - `type` (String) Type of the PrivateLink Endpoint
