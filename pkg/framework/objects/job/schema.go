@@ -322,11 +322,11 @@ func (j *jobResource) Schema(
 	resp.Schema = resource_schema.Schema{
 		Description: "Managed a dbt Cloud job.",
 		Attributes: map[string]resource_schema.Attribute{
-			"id": resource_schema.StringAttribute{
+			"id": resource_schema.Int64Attribute{
 				Computed:    true,
 				Description: "The ID of this resource",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
 				},
 			},
 			// "execution": resource_schema.SingleNestedAttribute{
@@ -434,6 +434,9 @@ func (j *jobResource) Schema(
 			"job_id": resource_schema.Int64Attribute{
 				Computed:    true,
 				Description: "Job identifier",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"project_id": resource_schema.Int64Attribute{
 				Required:    true,
@@ -557,7 +560,7 @@ func (j *jobResource) Schema(
 			},
 			"self_deferring": resource_schema.BoolAttribute{
 				Optional:    true,
-				Description:" Whether this job defers on a previous run of itself",
+				Description: " Whether this job defers on a previous run of itself",
 				Validators: []validator.Bool{
 					boolvalidator.ConflictsWith(
 						path.MatchRoot("deferring_job_id"),
@@ -566,7 +569,7 @@ func (j *jobResource) Schema(
 			},
 			"triggers_on_draft_pr": resource_schema.BoolAttribute{
 				Optional:    true,
-				Computed: true,
+				Computed:    true,
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether the CI job should be automatically triggered on draft PRs",
 			},
@@ -604,6 +607,7 @@ func (j *jobResource) Schema(
 			"job_type": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     stringdefault.StaticString("other"),
 				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
