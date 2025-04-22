@@ -4,7 +4,7 @@ subcategory: ""
 description: |-
   This resource can be used to create global connections as introduced in dbt Cloud in August 2024.
   Those connections are not linked to a specific project and can be linked to environments from different projects by using the connection_id field in the dbtcloud_environment resource.
-  All connections types are supported, and the old resources dbtcloud_connection, dbtcloud_bigquery_connection and dbtcloud_fabric_connection are now flagged as deprecated and will be removed from the next major version of the provider.
+  All connections types are supported, and the old resources dbtcloud_connection, are now flagged as deprecated and will be removed from the next major version of the provider.
 ---
 
 # dbtcloud_global_connection (Resource)
@@ -14,7 +14,7 @@ This resource can be used to create global connections as introduced in dbt Clou
 
 Those connections are not linked to a specific project and can be linked to environments from different projects by using the `connection_id` field in the `dbtcloud_environment` resource.
 
-All connections types are supported, and the old resources `dbtcloud_connection`, `dbtcloud_bigquery_connection` and `dbtcloud_fabric_connection` are now flagged as deprecated and will be removed from the next major version of the provider.
+All connections types are supported, and the old resources `dbtcloud_connection`, are now flagged as deprecated and will be removed from the next major version of the provider.
 
 ## Example Usage
 
