@@ -41,7 +41,6 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_group_users": data_sources.DatasourceGroupUsers(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"dbtcloud_job":                resources.ResourceJob(),
 				"dbtcloud_project":            resources.ResourceProject(),
 				"dbtcloud_project_connection": resources.ResourceProjectConnection(),
 				"dbtcloud_connection":         resources.ResourceConnection(),

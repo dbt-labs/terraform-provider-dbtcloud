@@ -60,7 +60,6 @@ func (r *groupResource) Read(
 	}
 
 	state.ID = types.Int64Value(int64(*retrievedGroup.ID))
-	state.ID = types.Int64Value(int64(*retrievedGroup.ID))
 	state.Name = types.StringValue(retrievedGroup.Name)
 	state.AssignByDefault = types.BoolValue(retrievedGroup.AssignByDefault)
 

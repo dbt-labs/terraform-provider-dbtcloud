@@ -53,6 +53,14 @@ func SliceStringToSliceTypesString(input []string) []types.String {
 	return result
 }
 
+func SliceIntToSliceTypesInt64(input []int) []types.Int64 {
+	result := make([]types.Int64, len(input))
+	for i, v := range input {
+		result[i] = types.Int64Value(int64(v))
+	}
+	return result
+}
+
 // TF types to API data types
 func Int64SetToIntSlice(set types.Set) []int {
 	elements := set.Elements()
