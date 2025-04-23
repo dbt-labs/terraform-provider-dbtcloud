@@ -199,6 +199,12 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 		updateProject.DbtProjectSubdirectory = &dbtProjectSubdir
 	}
 
+	// When updating a project, the connection ID should always be excluded.
+	// With the introduction of global connections, if a connection ID is passed in this update request,
+	// the connection ID will be cascaded to all environments in the project and will override any
+	// existing connection IDs on those environments.
+	updateProject.ConnectionID = nil
+
 	// Perform the update
 	project, err := r.client.UpdateProject(projectIDString, *updateProject)
 	if err != nil {
