@@ -236,14 +236,13 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	if createdJob != nil && createdJob.ID != nil {
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(*createdJob.ID))...)
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), int64(*createdJob.ID))...)
-		
-		readResp := resource.ReadResponse{State: resp.State}
-		j.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+		plan.ID = types.Int64Value(int64(*createdJob.ID))
+		plan.JobId = types.Int64Value(int64(*createdJob.ID))
 
-		resp.Diagnostics.Append(readResp.Diagnostics...)
-		
+		// todo add other computed fields here
+
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 		return
 	} else {
 		resp.Diagnostics.AddError(
@@ -596,11 +595,10 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	// Create a new response to capture the Read method's diagnosticsdd
-	readResp := resource.ReadResponse{State: resp.State}
-	j.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
-
-	// Append any diagnostics from the Read call
-	resp.Diagnostics.Append(readResp.Diagnostics...)
+	// todo add other computed fields here
+	diags := resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
