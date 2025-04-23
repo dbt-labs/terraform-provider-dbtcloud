@@ -235,11 +235,9 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	// Set the returned values in state
+	state.Catalog = types.StringValue(credential.UnencryptedCredentialDetails.Catalog)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
-
-	// Keep existing values for fields not returned by the API
-	// These include token and adapter_type which need to be preserved
+	state.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
