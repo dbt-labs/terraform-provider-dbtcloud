@@ -16,11 +16,11 @@ import (
 func TestAccDbtCloudJobResource(t *testing.T) {
 
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	// jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	// for deferral
 	// jobName3 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	// for job chaining
-	// jobName4 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobName4 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -58,86 +58,86 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
 				),
 			},
-			// // RENAME
-			// {
-			// 	Config: testAccDbtCloudJobResourceBasicConfig(
-			// 		jobName2,
-			// 		projectName,
-			// 		environmentName,
-			// 	),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			// 		resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-			// 	),
-			// },
-			// // MODIFY
-			// {
-			// 	Config: testAccDbtCloudJobResourceFullConfig(
-			// 		jobName2,
-			// 		projectName,
-			// 		environmentName,
-			// 	),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			// 		// resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
-			// 		// resource.TestCheckResourceAttr(
-			// 		// 	"dbtcloud_job.test_job",
-			// 		// 	"dbt_version",
-			// 		// 	acctest_config.DBT_CLOUD_VERSION,
-			// 		// ),
-			// 		// resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-			// 		// resource.TestCheckResourceAttr(
-			// 		// 	"dbtcloud_job.test_job",
-			// 		// 	"timeout_seconds",
-			// 		// 	"180",
-			// 		// ),
-			// 		// resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
-			// 		// resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
-			// 		// resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
-			// 		// resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-			// 		// resource.TestCheckResourceAttrSet(
-			// 		// 	"dbtcloud_job.test_job",
-			// 		// 	"run_generate_sources",
-			// 		// ),
-			// 		// resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
-			// 	),
-			// },
-			// // JOB CHAINING
-			// {
-			// 	Config: testAccDbtCloudJobResourceJobChaining(
-			// 		jobName2,
-			// 		projectName,
-			// 		environmentName,
-			// 		jobName4,
-			// 	),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			// 		testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
-			// 		resource.TestCheckResourceAttr(
-			// 			"dbtcloud_job.test_job_4",
-			// 			"job_completion_trigger_condition.#",
-			// 			"1",
-			// 		),
-			// 		resource.TestCheckResourceAttrSet(
-			// 			"dbtcloud_job.test_job_4",
-			// 			"job_completion_trigger_condition.0.job_id",
-			// 		),
-			// 		resource.TestCheckResourceAttrSet(
-			// 			"dbtcloud_job.test_job_4",
-			// 			"job_completion_trigger_condition.0.project_id",
-			// 		),
-			// 		resource.TestCheckTypeSetElemAttr(
-			// 			"dbtcloud_job.test_job_4",
-			// 			"job_completion_trigger_condition.0.statuses.*",
-			// 			"error",
-			// 		),
-			// 		resource.TestCheckTypeSetElemAttr(
-			// 			"dbtcloud_job.test_job_4",
-			// 			"job_completion_trigger_condition.0.statuses.*",
-			// 			"success",
-			// 		),
-			// 	),
-			// },
+			// RENAME
+			{
+				Config: testAccDbtCloudJobResourceBasicConfig(
+					jobName2,
+					projectName,
+					environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+				),
+			},
+			// MODIFY
+			{
+				Config: testAccDbtCloudJobResourceFullConfig(
+					jobName2,
+					projectName,
+					environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName2),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"dbt_version",
+						acctest_config.DBT_CLOUD_VERSION,
+					),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job",
+						"timeout_seconds",
+						"180",
+					),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_job.test_job",
+						"run_generate_sources",
+					),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
+				),
+			},
+			// JOB CHAINING
+			{
+				Config: testAccDbtCloudJobResourceJobChaining(
+					jobName2,
+					projectName,
+					environmentName,
+					jobName4,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					// testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
+					// resource.TestCheckResourceAttr(
+					// 	"dbtcloud_job.test_job_4",
+					// 	"job_completion_trigger_condition.#",
+					// 	"1",
+					// ),
+					// resource.TestCheckResourceAttrSet(
+					// 	"dbtcloud_job.test_job_4",
+					// 	"job_completion_trigger_condition.0.job_id",
+					// ),
+					// resource.TestCheckResourceAttrSet(
+					// 	"dbtcloud_job.test_job_4",
+					// 	"job_completion_trigger_condition.0.project_id",
+					// ),
+					// resource.TestCheckTypeSetElemAttr(
+					// 	"dbtcloud_job.test_job_4",
+					// 	"job_completion_trigger_condition.0.statuses.*",
+					// 	"error",
+					// ),
+					// resource.TestCheckTypeSetElemAttr(
+					// 	"dbtcloud_job.test_job_4",
+					// 	"job_completion_trigger_condition.0.statuses.*",
+					// 	"success",
+					// ),
+				),
+			},
 			// // DEFERRING JOBS (depends on whether DBT_LEGACY_JOB_DEFERRAL is set, e.g. whether the new CI is set)
 			// {
 			// 	Config: configDeferral,
@@ -840,7 +840,6 @@ resource "dbtcloud_job" "test_job" {
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
 }
-
 // code below is the one with added comformance tests vvvvvvvvvvvvvvvvvv
 // import (
 // 	"fmt"
@@ -1711,3 +1710,4 @@ resource "dbtcloud_job" "test_job" {
 // // }
 // // `, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 // // }
+

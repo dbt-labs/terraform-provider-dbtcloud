@@ -118,7 +118,7 @@ type JobResourceModel struct {
 	JobType           types.String `tfsdk:"job_type"`             // exists
 	TriggersOnDraftPr types.Bool   `tfsdk:"triggers_on_draft_pr"` // exists
 	// Environment                   *JobEnvironment       `tfsdk:"environment"`
-	JobCompletionTriggerCondition *JobCompletionTrigger `tfsdk:"job_completion_trigger_condition"` // exists
+	JobCompletionTriggerCondition []*JobCompletionTriggerCondition `tfsdk:"job_completion_trigger_condition"` // exists
 	RunCompareChanges             types.Bool            `tfsdk:"run_compare_changes"`              // exists
 	IsActive                      types.Bool            `tfsdk:"is_active"`
 	TargetName                    types.String          `tfsdk:"target_name"` // add deprecated

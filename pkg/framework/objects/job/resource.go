@@ -176,8 +176,9 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
 	var jobCompletionTriggerCondition map[string]any
-	if plan.JobCompletionTriggerCondition != nil {
-		condition := plan.JobCompletionTriggerCondition.Condition
+
+	if len(plan.JobCompletionTriggerCondition) != 0 {
+		condition := plan.JobCompletionTriggerCondition[0]
 		statuses := make([]int, len(condition.Statuses))
 		for i, status := range condition.Statuses {
 			statuses[i] = utils.JobCompletionTriggerConditionsMappingHumanCode[status.ValueString()]
@@ -419,7 +420,6 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	state.TriggersOnDraftPr = types.BoolValue(retrievedJob.TriggersOnDraftPR)
-	// TODO look over this logic
 	if retrievedJob.JobCompletionTrigger != nil {
 		statusesStr := make([]types.String, 0)
 		for _, status := range retrievedJob.JobCompletionTrigger.Condition.Statuses {
@@ -427,8 +427,8 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 			statusesStr = append(statusesStr, types.StringValue(statusStr))
 		}
 
-		state.JobCompletionTriggerCondition = &JobCompletionTrigger{
-			Condition: JobCompletionTriggerCondition{
+		state.JobCompletionTriggerCondition = []*JobCompletionTriggerCondition{
+			{
 				JobID:     types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.JobID)),
 				ProjectID: types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.ProjectID)),
 				Statuses:  statusesStr,
@@ -580,10 +580,10 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
 	
-	if plan.JobCompletionTriggerCondition == nil {
+	if len(plan.JobCompletionTriggerCondition) == 0 {
 		job.JobCompletionTrigger = nil
 	} else {
-		condition := plan.JobCompletionTriggerCondition.Condition
+		condition := plan.JobCompletionTriggerCondition[0]
 		statuses := make([]int, len(condition.Statuses))
 		for i, status := range condition.Statuses {
 			statuses[i] = utils.JobCompletionTriggerConditionsMappingHumanCode[status.ValueString()]
