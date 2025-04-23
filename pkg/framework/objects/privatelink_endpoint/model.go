@@ -5,11 +5,9 @@ import (
 )
 
 type PrivatelinkEndpointDataSourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	ProjectID     types.Int64  `tfsdk:"project_id"`
-	CredentialID  types.Int64  `tfsdk:"credential_id"`
-	IsActive      types.Bool   `tfsdk:"is_active"`
-	DefaultSchema types.String `tfsdk:"default_schema"`
-	Username      types.String `tfsdk:"username"`
-	NumThreads    types.Int64  `tfsdk:"num_threads"`
+	ID                      types.String `tfsdk:"id"`
+	Name                    types.String `tfsdk:"name"`
+	PrivatelinkEndpointType types.String `tfsdk:"type"`
+	PrivatelinkEndpointURL  types.String `tfsdk:"private_link_endpoint_url"`
+	CIDRRange               types.String `tfsdk:"cidr_range"`
 }

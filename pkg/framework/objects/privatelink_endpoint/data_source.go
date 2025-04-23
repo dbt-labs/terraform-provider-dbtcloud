@@ -51,25 +51,23 @@ func (p *privatelinkEndpointDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	projectId := int(state.ProjectID.ValueInt64())
-	credentialId := int(state.CredentialID.ValueInt64())
+	endpointName := state.Name.ValueString()
+	endpointURL := state.PrivatelinkEndpointURL.ValueString()
 
-	credential, err := p.client.GetPostgresCredential(projectId, credentialId)
+	privatelinkEndpoint, err := p.client.GetPrivatelinkEndpoint(endpointName, endpointURL)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error reading Postgres credential",
-			"Could not read Postgres credential ID "+state.ID.ValueString()+": "+err.Error(),
+			"Error reading Privatelink Endpoint",
+			"Could not read Privatelink Endpoint "+state.ID.ValueString()+": "+err.Error(),
 		)
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%d%s%d", credential.Project_Id, dbt_cloud.ID_DELIMITER, *credential.ID))
-	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-	state.CredentialID = types.Int64Value(int64(*credential.ID))
-	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
-	state.DefaultSchema = types.StringValue(credential.Default_Schema)
-	state.Username = types.StringValue(credential.Username)
-	state.NumThreads = types.Int64Value(int64(credential.Threads))
+	state.ID = types.StringValue(privatelinkEndpoint.ID)
+	state.Name = types.StringValue(privatelinkEndpoint.Name)
+	state.PrivatelinkEndpointType = types.StringValue(privatelinkEndpoint.Type)
+	state.PrivatelinkEndpointURL = types.StringValue(privatelinkEndpoint.PrivatelinkEndpointURL)
+	state.CIDRRange = types.StringValue(privatelinkEndpoint.CIDRRange)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

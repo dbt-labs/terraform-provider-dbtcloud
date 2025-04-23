@@ -9,31 +9,24 @@ var datasourceSchema = datasource_schema.Schema{
 	Attributes: map[string]datasource_schema.Attribute{
 		"id": datasource_schema.StringAttribute{
 			Computed:    true,
-			Description: "The ID of this data source. Contains the project ID and the credential ID.",
+			Description: "The internal ID of the PrivateLink Endpoint",
 		},
-		"project_id": datasource_schema.Int64Attribute{
-			Required:    true,
-			Description: "Project ID",
+		"name": datasource_schema.StringAttribute{
+			Optional:    true,
+			Description: "Given descriptive name for the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)",
 		},
-		"credential_id": datasource_schema.Int64Attribute{
-			Required:    true,
-			Description: "Credential ID",
-		},
-		"is_active": datasource_schema.BoolAttribute{
+		"type": datasource_schema.StringAttribute{
+			Optional:    true,
 			Computed:    true,
-			Description: "Whether the Postgres credential is active",
+			Description: "Type of the PrivateLink Endpoint",
 		},
-		"default_schema": datasource_schema.StringAttribute{
-			Computed:    true,
-			Description: "Default schema name",
+		"private_link_endpoint_url": datasource_schema.StringAttribute{
+			Optional:    true,
+			Description: "URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)",
 		},
-		"username": datasource_schema.StringAttribute{
+		"cidr_range": datasource_schema.StringAttribute{
 			Computed:    true,
-			Description: "Username for Postgres",
-		},
-		"num_threads": datasource_schema.Int64Attribute{
-			Computed:    true,
-			Description: "Number of threads to use",
+			Description: "CIDR range of the PrivateLink Endpoint",
 		},
 	},
 }
