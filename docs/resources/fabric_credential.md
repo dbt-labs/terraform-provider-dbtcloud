@@ -40,7 +40,7 @@ resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ" {
 
 ### Required
 
-- `adapter_id` (Number) Fabric adapter ID for the credential
+- `adapter_type` (String) The type of the adapter (fabric)
 - `project_id` (Number) Project ID to create the Fabric credential in
 - `schema` (String) The schema where to create the dbt models
 
