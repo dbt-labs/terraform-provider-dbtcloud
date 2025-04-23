@@ -560,6 +560,7 @@ func (j *jobResource) Schema(
 			},
 			"self_deferring": resource_schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: " Whether this job defers on a previous run of itself",
 				Validators: []validator.Bool{
 					boolvalidator.ConflictsWith(

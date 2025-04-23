@@ -27,8 +27,8 @@ type jobResource struct {
 }
 
 func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	// Don't do anything on resource creation
-	if req.State.Raw.IsNull() {
+	// Don't do anything on resource creation or deletion
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
 	}
 
@@ -37,6 +37,11 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Skip checks if necessary fields are null
+	if plan.Triggers == nil || state.Triggers == nil {
 		return
 	}
 
@@ -235,20 +240,22 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	if createdJob != nil && createdJob.ID != nil {
 		plan.ID = types.Int64Value(int64(*createdJob.ID))
 		plan.JobId = types.Int64Value(int64(*createdJob.ID))
 
-		// todo add other computed fields here
-
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-		return
+	if createdJob.JobType != "" {
+		plan.JobType = types.StringValue(createdJob.JobType)
 	} else {
-		resp.Diagnostics.AddError(
-			"Error creating job",
-			"Created job or its ID is unexpectedly nil",
-		)
+		plan.JobType = types.StringNull()
+	}
+	
+	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
+	createdSelfDeferring := createdJob.DeferringJobId != nil && strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
+	plan.SelfDeferring = types.BoolValue(createdSelfDeferring)
+	
+	diags := resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 }
@@ -260,6 +267,12 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
+	// Ensure ID is not null before accessing
+	if state.ID.IsNull() {
+		resp.Diagnostics.AddError("Client Error", "Job ID is null")
+		return
+	}
+
 	jobID := state.ID.ValueInt64()
 	jobIDStr := strconv.FormatInt(jobID, 10)
 
@@ -268,14 +281,14 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			return
 		}
-		resp.Diagnostics.AddError("Client Error", "Unable to retrieve job before deletion")
+		resp.Diagnostics.AddError("Client Error", "Unable to retrieve job before deletion: "+err.Error())
 		return
 	}
 
 	job.State = dbt_cloud.STATE_DELETED
 	_, err = j.client.UpdateJob(jobIDStr, *job)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to delete job")
+		resp.Diagnostics.AddError("Client Error", "Unable to delete job: "+err.Error())
 		return
 	}
 }
@@ -436,6 +449,10 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.JobType = types.StringNull()
 	}
 
+	if state.SelfDeferring.IsNull() {
+		state.SelfDeferring = types.BoolValue(selfDeferring)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -586,7 +603,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
-	_, err = j.client.UpdateJob(jobIDStr, *job)
+	updatedJob, err := j.client.UpdateJob(jobIDStr, *job)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating job",
@@ -595,7 +612,16 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	// todo add other computed fields here
+	if updatedJob.JobType != "" {
+		plan.JobType = types.StringValue(updatedJob.JobType)
+	} else {
+		plan.JobType = types.StringNull()
+	}
+	
+	updatedJobIDStr := strconv.FormatInt(jobID, 10)
+	updatedSelfDeferring := updatedJob.DeferringJobId != nil && strconv.Itoa(*updatedJob.DeferringJobId) == updatedJobIDStr
+	plan.SelfDeferring = types.BoolValue(updatedSelfDeferring)
+	
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
