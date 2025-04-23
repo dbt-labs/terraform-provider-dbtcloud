@@ -124,7 +124,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
-- `job_completion_trigger_condition` (Attributes Set) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedatt--job_completion_trigger_condition))
+- `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `job_type` (String) Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured
 - `num_threads` (Number) Number of threads to use in the job
 - `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
@@ -142,7 +142,7 @@ resource "dbtcloud_job" "downstream_job" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource
+- `id` (Number) The ID of this resource
 - `job_id` (Number) Job identifier
 
 <a id="nestedatt--triggers"></a>
@@ -156,7 +156,7 @@ Optional:
 - `schedule` (Boolean) Whether the job runs on a schedule
 
 
-<a id="nestedatt--job_completion_trigger_condition"></a>
+<a id="nestedblock--job_completion_trigger_condition"></a>
 ### Nested Schema for `job_completion_trigger_condition`
 
 Required:
