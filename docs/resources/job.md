@@ -2,7 +2,7 @@
 page_title: "dbtcloud_job Resource - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Managed a dbt Cloud job.
 ---
 
 # dbtcloud_job (Resource)
@@ -112,7 +112,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `execute_steps` (List of String) List of commands to execute for the job
 - `name` (String) Job name
 - `project_id` (Number) Project ID to create the job in
-- `triggers` (Map of Boolean) Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `on_merge`. All flags should be listed and set with `true` or `false`. When `on_merge` is `true`, all the other values must be false.<br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`.
+- `triggers` (Attributes) Flags for which types of triggers to use, the values are `github_webhook`, `git_provider_webhook`, `schedule` and `on_merge`. All flags should be listed and set with `true` or `false`. When `on_merge` is `true`, all the other values must be false.<br>`custom_branch_only` used to be allowed but has been deprecated from the API. The jobs will use the custom branch of the environment. Please remove the `custom_branch_only` from your config. <br>To create a job in a 'deactivated' state, set all to `false`. (see [below for nested schema](#nestedatt--triggers))
 
 ### Optional
 
@@ -124,7 +124,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
-- `job_completion_trigger_condition` (Block Set, Max: 1) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
+- `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `job_type` (String) Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured
 - `num_threads` (Number) Number of threads to use in the job
 - `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
@@ -137,12 +137,24 @@ resource "dbtcloud_job" "downstream_job" {
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
-- `timeout_seconds` (Number) Number of seconds to allow the job to run before timing out
+- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (Number) The ID of this resource
+- `job_id` (Number) Job identifier
+
+<a id="nestedatt--triggers"></a>
+### Nested Schema for `triggers`
+
+Optional:
+
+- `git_provider_webhook` (Boolean) Whether the job runs automatically on PR creation
+- `github_webhook` (Boolean) Whether the job runs automatically on PR creation
+- `on_merge` (Boolean) Whether the job runs automatically once a PR is merged
+- `schedule` (Boolean) Whether the job runs on a schedule
+
 
 <a id="nestedblock--job_completion_trigger_condition"></a>
 ### Nested Schema for `job_completion_trigger_condition`

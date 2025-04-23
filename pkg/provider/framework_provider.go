@@ -262,6 +262,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		snowflake_credential.SnowflakeCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
+		job.JobResource,
 		project_repository.ProjectRepositoryResource,
 		environment_variable.EnvironmentVariableResource,
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
