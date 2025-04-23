@@ -18,20 +18,16 @@ func TestAccDbtCloudProjectDataSource(t *testing.T) {
 			{
 				Config: testAccProjectDataSourceConfig(randomProjectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "project_id"),
+					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "id"),
 					resource.TestCheckResourceAttr("data.dbtcloud_project.test", "name", randomProjectName),
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "connection_id"),
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "repository_id"),
 					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test", "state"),
 
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "project_id"),
+					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "id"),
 					resource.TestCheckResourceAttr(
 						"data.dbtcloud_project.test_with_name",
 						"name",
 						randomProjectName,
 					),
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "connection_id"),
-					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "repository_id"),
 					resource.TestCheckResourceAttrSet("data.dbtcloud_project.test_with_name", "state"),
 				),
 			},
@@ -47,7 +43,7 @@ func testAccProjectDataSourceConfig(projectName string) string {
 	}
 
     data "dbtcloud_project" "test" {
-		project_id = dbtcloud_project.test.id
+		id = dbtcloud_project.test.id
 	}
 
 	data "dbtcloud_project" "test_with_name" {

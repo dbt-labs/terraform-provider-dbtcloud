@@ -118,15 +118,17 @@ func (d *projectDataSource) Read(
 	state.Description = types.StringValue(project.Description)
 
 	if project.ConnectionID != nil {
+		state.ProjectConnection = &ProjectConnection{}
 		state.ProjectConnection.ID = types.Int64Value(int64(*project.ConnectionID))
 	} else {
-		state.ProjectConnection.ID = types.Int64Null()
+		state.ProjectConnection = nil
 	}
 
 	if project.RepositoryID != nil {
+		state.Repository = &ProjectRepository{}
 		state.Repository.ID = types.Int64Value(int64(*project.RepositoryID))
 	} else {
-		state.Repository.ID = types.Int64Null()
+		state.Repository = nil
 	}
 
 	if project.FreshnessJobId != nil {

@@ -95,11 +95,12 @@ var singleDatasourceSchema = datasource_schema.Schema{
 	Description: "Retrieve a specific project from dbt Cloud.",
 	Attributes: map[string]datasource_schema.Attribute{
 		"id": datasource_schema.Int64Attribute{
-			Computed:    true,
+			Optional:    true,
 			Description: "Project ID",
 		},
 		"name": datasource_schema.StringAttribute{
 			Computed:    true,
+			Optional:    true,
 			Description: "Project name",
 		},
 		"description": datasource_schema.StringAttribute{
