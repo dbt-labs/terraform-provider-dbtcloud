@@ -19,10 +19,54 @@ var (
 	_ resource.Resource                = &jobResource{}
 	_ resource.ResourceWithConfigure   = &jobResource{}
 	_ resource.ResourceWithImportState = &jobResource{}
+	_ resource.ResourceWithModifyPlan  = &jobResource{}
 )
 
 type jobResource struct {
 	client *dbt_cloud.Client
+}
+
+func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Don't do anything on resource creation
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan, state JobResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// if we change the job type (CI, merge or "empty"), we need to recreate the job as dbt Cloud doesn't allow updating them
+	// the job type is determined by the triggers
+	if plan.Triggers != nil && state.Triggers != nil {
+		oldCI := state.Triggers.GithubWebhook.ValueBool() || state.Triggers.GitProviderWebhook.ValueBool()
+		oldOnMerge := state.Triggers.OnMerge.ValueBool()
+
+		oldType := ""
+		if oldCI {
+			oldType = "ci"
+		} else if oldOnMerge {
+			oldType = "merge"
+		}
+
+		newCI := plan.Triggers.GithubWebhook.ValueBool() || plan.Triggers.GitProviderWebhook.ValueBool()
+		newOnMerge := plan.Triggers.OnMerge.ValueBool()
+
+		newType := ""
+		if newCI {
+			newType = "ci"
+		} else if newOnMerge {
+			newType = "merge"
+		}
+
+		if oldType != newType {
+			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
+		}
+	}
 }
 
 func JobResource() resource.Resource {
@@ -38,8 +82,9 @@ func (j *jobResource) ImportState(ctx context.Context, req resource.ImportStateR
 		)
 		return
 	}
-
+	
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), jobID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), jobID)...)
 }
 
 func (j *jobResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
@@ -114,6 +159,16 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	selfDeferring := plan.SelfDeferring.ValueBool()
 	timeoutSeconds := int(plan.TimeoutSeconds.ValueInt64())
 	triggersOnDraftPR := plan.TriggersOnDraftPr.ValueBool()
+	runCompareChanges := plan.RunCompareChanges.ValueBool()
+	runLint := plan.RunLint.ValueBool()
+	errorsOnLintFailure := plan.ErrorsOnLintFailure.ValueBool()
+
+	var jobType string
+	if !plan.JobType.IsNull() {
+		jobType = plan.JobType.ValueString()
+	}
+
+	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
 	var jobCompletionTriggerCondition map[string]any
 	if plan.JobCompletionTriggerCondition != nil {
@@ -129,17 +184,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 	}
 
-	runCompareChanges := plan.RunCompareChanges.ValueBool()
-	runLint := plan.RunLint.ValueBool()
-	errorsOnLintFailure := plan.ErrorsOnLintFailure.ValueBool()
-	
-	// Set a default job_type if not specified
-	jobType := "other"
-	if !plan.JobType.IsNull() {
-		jobType = plan.JobType.ValueString()
-	}
-	
-	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
 	createDbtVersion := ""
 	if dbtVersion != nil {
@@ -192,10 +236,14 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	if createdJob != nil && createdJob.ID != nil {
-		plan.ID = types.Int64Value(int64(*createdJob.ID))
-		plan.JobId = types.Int64Value(int64(*createdJob.ID))
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), int64(*createdJob.ID))...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), int64(*createdJob.ID))...)
 		
-		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		readResp := resource.ReadResponse{State: resp.State}
+		j.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+
+		resp.Diagnostics.Append(readResp.Diagnostics...)
+		
 		return
 	} else {
 		resp.Diagnostics.AddError(
@@ -218,7 +266,6 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	job, err := j.client.GetJob(jobIDStr)
 	if err != nil {
-
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			return
 		}
@@ -268,11 +315,13 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.Name = types.StringValue(retrievedJob.Name)
 	state.Description = types.StringValue(retrievedJob.Description)
 	state.ExecuteSteps = helper.SliceStringToSliceTypesString(retrievedJob.ExecuteSteps)
+
 	if retrievedJob.DbtVersion != nil {
 		state.DbtVersion = types.StringValue(*retrievedJob.DbtVersion)
 	} else {
-		state.DbtVersion = types.StringValue("")
+		state.DbtVersion = types.StringNull()
 	}
+
 	state.IsActive = types.BoolValue(retrievedJob.State == 1)
 	state.NumThreads = types.Int64Value(int64(retrievedJob.Settings.Threads))
 	state.TargetName = types.StringValue(retrievedJob.Settings.TargetName)
@@ -292,29 +341,23 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		var scheduleHoursNull []types.Int64
 		state.ScheduleHours = scheduleHoursNull
 	}
-	
+
 	if retrievedJob.Schedule.Date.Days != nil {
 		state.ScheduleDays = helper.SliceIntToSliceTypesInt64(*retrievedJob.Schedule.Date.Days)
 	} else {
 		var scheduleDaysNull []types.Int64
 		state.ScheduleDays = scheduleDaysNull
 	}
-	
+
 	if retrievedJob.Schedule.Date.Cron != nil {
 		state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
 	} else {
-		state.ScheduleCron = types.StringValue("")
+		state.ScheduleCron = types.StringNull()
 	}
 
-	// Check if the job is self-deferring
 	selfDeferring := retrievedJob.DeferringJobId != nil && strconv.Itoa(*retrievedJob.DeferringJobId) == jobIDStr
-	
-	// Only set self_deferring to null if it was null in the state, otherwise keep the value
-	if !state.SelfDeferring.IsNull() {
-		state.SelfDeferring = types.BoolValue(selfDeferring)
-	}
 
-	if !selfDeferring && retrievedJob.DeferringJobId != nil {
+	if retrievedJob.DeferringJobId != nil && !selfDeferring {
 		state.DeferringJobId = types.Int64Value(int64(*retrievedJob.DeferringJobId))
 	} else {
 		state.DeferringJobId = types.Int64Null()
@@ -326,18 +369,13 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.DeferringEnvironmentID = types.Int64Null()
 	}
 
+	state.SelfDeferring = types.BoolValue(selfDeferring)
 	state.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
-
-	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
-	// we set the state to the current config value, so it doesn't do anything
-	// todo check the custom branch stuff and on merge
 
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(retrievedJob.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
-
-
-
+	
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
 	// we set the state to the current config value, so it doesn't do anything
 	var customBranchValue types.Bool
@@ -347,24 +385,19 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		triggers["custom_branch_only"] = customBranchValue.ValueBool()
 	}
 
-	
 	// we remove triggers.on_merge if it is not set in the config and it is set to false in the remote
 	// that way it works if people don't define it, but also works to import jobs that have it set to true
 	// TODO: remove this when we make on_merge mandatory
-	// TODO: Code not very readable
 	var onMergeValue types.Bool
 	hasOnMergeAttr := !req.State.GetAttribute(ctx, path.Root("triggers").AtMapKey("on_merge"), &onMergeValue).HasError()
 	noOnMergeConfig := !hasOnMergeAttr || onMergeValue.IsNull()
-	
+
 	onMergeRemoteVal, _ := triggers["on_merge"].(bool)
 	onMergeRemoteFalse := !onMergeRemoteVal
-	
+
 	if noOnMergeConfig && onMergeRemoteFalse {
 		delete(triggers, "on_merge")
 	}
-
-
-
 
 	state.Triggers = &JobTriggers{
 		GithubWebhook:      types.BoolValue(retrievedJob.Triggers.GithubWebhook),
@@ -372,27 +405,16 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		Schedule:           types.BoolValue(retrievedJob.Triggers.Schedule),
 		OnMerge:            types.BoolValue(retrievedJob.Triggers.OnMerge),
 	}
-	
-	state.RunCompareChanges = types.BoolValue(retrievedJob.RunCompareChanges)
-	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
-	state.RunLint = types.BoolValue(retrievedJob.RunLint)
-	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
-	
-	// Only set job_type if it's non-empty from the API, otherwise preserve the existing value
-	if retrievedJob.JobType != "" {
-		state.JobType = types.StringValue(retrievedJob.JobType)
-	} else if state.JobType.IsNull() {
-		// Default to "other" if not set
-		state.JobType = types.StringValue("other")
-	}
 
+	state.TriggersOnDraftPr = types.BoolValue(retrievedJob.TriggersOnDraftPR)
+	// TODO look over this logic
 	if retrievedJob.JobCompletionTrigger != nil {
 		statusesStr := make([]types.String, 0)
 		for _, status := range retrievedJob.JobCompletionTrigger.Condition.Statuses {
 			statusStr := utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string)
 			statusesStr = append(statusesStr, types.StringValue(statusStr))
 		}
-		
+
 		state.JobCompletionTriggerCondition = &JobCompletionTrigger{
 			Condition: JobCompletionTriggerCondition{
 				JobID:     types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.JobID)),
@@ -402,6 +424,17 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		}
 	} else {
 		state.JobCompletionTriggerCondition = nil
+	}
+
+	state.RunCompareChanges = types.BoolValue(retrievedJob.RunCompareChanges)
+	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
+	state.RunLint = types.BoolValue(retrievedJob.RunLint)
+	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
+	
+	if retrievedJob.JobType != "" {
+		state.JobType = types.StringValue(retrievedJob.JobType)
+	} else {
+		state.JobType = types.StringNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -443,8 +476,8 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	job.Settings.Threads = int(plan.NumThreads.ValueInt64())
 	job.Settings.TargetName = plan.TargetName.ValueString()
-	job.GenerateDocs = plan.GenerateDocs.ValueBool()
 	job.RunGenerateSources = plan.RunGenerateSources.ValueBool()
+	job.GenerateDocs = plan.GenerateDocs.ValueBool()
 
 	executeSteps := make([]string, len(plan.ExecuteSteps))
 	for i, step := range plan.ExecuteSteps {
@@ -452,15 +485,13 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 	job.ExecuteSteps = executeSteps
 
+	// todo check if trigger handling is ok
 	if plan.Triggers != nil {
 		job.Triggers.GithubWebhook = plan.Triggers.GithubWebhook.ValueBool()
 		job.Triggers.GitProviderWebhook = plan.Triggers.GitProviderWebhook.ValueBool()
 		job.Triggers.Schedule = plan.Triggers.Schedule.ValueBool()
 		job.Triggers.OnMerge = plan.Triggers.OnMerge.ValueBool()
 	}
-
-	scheduleType := plan.ScheduleType.ValueString()
-	job.Schedule.Date.Type = scheduleType
 
 	scheduleInterval := int(plan.ScheduleInterval.ValueInt64())
 	job.Schedule.Time.Interval = scheduleInterval
@@ -498,6 +529,9 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// we set this after the subfields to remove the fields not matching the schedule type
 	// if it was before, some of those fields would be set again
+	scheduleType := plan.ScheduleType.ValueString()
+	job.Schedule.Date.Type = scheduleType
+
 	if scheduleType == "days_of_week" || scheduleType == "every_day" {
 		job.Schedule.Date.Cron = nil
 	}
@@ -512,11 +546,12 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.DeferringEnvironmentId = &deferringEnvId
 	}
 
+	// If self_deferring has been toggled to true, set deferring_job_id as own ID
+	// Otherwise, set it back to what deferring_job_id specifies it to be
 	selfDeferring := plan.SelfDeferring.ValueBool()
 	if selfDeferring {
 		deferringJobID := int(jobID)
 		job.DeferringJobId = &deferringJobID
-		// job.DeferringEnvironmentId = nil // Self deferring is mutually exclusive with environment deferring
 	} else {
 		if plan.DeferringJobId.IsNull() || plan.DeferringJobId.ValueInt64() == 0 {
 			job.DeferringJobId = nil
@@ -528,11 +563,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
-	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
-	job.RunLint = plan.RunLint.ValueBool()
-	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
-	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
-
+	
 	if plan.JobCompletionTriggerCondition == nil {
 		job.JobCompletionTrigger = nil
 	} else {
@@ -550,6 +581,11 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 		job.JobCompletionTrigger = &jobCondTrigger
 	}
+	
+	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
+	job.RunLint = plan.RunLint.ValueBool()
+	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
+	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
 	_, err = j.client.UpdateJob(jobIDStr, *job)
 	if err != nil {
@@ -561,4 +597,10 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Create a new response to capture the Read method's diagnosticsdd
+	readResp := resource.ReadResponse{State: resp.State}
+	j.Read(ctx, resource.ReadRequest{State: resp.State}, &readResp)
+
+	// Append any diagnostics from the Read call
+	resp.Diagnostics.Append(readResp.Diagnostics...)
 }

@@ -607,7 +607,6 @@ func (j *jobResource) Schema(
 			"job_type": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString("other"),
 				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
