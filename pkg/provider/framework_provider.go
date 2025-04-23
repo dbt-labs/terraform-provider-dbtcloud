@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable_job_override"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
@@ -34,6 +36,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
@@ -225,6 +228,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		snowflake_credential.SnowflakeCredentialDataSource,
 		extended_attributes.ExtendedAttributesDataSource,
 		teradata_credential.TeradataCredentialDataSource,
+		environment_variable.EnvironmentVariableDataSource,
 	}
 }
 
@@ -258,5 +262,8 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
 		job.JobResource,
+		project_repository.ProjectRepositoryResource,
+		environment_variable.EnvironmentVariableResource,
+		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
 	}
 }

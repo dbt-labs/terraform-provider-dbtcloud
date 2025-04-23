@@ -3,12 +3,12 @@
 page_title: "dbtcloud_environment_variable Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Environment variable credential data source
 ---
 
 # dbtcloud_environment_variable (Data Source)
 
-
+Environment variable credential data source
 
 
 
@@ -17,10 +17,10 @@ description: |-
 
 ### Required
 
-- `name` (String) Name for the variable
-- `project_id` (Number) Project ID the variable exists in
+- `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
+- `project_id` (Number) Project ID to create the environment variable in
 
 ### Read-Only
 
-- `environment_values` (Map of String) Map containing the environment variables
-- `id` (String) The ID of this resource.
+- `environment_values` (Map of String) Map from environment names to respective variable value, a special key `project` should be set for the project default variable value. This field is not set as sensitive so take precautions when using secret environment variables.
+- `id` (String) The ID of this resource. Contains the project ID and the environment variable ID.

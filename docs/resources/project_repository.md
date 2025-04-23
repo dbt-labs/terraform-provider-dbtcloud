@@ -2,13 +2,13 @@
 page_title: "dbtcloud_project_repository Resource - dbtcloud"
 subcategory: ""
 description: |-
-  This resource allows you to link a dbt Cloud project to a git repository.
+  Manages a dbt Cloud project repository.
 ---
 
 # dbtcloud_project_repository (Resource)
 
 
-This resource allows you to link a dbt Cloud project to a git repository.
+Manages a dbt Cloud project repository.
 
 ## Example Usage
 
@@ -29,7 +29,7 @@ resource "dbtcloud_project_repository" "dbt_project_repository" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the project repository.
 
 ## Import
 
