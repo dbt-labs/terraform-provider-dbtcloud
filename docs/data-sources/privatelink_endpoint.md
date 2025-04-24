@@ -3,12 +3,12 @@
 page_title: "dbtcloud_privatelink_endpoint Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Privatelink endpoint data source.
 ---
 
 # dbtcloud_privatelink_endpoint (Data Source)
 
-
+Privatelink endpoint data source.
 
 ## Example Usage
 
@@ -37,11 +37,10 @@ data "dbtcloud_privatelink_endpoint" "test_with_name_and_url" {
 ### Optional
 
 - `name` (String) Given descriptive name for the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)
-- `private_link_endpoint_url` (String) The URL of the PrivateLink Endpoint (private_link_endpoint_url and/or name need to be provided to return data for the datasource)
+- `private_link_endpoint_url` (String) URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)
+- `type` (String) Type of the PrivateLink Endpoint
 
 ### Read-Only
 
-- `cidr_range` (String) The CIDR range of the PrivateLink Endpoint
+- `cidr_range` (String) CIDR range of the PrivateLink Endpoint
 - `id` (String) The internal ID of the PrivateLink Endpoint
-- `state` (Number, Deprecated) PrivatelinkEndpoint state should be 1 = active, as 2 = deleted
-- `type` (String) Type of the PrivateLink Endpoint
