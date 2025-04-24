@@ -229,6 +229,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		extended_attributes.ExtendedAttributesDataSource,
 		teradata_credential.TeradataCredentialDataSource,
 		environment_variable.EnvironmentVariableDataSource,
+		project.ProjectDataSource,
 	}
 }
 
@@ -265,5 +266,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_repository.ProjectRepositoryResource,
 		environment_variable.EnvironmentVariableResource,
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
+		project.ProjectResource,
 	}
 }

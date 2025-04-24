@@ -3,12 +3,12 @@
 page_title: "dbtcloud_project Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve a specific project from dbt Cloud.
 ---
 
 # dbtcloud_project (Data Source)
 
-
+Retrieve a specific project from dbt Cloud.
 
 ## Example Usage
 
@@ -33,15 +33,37 @@ data "dbtcloud_project" "test_project" {
 
 ### Optional
 
-- `description` (String) The description of the project
-- `name` (String) Given name for project
-- `project_id` (Number) ID of the project to represent
+- `id` (Number) Project ID
+- `name` (String) Project name
 
 ### Read-Only
 
-- `connection_id` (Number) ID of the connection associated with the project
+- `created_at` (String) When the project was created
+- `dbt_project_subdirectory` (String) Subdirectory for the dbt project inside the git repo
+- `description` (String) Project description
 - `docs_job_id` (Number) ID of Job for the documentation
 - `freshness_job_id` (Number) ID of Job for source freshness
-- `id` (String) The ID of this resource.
-- `repository_id` (Number) ID of the repository associated with the project
-- `state` (Number, Deprecated) Project state should be 1 = active, as 2 = deleted
+- `project_connection` (Attributes) Details for the connection linked to the project (see [below for nested schema](#nestedatt--project_connection))
+- `repository` (Attributes) Details for the repository linked to the project (see [below for nested schema](#nestedatt--repository))
+- `semantic_layer_config_id` (Number) Semantic layer config ID
+- `state` (Number) Project state should be 1 = active, as 2 = deleted
+- `updated_at` (String) When the project was last updated
+
+<a id="nestedatt--project_connection"></a>
+### Nested Schema for `project_connection`
+
+Read-Only:
+
+- `adapter_version` (String) Version of the adapter for the connection. Will tell what connection type it is
+- `id` (Number) Connection ID
+- `name` (String) Connection name
+
+
+<a id="nestedatt--repository"></a>
+### Nested Schema for `repository`
+
+Read-Only:
+
+- `id` (Number) Repository ID
+- `pull_request_url_template` (String) URL template for PRs
+- `remote_url` (String) URL of the git repo remote

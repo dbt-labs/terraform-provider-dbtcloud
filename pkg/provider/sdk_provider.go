@@ -36,16 +36,13 @@ func SDKProvider(version string) func() *schema.Provider {
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"dbtcloud_project":              data_sources.DatasourceProject(),
 				"dbtcloud_connection":           data_sources.DatasourceConnection(),
 				"dbtcloud_privatelink_endpoint": data_sources.DatasourcePrivatelinkEndpoint(),
 				"dbtcloud_group_users":          data_sources.DatasourceGroupUsers(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"dbtcloud_project":            resources.ResourceProject(),
-				"dbtcloud_project_connection": resources.ResourceProjectConnection(),
-				"dbtcloud_connection":         resources.ResourceConnection(),
-				"dbtcloud_fabric_connection":  resources.ResourceFabricConnection(),
+				"dbtcloud_connection":          resources.ResourceConnection(),
+				"dbtcloud_fabric_connection":   resources.ResourceFabricConnection(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestDbtCloudJobsDataSource(t *testing.T) {
+func TestDbtCloudProjectsDataSource(t *testing.T) {
 
 	projectName := acctest.RandStringFromCharSet(19, acctest.CharSetAlphaNum)
 	projectName1 := fmt.Sprintf("%s1", projectName)
 	projectName2 := fmt.Sprintf("%s2", projectName)
 
-	config := jobs(projectName, projectName1, projectName2)
+	config := projects(projectName, projectName1, projectName2)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr("data.dbtcloud_projects.test", "projects.#", "2"),
@@ -36,7 +36,7 @@ func TestDbtCloudJobsDataSource(t *testing.T) {
 	})
 }
 
-func jobs(projectName string, projectName1 string, projectName2 string) string {
+func projects(projectName string, projectName1 string, projectName2 string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_project1" {
         name = "%s"
