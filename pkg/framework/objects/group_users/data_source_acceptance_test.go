@@ -1,4 +1,4 @@
-package data_sources_test
+package group_users_test
 
 import (
 	"fmt"
