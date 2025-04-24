@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/sdkv2/data_sources"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/sdkv2/resources"
 )
 
 func SDKProvider(version string) func() *schema.Provider {
@@ -35,12 +33,8 @@ func SDKProvider(version string) func() *schema.Provider {
 					Description: "URL for your dbt Cloud deployment. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_HOST_URL` - Defaults to https://cloud.getdbt.com/api",
 				},
 			},
-			DataSourcesMap: map[string]*schema.Resource{
-				"dbtcloud_connection":           data_sources.DatasourceConnection(),
-			},
-			ResourcesMap: map[string]*schema.Resource{
-				"dbtcloud_connection":          resources.ResourceConnection(),
-			},
+			DataSourcesMap:       map[string]*schema.Resource{},
+			ResourcesMap:         map[string]*schema.Resource{},
 			ConfigureContextFunc: providerConfigure,
 		}
 		return p
