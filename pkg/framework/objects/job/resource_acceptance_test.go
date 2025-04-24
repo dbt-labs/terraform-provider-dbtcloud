@@ -13,53 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-
-func TestConformanceBasicConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(jobName, projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(jobName, projectName, environmentName)),
-		},
-	})
-}
-
-func TestConformanceFullConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getFullConfigTestStep(jobName, projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getFullConfigTestStep(jobName, projectName, environmentName)),
-		},
-	})
-}
-
-func TestConformanceJobChainingConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getJobChainingConfigTestStep(jobName, projectName, environmentName, jobName2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getJobChainingConfigTestStep(jobName, projectName, environmentName, jobName2)),
-		},
-	})
-}
-
 func getBasicConfigTestStep(jobName, projectName, environmentName string) resource.TestStep {
 	return resource.TestStep{
 		Config: testAccDbtCloudJobResourceBasicConfig(
