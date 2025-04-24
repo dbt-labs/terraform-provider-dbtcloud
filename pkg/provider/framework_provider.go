@@ -8,6 +8,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable_job_override"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_users"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/privatelink_endpoint"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
@@ -232,6 +233,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		environment_variable.EnvironmentVariableDataSource,
 		project.ProjectDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSource,
+		group_users.GroupUsersDataSource,
 	}
 }
 
