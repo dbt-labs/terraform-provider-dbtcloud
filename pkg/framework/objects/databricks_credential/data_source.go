@@ -53,7 +53,7 @@ func (d *databricksCredentialDataSource) Read(ctx context.Context, req datasourc
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	
+
 	projectID := int(state.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
@@ -66,7 +66,7 @@ func (d *databricksCredentialDataSource) Read(ctx context.Context, req datasourc
 	state.ID = types.StringValue(fmt.Sprintf("%d%s%d", credential.Project_Id, dbt_cloud.ID_DELIMITER, *credential.ID))
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-	state.AdapterID = types.Int64Value(int64(credential.Adapter_Id))
+	state.AdapterType = types.StringValue(credential.AdapterVersion)
 	state.TargetName = types.StringValue(credential.Target_Name)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
 	state.Catalog = types.StringValue(credential.UnencryptedCredentialDetails.Catalog)

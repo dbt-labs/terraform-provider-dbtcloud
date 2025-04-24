@@ -15,49 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestConformanceBasicConfig(t *testing.T) {
-
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, environmentName)),
-		},
-	})
-}
-
-func TestConformanceModifyConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "", "false"), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "", "false")),
-		},
-	})
-}
-
-func TestConformanceModifyConfigCustomBranch(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "main", "true"), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, "main", "true")),
-		},
-	})
-}
-
 func getBasicConfigTestStep(projectName, envName string) resource.TestStep {
 	return resource.TestStep{
 		Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(

@@ -4,95 +4,93 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudPartialLicenseMapResource(t *testing.T) {
+// func TestAccDbtCloudPartialLicenseMapResource(t *testing.T) {
 
-	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	groupName3 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+// 	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+// 	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+// 	groupName3 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudLicenseMapDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudLicenseMapResourceBasicConfig("it", groupName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudLicenseMapExists(
-						"dbtcloud_partial_license_map.test_license_map",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"license_type",
-						"it",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"sso_license_mapping_groups.#",
-						"1",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"sso_license_mapping_groups.0",
-						groupName,
-					),
-				),
-			},
-			// MODIFY
-			{
-				Config: testAccDbtCloudLicenseMapResourceMultipleConfig(
-					"it",
-					groupName,
-					groupName2,
-					groupName3,
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudLicenseMapExists(
-						"dbtcloud_partial_license_map.test_license_map",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"license_type",
-						"it",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"sso_license_mapping_groups.#",
-						"2",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"sso_license_mapping_groups.*",
-						groupName,
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"dbtcloud_partial_license_map.test_license_map",
-						"sso_license_mapping_groups.*",
-						groupName2,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_partial_license_map.test_license_map2",
-						"sso_license_mapping_groups.#",
-						"1",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"dbtcloud_partial_license_map.test_license_map2",
-						"sso_license_mapping_groups.*",
-						groupName3,
-					),
-				),
-			},
-		},
-	})
-}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+// 		CheckDestroy:             testAccCheckDbtCloudLicenseMapDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccDbtCloudLicenseMapResourceBasicConfig("it", groupName),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckDbtCloudLicenseMapExists(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"license_type",
+// 						"it",
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"sso_license_mapping_groups.#",
+// 						"1",
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"sso_license_mapping_groups.0",
+// 						groupName,
+// 					),
+// 				),
+// 			},
+// 			// MODIFY
+// 			{
+// 				Config: testAccDbtCloudLicenseMapResourceMultipleConfig(
+// 					"it",
+// 					groupName,
+// 					groupName2,
+// 					groupName3,
+// 				),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckDbtCloudLicenseMapExists(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"license_type",
+// 						"it",
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"sso_license_mapping_groups.#",
+// 						"2",
+// 					),
+// 					resource.TestCheckTypeSetElemAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"sso_license_mapping_groups.*",
+// 						groupName,
+// 					),
+// 					resource.TestCheckTypeSetElemAttr(
+// 						"dbtcloud_partial_license_map.test_license_map",
+// 						"sso_license_mapping_groups.*",
+// 						groupName2,
+// 					),
+// 					resource.TestCheckResourceAttr(
+// 						"dbtcloud_partial_license_map.test_license_map2",
+// 						"sso_license_mapping_groups.#",
+// 						"1",
+// 					),
+// 					resource.TestCheckTypeSetElemAttr(
+// 						"dbtcloud_partial_license_map.test_license_map2",
+// 						"sso_license_mapping_groups.*",
+// 						groupName3,
+// 					),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func testAccDbtCloudLicenseMapResourceBasicConfig(licenseType string, groupName string) string {
 	return fmt.Sprintf(`

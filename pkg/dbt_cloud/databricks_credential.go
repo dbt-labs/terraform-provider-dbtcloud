@@ -33,7 +33,6 @@ type DatabricksCredential struct {
 	State                        int                                    `json:"state"`
 	Threads                      int                                    `json:"threads"`
 	Target_Name                  string                                 `json:"target_name"`
-	Adapter_Id                   int                                    `json:"adapter_id"`
 	AdapterVersion               string                                 `json:"adapter_version,omitempty"`
 	Credential_Details           AdapterCredentialDetails               `json:"credential_details"`
 	UnencryptedCredentialDetails DatabricksUnencryptedCredentialDetails `json:"unencrypted_credential_details"`

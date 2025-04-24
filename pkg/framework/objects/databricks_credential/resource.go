@@ -81,15 +81,6 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		credentialID,
 	)...)
 
-	// Only set adapter_id if it's a legacy connection with a non-zero value
-	if credentialResponse.Adapter_Id != 0 {
-		resp.Diagnostics.Append(resp.State.SetAttribute(
-			ctx,
-			path.Root("adapter_id"),
-			credentialResponse.Adapter_Id,
-		)...)
-	}
-
 	// Set target_name
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
