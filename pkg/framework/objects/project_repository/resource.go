@@ -21,7 +21,7 @@ type projectRepositoryResource struct {
 	client *dbt_cloud.Client
 }
 
-// NewResource creates a new resource
+// ProjectRepositoryResource creates a new resource
 func ProjectRepositoryResource() resource.Resource {
 	return &projectRepositoryResource{}
 }
