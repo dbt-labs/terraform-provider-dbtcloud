@@ -117,3 +117,22 @@ func MakeCurrentProviderNoOpTestStep(ts helperTestResource.TestStep) helperTestR
 		Check: nil,
 	}
 }
+
+// This is used to test the acceptance tests against the current provider version using
+// a real environment, as oppossed to a mocked one. This is useful when we want to test
+// real envs, but using the mocked one simplifies testing scenarios.
+func GetSemanticLayerConfigTestingConfigurations() (int, int, int) {
+	environmentId := os.Getenv("DBT_CLOUD_ENVIRONMENT_ID_1")
+	environmentId2 := os.Getenv("DBT_CLOUD_ENVIRONMENT_ID_2")
+	projectId := os.Getenv("DBT_CLOUD_PROJECT_ID")
+
+	if environmentId == "" || environmentId2 == "" || projectId == "" {
+		return 0, 0, 0
+	}
+
+	envId, _ := strconv.Atoi(environmentId)
+	envId2, _ := strconv.Atoi(environmentId2)
+	projectIdInt, _ := strconv.Atoi(projectId)
+
+	return envId, envId2, projectIdInt
+}
