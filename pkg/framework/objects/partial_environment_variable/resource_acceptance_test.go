@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,7 +16,7 @@ import (
 
 func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	envVarName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	envVarName := "DBT_" + acctest.RandStringFromCharSet(10, acctest_config.CharSetAlphaUpper)
 	envName1 := "development"
 	envName2 := "production"
 	envValue1 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)

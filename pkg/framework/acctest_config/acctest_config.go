@@ -113,5 +113,5 @@ const (
 const (
 	// CharSetAlphaNumUpper is the uppercase alphanumeric character set for testing use
 	// to extend the default character sets of RandStringFromCharSet
-	CharSetAlphaNumUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012346789"
+	CharSetAlphaUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
