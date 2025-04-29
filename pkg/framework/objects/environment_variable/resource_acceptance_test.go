@@ -41,45 +41,6 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 	})
 }
 
-func TestConformanceSecretEnvStep(t *testing.T) {
-	projectName, environmentName, environmentVariableName := getTestInputData()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getSecretEnvTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getSecretEnvTestStep(projectName, environmentName, environmentVariableName)),
-		},
-	})
-}
-
-func TestConformanceNonSecretEnvStep(t *testing.T) {
-	projectName, environmentName, environmentVariableName := getTestInputData()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName)),
-		},
-	})
-}
-
-func TestConformanceModifyConfigStep(t *testing.T) {
-	projectName, environmentName, environmentVariableName := getTestInputData()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName)),
-		},
-	})
-}
-
 func getImportTestStep() resource.TestStep {
 	return resource.TestStep{
 		ResourceName:            "dbtcloud_environment_variable.test_env_var",

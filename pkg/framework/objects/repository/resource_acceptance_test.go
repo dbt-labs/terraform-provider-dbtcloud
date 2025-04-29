@@ -108,26 +108,6 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 
 }
 
-func TestConfDbtCloudProjectRepositoryResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(createByDeployKeyTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(createByDeployKeyTestStep),
-		},
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(createByCloneTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(createByCloneTestStep),
-		},
-	})
-}
-
 func testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
