@@ -160,7 +160,7 @@ func (c *Client) CreateProject(
 		Description:    description,
 		State:          STATE_ACTIVE,
 		AccountID:      c.AccountID,
-		Type:           dbtProjectType,
+		DbtProjectType: dbtProjectType,
 	}
 	if dbtProjectSubdirectory != "" {
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory

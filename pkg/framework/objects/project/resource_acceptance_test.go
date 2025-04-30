@@ -56,7 +56,7 @@ var modifyStep = resource.TestStep{
 			"dbtcloud_project.test_project",
 			"type",
 			0,
-		)
+		),
 	),
 }
 
