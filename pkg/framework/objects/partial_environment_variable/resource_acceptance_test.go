@@ -17,8 +17,8 @@ import (
 func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	envVarName := "DBT_" + acctest.RandStringFromCharSet(10, acctest_config.CharSetAlphaUpper)
-	envName1 := "development"
-	envName2 := "production"
+	environmentName1 := "development"
+	environmentName2 := "production"
 	envValue1 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	envValue2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	updatedEnvValue1 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
@@ -32,8 +32,8 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(
 					projectName,
+					environmentName1,
 					envVarName,
-					envName1,
 					envValue1,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -47,7 +47,7 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_environment_variable.test_env_var",
-						fmt.Sprintf("environment_values.%s", envName1),
+						fmt.Sprintf("environment_values.%s", environmentName1),
 						envValue1,
 					),
 				),
@@ -56,10 +56,10 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentVariableResourceMultipleConfig(
 					projectName,
+					environmentName1,
+					environmentName2,
 					envVarName,
-					envName1,
 					updatedEnvValue1,
-					envName2,
 					envValue2,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -73,12 +73,12 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_environment_variable.test_env_var",
-						fmt.Sprintf("environment_values.%s", envName1),
+						fmt.Sprintf("environment_values.%s", environmentName1),
 						updatedEnvValue1,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_environment_variable.test_env_var",
-						fmt.Sprintf("environment_values.%s", envName2),
+						fmt.Sprintf("environment_values.%s", environmentName2),
 						envValue2,
 					),
 				),
@@ -87,10 +87,10 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudEnvironmentVariableSplitConfig(
 					projectName,
+					environmentName1,
+					environmentName2,
 					envVarName,
-					envName1,
 					updatedEnvValue1,
-					envName2,
 					envValue2,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -107,7 +107,7 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_environment_variable.test_env_var_1",
-						fmt.Sprintf("environment_values.%s", envName1),
+						fmt.Sprintf("environment_values.%s", environmentName1),
 						updatedEnvValue1,
 					),
 					resource.TestCheckResourceAttr(
@@ -117,18 +117,9 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_partial_environment_variable.test_env_var_2",
-						fmt.Sprintf("environment_values.%s", envName2),
+						fmt.Sprintf("environment_values.%s", environmentName2),
 						envValue2,
 					),
-				),
-			},
-			// Import testing
-			{
-				ResourceName:      "dbtcloud_partial_environment_variable.test_env_var_1",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccDbtCloudEnvironmentVariableImportStateIdFunc(
-					"dbtcloud_partial_environment_variable.test_env_var_1",
 				),
 			},
 		},
@@ -137,8 +128,8 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 
 func testAccDbtCloudEnvironmentVariableResourceBasicConfig(
 	projectName string,
+	environmentName string,
 	envVarName string,
-	envName string,
 	envValue string,
 ) string {
 	return fmt.Sprintf(`
@@ -146,58 +137,92 @@ resource "dbtcloud_project" "test_project" {
   name = "%s"
 }
 
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type = "development"
+  project_id = dbtcloud_project.test_project.id
+}
+
 resource "dbtcloud_partial_environment_variable" "test_env_var" {
   project_id = dbtcloud_project.test_project.id
   name       = "%s"
   environment_values = {
-    "%s" = "%s"
+    (dbtcloud_environment.test_env.name) = "%s"
   }
 }
-`, projectName, envVarName, envName, envValue)
+`, projectName, environmentName, envVarName, envValue)
 }
 
 func testAccDbtCloudEnvironmentVariableResourceMultipleConfig(
 	projectName string,
+	environmentName1 string,
+	environmentName2 string,
 	envVarName string,
-	envName1 string,
 	envValue1 string,
-	envName2 string,
 	envValue2 string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type = "development"
+  project_id = dbtcloud_project.test_project.id
+}
+
+resource "dbtcloud_environment" "test_env_prod" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "latest"
+  deployment_type = "production"
+  project_id = dbtcloud_project.test_project.id
 }
 
 resource "dbtcloud_partial_environment_variable" "test_env_var" {
   project_id = dbtcloud_project.test_project.id
   name       = "%s"
   environment_values = {
-    "%s" = "%s"
-    "%s" = "%s"
+    (dbtcloud_environment.test_env.name) = "%s"
+    (dbtcloud_environment.test_env_prod.name) = "%s"
   }
 }
-`, projectName, envVarName, envName1, envValue1, envName2, envValue2)
+`, projectName, environmentName1, environmentName2, envVarName, envValue1, envValue2)
 }
 
 func testAccDbtCloudEnvironmentVariableSplitConfig(
 	projectName string,
+	environmentName1 string,
+	environmentName2 string,
 	envVarName string,
-	envName1 string,
 	envValue1 string,
-	envName2 string,
 	envValue2 string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type = "development"
+  project_id = dbtcloud_project.test_project.id
+}
+
+resource "dbtcloud_environment" "test_env_prod" {
+  name        = "%s"
+  type = "deployment"
+  dbt_version = "latest"
+  deployment_type = "production"
+  project_id = dbtcloud_project.test_project.id
 }
 
 resource "dbtcloud_partial_environment_variable" "test_env_var_1" {
   project_id = dbtcloud_project.test_project.id
   name       = "%s"
   environment_values = {
-    "%s" = "%s"
+    (dbtcloud_environment.test_env.name) = "%s"
   }
 }
 
@@ -205,11 +230,11 @@ resource "dbtcloud_partial_environment_variable" "test_env_var_2" {
   project_id = dbtcloud_project.test_project.id
   name       = "%s"
   environment_values = {
-    "%s" = "%s"
+    (dbtcloud_environment.test_env_prod.name) = "%s"
   }
   depends_on = [dbtcloud_partial_environment_variable.test_env_var_1]
 }
-`, projectName, envVarName, envName1, envValue1, envVarName, envName2, envValue2)
+`, projectName, environmentName1, environmentName2, envVarName, envValue1, envVarName, envValue2)
 }
 
 func testAccCheckDbtCloudEnvironmentVariableExists(resource string) resource.TestCheckFunc {

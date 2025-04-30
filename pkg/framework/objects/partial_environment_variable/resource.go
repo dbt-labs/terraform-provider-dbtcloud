@@ -9,16 +9,14 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/samber/lo"
 )
 
 var (
-	_ resource.Resource                = &partialEnvironmentVariableResource{}
-	_ resource.ResourceWithConfigure   = &partialEnvironmentVariableResource{}
-	_ resource.ResourceWithImportState = &partialEnvironmentVariableResource{}
+	_ resource.Resource              = &partialEnvironmentVariableResource{}
+	_ resource.ResourceWithConfigure = &partialEnvironmentVariableResource{}
 )
 
 func PartialEnvironmentVariableResource() resource.Resource {
@@ -366,55 +364,6 @@ func (r *partialEnvironmentVariableResource) Configure(
 	}
 
 	r.client = req.ProviderData.(*dbt_cloud.Client)
-}
-
-// ImportState imports the resource into Terraform state
-func (r *partialEnvironmentVariableResource) ImportState(
-	ctx context.Context,
-	req resource.ImportStateRequest,
-	resp *resource.ImportStateResponse,
-) {
-	// Extract the resource ID
-	idParts := strings.Split(req.ID, ":")
-	if len(idParts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf(
-				"Expected import identifier with format: project_id:name. Got: %q",
-				req.ID,
-			),
-		)
-		return
-	}
-
-	projectID, err := strconv.Atoi(idParts[0])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf(
-				"Could not convert project_id to integer. Got: %q",
-				idParts[0],
-			),
-		)
-		return
-	}
-
-	name := idParts[1]
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("id"),
-		fmt.Sprintf("%d:%s", projectID, name),
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("project_id"),
-		projectID,
-	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("name"),
-		name,
-	)...)
 }
 
 func convertFullToAbstractedEnvironmentVariable(
