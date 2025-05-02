@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable_job_override"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_users"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_environment_variable"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/privatelink_endpoint"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
@@ -250,6 +251,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
+		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,

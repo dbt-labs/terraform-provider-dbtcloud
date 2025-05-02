@@ -33,8 +33,36 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
-			getSecretEnvTestStep(projectName, environmentName, environmentVariableName),
 			getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName),
+			getImportTestStep(),
+		},
+	})
+}
+
+func TestAccDbtCloudEnvironmentVariableResourceSecret(t *testing.T) {
+
+	projectName, environmentName, environmentVariableName := getTestInputData()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
+		Steps: []resource.TestStep{
+			getSecretEnvTestStep(projectName, environmentName, environmentVariableName),
+			getImportTestStep(),
+		},
+	})
+}
+
+func TestAccDbtCloudEnvironmentVariableResourceModify(t *testing.T) {
+
+	projectName, environmentName, environmentVariableName := getTestInputData()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
+		Steps: []resource.TestStep{
 			getModifyConfigTestStep(projectName, environmentName, environmentVariableName),
 			getImportTestStep(),
 		},
