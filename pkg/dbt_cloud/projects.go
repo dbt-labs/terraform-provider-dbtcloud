@@ -16,6 +16,7 @@ type ProjectConnectionRepository struct {
 	State                  int64                                 `json:"state,omitempty"`
 	DbtProjectSubdirectory string                                `json:"dbt_project_subdirectory,omitempty"`
 	DocsJobID              *int64                                `json:"docs_job_id,omitempty"`
+	DbtProjectType         int64                                 `json:"type"`
 	FreshnessJobID         *int64                                `json:"freshness_job_id,omitempty"`
 	ID                     int64                                 `json:"id,omitempty"`
 	CreatedAt              string                                `json:"created_at,omitempty"`
