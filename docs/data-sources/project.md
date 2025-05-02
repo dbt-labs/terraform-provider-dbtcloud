@@ -47,6 +47,7 @@ data "dbtcloud_project" "test_project" {
 - `repository` (Attributes) Details for the repository linked to the project (see [below for nested schema](#nestedatt--repository))
 - `semantic_layer_config_id` (Number) Semantic layer config ID
 - `state` (Number) Project state should be 1 = active, as 2 = deleted
+- `type` (Number) The type of dbt project (default or hybrid)
 - `updated_at` (String) When the project was last updated
 
 <a id="nestedatt--project_connection"></a>
