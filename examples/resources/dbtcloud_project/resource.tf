@@ -8,5 +8,5 @@ resource "dbtcloud_project" "dbt_project_with_description" {
 
 resource "dbtcloud_project" "dbt_project_with_subdir" {
   name                     = "Analytics in Subdir"
-  dbt_project_subdirectory = "/path"
+  dbt_project_subdirectory = "path"
 }
