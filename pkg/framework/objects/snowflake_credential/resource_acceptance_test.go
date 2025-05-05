@@ -140,7 +140,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_snowflake_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase"},
+				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase", "semantic_layer_credential"},
 			},
 		},
 	})
