@@ -39,7 +39,7 @@ var datasourceSchema = datasource_schema.Schema{
 					},
 					"dbt_project_subdirectory": datasource_schema.StringAttribute{
 						Computed:    true,
-						Description: "Subdirectory for the dbt project inside the git repo",
+						Description: "Subdirectory for the dbt project inside the git repo.",
 					},
 					"type": datasource_schema.Int64Attribute{
 						Computed:    true,
