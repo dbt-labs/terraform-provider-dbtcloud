@@ -1,9 +1,9 @@
 package snowflake_credential
 
 import (
+	snowflake_credential "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -11,13 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-)
-
-var (
-	authTypes = []string{
-		"password",
-		"keypair",
-	}
 )
 
 var datasourceSchema = datasource_schema.Schema{
@@ -58,7 +51,7 @@ var datasourceSchema = datasource_schema.Schema{
 	},
 }
 
-var resourceSchema = resource_schema.Schema{
+var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 	Description: "Snowflake credential resource",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
@@ -92,7 +85,7 @@ var resourceSchema = resource_schema.Schema{
 			Required:    true,
 			Description: "The type of Snowflake credential ('password' or 'keypair')",
 			Validators: []validator.String{
-				stringvalidator.OneOf(authTypes...),
+				stringvalidator.OneOf(AuthTypes...),
 			},
 		},
 		"database": resource_schema.StringAttribute{
@@ -108,11 +101,15 @@ var resourceSchema = resource_schema.Schema{
 			Description: "The warehouse to use",
 		},
 		"schema": resource_schema.StringAttribute{
-			Required:    true,
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("default_schema"),
 			Description: "The schema where to create models",
 		},
 		"user": resource_schema.StringAttribute{
-			Required:    true,
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("default_user"),
 			Description: "The username for the Snowflake account ",
 		},
 		"password": resource_schema.StringAttribute{
@@ -122,10 +119,7 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(
-					path.MatchRoot("private_key"),
-					path.MatchRoot("private_key_passphrase"),
-				),
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"private_key", "private_key_passphrase"}},
 			},
 		},
 		"private_key": resource_schema.StringAttribute{
@@ -135,7 +129,7 @@ var resourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString(""),
 			Description: "The private key for the Snowflake account",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
 			},
 		},
 		"private_key_passphrase": resource_schema.StringAttribute{
@@ -145,12 +139,21 @@ var resourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString(""),
 			Description: "The passphrase for the private key",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
 			},
 		},
 		"num_threads": resource_schema.Int64Attribute{
 			Required:    true,
 			Description: "Number of threads to use",
+		},
+		"semantic_layer_credential": resource_schema.BoolAttribute{
+			Optional:    true,
+			Description: "Whether this credential is used for semantic layer",
+			Computed:    true,
+			Default:     booldefault.StaticBool(false),
+			Validators: []validator.Bool{
+				snowflake_credential.SemanticLayerCredentialValidator{},
+			},
 		},
 	},
 }

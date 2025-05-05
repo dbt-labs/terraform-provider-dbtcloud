@@ -12,6 +12,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/privatelink_endpoint"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/runs"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_configuration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
@@ -275,5 +276,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
 		project.ProjectResource,
 		semantic_layer_configuration.SemanticLayerConfigurationResource,
+		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 	}
 }
