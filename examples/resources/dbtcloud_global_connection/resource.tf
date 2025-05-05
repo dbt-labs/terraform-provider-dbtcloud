@@ -120,3 +120,15 @@ resource "dbtcloud_global_connection" "synapse" {
     query_timeout = 3600
   }
 }
+
+resource "dbtcloud_global_connection" "teradata" {
+  name = "My Teradata connection"
+
+  teradata = {
+    host       = "teradata.example.com"
+    port       		= 1025
+    tmode	   		= "ANSI"
+    retries	   		= 3
+    request_timeout = 3000
+  }
+}
