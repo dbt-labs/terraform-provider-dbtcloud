@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -330,14 +329,4 @@ func (r *environmentVariableResource) ImportState(
 		path.Root("name"),
 		name,
 	)...)
-}
-
-func getEnvValuesMap(environmentValues map[string]attr.Value) map[string]string {
-	envValuesMap := make(map[string]string)
-	for key, value := range environmentValues {
-		if valueStr, ok := value.(types.String); ok {
-			envValuesMap[key] = valueStr.ValueString()
-		}
-	}
-	return envValuesMap
 }
