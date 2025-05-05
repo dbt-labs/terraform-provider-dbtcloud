@@ -7,7 +7,7 @@ import (
 )
 
 var semantic_layer_config_resource_schema = config_resource_schema.Schema{
-	Description: "Semantic Layer configuration resource",
+	Description: "Semantic Layer credential metadata. This contains the configuration for the semantic layer credential, but it is different than the Semantic Layer Configuration resource. It is used as part of the credential.",
 	Attributes: map[string]config_resource_schema.Attribute{
 		"name": config_resource_schema.StringAttribute{
 			Required:    true,
@@ -25,7 +25,7 @@ var semantic_layer_config_resource_schema = config_resource_schema.Schema{
 }
 
 var snowflake_sl_credential_resource_schema = snowflake_sl_credential__resource_schema.Schema{
-	Description: "Snowflake credential resource",
+	Description: "Snowflake credential resource. This resource is composed of a Snowflake credential and a Semantic Layer configuration. It is used to create a Snowflake credential for the Semantic Layer.",
 	Attributes: map[string]snowflake_sl_credential__resource_schema.Attribute{
 		"id": snowflake_sl_credential__resource_schema.Int64Attribute{
 			Computed:    true,
@@ -33,13 +33,13 @@ var snowflake_sl_credential_resource_schema = snowflake_sl_credential__resource_
 		},
 		"configuration": snowflake_sl_credential__resource_schema.SingleNestedAttribute{
 			Required:    true,
-			Description: "Semantic Layer configuration details.",
+			Description: "Semantic Layer credenttial configuration details.",
 			Attributes:  semantic_layer_config_resource_schema.Attributes, // Reuse the schema
 		},
 
 		"credential": snowflake_sl_credential__resource_schema.SingleNestedAttribute{
 			Required:    true,
-			Description: "Snowflake credential details.",
+			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
 			Attributes:  snowflake_credential.SnowflakeCredentialResourceSchema.Attributes, // Reuse the schema
 		},
 	},

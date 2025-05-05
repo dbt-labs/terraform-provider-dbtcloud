@@ -52,7 +52,7 @@ var datasourceSchema = datasource_schema.Schema{
 }
 
 var SnowflakeCredentialResourceSchema = resource_schema.Schema{
-	Description: "Snowflake credential resource",
+	Description: "Snowflake credential resource. This resource is used both as a stand-alone credential, but also as part of the Semantic Layer credential definition for Snowflake.",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,
@@ -104,13 +104,13 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 			Optional:    true,
 			Computed:    true,
 			Default:     stringdefault.StaticString("default_schema"),
-			Description: "The schema where to create models",
+			Description: "The schema where to create models. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.",
 		},
 		"user": resource_schema.StringAttribute{
 			Optional:    true,
 			Computed:    true,
 			Default:     stringdefault.StaticString("default_user"),
-			Description: "The username for the Snowflake account ",
+			Description: "The username for the Snowflake account. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required. ",
 		},
 		"password": resource_schema.StringAttribute{
 			Optional:    true,
@@ -148,7 +148,7 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 		},
 		"semantic_layer_credential": resource_schema.BoolAttribute{
 			Optional:    true,
-			Description: "Whether this credential is used for semantic layer",
+			Description: "This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Snowflake credential for the Semantic Layer.",
 			Computed:    true,
 			Default:     booldefault.StaticBool(false),
 			Validators: []validator.Bool{
