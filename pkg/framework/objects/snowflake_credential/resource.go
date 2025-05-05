@@ -69,7 +69,7 @@ func (r *snowflakeCredentialResource) Schema(
 	req resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-	resp.Schema = resourceSchema
+	resp.Schema = SnowflakeCredentialResourceSchema
 }
 
 // Create creates the resource and sets the initial Terraform state.
