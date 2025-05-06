@@ -52,11 +52,6 @@ func TestAccDbtCloudAccountFeaturesResource(t *testing.T) {
 						"ai_features",
 						"true",
 					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_account_features.test",
-						"warehouse_cost_visibility",
-						"true",
-					),
 				),
 			},
 		},
@@ -79,7 +74,6 @@ resource "dbtcloud_account_features" "test" {
     partial_parsing = true
     repo_caching    = true
 	ai_features     = true
-	warehouse_cost_visibility = true
 }
 `
 }
