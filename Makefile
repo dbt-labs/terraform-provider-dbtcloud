@@ -1,6 +1,9 @@
 NAME=dbtcloud
 BINARY=terraform-provider-$(NAME)
 
+# Go Regexp does not allow negative lookaheads, so we have to do this instead
+EXCLUDE_CONF='^Test([^C]|C[^o]|Co[^n]|Con[^f]).*'
+
 default: install
 
 setup:
@@ -18,10 +21,10 @@ doc:
 	go generate ./...
 
 test: deps
-	go test -run -mod=readonly -count=1 ./...
+	go test -run $(EXCLUDE_CONF) -mod=readonly -count=1 ./...
 
 test-acceptance: deps
-	TF_ACC=1 go test -v -run -mod=readonly -count=1 -p 5 -parallel 10 ./...
+	TF_ACC=1 go test -v -run $(EXCLUDE_CONF) -mod=readonly -count=1 -p 5 -parallel 10 ./...
 
 check-docs: doc
 	git diff --exit-code -- docs
