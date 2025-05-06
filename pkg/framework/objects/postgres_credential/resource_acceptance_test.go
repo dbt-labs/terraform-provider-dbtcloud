@@ -61,7 +61,7 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 		ImportStateVerifyIgnore: []string{"password"},
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudPostgresCredentialDestroy,
@@ -76,7 +76,7 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 }
 
 func TestConfDbtCloudPostgresCredentialResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{

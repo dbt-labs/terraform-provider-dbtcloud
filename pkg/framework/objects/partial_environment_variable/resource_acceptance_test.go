@@ -25,7 +25,7 @@ func TestAccDbtCloudPartialEnvironmentVariableResource(t *testing.T) {
 	envValue2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	updatedEnvValue1 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,

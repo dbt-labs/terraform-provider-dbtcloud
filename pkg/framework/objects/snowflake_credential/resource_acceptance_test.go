@@ -106,7 +106,7 @@ func getModifyConfigTestStep(projectName, database, role, warehouse, schema, use
 	}
 }
 
-func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
+func TestAccDbtCloudSnowflakeCredentialResourceAuth(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -123,10 +123,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	user2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
@@ -144,8 +141,21 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 			},
 		},
 	})
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDbtCloudSnowflakeCredentialResourcePrivateKey(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
@@ -225,7 +235,7 @@ func TestAccDbtCloudSlSnowflakeCredentialNoSchemaResource(t *testing.T) {
 	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
