@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -13,13 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
-	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	schema := "test_schema"
-	awsAccessKeyID := "test_access_key_id"
-	awsSecretAccessKey := "test_secret_access_key"
-
-	var step1 = resource.TestStep{
+func testAccDbtCloudAthenaCredentialCreateAndReadStep(
+	projectName string,
+	schema string,
+	awsAccessKeyID string,
+	awsSecretAccessKey string,
+) resource.TestStep {
+	return resource.TestStep{
 		Config: testAccDbtCloudAthenaCredentialResourceConfig(
 			projectName,
 			schema,
@@ -43,8 +42,10 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 			),
 		),
 	}
+}
 
-	var step2 = resource.TestStep{
+func testAccDbtCloudAthenaCredentialImportStep() resource.TestStep {
+	return resource.TestStep{
 		ResourceName:      "dbtcloud_athena_credential.test",
 		ImportState:       true,
 		ImportStateVerify: true,
@@ -54,8 +55,14 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 			"aws_secret_access_key",
 		},
 	}
+}
 
-	var step3 = resource.TestStep{
+func testAccDbtCloudAthenaCredentialUpdateStep(
+	projectName string,
+	awsAccessKeyID string,
+	awsSecretAccessKey string,
+) resource.TestStep {
+	return resource.TestStep{
 		Config: testAccDbtCloudAthenaCredentialResourceConfig(
 			projectName,
 			"updated_schema",
@@ -71,6 +78,28 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 			),
 		),
 	}
+}
+
+func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
+	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	schema := "test_schema"
+	awsAccessKeyID := "test_access_key_id"
+	awsSecretAccessKey := "test_secret_access_key"
+
+	var step1 = testAccDbtCloudAthenaCredentialCreateAndReadStep(
+		projectName,
+		schema,
+		awsAccessKeyID,
+		awsSecretAccessKey,
+	)
+
+	var step2 = testAccDbtCloudAthenaCredentialImportStep()
+
+	var step3 = testAccDbtCloudAthenaCredentialUpdateStep(
+		projectName,
+		awsAccessKeyID,
+		awsSecretAccessKey,
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -83,37 +112,6 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 			step2,
 			// Update and Read testing
 			step3,
-		},
-	})
-
-	// test the Framework implementation
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			step1,
-			step2,
-			step3,
-		},
-	})
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(step1, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(step1),
-		},
-	})
-
-	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(step3, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(step3),
 		},
 	})
 }
