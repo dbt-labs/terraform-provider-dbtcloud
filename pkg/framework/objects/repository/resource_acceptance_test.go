@@ -86,7 +86,7 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
@@ -96,7 +96,7 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		},
 	})
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,

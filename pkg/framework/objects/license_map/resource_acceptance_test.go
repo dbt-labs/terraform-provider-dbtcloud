@@ -17,7 +17,7 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudLicenseMapDestroy,

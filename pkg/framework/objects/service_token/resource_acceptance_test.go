@@ -20,7 +20,7 @@ func TestAccDbtCloudServiceTokenResource(t *testing.T) {
 	serviceTokenName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudServiceTokenDestroy,
@@ -277,7 +277,7 @@ func TestServiceTokenPagination_GH_280(t *testing.T) {
 		panic(err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudServiceTokenDestroy,

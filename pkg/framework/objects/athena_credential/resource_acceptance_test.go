@@ -87,7 +87,7 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 	})
 
 	// test the Framework implementation
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudAthenaCredentialDestroy,
@@ -98,7 +98,7 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 		},
 	})
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
 		Steps: []resource.TestStep{
@@ -108,7 +108,7 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 	})
 
 	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
 		Steps: []resource.TestStep{
