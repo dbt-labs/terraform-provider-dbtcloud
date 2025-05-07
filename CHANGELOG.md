@@ -9,53 +9,40 @@ All notable changes to this project will be documented in this file.
 
 ### Changes
 
-- <b>Finish Migration to Terraform Plugin Framework</b>: We've finished migrating the provider's resources from the legacy SDKv2 to the modern Terraform Plugin Framework. This foundational update aligns with HashiCorp's recommendations and aims to improve the provider's stability, performance, and readiness for future feature development. This release includes the migration of the following resources:
-    - Biquery credential data source and resource
-    - User groups data source and resource
-    - Fabric credential resource
-    - Webhook data source and resource
-    - Postgres credentials 
-    - Databricks credentials data source and resource
-    - Repository data source and resource
-    - Environment resource
-    - Snowflake credential data source and resource
-    - Job data source and resource
-    - Extended attributes data source and resource
-    - Project repository resource
-    - Environment variable data source and resource
-    - environment variable job override resource
-    - project data source and resource
-    - private link endpoint data source
-    - group users data source
+- Finish Migration to Terraform Plugin Framework: We've finished migrating the provider's resources from the legacy SDKv2 to the modern Terraform Plugin Framework. This foundational update aligns with HashiCorp's recommendations and aims to improve the provider's stability, performance, and readiness for future feature development. This release includes the migration of the following resources:
+    - `dbtcloud_bigquery_credential` data source and resource
+    - `dbtcloud_user_groups` data source and resource
+    - `dbtcloud_fabric_credential` resource
+    - `dbtcloud_webhook` data source and resource
+    - `dbtcloud_postgres_credential` credentials 
+    - `dbtcloud_databricks_credential` data source and resource
+    - `dbtcloud_repository` data source and resource
+    - `dbtcloud_environment` resource
+    - `dbtcloud_snowflake_credential` data source and resource
+    - `dbtcloud_job` data source and resource
+    - `dbtcloud_extended_attributes` data source and resource
+    - `dbtcloud_project_repository` resource
+    - `dbtcloud_environment_variable` data source and resource
+    - `dbtcloud_environment_variable_job_override` resource
+    - `dbtcloud_project` data source and resource
+    - `dbtcloud_privatelink_endpoint` data source
+    - `dbtcloud_group_users` data source
 
 - Added new features:
-    - partial environment variables resource
-    - terradata data source and resource 
-    - run data source
-    - semantic layer configuration resource
-    - semantic layer credential resource
+    - `dbtcloud_partial_environment_variable` resource
+    - `dbtcloud_teradata_credential` data source and resource 
+    - `dbtcloud_runs` data source
+    - `dbtcloud_semantic_layer_configuration` resource
+    - `dbtcloud_snowflake_semantic_layer_credential` resource
 
 
-- Support Type setting of dbtcloud_project resource [#398](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/398)
+- Support Type setting of dbtcloud_project resource in order to set hybrid projects [#398](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/398)
 - Enable AI features and Warehouse Cost Visibility account feature [#399](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/399)
-
 - Removed sdkv2 sdk implementation
 
 #### Deprectations:
-- <b>Removal of Deprecated Components</b>: As marked in the previous version, several deprecated data sources, resources, and properties have been permanently removed in this release. If your Terraform configurations use any of the items listed below, you will need to update them before upgrading to this version to avoid errors.
-    - Removed Data Sources:
-        - Bigquery connection
-
-
-    - Removed Resources:
-        - Bigquery connection
-        - Databricks connection
-        - Databricks credential
-
-    - Removed Properties:
-
-    - Moved Properties:
-
+- Removal of Deprecated Components: As marked in the previous version, several deprecated data sources, resources, and properties have been permanently removed in this release. If your Terraform configurations use any of the items listed below, you will need to update them before upgrading to this version to avoid errors.
+- Individual dbtcloud_connection (`dbtcloud_bigquery_connection`, `dbtcloud_fabric_connection`, etc.) are migrated to `dbtcloud_global_connection`
 
 
 ### Fixes
