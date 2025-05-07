@@ -10,7 +10,7 @@ description: |-
 
 Environment variable credential data source
 
-## Example usage
+## Example Usage
 
 ```terraform
 data "dbtcloud_environment_variable" "my_var" {
