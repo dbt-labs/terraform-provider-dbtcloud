@@ -2,7 +2,65 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.25...HEAD)
+
+## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.26...HEAD)
+
+# [1.0.0-beta.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.26...v1.0.0)
+
+### Notes
+This is a beta release.
+
+### Changes
+
+- Finish Migration to Terraform Plugin Framework: We've finished migrating the provider's resources from the legacy SDKv2 to the modern Terraform Plugin Framework. This foundational update aligns with HashiCorp's recommendations and aims to improve the provider's stability, performance, and readiness for future feature development. This release includes the migration of the following resources:
+    - `dbtcloud_bigquery_credential` data source and resource
+    - `dbtcloud_user_groups` data source and resource
+    - `dbtcloud_fabric_credential` resource
+    - `dbtcloud_webhook` data source and resource
+    - `dbtcloud_postgres_credential` credentials 
+    - `dbtcloud_databricks_credential` data source and resource
+    - `dbtcloud_repository` data source and resource
+    - `dbtcloud_environment` resource
+    - `dbtcloud_snowflake_credential` data source and resource
+    - `dbtcloud_job` data source and resource
+    - `dbtcloud_extended_attributes` data source and resource
+    - `dbtcloud_project_repository` resource
+    - `dbtcloud_environment_variable` data source and resource
+    - `dbtcloud_environment_variable_job_override` resource
+    - `dbtcloud_project` data source and resource
+    - `dbtcloud_privatelink_endpoint` data source
+    - `dbtcloud_group_users` data source
+
+- Added new features:
+    - `dbtcloud_partial_environment_variable` resource
+    - `dbtcloud_teradata_credential` data source and resource 
+    - `dbtcloud_runs` data source
+    - `dbtcloud_semantic_layer_configuration` resource
+    - `dbtcloud_snowflake_semantic_layer_credential` resource
+
+
+- Support Type setting of dbtcloud_project resource in order to set hybrid projects [#398](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/398)
+- Enable AI features and Warehouse Cost Visibility account feature [#399](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/399)
+- Removed sdkv2 sdk implementation
+
+#### Deprectations:
+- Removal of Deprecated Components: As marked in the previous version, several deprecated data sources, resources, and properties have been permanently removed in this release. If your Terraform configurations use any of the items listed below, you will need to update them before upgrading to this version to avoid errors.
+- Individual dbtcloud_connection (`dbtcloud_bigquery_connection`, `dbtcloud_fabric_connection`, etc.) are migrated to `dbtcloud_global_connection`
+
+
+### Fixes
+
+- Do not update the connection linked to the project when updating repos [#362](https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/362)
+
+
+
+
+
+# [0.3.26](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.25...v0.3.26)
+
+- Add Starburst credential resource and datasource
+- Parameterize acceptance tests for local runs
+
 
 # [0.3.25](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.24...v0.3.25)
 
