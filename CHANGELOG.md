@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.26...HEAD)
 
-# [1.0.0](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.26...v1.0.0)
+# [1.0.0-beta.1](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v0.3.26...v1.0.0)
+
+### Notes
+This is a beta release.
 
 ### Changes
 
