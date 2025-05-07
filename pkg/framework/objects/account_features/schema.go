@@ -44,6 +44,16 @@ func (r *accountFeaturesResource) Schema(
 				Optional:    true,
 				Computed:    true,
 			},
+			"ai_features": schema.BoolAttribute{
+				Description: "Whether AI features are enabled.",
+				Optional:    true,
+				Computed:    true,
+			},
+			"warehouse_cost_visibility": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether warehouse cost visibility is enabled.",
+			},
 		},
 	}
 }

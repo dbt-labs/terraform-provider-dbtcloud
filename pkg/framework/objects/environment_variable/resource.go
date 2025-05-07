@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -200,12 +199,27 @@ func (r *environmentVariableResource) Update(
 		return
 	}
 
+	// Update values for previously existing environments and disregard those missing from plan
 	environmentValues := plan.EnvironmentValues.Elements()
 	envValuesMap := make(map[string]string)
 	for key, keyValuePair := range currentEnvVar.EnvironmentNameValues {
 		idStr := strconv.Itoa(keyValuePair.ID)
+		// We assume the value will be deleted
+		envValuesMap[idStr] = ""
 		if valueStr, ok := environmentValues[key].(types.String); ok {
 			envValuesMap[idStr] = valueStr.ValueString()
+		}
+	}
+
+	// Add any new values
+	if len(environmentValues) > len(currentEnvVar.EnvironmentNameValues) {
+		for key, value := range environmentValues {
+			_, exists := currentEnvVar.EnvironmentNameValues[key]
+			if !exists {
+				if valueStr, ok := value.(types.String); ok {
+					envValuesMap[key] = valueStr.ValueString()
+				}
+			}
 		}
 	}
 
@@ -315,14 +329,4 @@ func (r *environmentVariableResource) ImportState(
 		path.Root("name"),
 		name,
 	)...)
-}
-
-func getEnvValuesMap(environmentValues map[string]attr.Value) map[string]string {
-	envValuesMap := make(map[string]string)
-	for key, value := range environmentValues {
-		if valueStr, ok := value.(types.String); ok {
-			envValuesMap[key] = valueStr.ValueString()
-		}
-	}
-	return envValuesMap
 }
