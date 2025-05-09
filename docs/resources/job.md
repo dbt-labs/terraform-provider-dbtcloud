@@ -134,7 +134,7 @@ resource "dbtcloud_job" "downstream_job" {
 - `schedule_days` (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
 - `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule
 - `schedule_interval` (Number) Number of hours between job executions if running on a schedule
-- `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron
+- `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
 - `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
