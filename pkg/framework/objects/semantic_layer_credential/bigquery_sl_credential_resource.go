@@ -72,8 +72,7 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 
 	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
-	state.PrivateKeyID = getStringFromMap(credential.Values, "private_key_id")
-	state.PrivateKey = getStringFromMap(credential.Values, "private_key")
+
 	state.ClientEmail = getStringFromMap(credential.Values, "client_email")
 	state.ClientID = getStringFromMap(credential.Values, "client_id")
 	state.AuthProviderCertURL = getStringFromMap(credential.Values, "auth_provider_x509_cert_url")
@@ -194,12 +193,14 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 	}
 
 	values := map[string]interface{}{
-		"id":            plan.Credential.ID.ValueString(),
-		"credential_id": plan.Credential.CredentialID.ValueInt64(),
-		"project_id":    plan.Credential.ProjectID.ValueInt64(),
-		"is_active":     plan.Credential.IsActive.ValueBool(),
-		"dataset":       plan.Credential.Dataset.ValueString(),
-		"num_threads":   plan.Credential.NumThreads.ValueInt64(),
+		"private_key_id":              plan.PrivateKeyID.ValueString(),
+		"private_key":                 plan.PrivateKey.ValueString(),
+		"client_email":                plan.ClientEmail.ValueString(),
+		"client_id":                   plan.ClientID.ValueString(),
+		"auth_uri":                    plan.AuthURI.ValueString(),
+		"token_uri":                   plan.TokenURI.ValueString(),
+		"auth_provider_x509_cert_url": plan.AuthProviderCertURL.ValueString(),
+		"client_x509_cert_url":        plan.ClientCertURL.ValueString(),
 	}
 
 	credential.Name = plan.Configuration.Name.ValueString()
@@ -217,19 +218,30 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 		return
 	}
 
-	state.ID = types.Int64Value(int64(*credential.ID))
-	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
+	updatedCredential, err := r.client.GetSemanticLayerCredential(id)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Issue getting Semantic Layer configuration",
+			"Error: "+err.Error(),
+		)
+		return
+	}
 
-	//update config fields
-	state.Configuration.Name = types.StringValue(credential.Name)
+	state.ID = types.Int64Value(int64(*updatedCredential.ID))
+	state.Credential.ProjectID = types.Int64Value(int64(updatedCredential.ProjectID))
+	state.Credential.CredentialID = types.Int64Value(int64(*updatedCredential.ID))
 
-	//update credential fields
-	state.Credential.ID = types.StringValue(credential.Values["id"].(string))
-	state.Credential.CredentialID = types.Int64Value(credential.Values["credential_id"].(int64))
-	state.Credential.ProjectID = types.Int64Value(credential.Values["project_id"].(int64))
-	state.Credential.IsActive = types.BoolValue(credential.Values["is_active"].(bool))
-	state.Credential.Dataset = types.StringValue(credential.Values["dataset"].(string))
-	state.Credential.NumThreads = types.Int64Value(credential.Values["num_threads"].(int64))
+	state.Configuration.ProjectID = types.Int64Value(int64(updatedCredential.ProjectID))
+	state.Configuration.Name = types.StringValue(updatedCredential.Name)
+	state.Configuration.AdapterVersion = types.StringValue(updatedCredential.AdapterVersion)
+
+	state.AuthURI = getStringFromMap(updatedCredential.Values, "auth_uri")
+	state.TokenURI = getStringFromMap(updatedCredential.Values, "token_uri")
+
+	state.ClientEmail = getStringFromMap(updatedCredential.Values, "client_email")
+	state.ClientID = getStringFromMap(updatedCredential.Values, "client_id")
+	state.AuthProviderCertURL = getStringFromMap(updatedCredential.Values, "auth_provider_x509_cert_url")
+	state.ClientCertURL = getStringFromMap(updatedCredential.Values, "client_x509_cert_url")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

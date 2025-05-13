@@ -19,7 +19,8 @@ func TestDbtCloudSemanticLayerConfigurationBigQueryResource(t *testing.T) {
 		t.Skip("Skipping test because config is not set")
 	}
 
-	name := acctest.RandomWithPrefix("tf_test")
+	name := acctest.RandomWithPrefix("bigquery_tf_test")
+	name2 := acctest.RandomWithPrefix("bigquery_tf_test_2")
 
 	privateKeyID := acctest.RandString(10)
 	privateKey := acctest.RandString(10)
@@ -29,6 +30,9 @@ func TestDbtCloudSemanticLayerConfigurationBigQueryResource(t *testing.T) {
 	tokenURI := acctest.RandString(10)
 	authProviderCertURL := acctest.RandString(10)
 	clientCertURL := acctest.RandString(10)
+
+	clientEmail2 := acctest.RandString(10)
+	clientID2 := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -84,6 +88,80 @@ func TestDbtCloudSemanticLayerConfigurationBigQueryResource(t *testing.T) {
 						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
 						"client_id",
 						clientID,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"auth_uri",
+						authURI,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"token_uri",
+						tokenURI,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"auth_provider_x509_cert_url",
+						authProviderCertURL,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"client_x509_cert_url",
+						clientCertURL,
+					),
+				),
+			},
+
+			// Update name, clientEmail, clientID
+			{
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(
+					projectID,
+					name2,
+					privateKeyID,
+					privateKey,
+					clientEmail2,
+					clientID2,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"configuration.project_id",
+						strconv.Itoa(projectID),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"configuration.name",
+						name2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"credential.project_id",
+						strconv.Itoa(projectID),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key_id",
+						privateKeyID,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key",
+						privateKey,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"client_email",
+						clientEmail2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"client_id",
+						clientID2,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
