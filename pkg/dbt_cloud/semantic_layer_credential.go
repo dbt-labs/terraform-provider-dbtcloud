@@ -136,12 +136,7 @@ func (c *Client) CreateSemanticLayerCredential(
 
 func (c *Client) CreateSemanticLayerCredentialBigQuery(
 	//credential fields
-	id string,
-	credentialID int64,
 	projectID int64,
-	isActive bool,
-	dataset string,
-	numThreads int64,
 	privateKeyID string,
 	privateKey string,
 	clientEmail string,
@@ -159,12 +154,6 @@ func (c *Client) CreateSemanticLayerCredentialBigQuery(
 
 	//add credential fields to values map
 	values := map[string]interface{}{
-		"id":                          id,
-		"credential_id":               credentialID,
-		"project_id":                  projectID,
-		"is_active":                   isActive,
-		"dataset":                     dataset,
-		"num_threads":                 numThreads,
 		"private_key_id":              privateKeyID,
 		"private_key":                 privateKey,
 		"client_email":                clientEmail,

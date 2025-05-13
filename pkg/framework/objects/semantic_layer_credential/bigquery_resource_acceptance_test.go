@@ -33,7 +33,7 @@ func TestDbtCloudSemanticLayerConfigurationBigQueryResource(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudSemanticLayerCredentialDestroy,
+		CheckDestroy:             testAccCheckDbtCloudSemanticLayerCredentialBigQueryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(

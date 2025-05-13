@@ -66,8 +66,30 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.Credential.ProjectID = types.Int64Value(int64(credential.ProjectID))
 	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
 
+	state.Configuration.ProjectID = types.Int64Value(int64(credential.ProjectID))
+	state.Configuration.Name = types.StringValue(credential.Name)
+	state.Configuration.AdapterVersion = types.StringValue(credential.AdapterVersion)
+
+	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
+	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
+	state.PrivateKeyID = getStringFromMap(credential.Values, "private_key_id")
+	state.PrivateKey = getStringFromMap(credential.Values, "private_key")
+	state.ClientEmail = getStringFromMap(credential.Values, "client_email")
+	state.ClientID = getStringFromMap(credential.Values, "client_id")
+	state.AuthProviderCertURL = getStringFromMap(credential.Values, "auth_provider_x509_cert_url")
+	state.ClientCertURL = getStringFromMap(credential.Values, "client_x509_cert_url")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
+}
+
+func getStringFromMap(m map[string]interface{}, key string) types.String {
+	if val, ok := m[key]; ok {
+		if str, ok := val.(string); ok {
+			return types.StringValue(str)
+		}
+	}
+	return types.StringNull()
 }
 
 func (r *bigQuerySemanticLayerCredentialResource) Create(
@@ -85,12 +107,7 @@ func (r *bigQuerySemanticLayerCredentialResource) Create(
 	projectID := plan.Credential.ProjectID.ValueInt64()
 
 	createdCredential, err := r.client.CreateSemanticLayerCredentialBigQuery(
-		plan.ID.String(),
 		projectID,
-		plan.Credential.CredentialID.ValueInt64(),
-		plan.Credential.IsActive.ValueBool(),
-		plan.Credential.Dataset.ValueString(),
-		plan.Credential.NumThreads.ValueInt64(),
 		plan.PrivateKeyID.ValueString(),
 		plan.PrivateKey.ValueString(),
 		plan.ClientEmail.ValueString(),
