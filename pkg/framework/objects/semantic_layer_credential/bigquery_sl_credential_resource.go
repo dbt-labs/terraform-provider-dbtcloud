@@ -11,46 +11,38 @@ import (
 )
 
 var (
-	_ resource.Resource              = &snowflakeSemanticLayerCredentialResource{}
-	_ resource.ResourceWithConfigure = &snowflakeSemanticLayerCredentialResource{}
+	_ resource.Resource              = &bigQuerySemanticLayerCredentialResource{}
+	_ resource.ResourceWithConfigure = &bigQuerySemanticLayerCredentialResource{}
 )
 
-func SnowflakeSemanticLayerCredentialResource() resource.Resource {
-	return &snowflakeSemanticLayerCredentialResource{}
+func BigQuerySemanticLayerCredentialResource() resource.Resource {
+	return &bigQuerySemanticLayerCredentialResource{}
 }
 
-// dbtCloud.Client for making API calls
-type snowflakeSemanticLayerCredentialResource struct {
+type bigQuerySemanticLayerCredentialResource struct {
 	client *dbt_cloud.Client
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Metadata(
+func (r *bigQuerySemanticLayerCredentialResource) Metadata(
 	_ context.Context,
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_snowflake_semantic_layer_credential"
+	resp.TypeName = req.ProviderTypeName + "_bigquery_semantic_layer_credential"
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Read(
+func (r *bigQuerySemanticLayerCredentialResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state SnowflakeSLCredentialModel
+	var state BigQuerySLCredentialModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	id := state.ID.ValueInt64()
 
 	credential, err := r.client.GetSemanticLayerCredential(id)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Issue getting Semantic Layer credential",
-			"Error: "+err.Error(),
-		)
-		return
-	}
 
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
@@ -62,6 +54,11 @@ func (r *snowflakeSemanticLayerCredentialResource) Read(
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the Semantic Layer configuration", err.Error())
+
+		resp.Diagnostics.AddError(
+			"Issue getting Semantic Layer credential",
+			"Error: "+err.Error(),
+		)
 		return
 	}
 
@@ -73,12 +70,12 @@ func (r *snowflakeSemanticLayerCredentialResource) Read(
 
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Create(
+func (r *bigQuerySemanticLayerCredentialResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan SnowflakeSLCredentialModel
+	var plan BigQuerySLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -87,19 +84,21 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 
 	projectID := plan.Credential.ProjectID.ValueInt64()
 
-	createdCredential, err := r.client.CreateSemanticLayerCredential(
+	createdCredential, err := r.client.CreateSemanticLayerCredentialBigQuery(
+		plan.ID.String(),
 		projectID,
+		plan.Credential.CredentialID.ValueInt64(),
 		plan.Credential.IsActive.ValueBool(),
-		plan.Credential.Database.ValueString(),
-		plan.Credential.Role.ValueString(),
-		plan.Credential.Warehouse.ValueString(),
-		plan.Credential.Schema.ValueString(),
-		plan.Credential.User.ValueString(),
-		plan.Credential.Password.ValueString(),
-		plan.Credential.PrivateKey.ValueString(),
-		plan.Credential.PrivateKeyPassphrase.ValueString(),
-		plan.Credential.AuthType.ValueString(),
-		int(plan.Credential.NumThreads.ValueInt64()),
+		plan.Credential.Dataset.ValueString(),
+		plan.Credential.NumThreads.ValueInt64(),
+		plan.PrivateKeyID.ValueString(),
+		plan.PrivateKey.ValueString(),
+		plan.ClientEmail.ValueString(),
+		plan.ClientID.ValueString(),
+		plan.AuthURI.ValueString(),
+		plan.TokenURI.ValueString(),
+		plan.AuthProviderCertURL.ValueString(),
+		plan.ClientCertURL.ValueString(),
 		plan.Configuration.Name.ValueString(),
 		plan.Configuration.AdapterVersion.ValueString(),
 	)
@@ -114,19 +113,18 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 
 	plan.ID = types.Int64Value(int64(*createdCredential.ID))
 
-	//snowflake credential ids, not used in this case
 	plan.Credential.CredentialID = types.Int64Value(int64(*createdCredential.ID))
 	plan.Credential.ID = types.StringValue(fmt.Sprintf("%d", *createdCredential.ID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Delete(
+func (r *bigQuerySemanticLayerCredentialResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state SnowflakeSLCredentialModel
+	var state BigQuerySLCredentialModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -149,12 +147,12 @@ func (r *snowflakeSemanticLayerCredentialResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Update(
+func (r *bigQuerySemanticLayerCredentialResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state SnowflakeSLCredentialModel
+	var plan, state BigQuerySLCredentialModel
 
 	// Read plan and state values into the models
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -179,13 +177,12 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	}
 
 	values := map[string]interface{}{
-		"role":                   plan.Credential.Role.ValueString(),
-		"warehouse":              plan.Credential.Warehouse.ValueString(),
-		"user":                   plan.Credential.User.ValueString(),
-		"password":               plan.Credential.Password.ValueString(),
-		"private_key":            plan.Credential.PrivateKey.ValueString(),
-		"private_key_passphrase": plan.Credential.PrivateKeyPassphrase.ValueString(),
-		"auth_type":              plan.Credential.AuthType.ValueString(),
+		"id":            plan.Credential.ID.ValueString(),
+		"credential_id": plan.Credential.CredentialID.ValueInt64(),
+		"project_id":    plan.Credential.ProjectID.ValueInt64(),
+		"is_active":     plan.Credential.IsActive.ValueBool(),
+		"dataset":       plan.Credential.Dataset.ValueString(),
+		"num_threads":   plan.Credential.NumThreads.ValueInt64(),
 	}
 
 	credential.Name = plan.Configuration.Name.ValueString()
@@ -210,18 +207,17 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	state.Configuration.Name = types.StringValue(credential.Name)
 
 	//update credential fields
-	state.Credential.AuthType = types.StringValue(credential.Values["auth_type"].(string))
-	state.Credential.Role = types.StringValue(credential.Values["role"].(string))
-	state.Credential.Warehouse = types.StringValue(credential.Values["warehouse"].(string))
-	state.Credential.Password = types.StringValue(credential.Values["password"].(string))
-	state.Credential.User = types.StringValue(credential.Values["user"].(string))
-	state.Credential.PrivateKey = types.StringValue(credential.Values["private_key"].(string))
-	state.Credential.PrivateKeyPassphrase = types.StringValue(credential.Values["private_key_passphrase"].(string))
+	state.Credential.ID = types.StringValue(credential.Values["id"].(string))
+	state.Credential.CredentialID = types.Int64Value(credential.Values["credential_id"].(int64))
+	state.Credential.ProjectID = types.Int64Value(credential.Values["project_id"].(int64))
+	state.Credential.IsActive = types.BoolValue(credential.Values["is_active"].(bool))
+	state.Credential.Dataset = types.StringValue(credential.Values["dataset"].(string))
+	state.Credential.NumThreads = types.Int64Value(credential.Values["num_threads"].(int64))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Configure(
+func (r *bigQuerySemanticLayerCredentialResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	_ *resource.ConfigureResponse,
@@ -233,10 +229,10 @@ func (r *snowflakeSemanticLayerCredentialResource) Configure(
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Schema(
+func (r *bigQuerySemanticLayerCredentialResource) Schema(
 	_ context.Context,
 	req resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-	resp.Schema = snowflake_sl_credential_resource_schema
+	resp.Schema = bigquery_sl_credential_resource_schema
 }

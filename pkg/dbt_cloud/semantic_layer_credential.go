@@ -134,6 +134,88 @@ func (c *Client) CreateSemanticLayerCredential(
 	return &credentialResponse.Data, nil
 }
 
+func (c *Client) CreateSemanticLayerCredentialBigQuery(
+	//credential fields
+	id string,
+	credentialID int64,
+	projectID int64,
+	isActive bool,
+	dataset string,
+	numThreads int64,
+	privateKeyID string,
+	privateKey string,
+	clientEmail string,
+	clientID string,
+	authURI string,
+	tokenURI string,
+	authProviderCertURL string,
+	clientCertURL string,
+
+	//config fields
+	name string,
+	adapterVersion string,
+
+) (*SemanticLayerCredentials, error) {
+
+	//add credential fields to values map
+	values := map[string]interface{}{
+		"id":                          id,
+		"credential_id":               credentialID,
+		"project_id":                  projectID,
+		"is_active":                   isActive,
+		"dataset":                     dataset,
+		"num_threads":                 numThreads,
+		"private_key_id":              privateKeyID,
+		"private_key":                 privateKey,
+		"client_email":                clientEmail,
+		"client_id":                   clientID,
+		"auth_uri":                    authURI,
+		"token_uri":                   tokenURI,
+		"auth_provider_x509_cert_url": authProviderCertURL,
+		"client_x509_cert_url":        clientCertURL,
+	}
+
+	newCredential := SemanticLayerCredentials{
+		SchemaType:     "semantic_layer_credentials",
+		AccountID:      c.AccountID,
+		ProjectID:      int(projectID),
+		Name:           name,
+		AdapterVersion: "bigquery_v0",
+		Values:         values,
+	}
+
+	newCredentialsData, err := json.Marshal(newCredential)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/semantic-layer-credentials/",
+			c.HostURL,
+			strconv.Itoa(c.AccountID),
+		),
+		strings.NewReader(string(newCredentialsData)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	credentialResponse := SemanticLayerCredentialResponse{}
+	err = json.Unmarshal(body, &credentialResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &credentialResponse.Data, nil
+}
+
 func (c *Client) UpdateSemanticLayerCredential(
 	credentialId int64,
 	credential SemanticLayerCredentials) (*SemanticLayerCredentials, error) {
