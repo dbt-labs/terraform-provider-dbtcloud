@@ -2,16 +2,15 @@
 page_title: "dbtcloud_semantic_layer_configuration Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
-  See the documentation https://docs.getdbt.com/docs/cloud/manage-access/external-oauth for more information on how to configure it.
+  The resource allows basic configuration of the Semantic Layer for a specific project. For the feature to be completely functional, a Semantic Layer Credential is also required.
+  See the documentationh ttps://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl for more information on the Semantic Layer.
 ---
 
 # dbtcloud_semantic_layer_configuration (Resource)
 
 
-Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
-
-See the [documentation](https://docs.getdbt.com/docs/cloud/manage-access/external-oauth) for more information on how to configure it.
+The resource allows basic configuration of the Semantic Layer for a specific project. For the feature to be completely functional, a Semantic Layer Credential is also required.
+See the documentationh ttps://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl for more information on the Semantic Layer.
 
 ## Example Usage
 
