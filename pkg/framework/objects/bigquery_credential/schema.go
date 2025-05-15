@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-var resourceSchema = resource_schema.Schema{
+var BigQueryResourceSchema = resource_schema.Schema{
 	Description: "Bigquery credential resource",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{

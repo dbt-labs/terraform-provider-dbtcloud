@@ -19,6 +19,7 @@ func SnowflakeSemanticLayerCredentialResource() resource.Resource {
 	return &snowflakeSemanticLayerCredentialResource{}
 }
 
+// dbtCloud.Client for making API calls
 type snowflakeSemanticLayerCredentialResource struct {
 	client *dbt_cloud.Client
 }
