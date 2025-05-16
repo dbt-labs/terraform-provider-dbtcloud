@@ -3,12 +3,12 @@
 page_title: "dbtcloud_user_groups Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Gets information about a specific dbt Cloud user's groups.
+  
 ---
 
 # dbtcloud_user_groups (Data Source)
 
-Gets information about a specific dbt Cloud user's groups.
+
 
 ## Example Usage
 
@@ -23,9 +23,9 @@ data "dbtcloud_user_groups" "my_user_groups" {
 
 ### Required
 
-- `user_id` (Number) The internal ID of a dbt Cloud user.
+- `user_id` (Number) ID of the user
 
 ### Read-Only
 
-- `group_ids` (Set of Number) IDs of the groups assigned to the user.
-- `id` (String) The ID of this resource. It is the same as the user_id.
+- `group_ids` (Set of Number) IDs of the groups assigned to the user
+- `id` (String) The ID of this resource.

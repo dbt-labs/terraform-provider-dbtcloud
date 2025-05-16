@@ -1,10 +1,9 @@
-package user_groups_test
+package data_sources_test
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"

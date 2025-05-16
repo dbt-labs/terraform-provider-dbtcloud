@@ -1,11 +1,10 @@
-package user_groups_test
+package resources_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"strconv"
 	"testing"
-
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -19,7 +18,7 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 	GroupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -40,7 +39,7 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 					),
 				),
 			},
-			//MODIFY
+			// MODIFY
 			{
 				Config: testAccDbtCloudUserGroupsResourceRemoveRole(userID, GroupName, groupIDs),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,8 +52,7 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.0",
 					),
-					//we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
-					// TODO: This test depends on the number of groups defined in the acceptance test config, which is not guaranteed.
+					// we should only have 3 groups now that we check that there is no item at index 3 (starts at 0)
 					resource.TestCheckNoResourceAttr(
 						"dbtcloud_user_groups.test_user_groups",
 						"group_ids.3",

@@ -935,8 +935,7 @@ func (r *globalConnectionDataSource) Schema(
 						Description: "The port to connect to for this connection. Default=443",
 					},
 				},
-			},
-			"athena": datasource_schema.SingleNestedAttribute{
+			}, "athena": datasource_schema.SingleNestedAttribute{
 				Computed:    true,
 				Description: "Athena connection configuration.",
 				Attributes: map[string]datasource_schema.Attribute{

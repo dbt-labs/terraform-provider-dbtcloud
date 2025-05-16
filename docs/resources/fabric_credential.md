@@ -2,13 +2,13 @@
 page_title: "dbtcloud_fabric_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Fabric credential resource
+  
 ---
 
 # dbtcloud_fabric_credential (Resource)
 
 
-Fabric credential resource
+
 
 ## Example Usage
 
@@ -55,8 +55,8 @@ resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ" {
 
 ### Read-Only
 
-- `credential_id` (Number) The internal credential ID
-- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
+- `credential_id` (Number) The system Fabric credential ID
+- `id` (String) The ID of this resource.
 
 ## Import
 

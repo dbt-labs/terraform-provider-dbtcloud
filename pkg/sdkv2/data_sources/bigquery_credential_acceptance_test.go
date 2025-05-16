@@ -1,4 +1,4 @@
-package bigquery_credential_test
+package data_sources_test
 
 import (
 	"fmt"

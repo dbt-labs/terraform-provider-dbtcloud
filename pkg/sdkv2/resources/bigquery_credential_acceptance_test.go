@@ -1,4 +1,4 @@
-package bigquery_credential_test
+package resources_test
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
 	dataset := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudBigQueryCredentialDestroy,
 		Steps: []resource.TestStep{
