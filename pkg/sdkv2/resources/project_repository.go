@@ -59,10 +59,6 @@ func resourceProjectRepositoryCreate(
 		return diag.FromErr(err)
 	}
 
-	// Issue #362
-	// we don't want to update the connection ID when we set a project otherwise it will update all envs
-	project.ConnectionID = nil
-
 	project.RepositoryID = &repositoryID
 
 	_, err = c.UpdateProject(projectIDString, *project)
@@ -128,10 +124,6 @@ func resourceProjectRepositoryDelete(
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	// Issue #362
-	// we don't want to update the connection ID when we set a project otherwise it will update all envs
-	project.ConnectionID = nil
 
 	project.RepositoryID = nil
 
