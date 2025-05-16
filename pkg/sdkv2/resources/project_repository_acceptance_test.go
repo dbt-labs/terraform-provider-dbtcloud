@@ -1,4 +1,4 @@
-package project_repository_test
+package resources_test
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -14,68 +13,44 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-var repoUrlGithub = "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
-
-var basicConfigTestStep = resource.TestStep{
-	Config: testAccDbtCloudProjectRepositoryResourceBasicConfig(
-		projectName,
-		repoUrlGithub,
-	),
-	Check: resource.ComposeTestCheckFunc(
-		testAccCheckDbtCloudProjectRepositoryExists(
-			"dbtcloud_project_repository.test_project_repository",
-		),
-	),
-}
-
-var emptyConfigTestStep = resource.TestStep{
-	Config: testAccDbtCloudProjectRepositoryResourceEmptyConfig(
-		projectName,
-		repoUrlGithub,
-	),
-	Check: resource.ComposeTestCheckFunc(
-		testAccCheckDbtCloudProjectRepositoryEmpty("dbtcloud_project.test_project"),
-	),
-}
-
 func TestAccDbtCloudProjectRepositoryResource(t *testing.T) {
 
-	importStateTestStep := resource.TestStep{
-		ResourceName:            "dbtcloud_project_repository.test_project_repository",
-		ImportState:             true,
-		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{},
-	}
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	repoUrlGithub := "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudProjectRepositoryDestroy,
 		Steps: []resource.TestStep{
-			basicConfigTestStep,
-			importStateTestStep,
-			emptyConfigTestStep,
-		},
-	})
-}
-
-func TestConfDbtCloudProjectRepositoryResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudProjectRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(basicConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(basicConfigTestStep),
-		},
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudProjectRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(emptyConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(emptyConfigTestStep),
+			{
+				Config: testAccDbtCloudProjectRepositoryResourceBasicConfig(
+					projectName,
+					repoUrlGithub,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudProjectRepositoryExists(
+						"dbtcloud_project_repository.test_project_repository",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:            "dbtcloud_project_repository.test_project_repository",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+			// EMPTY
+			{
+				Config: testAccDbtCloudProjectRepositoryResourceEmptyConfig(
+					projectName,
+					repoUrlGithub,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudProjectRepositoryEmpty("dbtcloud_project.test_project"),
+				),
+			},
 		},
 	})
 }

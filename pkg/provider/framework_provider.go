@@ -34,7 +34,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
@@ -258,6 +257,5 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		snowflake_credential.SnowflakeCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
-		project_repository.ProjectRepositoryResource,
 	}
 }
