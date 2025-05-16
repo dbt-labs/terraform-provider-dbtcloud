@@ -1,4 +1,4 @@
-package privatelink_endpoint_test
+package data_sources_test
 
 import (
 	"fmt"
