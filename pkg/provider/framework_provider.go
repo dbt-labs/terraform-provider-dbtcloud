@@ -227,5 +227,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		service_token.ServiceTokenResource,
 		webhook.WebhookResource,
 		starburst_credential.StarburstCredentialResource,
+		user_groups.UserGroupsResource,
+		bigquery_credential.BigqueryCredentialResource,
 	}
 }
