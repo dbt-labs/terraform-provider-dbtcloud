@@ -2,10 +2,11 @@ package project_artefacts_test
 
 import (
 	"fmt"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -90,7 +91,7 @@ resource "dbtcloud_project_artefacts" "test_project_artefacts" {
   docs_job_id = dbtcloud_job.test_job.id
   freshness_job_id = dbtcloud_job.test_job.id
 }
-`, projectName, environmentName, acctest_helper.DBT_CLOUD_VERSION, jobName)
+`, projectName, environmentName, acctest_config.AcceptanceTestConfig.DbtCloudVersion, jobName)
 }
 
 func testAccDbtCloudProjectArtefactsResourceEmptyConfig(projectName string) string {

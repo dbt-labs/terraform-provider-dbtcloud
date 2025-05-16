@@ -7,10 +7,6 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
-
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
-
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
@@ -229,7 +225,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
-		webhook.WebhookResource,
 		starburst_credential.StarburstCredentialResource,
 	}
 }
