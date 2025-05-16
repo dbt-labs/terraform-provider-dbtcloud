@@ -186,18 +186,15 @@ resource "dbtcloud_environment" "test_env" {
   custom_branch = "%s"
   use_custom_branch = %s
   project_id = dbtcloud_project.test_project.id
-  credential_id = dbtcloud_snowflake_credential.test_credential.credential_id
+  credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
   deployment_type = "production"
 }
 
-resource "dbtcloud_snowflake_credential" "test_credential" {
-  project_id  = dbtcloud_project.test_project.id
-  auth_type   = "password"
-  num_threads = 16
-  schema      = "analytics"
-  user        = "my_snowflake_user"
-  password    = "my_snowflake_password"
-}
+resource "dbtcloud_bigquery_credential" "test_credential" {
+	project_id  = dbtcloud_project.test_project.id
+	dataset     = "my_bq_dataset"
+	num_threads = 16
+  }
   
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, customBranch, useCustomBranch)
 }
@@ -475,20 +472,17 @@ resource "dbtcloud_environment" "test_env" {
   custom_branch = "%s"
   use_custom_branch = %s
   project_id = dbtcloud_project.test_project.id
-  credential_id = dbtcloud_snowflake_credential.test_credential.credential_id
+  credential_id = dbtcloud_bigquery_credential.test_credential.credential_id
   deployment_type = "production"
   connection_id = dbtcloud_global_connection.test2.id
   enable_model_query_history = true
 }
 
-resource "dbtcloud_snowflake_credential" "test_credential" {
-  project_id  = dbtcloud_project.test_project.id
-  auth_type   = "password"
-  num_threads = 16
-  schema      = "analytics"
-  user        = "my_snowflake_user"
-  password    = "my_snowflake_password"
-}
+resource "dbtcloud_bigquery_credential" "test_credential" {
+	project_id  = dbtcloud_project.test_project.id
+	dataset     = "my_bq_dataset"
+	num_threads = 16
+  }
   
 `, projectName, environmentName, dbtVersion, customBranch, useCustomBranch)
 }
