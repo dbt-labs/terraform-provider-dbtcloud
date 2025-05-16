@@ -114,6 +114,31 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 
 }
 
+func TestConfDbtCloudWebhookResource(t *testing.T) {
+	// NOTE: we're breaking these down into separate resource.Test()s due to a bug in Terraform test plugin
+	// Namely, the provider at the step level breaks down, if you try to define the same provider in multiple steps
+
+	// CREATE: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(basicConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(basicConfigTestStep),
+		},
+	})
+
+	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(modifyConfigTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(modifyConfigTestStep),
+		},
+	})
+}
+
 func testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {

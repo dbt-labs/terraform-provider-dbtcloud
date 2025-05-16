@@ -93,10 +93,11 @@ func (r *fabricCredentialResource) Create(
 	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
-
+	adapterId := plan.AdapterID.ValueInt64()
 	// Create new credential
 	credential, err := r.client.CreateFabricCredential(
 		projectID,
+		int(adapterId),
 		user,
 		password,
 		tenantId,
@@ -199,6 +200,7 @@ func (r *fabricCredentialResource) Update(
 	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+	adapterId := plan.AdapterID.ValueInt64()
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(
@@ -227,7 +229,7 @@ func (r *fabricCredentialResource) Update(
 		State:             1,
 		Threads:           4,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "fabric_v0",
+		Adapter_Id:        int(adapterId),
 	}
 
 	// Update credential
@@ -338,12 +340,12 @@ func (r *fabricCredentialResource) ImportState(
 		ID:                  types.StringValue(fmt.Sprintf("%d:%d", projectID, credentialID)),
 		ProjectID:           types.Int64Value(int64(projectID)),
 		CredentialID:        types.Int64Value(int64(credentialID)),
+		AdapterID:           types.Int64Value(int64(credential.Adapter_Id)),
 		Schema:              types.StringValue(credential.UnencryptedCredentialDetails.Schema),
 		SchemaAuthorization: types.StringValue(credential.UnencryptedCredentialDetails.SchemaAuthorization),
 		User:                types.StringValue(credential.UnencryptedCredentialDetails.User),
 		ClientId:            types.StringValue(credential.UnencryptedCredentialDetails.ClientId),
 		TenantId:            types.StringValue(credential.UnencryptedCredentialDetails.TenantId),
-		AdapterType:         types.StringValue(credential.AdapterVersion),
 	}
 
 	// Set state to fully populated data

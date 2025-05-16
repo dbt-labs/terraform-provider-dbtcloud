@@ -30,7 +30,9 @@ func (r *globalConnectionResource) Schema(
 		Description: helper.DocString(
 			`This resource can be used to create global connections as introduced in dbt Cloud in August 2024.
 
-			Those connections are not linked to a specific project and can be linked to environments from different projects by using the ~~~connection_id~~~ field in the ~~~dbtcloud_environment~~~ resource.`,
+			Those connections are not linked to a specific project and can be linked to environments from different projects by using the ~~~connection_id~~~ field in the ~~~dbtcloud_environment~~~ resource.
+			
+			All connections types are supported, and the old resources ~~~dbtcloud_connection~~~, ~~~dbtcloud_bigquery_connection~~~ and ~~~dbtcloud_fabric_connection~~~ are now flagged as deprecated and will be removed from the next major version of the provider.`,
 		),
 		Attributes: map[string]resource_schema.Attribute{
 			"id": resource_schema.Int64Attribute{

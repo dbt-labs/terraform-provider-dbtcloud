@@ -33,6 +33,7 @@ type AthenaCredentialData struct {
 	State                        int                                `json:"state"`
 	Threads                      int                                `json:"threads"`
 	TargetName                   string                             `json:"target_name"`
+	AdapterID                    int                                `json:"adapter_id"`
 	AdapterVersion               string                             `json:"adapter_version,omitempty"`
 	UnencryptedCredentialDetails AthenaUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
@@ -47,6 +48,7 @@ type AthenaCredentialRequest struct {
 	State             int                      `json:"state"`
 	Threads           int                      `json:"threads"`
 	TargetName        string                   `json:"target_name"`
+	AdapterID         int                      `json:"adapter_id,omitempty"`
 	AdapterVersion    string                   `json:"adapter_version,omitempty"`
 	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }

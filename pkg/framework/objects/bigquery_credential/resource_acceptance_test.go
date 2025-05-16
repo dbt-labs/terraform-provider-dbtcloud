@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -47,6 +48,17 @@ func TestAccDbtCloudBigQueryCredentialResource(t *testing.T) {
 			// RENAME
 			// MODIFY
 			importStateTestStep,
+		},
+	})
+}
+
+func TestConfDbtCloudBigQueryCredentialResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudBigQueryCredentialDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(createCredentialTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(createCredentialTestStep),
 		},
 	})
 }

@@ -42,6 +42,49 @@ func TestAccDbtCloudEnvironmentVariableJobOverrideResource(t *testing.T) {
 	})
 }
 
+func TestConformanceBasicConfig(t *testing.T) {
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableJobOverrideValue := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValue)),
+		},
+	})
+}
+
+func TestConformanceModifyConfig(t *testing.T) {
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableName := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentVariableJobOverrideValueNew := strings.ToUpper(
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
+	)
+
+	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableJobOverrideDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName, jobName, environmentVariableJobOverrideValueNew)),
+		},
+	})
+}
+
 func getImportStateTestStep() resource.TestStep {
 	return resource.TestStep{
 		ResourceName:            "dbtcloud_environment_variable_job_override.test_env_var_job_override",

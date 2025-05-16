@@ -22,7 +22,7 @@ Databricks credential data source
 
 ### Read-Only
 
-- `adapter_type` (String) The type of the adapter (databricks or spark)
+- `adapter_id` (Number) Databricks adapter ID for the credential
 - `catalog` (String) The catalog where to create models
 - `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 - `num_threads` (Number) The number of threads to use

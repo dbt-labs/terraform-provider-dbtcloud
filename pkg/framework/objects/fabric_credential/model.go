@@ -16,5 +16,5 @@ type FabricCredentialResourceModel struct {
 	ClientSecret        types.String `tfsdk:"client_secret"`
 	Schema              types.String `tfsdk:"schema"`
 	SchemaAuthorization types.String `tfsdk:"schema_authorization"`
-	AdapterType         types.String `tfsdk:"adapter_type"`
+	AdapterID           types.Int64  `tfsdk:"adapter_id"`
 }

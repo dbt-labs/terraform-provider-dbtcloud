@@ -33,7 +33,7 @@ type FabricCredential struct {
 	Type                         string                             `json:"type"`
 	State                        int                                `json:"state"`
 	Threads                      int                                `json:"threads"`
-	AdapterVersion               string                             `json:"adapter_version"`
+	Adapter_Id                   int                                `json:"adapter_id"`
 	CredentialDetails            AdapterCredentialDetails           `json:"credential_details"`
 	UnencryptedCredentialDetails FabricUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
@@ -73,6 +73,7 @@ func (c *Client) GetFabricCredential(
 
 func (c *Client) CreateFabricCredential(
 	projectId int,
+	adapterId int,
 	user string,
 	password string,
 	tenantId string,
@@ -101,7 +102,7 @@ func (c *Client) CreateFabricCredential(
 		Type:              "adapter",
 		State:             STATE_ACTIVE,
 		Threads:           NUM_THREADS_CREDENTIAL,
-		AdapterVersion:    "fabric_v0",
+		Adapter_Id:        adapterId,
 		CredentialDetails: credentialDetails,
 	}
 

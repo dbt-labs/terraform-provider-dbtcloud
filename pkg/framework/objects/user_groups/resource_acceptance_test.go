@@ -75,6 +75,24 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 	})
 }
 
+func TestConfDbtCloudUserGroupsResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { acctest_helper.TestAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(addRoleTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(addRoleTestStep),
+		},
+	})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { acctest_helper.TestAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(removeRoleTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(removeRoleTestStep),
+		},
+	})
+}
+
 func testAccDbtCloudUserGroupsResourceAddRole(
 	userID int,
 	groupName string,
