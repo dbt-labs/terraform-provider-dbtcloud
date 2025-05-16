@@ -2,13 +2,13 @@
 page_title: "dbtcloud_extended_attributes Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Extended attributes resource
+  This resource allows setting extended attributes which can be assigned to a given environment (see docs https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes).In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
 ---
 
 # dbtcloud_extended_attributes (Resource)
 
 
-Extended attributes resource
+This resource allows setting extended attributes which can be assigned to a given environment ([see docs](https://docs.getdbt.com/docs/dbt-cloud-environments#extended-attributes)).<br/><br/>In dbt Cloud those values are provided as YML but in the provider they need to be provided as JSON (see example below).
 
 ## Example Usage
 
@@ -51,12 +51,12 @@ resource "dbtcloud_environment" "issue_depl" {
 
 ### Optional
 
-- `state` (Number) The state of the extended attributes (1 = active, 2 = inactive)
+- `state` (Number, Deprecated) Extended Attributes state (1 is active, 2 is inactive)
 
 ### Read-Only
 
-- `extended_attributes_id` (Number) Extended attributes ID
-- `id` (String) The ID of this resource. Contains the project ID and the extended attributes ID.
+- `extended_attributes_id` (Number) Extended Attributes ID
+- `id` (String) The ID of this resource.
 
 ## Import
 
