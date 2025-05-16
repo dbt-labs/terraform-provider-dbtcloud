@@ -140,7 +140,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_snowflake_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase", "semantic_layer_credential"},
+				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase"},
 			},
 		},
 	})
@@ -209,48 +209,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_snowflake_credential.test_credential_p",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"private_key", "private_key_passphrase", "semantic_layer_credential"},
-			},
-		},
-	})
-
-}
-
-func TestAccDbtCloudSlSnowflakeCredentialNoSchemaResource(t *testing.T) {
-
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudSnowflakeSlCredentialNoSchema(
-					projectName,
-					database,
-					role,
-					warehouse,
-					user,
-					password,
-				),
-				ExpectError: regexp.MustCompile("`schema` must be provided when `semantic_layer_credential` is false"),
-			},
-			{
-				Config: testAccDbtCloudSnowflakeSlCredentialNoSchema(
-					projectName,
-					database,
-					role,
-					warehouse,
-					user,
-					password,
-				),
-				ExpectError: regexp.MustCompile("`schema` must be provided when `semantic_layer_credential` is false"),
+				ImportStateVerifyIgnore: []string{"private_key", "private_key_passphrase"},
 			},
 		},
 	})
@@ -362,25 +321,4 @@ func testAccCheckDbtCloudSnowflakeCredentialDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccDbtCloudSnowflakeSlCredentialNoSchema(
-	projectName, database, role, warehouse, user, password string,
-) string {
-	return fmt.Sprintf(`
-resource "dbtcloud_project" "test_project" {
-  name        = "%s"
-}
-resource "dbtcloud_snowflake_credential" "test_credential" {
-    is_active = true
-    project_id = dbtcloud_project.test_project.id
-    auth_type = "password"
-	database = "%s"
-	role = "%s"
-	warehouse = "%s"
-    user = "%s"
-    password = "%s"
-    num_threads = 3
-}
-`, projectName, database, role, warehouse, user, password)
 }
