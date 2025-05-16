@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -27,11 +28,9 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
 
@@ -210,9 +209,8 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
-		bigquery_credential.BigqueryCredentialDataSource,
-		postgres_credential.PostgresCredentialDataSource,
 		user_groups.UserGroupDataSource,
+		bigquery_credential.BigqueryCredentialDataSource,
 		webhook.WebhookDataSource,
 	}
 }
@@ -235,10 +233,9 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
-		bigquery_credential.BigqueryCredentialResource,
-		postgres_credential.PostgresCredentialResource,
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
+		bigquery_credential.BigqueryCredentialResource,
 		webhook.WebhookResource,
 	}
 }
