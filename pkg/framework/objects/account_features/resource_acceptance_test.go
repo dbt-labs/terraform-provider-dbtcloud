@@ -47,11 +47,6 @@ func TestAccDbtCloudAccountFeaturesResource(t *testing.T) {
 						"repo_caching",
 						"true",
 					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_account_features.test",
-						"ai_features",
-						"true",
-					),
 				),
 			},
 		},
@@ -73,7 +68,6 @@ resource "dbtcloud_account_features" "test" {
     advanced_ci     = true
     partial_parsing = true
     repo_caching    = true
-	ai_features     = true
 }
 `
 }
