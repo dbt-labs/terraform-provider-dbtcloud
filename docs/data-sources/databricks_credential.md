@@ -3,12 +3,12 @@
 page_title: "dbtcloud_databricks_credential Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Databricks credential data source
+  
 ---
 
 # dbtcloud_databricks_credential (Data Source)
 
-Databricks credential data source
+
 
 
 
@@ -24,7 +24,7 @@ Databricks credential data source
 
 - `adapter_id` (Number) Databricks adapter ID for the credential
 - `catalog` (String) The catalog where to create models
-- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
-- `num_threads` (Number) The number of threads to use
+- `id` (String) The ID of this resource.
+- `num_threads` (Number) Number of threads to use
 - `schema` (String) The schema where to create models
 - `target_name` (String) Target name

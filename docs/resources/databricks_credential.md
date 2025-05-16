@@ -2,13 +2,13 @@
 page_title: "dbtcloud_databricks_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Databricks credential resource
+  
 ---
 
 # dbtcloud_databricks_credential (Resource)
 
 
-Databricks credential resource
+
 
 ## Example Usage
 
@@ -54,14 +54,14 @@ resource "dbtcloud_databricks_credential" "my_spark_cred" {
 
 ### Optional
 
-- `adapter_id` (Number) Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection')
+- `adapter_id` (Number) Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection`)
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
 - `target_name` (String, Deprecated) Target name
 
 ### Read-Only
 
 - `credential_id` (Number) The system Databricks credential ID
-- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
+- `id` (String) The ID of this resource.
 
 ## Import
 

@@ -2,13 +2,12 @@ package notification_test
 
 import (
 	"fmt"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
