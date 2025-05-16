@@ -8,7 +8,7 @@ vars: {
 *.*.style.font-size: 22
 
 title: |md
-  # Terraform resources (v1.0.0)
+  # Terraform resources (v0.3.25)
 | {near: top-center}
 
 direction: right
@@ -50,7 +50,6 @@ env_creds: Environment Credentials {
   bigquery_credential
   fabric_credential
   postgres_credential: {tooltip: Is used for Redshift as well}
-  teradata_credential
 }
 
 service_token -- project: can scope to {
@@ -63,7 +62,6 @@ group_partial_permissions -- project
 user_groups -- group
 user_groups -- group_partial_permissions
 project -- environment
-project -- snowflake_semantic_layer_credential
 job -- environment
 job -- environment_variable_job_override
 notification -- job
@@ -85,9 +83,7 @@ project -- project_repository
 lineage_integration -- project
 project_repository -- repository
 environment -- environment_variable
-environment -- partial_environment_variable
 environment -- extended_attributes
-environment -- semantic_layer_configuration
 model_notifications -- environment
 
 project -- project_connection {
