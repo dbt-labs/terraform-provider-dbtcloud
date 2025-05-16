@@ -116,7 +116,7 @@ func (d *projectDataSource) Read(
 	state.ID = types.Int64Value(int64(*project.ID))
 	state.Name = types.StringValue(project.Name)
 	state.Description = types.StringValue(project.Description)
-	state.DbtProjectSubdirectory=types.StringValue(*project.DbtProjectSubdirectory)
+
 	if project.ConnectionID != nil {
 		state.ProjectConnection = &ProjectConnection{}
 		state.ProjectConnection.ID = types.Int64Value(int64(*project.ConnectionID))
