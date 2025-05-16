@@ -510,15 +510,3 @@ type ApacheSparkConfig struct {
 func (ApacheSparkConfig) AdapterVersion() string {
 	return "apache_spark_v0"
 }
-
-type TeradataConfig struct {
-	Port           *string `json:"port,omitempty"`
-	TMode          *string `json:"tmode,omitempty"`
-	Host           *string `json:"host,omitempty"`
-	Retries        *int64  `json:"retries,omitempty"`
-	RequestTimeout *int64  `json:"request_timeout,omitempty"`
-}
-
-func (TeradataConfig) AdapterVersion() string {
-	return "teradata_v0"
-}
