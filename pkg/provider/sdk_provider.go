@@ -39,6 +39,7 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_job":                   data_sources.DatasourceJob(),
 				"dbtcloud_project":               data_sources.DatasourceProject(),
 				"dbtcloud_environment_variable":  data_sources.DatasourceEnvironmentVariable(),
+				"dbtcloud_snowflake_credential":  data_sources.DatasourceSnowflakeCredential(),
 				"dbtcloud_connection":            data_sources.DatasourceConnection(),
 				"dbtcloud_bigquery_connection":   data_sources.DatasourceBigQueryConnection(),
 				"dbtcloud_privatelink_endpoint":  data_sources.DatasourcePrivatelinkEndpoint(),
@@ -56,6 +57,7 @@ func SDKProvider(version string) func() *schema.Provider {
 				"dbtcloud_extended_attributes":               resources.ResourceExtendedAttributes(),
 				"dbtcloud_environment_variable_job_override": resources.ResourceEnvironmentVariableJobOverride(),
 				"dbtcloud_fabric_connection":                 resources.ResourceFabricConnection(),
+				"dbtcloud_snowflake_credential":              resources.ResourceSnowflakeCredential(),
 			},
 			ConfigureContextFunc: providerConfigure,
 		}

@@ -3,12 +3,12 @@
 page_title: "dbtcloud_snowflake_credential Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Snowflake credential data source
+  
 ---
 
 # dbtcloud_snowflake_credential (Data Source)
 
-Snowflake credential data source
+
 
 
 
@@ -23,8 +23,8 @@ Snowflake credential data source
 ### Read-Only
 
 - `auth_type` (String) The type of Snowflake credential ('password' or 'keypair')
-- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
+- `id` (String) The ID of this resource.
 - `is_active` (Boolean) Whether the Snowflake credential is active
 - `num_threads` (Number) Number of threads to use
-- `schema` (String) The schema where to create models
+- `schema` (String) Default schema name
 - `user` (String) Username for Snowflake

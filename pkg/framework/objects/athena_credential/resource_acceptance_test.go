@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -19,101 +18,64 @@ func TestAccDbtCloudAthenaCredentialResource(t *testing.T) {
 	awsAccessKeyID := "test_access_key_id"
 	awsSecretAccessKey := "test_secret_access_key"
 
-	var step1 = resource.TestStep{
-		Config: testAccDbtCloudAthenaCredentialResourceConfig(
-			projectName,
-			schema,
-			awsAccessKeyID,
-			awsSecretAccessKey,
-		),
-		Check: resource.ComposeAggregateTestCheckFunc(
-			testAccCheckDbtCloudAthenaCredentialExists("dbtcloud_athena_credential.test"),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_athena_credential.test",
-				"id",
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_athena_credential.test",
-				"credential_id",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_athena_credential.test",
-				"schema",
-				schema,
-			),
-		),
-	}
-
-	var step2 = resource.TestStep{
-		ResourceName:      "dbtcloud_athena_credential.test",
-		ImportState:       true,
-		ImportStateVerify: true,
-		// These fields can't be read from the API
-		ImportStateVerifyIgnore: []string{
-			"aws_access_key_id",
-			"aws_secret_access_key",
-		},
-	}
-
-	var step3 = resource.TestStep{
-		Config: testAccDbtCloudAthenaCredentialResourceConfig(
-			projectName,
-			"updated_schema",
-			awsAccessKeyID,
-			awsSecretAccessKey,
-		),
-		Check: resource.ComposeAggregateTestCheckFunc(
-			testAccCheckDbtCloudAthenaCredentialExists("dbtcloud_athena_credential.test"),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_athena_credential.test",
-				"schema",
-				"updated_schema",
-			),
-		),
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudAthenaCredentialDestroy,
 		Steps: []resource.TestStep{
 			// Create and Read testing
-			step1,
+			{
+				Config: testAccDbtCloudAthenaCredentialResourceConfig(
+					projectName,
+					schema,
+					awsAccessKeyID,
+					awsSecretAccessKey,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudAthenaCredentialExists("dbtcloud_athena_credential.test"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_athena_credential.test",
+						"id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_athena_credential.test",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test",
+						"schema",
+						schema,
+					),
+				),
+			},
 			// ImportState testing
-			step2,
+			{
+				ResourceName:      "dbtcloud_athena_credential.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// These fields can't be read from the API
+				ImportStateVerifyIgnore: []string{
+					"aws_access_key_id",
+					"aws_secret_access_key",
+				},
+			},
 			// Update and Read testing
-			step3,
-		},
-	})
-
-	// test the Framework implementation
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			step1,
-			step2,
-			step3,
-		},
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(step1, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(step1),
-		},
-	})
-
-	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudAthenaCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(step3, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(step3),
+			{
+				Config: testAccDbtCloudAthenaCredentialResourceConfig(
+					projectName,
+					"updated_schema",
+					awsAccessKeyID,
+					awsSecretAccessKey,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudAthenaCredentialExists("dbtcloud_athena_credential.test"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test",
+						"schema",
+						"updated_schema",
+					),
+				),
+			},
 		},
 	})
 }
