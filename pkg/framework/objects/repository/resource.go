@@ -378,12 +378,6 @@ func (r *repositoryResource) Update(
 		updateRepository.AzureBypassWebhookRegistrationFailure = &azureBypass
 	}
 
-	if !plan.GithubInstallationID.IsNull() && 
-	   plan.GitCloneStrategy.ValueString() == "github_app" {
-		githubID := int(plan.GithubInstallationID.ValueInt64())
-		updateRepository.GithubInstallationID = &githubID
-	}
-
 	// Update repository
 	repository, err := r.client.UpdateRepository(repositoryID, projectID, updateRepository)
 	if err != nil {
