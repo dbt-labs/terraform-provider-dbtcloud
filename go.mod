@@ -1,8 +1,7 @@
 module github.com/dbt-labs/terraform-provider-dbtcloud
 
 go 1.21
-
-toolchain go1.21.4
+toolchain go1.24.1
 
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.19.2
