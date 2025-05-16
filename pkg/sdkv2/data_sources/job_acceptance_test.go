@@ -1,10 +1,9 @@
-package job_test
+package data_sources_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,14 +13,13 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 
 	randomJobName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := jobResourceConfig(randomJobName)
+	config := jobs(randomJobName)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "job_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "project_id"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_job.test", "environment_id"),
 		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "name", randomJobName),
-		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "execution.timeout_seconds", "180"),
 		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "timeout_seconds", "180"),
 		resource.TestCheckResourceAttr("data.dbtcloud_job.test", "triggers_on_draft_pr", "false"),
 		resource.TestCheckResourceAttr(
@@ -42,7 +40,7 @@ func TestDbtCloudJobDataSource(t *testing.T) {
 	})
 }
 
-func jobResourceConfig(jobName string) string {
+func jobs(jobName string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_project" {
         name = "jobs_test_project"
@@ -72,6 +70,7 @@ func jobResourceConfig(jobName string) string {
 
     data "dbtcloud_job" "test" {
         job_id = dbtcloud_job.test_job.id
+        project_id = dbtcloud_project.test_project.id
     }
-    `, acctest_config.DBT_CLOUD_VERSION, jobName)
+    `, DBT_CLOUD_VERSION, jobName)
 }

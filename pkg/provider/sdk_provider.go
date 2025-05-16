@@ -36,6 +36,7 @@ func SDKProvider(version string) func() *schema.Provider {
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
+				"dbtcloud_job":                   data_sources.DatasourceJob(),
 				"dbtcloud_project":               data_sources.DatasourceProject(),
 				"dbtcloud_environment_variable":  data_sources.DatasourceEnvironmentVariable(),
 				"dbtcloud_connection":            data_sources.DatasourceConnection(),
