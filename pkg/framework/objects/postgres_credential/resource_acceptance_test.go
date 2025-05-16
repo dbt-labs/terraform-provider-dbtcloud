@@ -1,4 +1,4 @@
-package resources_test
+package postgres_credential_test
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudPostgresCredentialDestroy,
 		Steps: []resource.TestStep{
