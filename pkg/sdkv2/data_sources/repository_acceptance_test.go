@@ -1,4 +1,4 @@
-package repository_test
+package data_sources_test
 
 import (
 	"fmt"
@@ -10,10 +10,11 @@ import (
 )
 
 func TestAccDbtCloudRepositoryDataSource(t *testing.T) {
+
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	repoUrl := "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 
-	config := repositoryDataSourceConfig(randomProjectName, repoUrl)
+	config := repository(randomProjectName, repoUrl)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr("data.dbtcloud_repository.test", "remote_url", repoUrl),
@@ -33,7 +34,7 @@ func TestAccDbtCloudRepositoryDataSource(t *testing.T) {
 	})
 }
 
-func repositoryDataSourceConfig(projectName, repositoryUrl string) string {
+func repository(projectName, repositoryUrl string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_project" {
         name = "%s"
