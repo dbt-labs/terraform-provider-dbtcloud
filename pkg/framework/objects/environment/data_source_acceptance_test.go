@@ -2,9 +2,8 @@ package environment_test
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 
