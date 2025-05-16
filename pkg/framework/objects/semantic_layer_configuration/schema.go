@@ -15,8 +15,9 @@ func (r *semanticLayerConfigurationResource) Schema(
 ) {
 	resp.Schema = resource_schema.Schema{
 		Description: helper.DocString(
-			`The resource allows basic configuration of the Semantic Layer for a specific project. For the feature to be completely functional, a Semantic Layer Credential is also required.
-			See the documentationh ttps://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl for more information on the Semantic Layer.`,
+			`Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
+			
+			See the [documentation](https://docs.getdbt.com/docs/cloud/manage-access/external-oauth) for more information on how to configure it.`,
 		),
 		Attributes: map[string]resource_schema.Attribute{
 			"id": resource_schema.Int64Attribute{
