@@ -13,7 +13,6 @@ type Project struct {
 	Name                   string  `json:"name"`
 	Description            string  `json:"description"`
 	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory,omitempty"`
-	DbtProjectType         int64   `json:"type"`
 	ConnectionID           *int    `json:"connection_id,omitempty"`
 	RepositoryID           *int    `json:"repository_id,omitempty"`
 	State                  int     `json:"state"`
@@ -153,14 +152,12 @@ func (c *Client) CreateProject(
 	name string,
 	description string,
 	dbtProjectSubdirectory string,
-	dbtProjectType int64,
 ) (*Project, error) {
 	newProject := Project{
-		Name:           name,
-		Description:    description,
-		State:          STATE_ACTIVE,
-		AccountID:      c.AccountID,
-		DbtProjectType: dbtProjectType,
+		Name:        name,
+		Description: description,
+		State:       STATE_ACTIVE,
+		AccountID:   c.AccountID,
 	}
 	if dbtProjectSubdirectory != "" {
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory

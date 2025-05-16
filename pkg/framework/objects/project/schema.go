@@ -41,10 +41,6 @@ var datasourceSchema = datasource_schema.Schema{
 						Computed:    true,
 						Description: "Subdirectory for the dbt project inside the git repo",
 					},
-					"type": datasource_schema.Int64Attribute{
-						Computed:    true,
-						Description: "The type of dbt project (default or hybrid)",
-					},
 					"created_at": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "When the project was created",
@@ -118,10 +114,6 @@ var singleDatasourceSchema = datasource_schema.Schema{
 		"dbt_project_subdirectory": datasource_schema.StringAttribute{
 			Computed:    true,
 			Description: "Subdirectory for the dbt project inside the git repo",
-		},
-		"type": datasource_schema.Int64Attribute{
-			Computed:    true,
-			Description: "The type of dbt project (default or hybrid)",
 		},
 		"created_at": datasource_schema.StringAttribute{
 			Computed:    true,
@@ -210,14 +202,6 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-		"type": resource_schema.Int64Attribute{
-			Description: "The type of dbt project (0=default or 1=hybrid)",
-			Optional:    true,
-			Computed:    true,
-			PlanModifiers: []planmodifier.Int64{
-				int64planmodifier.UseStateForUnknown(),
 			},
 		},
 	},

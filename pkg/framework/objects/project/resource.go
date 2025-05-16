@@ -76,13 +76,8 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 		dbtProjectSubdirectory = plan.DbtProjectSubdirectory.ValueString()
 	}
 
-	var dbtProjectType int64 = 0
-	if !plan.DbtProjectType.IsNull() {
-		dbtProjectType = plan.DbtProjectType.ValueInt64()
-	}
-
-	// Call CreateProject with the correct signature (string, string, string, int)
-	project, err := r.client.CreateProject(name, description, dbtProjectSubdirectory, dbtProjectType)
+	// Call CreateProject with the correct signature (string, string, string)
+	project, err := r.client.CreateProject(name, description, dbtProjectSubdirectory)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating project",
@@ -100,8 +95,6 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	} else {
 		plan.DbtProjectSubdirectory = types.StringNull()
 	}
-
-	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -148,8 +141,6 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	} else {
 		state.DbtProjectSubdirectory = types.StringNull()
 	}
-
-	state.DbtProjectType = types.Int64Value(project.DbtProjectType)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -207,11 +198,7 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 		dbtProjectSubdir := plan.DbtProjectSubdirectory.ValueString()
 		updateProject.DbtProjectSubdirectory = &dbtProjectSubdir
 	}
-	
-	if !plan.DbtProjectType.IsNull() {
-		dbtProjectType := plan.DbtProjectType.ValueInt64()
-		updateProject.DbtProjectType = dbtProjectType
-	}
+
 	// When updating a project, the connection ID should always be excluded.
 	// With the introduction of global connections, if a connection ID is passed in this update request,
 	// the connection ID will be cascaded to all environments in the project and will override any
@@ -237,8 +224,6 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	} else {
 		plan.DbtProjectSubdirectory = types.StringNull()
 	}
-
-	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

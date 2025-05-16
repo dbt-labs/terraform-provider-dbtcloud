@@ -40,7 +40,6 @@ func testAccProjectDataSourceConfig(projectName string) string {
     resource "dbtcloud_project" "test" {
 		name = "%s"
 		dbt_project_subdirectory = "/path"
-		type = 0
 	}
 
     data "dbtcloud_project" "test" {

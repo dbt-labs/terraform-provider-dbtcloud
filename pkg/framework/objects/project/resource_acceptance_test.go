@@ -52,11 +52,6 @@ var modifyStep = resource.TestStep{
 			"dbt_project_subdirectory",
 			"/project/subdirectory_where/dbt-is",
 		),
-		resource.TestCheckResourceAttr(
-			"dbtcloud_project.test_project",
-			"type",
-			"0",
-		),
 	),
 }
 
@@ -97,7 +92,6 @@ resource "dbtcloud_project" "test_project" {
   name = "%s"
   description = "%s"
   dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
-  type = 0
 }
 `, projectName, projectDescription)
 }

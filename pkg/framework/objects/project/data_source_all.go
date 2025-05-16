@@ -66,9 +66,6 @@ func (d *projectsDataSource) Read(
 		currentProject.DbtProjectSubdirectory = types.StringValue(
 			project.DbtProjectSubdirectory,
 		)
-		currentProject.DbtProjectType = types.Int64Value(
-			project.DbtProjectType,
-		)
 		currentProject.CreatedAt = types.StringValue(project.CreatedAt)
 		currentProject.UpdatedAt = types.StringValue(project.UpdatedAt)
 

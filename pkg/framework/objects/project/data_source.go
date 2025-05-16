@@ -144,7 +144,7 @@ func (d *projectDataSource) Read(
 	}
 
 	state.State = types.Int64Value(int64(project.State))
-	state.DbtProjectType = types.Int64Value(int64(project.DbtProjectType))
+
 	// Set state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

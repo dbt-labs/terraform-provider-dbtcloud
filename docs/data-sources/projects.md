@@ -65,7 +65,6 @@ Read-Only:
 - `project_connection` (Attributes) Details for the connection linked to the project (see [below for nested schema](#nestedatt--projects--project_connection))
 - `repository` (Attributes) Details for the repository linked to the project (see [below for nested schema](#nestedatt--projects--repository))
 - `semantic_layer_config_id` (Number) Semantic layer config ID
-- `type` (Number) The type of dbt project (default or hybrid)
 - `updated_at` (String) When the project was last updated
 
 <a id="nestedatt--projects--project_connection"></a>
