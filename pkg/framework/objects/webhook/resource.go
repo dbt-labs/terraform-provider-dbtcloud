@@ -53,24 +53,17 @@ func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *db
 	resourceModel.Name = types.StringValue(retrievedWebhook.Name)
 	resourceModel.Description = types.StringValue(retrievedWebhook.Description)
 	resourceModel.ClientURL = types.StringValue(retrievedWebhook.ClientUrl)
+	resourceModel.EventTypes = helper.SliceStringToSliceTypesString(retrievedWebhook.EventTypes)
 
-	var diags diag.Diagnostics
-	resourceModel.EventTypes, diags = helper.SliceStringToTypesListStringValue(retrievedWebhook.EventTypes)
-
-	if diags.HasError() {
-		return diags
-	}
-	resourceModel.JobIDs, diags = helper.SliceStringToTypesListInt64Value(retrievedWebhook.JobIds)
-	if diags.HasError() {
-		return diags
-	}
+	listValue, diags := helper.SliceStringToTypesListInt64Value(ctx, retrievedWebhook.JobIds)
+	resourceModel.JobIDs = listValue
 
 	resourceModel.Active = types.BoolValue(retrievedWebhook.Active)
 
 	resourceModel.HTTPStatusCode = types.StringValue(*retrievedWebhook.HttpStatusCode)
 	resourceModel.AccountIdentifier = types.StringValue(*retrievedWebhook.AccountIdentifier)
 
-	return nil
+	return diags
 }
 
 func (r *webhookResource) Read(
@@ -139,17 +132,26 @@ func (r *webhookResource) Create(
 	description := plan.Description.ValueString()
 	clientUrl := plan.ClientURL.ValueString()
 	eventTypes := plan.EventTypes
-	jobIds := helper.TypesListInt64SliceToInt64Slice(plan.JobIDs)
+	jobIds := []int64{}
+	if !plan.JobIDs.IsNull() && !plan.JobIDs.IsUnknown() {
+		elements := make([]types.Int64, 0, len(plan.JobIDs.Elements()))
+		diags := plan.JobIDs.ElementsAs(ctx, &elements, false)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		jobIds = helper.TypesInt64SliceToInt64(elements)
+	}
 	active := plan.Active.ValueBool()
 
-	nonTypedEventTypes := helper.TypesListStringToStringSlice(eventTypes)
+	typedEventTypes := helper.TypesStringSliceToStringSlice(eventTypes)
 
 	createdWebhook, err := r.client.CreateWebhook(
 		webhookId,
 		name,
 		description,
 		clientUrl,
-		nonTypedEventTypes,
+		typedEventTypes,
 		jobIds,
 		active,
 	)
@@ -165,9 +167,18 @@ func (r *webhookResource) Create(
 	plan.ID = types.StringValue(createdWebhook.WebhookId)
 	plan.WebhookID = types.StringValue(createdWebhook.WebhookId)
 
-	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value(createdWebhook.JobIds)
-	if diags.HasError() {
-		return
+	// Set job_ids in the plan state
+	if createdWebhook.JobIds == nil {
+		plan.JobIDs = types.ListNull(types.Int64Type)
+	} else if len(createdWebhook.JobIds) == 0 {
+		plan.JobIDs = types.ListNull(types.Int64Type)
+	} else {
+		listValue, diags := helper.SliceStringToTypesListInt64Value(ctx, createdWebhook.JobIds)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		plan.JobIDs = listValue
 	}
 
 	// Set computed fields
@@ -225,7 +236,7 @@ func (r *webhookResource) Update(
 			Name:        helper.TernaryOperator(nameChanged, plan.Name.ValueString(), retrievedWebhook.Name),
 			Description: helper.TernaryOperator(descriptionChanged, plan.Description.ValueString(), retrievedWebhook.Description),
 			ClientUrl:   helper.TernaryOperator(clientUrlChanged, plan.ClientURL.ValueString(), retrievedWebhook.ClientUrl),
-			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.TypesListStringToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
+			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.TypesStringSliceToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
 			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesListInt64SliceToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64(retrievedWebhook.JobIds)),
 			Active:      helper.TernaryOperator(activeChanged, plan.Active.ValueBool(), retrievedWebhook.Active),
 		}

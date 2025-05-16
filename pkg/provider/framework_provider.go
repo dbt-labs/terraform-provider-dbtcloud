@@ -223,6 +223,5 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,
 		service_token.ServiceTokenResource,
-		webhook.WebhookResource,
 	}
 }

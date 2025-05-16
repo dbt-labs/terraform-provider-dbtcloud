@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,33 +44,11 @@ func SliceStringToSliceTypesString(input []string) []types.String {
 	return result
 }
 
-func SliceInt64ToSliceTypesInt64(input []int64) []types.Int64 {
-	if input == nil {
-		return nil
-	}
-	result := make([]types.Int64, len(input))
-	for i, v := range input {
-		result[i] = types.Int64Value(v)
-	}
-	return result
-}
-
 func SliceStringToSliceTypesInt64(input []string) []types.Int64 {
-	if input == nil {
-		return nil
-	}
 	result := make([]types.Int64, len(input))
 	for i, step := range input {
 		var in_int, _ = strconv.Atoi(step)
 		result[i] = SetIntToInt64OrNull(in_int)
-	}
-	return result
-}
-
-func SliceStringToSliceInt(input []string) []int {
-	result := make([]int, len(input))
-	for i, step := range input {
-		result[i], _ = strconv.Atoi(step)
 	}
 	return result
 }
@@ -82,16 +59,6 @@ func Int64SetToIntSlice(set types.Set) []int {
 	result := make([]int, len(elements))
 	for i, el := range elements {
 		result[i] = int(el.(types.Int64).ValueInt64())
-	}
-	return result
-}
-
-// TF types to API data types
-func Int64SetToInt64Slice(set types.Set) []int64 {
-	elements := set.Elements()
-	result := make([]int64, len(elements))
-	for i, el := range elements {
-		result[i] = int64(el.(types.Int64).ValueInt64())
 	}
 	return result
 }
@@ -113,14 +80,6 @@ func TypesInt64ToInt64Pointer(value types.Int64) *int64 {
 	return &fieldVal
 }
 
-func TypesInt64SliceToInt64(list []types.Int64) []int64 {
-	result := make([]int64, len(list))
-	for i, v := range list {
-		result[i] = v.ValueInt64()
-	}
-	return result
-}
-
 func TypesStringSliceToStringSlice(list []types.String) []string {
 	result := make([]string, len(list))
 	for i, v := range list {
@@ -133,66 +92,4 @@ func TypesStringSliceToStringSlice(list []types.String) []string {
 func DocString(inp string) string {
 	newString := strings.ReplaceAll(inp, "~~~", "`")
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(newString, "")
-}
-
-// returns trueVal, if condition == true, else falseVal
-func TernaryOperator[T any](condition bool, trueVal T, falseVal T) T {
-	if condition {
-		return trueVal
-	}
-	return falseVal
-}
-
-func SliceStringToTypesListInt64Value(slice []string) (types.List, diag.Diagnostics) {
-	if slice == nil || len(slice) == 0 {
-		return types.ListNull(types.Int64Type), diag.Diagnostics{}
-	}
-	attrValues := make([]attr.Value, len(slice))
-	for i, v := range slice {
-		val, _ := strconv.Atoi(v)
-		attrValues[i] = types.Int64Value(int64(val))
-	}
-	return types.ListValue(types.Int64Type, attrValues)
-}
-
-func TypesListInt64SliceToInt64Slice(list types.List) []int64 {
-	elements := list.Elements()
-	result := make([]int64, len(elements))
-	for i, v := range elements {
-		result[i] = v.(types.Int64).ValueInt64()
-	}
-	return result
-}
-
-func TypesListStringToStringSlice(list types.List) []string {
-	elements := list.Elements()
-	result := make([]string, len(elements))
-	for i, v := range elements {
-		result[i] = v.(types.String).ValueString()
-	}
-	return result
-}
-
-func SliceStringToTypesListStringValue(slice []string) (types.List, diag.Diagnostics) {
-	attrValues := make([]attr.Value, len(slice))
-	for i, v := range slice {
-		attrValues[i] = types.StringValue(v)
-	}
-	return types.ListValue(types.StringType, attrValues)
-}
-
-func SliceInt64ToTypesListInt64(slice []int64) (types.List, diag.Diagnostics) {
-	attrValues := make([]attr.Value, len(slice))
-	for i, v := range slice {
-		attrValues[i] = types.Int64Value(v)
-	}
-	return types.ListValue(types.Int64Type, attrValues)
-}
-
-func SliceStringToSliceInt64(slice []string) []int64 {
-	result := make([]int64, len(slice))
-	for i, v := range slice {
-		result[i], _ = strconv.ParseInt(v, 10, 64)
-	}
-	return result
 }
