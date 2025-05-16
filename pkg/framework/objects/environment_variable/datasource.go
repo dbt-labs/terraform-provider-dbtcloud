@@ -100,7 +100,7 @@ func (d *environmentVariableDataSource) Read(
 
 	envVarElements := make(map[string]attr.Value)
 	for key, value := range envVar.EnvironmentNameValues {
-		envVarElements[key] = types.StringValue(value.Value)
+		envVarElements[key] = types.StringValue(value)
 	}
 
 	envVarMap, diag := types.MapValue(types.StringType, envVarElements)

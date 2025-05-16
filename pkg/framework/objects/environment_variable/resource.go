@@ -91,12 +91,7 @@ func (r *environmentVariableResource) Create(
 	name := plan.Name.ValueString()
 	environmentValues := plan.EnvironmentValues.Elements()
 
-	envValuesMap := make(map[string]string)
-	for key, value := range environmentValues {
-		if valueStr, ok := value.(types.String); ok {
-			envValuesMap[key] = valueStr.ValueString()
-		}
-	}
+	envValuesMap := getEnvValuesMap(environmentValues)
 
 	// Create new envVar
 	envVar, err := r.client.CreateEnvironmentVariable(
@@ -190,33 +185,15 @@ func (r *environmentVariableResource) Update(
 
 	projectID := int(plan.ProjectID.ValueInt64())
 	name := plan.Name.ValueString()
-	// Get current environment variable from API
-	currentEnvVar, err := r.client.GetEnvironmentVariable(projectID, name)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting the environment variable",
-			"Error: "+err.Error(),
-		)
-		return
-	}
-
 	environmentValues := plan.EnvironmentValues.Elements()
-	envValuesMap := make(map[string]string)
-	for key, keyValuePair := range currentEnvVar.EnvironmentNameValues {
-		idStr := strconv.Itoa(keyValuePair.ID)
-		if valueStr, ok := environmentValues[key].(types.String); ok {
-			envValuesMap[idStr] = valueStr.ValueString()
-		}
-	}
-
-	envVar := dbt_cloud.AbstractedEnvironmentVariable{
-		Name:              name,
-		ProjectID:         projectID,
-		EnvironmentValues: envValuesMap,
+	envVar := dbt_cloud.EnvironmentVariable{
+		Name:                  name,
+		ProjectID:             projectID,
+		EnvironmentNameValues: getEnvValuesMap(environmentValues),
 	}
 
 	// Update credential
-	_, err = r.client.UpdateEnvironmentVariable(
+	_, err := r.client.UpdateEnvironmentVariable(
 		projectID,
 		envVar,
 	)

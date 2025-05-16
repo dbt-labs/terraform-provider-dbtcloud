@@ -109,9 +109,3 @@ func determineIntValue(envVarKey string, dbtCloudPRValue int, ciValue int) int {
 const (
 	DBT_CLOUD_VERSION = "latest"
 )
-
-const (
-	// CharSetAlphaNumUpper is the uppercase alphanumeric character set for testing use
-	// to extend the default character sets of RandStringFromCharSet
-	CharSetAlphaUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-)

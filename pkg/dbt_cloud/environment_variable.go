@@ -7,16 +7,10 @@ import (
 	"strings"
 )
 
-type FullEnvironmentVariable struct {
+type EnvironmentVariable struct {
 	Name                  string
 	ProjectID             int
-	EnvironmentNameValues map[string]EnvironmentVariableNameValue
-}
-
-type AbstractedEnvironmentVariable struct {
-	Name              string
-	ProjectID         int
-	EnvironmentValues map[string]string
+	EnvironmentNameValues map[string]string
 }
 
 type EnvironmentVariableNameValue struct {
@@ -47,7 +41,7 @@ type CreateEnvironmentVariableResponse struct {
 func (c *Client) GetEnvironmentVariable(
 	projectID int,
 	environmentVariableName string,
-) (*FullEnvironmentVariable, error) {
+) (*EnvironmentVariable, error) {
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
@@ -81,11 +75,15 @@ func (c *Client) GetEnvironmentVariable(
 			projectID,
 		)
 	}
+	environmentValues := make(map[string]string)
+	for environmentName, environmentVariableNameValue := range environmentsVariables {
+		environmentValues[environmentName] = environmentVariableNameValue.Value
+	}
 
-	environmentVariable := FullEnvironmentVariable{
+	environmentVariable := EnvironmentVariable{
 		Name:                  environmentVariableName,
 		ProjectID:             projectID,
-		EnvironmentNameValues: environmentsVariables,
+		EnvironmentNameValues: environmentValues,
 	}
 
 	return &environmentVariable, nil
@@ -95,7 +93,7 @@ func (c *Client) CreateEnvironmentVariable(
 	projectID int,
 	name string,
 	environmentValues map[string]string,
-) (*AbstractedEnvironmentVariable, error) {
+) (*EnvironmentVariable, error) {
 	environmentValues["new_name"] = name
 	newEnvironmentVariable := map[string]map[string]string{
 		"env_var": environmentValues,
@@ -131,21 +129,21 @@ func (c *Client) CreateEnvironmentVariable(
 		return nil, err
 	}
 
-	environmentVariable := AbstractedEnvironmentVariable{
-		ProjectID:         projectID,
-		Name:              name,
-		EnvironmentValues: environmentValues,
+	environmentVariable := EnvironmentVariable{
+		ProjectID:             projectID,
+		Name:                  name,
+		EnvironmentNameValues: environmentValues,
 	}
 	return &environmentVariable, nil
 }
 
 func (c *Client) UpdateEnvironmentVariable(
 	projectID int,
-	environmentVariable AbstractedEnvironmentVariable,
-) (*AbstractedEnvironmentVariable, error) {
+	environmentVariable EnvironmentVariable,
+) (*EnvironmentVariable, error) {
 	updateData := map[string]string{"name": environmentVariable.Name}
-	for key, environmentVariableValue := range environmentVariable.EnvironmentValues {
-		updateData[key] = environmentVariableValue
+	for environmentName, environmentVariableValue := range environmentVariable.EnvironmentNameValues {
+		updateData[environmentName] = environmentVariableValue
 	}
 	envVarUpdateData := map[string]map[string]string{"env_vars": updateData}
 
@@ -179,10 +177,15 @@ func (c *Client) UpdateEnvironmentVariable(
 		return nil, err
 	}
 
-	environmentVariable = AbstractedEnvironmentVariable{
-		Name:              environmentVariable.Name,
-		ProjectID:         projectID,
-		EnvironmentValues: environmentVariable.EnvironmentValues,
+	newEnvVariables := map[string]string{}
+	for environmentName, environmentVariableValue := range environmentVariable.EnvironmentNameValues {
+		newEnvVariables[environmentName] = environmentVariableValue
+	}
+
+	environmentVariable = EnvironmentVariable{
+		Name:                  environmentVariable.Name,
+		ProjectID:             projectID,
+		EnvironmentNameValues: newEnvVariables,
 	}
 
 	return &environmentVariable, nil
@@ -192,7 +195,7 @@ func (c *Client) DeleteEnvironmentVariable(
 	environmentVariableName string,
 	projectID int,
 ) (string, error) {
-	environmentVariableData, _ := json.Marshal(map[string]string{"name": environmentVariableName})
+	environmentVariableData, err := json.Marshal(map[string]string{"name": environmentVariableName})
 	req, err := http.NewRequest(
 		"DELETE",
 		fmt.Sprintf(
