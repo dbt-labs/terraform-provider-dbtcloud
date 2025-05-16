@@ -32,7 +32,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -211,7 +210,6 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user.UsersDataSource,
 		user_groups.UserGroupDataSource,
 		bigquery_credential.BigqueryCredentialDataSource,
-		webhook.WebhookDataSource,
 	}
 }
 
@@ -236,6 +234,5 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
 		bigquery_credential.BigqueryCredentialResource,
-		webhook.WebhookResource,
 	}
 }
