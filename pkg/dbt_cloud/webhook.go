@@ -32,7 +32,7 @@ type WebhookWrite struct {
 	Description string   `json:"description,omitempty"`
 	ClientUrl   string   `json:"client_url"`
 	EventTypes  []string `json:"event_types,omitempty"`
-	JobIds      []int64  `json:"job_ids"`
+	JobIds      []int    `json:"job_ids"`
 	Active      bool     `json:"active,omitempty"`
 }
 
@@ -71,7 +71,7 @@ func (c *Client) CreateWebhook(
 	description string,
 	clientUrl string,
 	eventTypes []string,
-	jobIds []int64,
+	jobIds []int,
 	active bool,
 ) (*WebhookRead, error) {
 
