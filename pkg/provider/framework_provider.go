@@ -204,7 +204,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		starburst_credential.StarburstCredentialDataSource,
 		user.UserDataSource,
 		user.UsersDataSource,
-		webhook.WebhookDataSource,
+		bigquery_credential.BigqueryCredentialDataSource,
 	}
 }
 
@@ -227,7 +227,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		service_token.ServiceTokenResource,
 		webhook.WebhookResource,
 		starburst_credential.StarburstCredentialResource,
-		user_groups.UserGroupsResource,
 		bigquery_credential.BigqueryCredentialResource,
 	}
 }
