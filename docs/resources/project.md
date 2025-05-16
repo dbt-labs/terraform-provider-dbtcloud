@@ -2,13 +2,13 @@
 page_title: "dbtcloud_project Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Manages a dbt Cloud project.
+  
 ---
 
 # dbtcloud_project (Resource)
 
 
-Manages a dbt Cloud project.
+
 
 ## Example Usage
 
@@ -36,12 +36,12 @@ resource "dbtcloud_project" "dbt_project_with_subdir" {
 
 ### Optional
 
-- `dbt_project_subdirectory` (String) DBT project subdirectory
+- `dbt_project_subdirectory` (String) dbt project subdirectory path
 - `description` (String) Description for the project. Will show in dbt Explorer.
 
 ### Read-Only
 
-- `id` (Number) The ID of the project.
+- `id` (String) The ID of this resource.
 
 ## Import
 

@@ -57,18 +57,18 @@ check "no_different_projects_with_same_name" {
 
 Read-Only:
 
+- `connection` (Attributes) Details for the connection linked to the project (see [below for nested schema](#nestedatt--projects--connection))
 - `created_at` (String) When the project was created
 - `dbt_project_subdirectory` (String) Subdirectory for the dbt project inside the git repo
 - `description` (String) Project description
 - `id` (Number) Project ID
 - `name` (String) Project name
-- `project_connection` (Attributes) Details for the connection linked to the project (see [below for nested schema](#nestedatt--projects--project_connection))
 - `repository` (Attributes) Details for the repository linked to the project (see [below for nested schema](#nestedatt--projects--repository))
 - `semantic_layer_config_id` (Number) Semantic layer config ID
 - `updated_at` (String) When the project was last updated
 
-<a id="nestedatt--projects--project_connection"></a>
-### Nested Schema for `projects.project_connection`
+<a id="nestedatt--projects--connection"></a>
+### Nested Schema for `projects.connection`
 
 Read-Only:
 

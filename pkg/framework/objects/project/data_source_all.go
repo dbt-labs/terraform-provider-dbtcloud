@@ -70,7 +70,7 @@ func (d *projectsDataSource) Read(
 		currentProject.UpdatedAt = types.StringValue(project.UpdatedAt)
 
 		if project.Connection != nil {
-			currentProject.ProjectConnection = &ProjectConnection{
+			currentProject.Connection = &ProjectConnection{
 				ID:             types.Int64PointerValue(project.Connection.ID),
 				Name:           types.StringPointerValue(project.Connection.Name),
 				AdapterVersion: types.StringPointerValue(project.Connection.AdapterVersion),
@@ -110,12 +110,4 @@ func (d *projectsDataSource) Configure(
 	}
 
 	d.client = req.ProviderData.(*dbt_cloud.Client)
-}
-
-func (d *projectsDataSource) Schema(
-	_ context.Context,
-	_ datasource.SchemaRequest,
-	resp *datasource.SchemaResponse,
-) {
-	resp.Schema = datasourceSchema
 }
