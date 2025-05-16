@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+
 func TestConformanceBasicConfig(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	catalogName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -24,15 +24,14 @@ func TestConformanceBasicConfig(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, catalogName, targetName, token), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName,catalogName, targetName, token)),
+			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, targetName, token), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, targetName, token)),
 		},
 	})
 }
 
 func TestConformanceModifyConfig(t *testing.T) {
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	catalogName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -43,16 +42,72 @@ func TestConformanceModifyConfig(t *testing.T) {
 		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
 		CheckDestroy: testAccCheckDbtCloudDatabricksCredentialDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, catalogName,targetName, targetName2, token, token2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, catalogName,targetName, targetName2, token, token2)),
+			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, targetName, targetName2, token, token2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, targetName, targetName2, token, token2)),
 		},
 	})
+}
+
+
+func TestAccDbtCloudDatabricksCredentialResourceLegacy(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	targetName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	var basicConfigTestStep = getBasicConfigTestStep(projectName, targetName, token)
+	var modifyConfigTestStep = getModifyConfigTestStep(projectName, targetName, targetName2, token, token2)
+	
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
+		Steps: []resource.TestStep{
+			basicConfigTestStep,
+			modifyConfigTestStep,	
+			{
+				ResourceName:            "dbtcloud_databricks_credential.test_credential",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"token", "adapter_type"},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
+	projectName, targetName, token string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+resource "dbtcloud_connection" "databricks" {
+	project_id = dbtcloud_project.test_project.id
+	type       = "adapter"
+	name       = "Databricks"
+	database   = ""
+	host_name  = "databricks.com"
+	http_path  = "/my/path"
+	catalog    = "moo"
+  }
+
+resource "dbtcloud_databricks_credential" "test_credential" {
+	project_id = dbtcloud_project.test_project.id
+	adapter_id = dbtcloud_connection.databricks.adapter_id
+	target_name = "%s"
+	token = "%s"
+	schema = "my_schema"
+	adapter_type = "databricks"
+}
+`, projectName, targetName, token)
 }
 
 func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	catalog := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -66,7 +121,6 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
 					projectName,
 					catalog,
-					targetName,
 					token,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -86,7 +140,6 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
 					projectName,
 					"",
-					targetName,
 					token2,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -117,7 +170,7 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 }
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
-	projectName, catalogName,targetName, token string,
+	projectName, targetName, token string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -149,12 +202,11 @@ resource "dbtcloud_environment" "prod_environment" {
 resource "dbtcloud_databricks_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
     catalog = "%s"
-	target_name = "%s"
     token   = "%s"
     schema  = "my_schema"
 	adapter_type = "databricks"
 }
-`, projectName, catalogName, targetName, token)
+`, projectName, targetName, token)
 }
 
 func testAccCheckDbtCloudDatabricksCredentialExists(resource string) resource.TestCheckFunc {
@@ -218,11 +270,11 @@ func testAccCheckDbtCloudDatabricksCredentialDestroy(s *terraform.State) error {
 	return nil
 }
 
-func getBasicConfigTestStep(projectName, catalogName,targetName, token string) resource.TestStep {
+
+func getBasicConfigTestStep(projectName, targetName, token string) resource.TestStep {
 	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
+		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
 			projectName,
-			catalogName,
 			targetName,
 			token,
 		),
@@ -239,11 +291,10 @@ func getBasicConfigTestStep(projectName, catalogName,targetName, token string) r
 	}
 }
 
-func getModifyConfigTestStep(projectName, catalogName,targetName, targetName2, token, token2 string) resource.TestStep {
+func getModifyConfigTestStep(projectName, targetName, targetName2, token, token2 string) resource.TestStep {
 	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
+		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigLegacy(
 			projectName,
-			catalogName,
 			targetName2,
 			token2,
 		),
