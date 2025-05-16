@@ -8,7 +8,6 @@ import (
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,8 +43,6 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"user": resource_schema.StringAttribute{
 			Optional:    true,
-			Computed:    true,
-			Default:     stringdefault.StaticString(""),
 			Description: "The username of the Fabric account to connect to. Only used when connection with AD user/pass",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
@@ -56,8 +53,6 @@ var resourceSchema = resource_schema.Schema{
 		"password": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
-			Computed:    true,
-			Default:     stringdefault.StaticString(""),
 			Description: "The password for the account to connect to. Only used when connection with AD user/pass",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
@@ -67,8 +62,6 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"tenant_id": resource_schema.StringAttribute{
 			Optional:    true,
-			Computed:    true,
-			Default:     stringdefault.StaticString(""),
 			Description: "The tenant ID of the Azure Active Directory instance. This is only used when connecting to Azure SQL with a service principal.",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
@@ -77,9 +70,7 @@ var resourceSchema = resource_schema.Schema{
 			},
 		},
 		"client_id": resource_schema.StringAttribute{
-			Computed:    true,
 			Optional:    true,
-			Default:     stringdefault.StaticString(""),
 			Description: "The client ID of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
@@ -89,9 +80,7 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"client_secret": resource_schema.StringAttribute{
 			Optional:    true,
-			Computed:    true,
 			Sensitive:   true,
-			Default:     stringdefault.StaticString(""),
 			Description: "The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
@@ -105,8 +94,6 @@ var resourceSchema = resource_schema.Schema{
 		},
 		"schema_authorization": resource_schema.StringAttribute{
 			Optional:    true,
-			Computed:    true,
-			Default:     stringdefault.StaticString(""),
 			Description: "Optionally set this to the principal who should own the schemas created by dbt",
 		},
 	},
