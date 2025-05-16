@@ -1,4 +1,4 @@
-package job_test
+package resources_test
 
 import (
 	"fmt"
@@ -6,145 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-
-func TestConformanceBasicConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(jobName, projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(jobName, projectName, environmentName)),
-		},
-	})
-}
-
-func TestConformanceFullConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getFullConfigTestStep(jobName, projectName, environmentName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getFullConfigTestStep(jobName, projectName, environmentName)),
-		},
-	})
-}
-
-func TestConformanceJobChainingConfig(t *testing.T){
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	jobName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {acctest_helper.TestAccPreCheck(t)},
-		CheckDestroy: testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getJobChainingConfigTestStep(jobName, projectName, environmentName, jobName2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getJobChainingConfigTestStep(jobName, projectName, environmentName, jobName2)),
-		},
-	})
-}
-
-func getBasicConfigTestStep(jobName, projectName, environmentName string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudJobResourceBasicConfig(
-			jobName,
-			projectName,
-			environmentName,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-		),
-	}
-}
-
-func getFullConfigTestStep(jobName, projectName, environmentName string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudJobResourceFullConfig(
-			jobName,
-			projectName,
-			environmentName,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_job.test_job",
-				"dbt_version",
-				acctest_config.DBT_CLOUD_VERSION,
-			),
-			resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_job.test_job",
-				"timeout_seconds",
-				"180",
-			),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "num_threads"),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_job.test_job",
-				"run_generate_sources",
-			),
-			resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "generate_docs"),
-		),
-	}
-}
-
-func getJobChainingConfigTestStep(jobName, jobName2, projectName, environmentName string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudJobResourceJobChaining(
-			jobName,
-			projectName,
-			environmentName,
-			jobName2,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-			testAccCheckDbtCloudJobExists("dbtcloud_job.test_job_4"),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_job.test_job_4",
-				"job_completion_trigger_condition.#",
-				"1",
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_job.test_job_4",
-				"job_completion_trigger_condition.0.job_id",
-			),
-			resource.TestCheckResourceAttrSet(
-				"dbtcloud_job.test_job_4",
-				"job_completion_trigger_condition.0.project_id",
-			),
-			resource.TestCheckTypeSetElemAttr(
-				"dbtcloud_job.test_job_4",
-				"job_completion_trigger_condition.0.statuses.*",
-				"error",
-			),
-			resource.TestCheckTypeSetElemAttr(
-				"dbtcloud_job.test_job_4",
-				"job_completion_trigger_condition.0.statuses.*",
-				"success",
-			),
-		),
-	}
-}
 
 func TestAccDbtCloudJobResource(t *testing.T) {
 
@@ -176,7 +42,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
@@ -216,7 +82,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_job.test_job",
 						"dbt_version",
-						acctest_config.DBT_CLOUD_VERSION,
+						DBT_CLOUD_VERSION,
 					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
 					resource.TestCheckResourceAttr(
@@ -289,7 +155,7 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"dbtcloud_job.test_job",
 						"dbt_version",
-						acctest_config.DBT_CLOUD_VERSION,
+						DBT_CLOUD_VERSION,
 					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
 					resource.TestCheckResourceAttr(
@@ -330,7 +196,7 @@ func TestAccDbtCloudJobResourceTriggers(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
@@ -377,7 +243,7 @@ func TestAccDbtCloudJobCISettings(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
@@ -459,7 +325,7 @@ resource "dbtcloud_job" "ci_job" {
         "schedule" : false
 	}
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, acctest_config.DBT_CLOUD_VERSION, runLint, errorOnLinFailure)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, runLint, errorOnLinFailure)
 }
 
 func testAccDbtCloudJobResourceBasicConfig(jobName, projectName, environmentName string) string {
@@ -488,7 +354,7 @@ resource "dbtcloud_job" "test_job" {
     "schedule": false,
   }
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 }
 
 func testAccDbtCloudJobResourceFullConfig(jobName, projectName, environmentName string) string {
@@ -534,7 +400,7 @@ resource "dbtcloud_job" "test_job" {
   schedule_hours = [9, 17]
   timeout_seconds = 180
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, acctest_config.DBT_CLOUD_VERSION)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION)
 }
 
 func testAccDbtCloudJobResourceJobChaining(
@@ -601,7 +467,7 @@ resource "dbtcloud_job" "test_job_4" {
 		statuses = ["error", "success"]
 	}
   }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, acctest_config.DBT_CLOUD_VERSION, jobName4)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName4)
 }
 
 func testAccDbtCloudJobResourceDeferringConfig(
@@ -680,7 +546,7 @@ resource "dbtcloud_job" "test_job_3" {
 	}
 	%s
   }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, acctest_config.DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, selfDefer)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, DBT_CLOUD_VERSION, jobName2, deferParam, jobName3, selfDefer)
 }
 
 func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
@@ -690,7 +556,7 @@ func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
@@ -796,7 +662,7 @@ resource "dbtcloud_job" "test_job" {
   }
   %s
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, scheduleConfig)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, scheduleConfig)
 }
 
 func testAccDbtCloudJobResourceBasicConfigTriggers(
@@ -812,7 +678,7 @@ func testAccDbtCloudJobResourceBasicConfigTriggers(
 	if trigger == "git" {
 		git_trigger = "true"
 		deferringConfig = "deferring_environment_id = dbtcloud_environment.test_job_environment.environment_id"
-		if !acctest_config.IsDbtCloudPR() {
+		if !isDbtCloudPR() {
 			// we don't want to activate it in Cloud PRs as the setting need to be ON
 			// TODO: When TF supports account settings, activate the setting in this test and remove this logic
 			run_compare_changes = "true"
@@ -853,7 +719,7 @@ resource "dbtcloud_job" "test_job" {
   run_compare_changes = %s
   %s
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger, run_compare_changes, deferringConfig)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName, git_trigger, git_trigger, schedule_trigger, on_merge_trigger, run_compare_changes, deferringConfig)
 }
 
 func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
@@ -907,7 +773,7 @@ func TestAccDbtCloudJobResourceJobTypeAndCompareChanges(t *testing.T) {
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
@@ -971,5 +837,5 @@ resource "dbtcloud_job" "test_job" {
     run_compare_changes = true
     compare_changes_flags = "--select state:modified+"
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, jobName)
 }
