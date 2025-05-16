@@ -160,7 +160,6 @@ func (c *Client) UpdateEnvironment(
 		return nil, err
 	}
 
-	var payload = strings.NewReader(string(environmentData))
 	req, err := http.NewRequest(
 		"POST",
 		fmt.Sprintf(
@@ -170,7 +169,7 @@ func (c *Client) UpdateEnvironment(
 			projectId,
 			environmentId,
 		),
-		payload,
+		strings.NewReader(string(environmentData)),
 	)
 	if err != nil {
 		return nil, err
