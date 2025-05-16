@@ -6,8 +6,6 @@ import (
 	"strconv"
 )
 
-var LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION string = "0.3.26"
-
 var AcceptanceTestConfig = buildAcctestConfig()
 
 func buildAcctestConfig() AcctestConfig {
@@ -105,7 +103,3 @@ func determineIntValue(envVarKey string, dbtCloudPRValue int, ciValue int) int {
 		return -1
 	}
 }
-
-const (
-	DBT_CLOUD_VERSION = "latest"
-)
