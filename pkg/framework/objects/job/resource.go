@@ -362,8 +362,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ScheduleDays = scheduleDaysNull
 	}
 
-	if retrievedJob.Schedule.Date.Cron != nil && 
-	retrievedJob.Schedule.Date.Type != "interval_cron" { // for interval_cron, the cron expression is auto generated in the code
+	if retrievedJob.Schedule.Date.Cron != nil {
 		state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
 	} else {
 		state.ScheduleCron = types.StringNull()

@@ -599,21 +599,6 @@ func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
 				),
 			},
-			// MODIFY SCHEDULE
-			{
-				Config: testAccDbtCloudJobResourceScheduleConfig(
-					jobName,
-					projectName,
-					environmentName,
-					"interval_cron",
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_type", "interval_cron"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_interval", "5"),
-				),
-			},
 
 			// IMPORT
 			{
@@ -648,11 +633,6 @@ func testAccDbtCloudJobResourceScheduleConfig(
 		scheduleConfig = `	
 		schedule_cron = "0 21 * * *"
 		schedule_type = "custom_cron"`
-	} else if scheduleType == "interval_cron" {
-		scheduleConfig = `
-		schedule_type = "interval_cron"
-		schedule_days = [0,1,2,3,4,5,6]
-		schedule_interval = 5`
 	} else {
 		panic("Incorrect schedule type")
 	}
@@ -859,117 +839,4 @@ resource "dbtcloud_job" "test_job" {
     compare_changes_flags = "--select state:modified+"
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
-}
-
-func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
-	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDbtCloudJobResourceIntervalCronConfig(
-					jobName,
-					projectName,
-					environmentName,
-					5,
-					[]int{0, 1, 2, 3, 4, 5, 6},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_type", "interval_cron"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_interval", "5"),
-				),
-			},
-			// MODIFY INTERVAL
-			{
-				Config: testAccDbtCloudJobResourceIntervalCronConfig(
-					jobName,
-					projectName,
-					environmentName,
-					10,
-					[]int{0, 1, 2, 3, 4, 5, 6},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_type", "interval_cron"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_interval", "10"),
-				),
-			},
-			// MODIFY DAYS
-			{
-				Config: testAccDbtCloudJobResourceIntervalCronConfig(
-					jobName,
-					projectName,
-					environmentName,
-					10,
-					[]int{1, 3, 5},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "schedule_type", "interval_cron"),
-				),
-			},
-			// IMPORT
-			{
-				ResourceName:      "dbtcloud_job.test_job",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"triggers.%",
-					"triggers.custom_branch_only",
-				},
-			},
-		},
-	})
-}
-
-func testAccDbtCloudJobResourceIntervalCronConfig(
-	jobName, projectName, environmentName string,
-	interval int,
-	days []int,
-) string {
-	daysStr := "["
-	for i, day := range days {
-		if i > 0 {
-			daysStr += ","
-		}
-		daysStr += fmt.Sprintf("%d", day)
-	}
-	daysStr += "]"
-
-	return fmt.Sprintf(`
-resource "dbtcloud_project" "test_job_project" {
-    name = "%s"
-}
-
-resource "dbtcloud_environment" "test_job_environment" {
-    project_id = dbtcloud_project.test_job_project.id
-    name = "%s"
-    dbt_version = "%s"
-    type = "development"
-}
-
-resource "dbtcloud_job" "test_job" {
-  name        = "%s"
-  project_id = dbtcloud_project.test_job_project.id
-  environment_id = dbtcloud_environment.test_job_environment.environment_id
-  execute_steps = [
-    "dbt test"
-  ]
-  triggers = {
-    "github_webhook": false,
-    "git_provider_webhook": false,
-    "schedule": true,
-  }
-  schedule_type = "interval_cron"
-  schedule_interval = %d
-  schedule_days = %s
-}
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, interval, daysStr)
 }

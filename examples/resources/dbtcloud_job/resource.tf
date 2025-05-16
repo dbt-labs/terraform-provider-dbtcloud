@@ -78,28 +78,3 @@ resource "dbtcloud_job" "downstream_job" {
     statuses = ["success"]
   }
 }
-
-# a job that uses the interval cron setup
-resource "dbtcloud_job" "daily_job" {
-  environment_id = dbtcloud_environment.prod_environment.environment_id
-  execute_steps = [
-    "dbt build"
-  ]
-  generate_docs        = true
-  is_active            = true
-  name                 = "Daily job"
-  num_threads          = 64
-  project_id           = dbtcloud_project.dbt_project.id
-  run_generate_sources = true
-  target_name          = "default"
-  triggers = {
-    "github_webhook" : false
-    "git_provider_webhook" : false
-    "schedule" : true
-    "on_merge" : false
-  }
-
-  schedule_type  = "interval_cron"
-  schedule_days = [0, 1, 2, 3, 4, 5, 6]
-  schedule_interval = 5
-}

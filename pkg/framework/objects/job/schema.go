@@ -310,7 +310,6 @@ var (
 		"every_day",
 		"days_of_week",
 		"custom_cron",
-		"interval_cron",
 	}
 )
 
@@ -376,7 +375,7 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString("every_day"),
-				Description: "Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron",
+				Description: "Type of schedule to use, one of every_day/ days_of_week/ custom_cron",
 				Validators: []validator.String{
 					stringvalidator.OneOf(scheduleTypes...),
 				},
