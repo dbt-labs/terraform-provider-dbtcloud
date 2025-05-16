@@ -1,11 +1,10 @@
-package environment_variable_test
+package data_sources_test
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -89,5 +88,5 @@ data "dbtcloud_environment_variable" "test_env_var_read" {
   name = dbtcloud_environment_variable.test_env_var.name
   project_id = dbtcloud_environment_variable.test_env_var.project_id
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentVariableName, environmentName)
+`, projectName, environmentName, DBT_CLOUD_VERSION, environmentVariableName, environmentName)
 }

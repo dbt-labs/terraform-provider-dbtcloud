@@ -2,13 +2,13 @@
 page_title: "dbtcloud_environment_variable_job_override Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Environment variable job override resource
+  
 ---
 
 # dbtcloud_environment_variable_job_override (Resource)
 
 
-Environment variable job override resource
+
 
 ## Example Usage
 
@@ -28,14 +28,13 @@ resource "dbtcloud_environment_variable_job_override" "my_env_var_job_override" 
 
 - `job_definition_id` (Number) The job ID for which the environment variable is being overridden
 - `name` (String) The environment variable name to override
-- `project_id` (Number) Project ID to create the environment variable job override in
+- `project_id` (Number) The project ID for which the environment variable is being overridden
 - `raw_value` (String) The value for the override of the environment variable
 
 ### Read-Only
 
-- `account_id` (Number) The account id
-- `environment_variable_job_override_id` (Number) The internal ID of this resource. Contains the project ID and the environment variable job override ID.
-- `id` (String) The ID of this resource. Contains the project ID and the environment variable job override ID.
+- `environment_variable_job_override_id` (Number) The ID of the environment variable job override
+- `id` (String) The ID of this resource.
 
 ## Import
 
