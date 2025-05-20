@@ -15,8 +15,31 @@ on:
 name: dbt Cloud Integration Tests
 
 jobs:
+  check-changie:
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-ci')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for changie changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+            BASE_BRANCH="${{ github.base_ref }}"
+            CURRENT_BRANCH="${{ github.head_ref }}"
+            
+            # Check if there are any changes in the .changes directory
+            if ! git diff --name-only origin/$BASE_BRANCH...origin/$CURRENT_BRANCH | grep -q "^.changes/"; then
+              echo "::error::No changie changes detected. Please add a changelog entry using changie. https://changie.dev/guide/quick_start/"
+              exit 1
+            fi
+          fi
+
   unit:
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-ci')"
+    needs: check-changie
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.target == 'test-acceptance' || github.ref }}
