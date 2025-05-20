@@ -61,4 +61,4 @@ jobs:
             This PR prepares release ${{ steps.latest.outputs.output }}
             
             - Updates changelog
-            - Ready main to trigger release workflow
+            - Prepare main branch for release
