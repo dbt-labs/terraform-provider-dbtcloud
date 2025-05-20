@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -91,7 +90,12 @@ func (r *environmentVariableResource) Create(
 	name := plan.Name.ValueString()
 	environmentValues := plan.EnvironmentValues.Elements()
 
-	envValuesMap := getEnvValuesMap(environmentValues)
+	envValuesMap := make(map[string]string)
+	for key, value := range environmentValues {
+		if valueStr, ok := value.(types.String); ok {
+			envValuesMap[key] = valueStr.ValueString()
+		}
+	}
 
 	// Create new envVar
 	envVar, err := r.client.CreateEnvironmentVariable(
@@ -185,15 +189,48 @@ func (r *environmentVariableResource) Update(
 
 	projectID := int(plan.ProjectID.ValueInt64())
 	name := plan.Name.ValueString()
+	// Get current environment variable from API
+	currentEnvVar, err := r.client.GetEnvironmentVariable(projectID, name)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting the environment variable",
+			"Error: "+err.Error(),
+		)
+		return
+	}
+
+	// Update values for previously existing environments and disregard those missing from plan
 	environmentValues := plan.EnvironmentValues.Elements()
-	envVar := dbt_cloud.EnvironmentVariable{
-		Name:                  name,
-		ProjectID:             projectID,
-		EnvironmentNameValues: getEnvValuesMap(environmentValues),
+	envValuesMap := make(map[string]string)
+	for key, keyValuePair := range currentEnvVar.EnvironmentNameValues {
+		idStr := strconv.Itoa(keyValuePair.ID)
+		// We assume the value will be deleted
+		envValuesMap[idStr] = ""
+		if valueStr, ok := environmentValues[key].(types.String); ok {
+			envValuesMap[idStr] = valueStr.ValueString()
+		}
+	}
+
+	// Add any new values
+	if len(environmentValues) > len(currentEnvVar.EnvironmentNameValues) {
+		for key, value := range environmentValues {
+			_, exists := currentEnvVar.EnvironmentNameValues[key]
+			if !exists {
+				if valueStr, ok := value.(types.String); ok {
+					envValuesMap[key] = valueStr.ValueString()
+				}
+			}
+		}
+	}
+
+	envVar := dbt_cloud.AbstractedEnvironmentVariable{
+		Name:              name,
+		ProjectID:         projectID,
+		EnvironmentValues: envValuesMap,
 	}
 
 	// Update credential
-	_, err := r.client.UpdateEnvironmentVariable(
+	_, err = r.client.UpdateEnvironmentVariable(
 		projectID,
 		envVar,
 	)
@@ -292,14 +329,4 @@ func (r *environmentVariableResource) ImportState(
 		path.Root("name"),
 		name,
 	)...)
-}
-
-func getEnvValuesMap(environmentValues map[string]attr.Value) map[string]string {
-	envValuesMap := make(map[string]string)
-	for key, value := range environmentValues {
-		if valueStr, ok := value.(types.String); ok {
-			envValuesMap[key] = valueStr.ValueString()
-		}
-	}
-	return envValuesMap
 }

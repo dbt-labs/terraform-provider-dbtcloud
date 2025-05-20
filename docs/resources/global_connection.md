@@ -4,7 +4,6 @@ subcategory: ""
 description: |-
   This resource can be used to create global connections as introduced in dbt Cloud in August 2024.
   Those connections are not linked to a specific project and can be linked to environments from different projects by using the connection_id field in the dbtcloud_environment resource.
-  All connections types are supported, and the old resources dbtcloud_connection, dbtcloud_bigquery_connection and dbtcloud_fabric_connection are now flagged as deprecated and will be removed from the next major version of the provider.
 ---
 
 # dbtcloud_global_connection (Resource)
@@ -13,8 +12,6 @@ description: |-
 This resource can be used to create global connections as introduced in dbt Cloud in August 2024.
 
 Those connections are not linked to a specific project and can be linked to environments from different projects by using the `connection_id` field in the `dbtcloud_environment` resource.
-
-All connections types are supported, and the old resources `dbtcloud_connection`, `dbtcloud_bigquery_connection` and `dbtcloud_fabric_connection` are now flagged as deprecated and will be removed from the next major version of the provider.
 
 ## Example Usage
 
@@ -139,6 +136,18 @@ resource "dbtcloud_global_connection" "synapse" {
     retries       = 3
     login_timeout = 60
     query_timeout = 3600
+  }
+}
+
+resource "dbtcloud_global_connection" "teradata" {
+  name = "My Teradata connection"
+  teradata = {
+    host = "my-teradata-server.com"
+    tmode = "ANSI"
+    // optional fields
+    port = "1234"
+    request_timeout = 600
+    retries = 3
   }
 }
 ```

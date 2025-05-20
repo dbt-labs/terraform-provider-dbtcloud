@@ -3,12 +3,12 @@
 page_title: "dbtcloud_group_users Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Returns a list of users assigned to a specific dbt Cloud group
+  Databricks credential data source
 ---
 
 # dbtcloud_group_users (Data Source)
 
-Returns a list of users assigned to a specific dbt Cloud group
+Databricks credential data source
 
 ## Example Usage
 
@@ -27,13 +27,13 @@ data "dbtcloud_group_users" "my_group_users" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `users` (Set of Object) List of users (map of ID and email) in the group (see [below for nested schema](#nestedatt--users))
+- `id` (String) The ID of this resource. Contains the project ID and the credential ID.
+- `users` (Attributes Set) List of users (map of ID and email) in the group (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--users"></a>
 ### Nested Schema for `users`
 
-Read-Only:
+Required:
 
-- `email` (String)
-- `id` (Number)
+- `email` (String) Email of the user
+- `id` (Number) ID of the user

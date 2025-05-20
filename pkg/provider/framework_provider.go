@@ -8,6 +8,12 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable_job_override"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/extended_attributes"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_users"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_environment_variable"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/privatelink_endpoint"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/runs"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_configuration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
@@ -229,6 +235,10 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		extended_attributes.ExtendedAttributesDataSource,
 		teradata_credential.TeradataCredentialDataSource,
 		environment_variable.EnvironmentVariableDataSource,
+		project.ProjectDataSource,
+		privatelink_endpoint.PrivatelinkEndpointDataSource,
+		group_users.GroupUsersDataSource,
+		runs.RunsDataSource,
 	}
 }
 
@@ -245,6 +255,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
+		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
 		project_artefacts.ProjectArtefactsResource,
@@ -261,8 +272,12 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		snowflake_credential.SnowflakeCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
+		job.JobResource,
 		project_repository.ProjectRepositoryResource,
 		environment_variable.EnvironmentVariableResource,
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
+		project.ProjectResource,
+		semantic_layer_configuration.SemanticLayerConfigurationResource,
+		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 	}
 }

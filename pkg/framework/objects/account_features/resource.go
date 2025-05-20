@@ -29,10 +29,12 @@ func readFeatures(client *dbt_cloud.Client) (AccountFeaturesResourceModel, error
 	}
 
 	return AccountFeaturesResourceModel{
-		ID:             types.StringValue(fmt.Sprintf("%d", client.AccountID)),
-		AdvancedCI:     types.BoolValue(features.AdvancedCI),
-		PartialParsing: types.BoolValue(features.PartialParsing),
-		RepoCaching:    types.BoolValue(features.RepoCaching),
+		ID:                      types.StringValue(fmt.Sprintf("%d", client.AccountID)),
+		AdvancedCI:              types.BoolValue(features.AdvancedCI),
+		PartialParsing:          types.BoolValue(features.PartialParsing),
+		RepoCaching:             types.BoolValue(features.RepoCaching),
+		AIFeatures:              types.BoolValue(features.AIFeatures),
+		WarehouseCostVisibility: types.BoolValue(features.WarehouseCostVisibility),
 	}, nil
 }
 
@@ -78,6 +80,22 @@ func (r *accountFeaturesResource) Create(
 		err := r.client.UpdateAccountFeature("repo-caching", plan.RepoCaching.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating repo-caching feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.AIFeatures.IsUnknown() {
+		err := r.client.UpdateAccountFeature("ai_features", plan.AIFeatures.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating ai_features feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.WarehouseCostVisibility.IsUnknown() {
+		err := r.client.UpdateAccountFeature("warehouse_cost_visibility", plan.WarehouseCostVisibility.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating warehouse_cost_visibility feature", err.Error())
 			return
 		}
 	}
@@ -148,6 +166,22 @@ func (r *accountFeaturesResource) Update(
 		err := r.client.UpdateAccountFeature("repo-caching", plan.RepoCaching.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating repo-caching feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.AIFeatures.IsUnknown() && !plan.AIFeatures.Equal(state.AIFeatures) {
+		err := r.client.UpdateAccountFeature("ai_features", plan.AIFeatures.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating ai_features feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.WarehouseCostVisibility.IsUnknown() && !plan.WarehouseCostVisibility.Equal(state.WarehouseCostVisibility) {
+		err := r.client.UpdateAccountFeature("warehouse_cost_visibility", plan.WarehouseCostVisibility.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating warehouse_cost_visibility feature", err.Error())
 			return
 		}
 	}

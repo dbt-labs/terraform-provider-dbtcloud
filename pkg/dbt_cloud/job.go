@@ -204,9 +204,18 @@ func (c *Client) CreateJob(
 	if scheduleType == "days_of_week" {
 		date.Days = &scheduleDays
 		date.Cron = nil
-	} else if scheduleCron != "" {
+	} else if scheduleType == "interval_cron" {
+		// cron expression: "4 */[interval] * * [days]" , 4 value matches the way dbt Cloud UI creates the cron that is sent to the API
+		daysStr := make([]string, len(scheduleDays))
+		for i, d := range scheduleDays {
+			daysStr[i] = strconv.Itoa(d)
+		}
+		cronExpr := fmt.Sprintf("4 */%d * * %s", scheduleInterval, strings.Join(daysStr, ","))
+		date.Cron = &cronExpr
+	} else if scheduleCron != "" { // custom_cron
 		date.Cron = &scheduleCron
 	}
+
 	jobSchedule := JobSchedule{
 		Date: date,
 		Time: time,

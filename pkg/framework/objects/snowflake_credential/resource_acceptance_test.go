@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -107,45 +106,7 @@ func getModifyConfigTestStep(projectName, database, role, warehouse, schema, use
 	}
 }
 
-func TestBasicConfigConformance(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, database, role, warehouse, schema, user, password), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, database, role, warehouse, schema, user, password)),
-		},
-	})
-}
-
-func TestModifyConfigConformance(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	database2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	role2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	warehouse2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	schema2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	user2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudSnowflakeCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, database2, role2, warehouse2, schema2, user2, password2), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, database2, role2, warehouse2, schema2, user2, password2)),
-		},
-	})
-}
-
-func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
+func TestAccDbtCloudSnowflakeCredentialResourceAuth(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -162,10 +123,7 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 	user2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
@@ -179,12 +137,25 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_snowflake_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase"},
+				ImportStateVerifyIgnore: []string{"password", "private_key", "private_key_passphrase", "semantic_layer_credential"},
 			},
 		},
 	})
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDbtCloudSnowflakeCredentialResourcePrivateKey(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	privateKeyPassphrase := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
@@ -248,7 +219,48 @@ func TestAccDbtCloudSnowflakeCredentialResource(t *testing.T) {
 				ResourceName:            "dbtcloud_snowflake_credential.test_credential_p",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"private_key", "private_key_passphrase"},
+				ImportStateVerifyIgnore: []string{"private_key", "private_key_passphrase", "semantic_layer_credential"},
+			},
+		},
+	})
+
+}
+
+func TestAccDbtCloudSlSnowflakeCredentialNoSchemaResource(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudSnowflakeSlCredentialNoSchema(
+					projectName,
+					database,
+					role,
+					warehouse,
+					user,
+					password,
+				),
+				ExpectError: regexp.MustCompile("`schema` must be provided when `semantic_layer_credential` is false"),
+			},
+			{
+				Config: testAccDbtCloudSnowflakeSlCredentialNoSchema(
+					projectName,
+					database,
+					role,
+					warehouse,
+					user,
+					password,
+				),
+				ExpectError: regexp.MustCompile("`schema` must be provided when `semantic_layer_credential` is false"),
 			},
 		},
 	})
@@ -360,4 +372,25 @@ func testAccCheckDbtCloudSnowflakeCredentialDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccDbtCloudSnowflakeSlCredentialNoSchema(
+	projectName, database, role, warehouse, user, password string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+resource "dbtcloud_snowflake_credential" "test_credential" {
+    is_active = true
+    project_id = dbtcloud_project.test_project.id
+    auth_type = "password"
+	database = "%s"
+	role = "%s"
+	warehouse = "%s"
+    user = "%s"
+    password = "%s"
+    num_threads = 3
+}
+`, projectName, database, role, warehouse, user, password)
 }

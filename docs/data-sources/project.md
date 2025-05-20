@@ -3,12 +3,12 @@
 page_title: "dbtcloud_project Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  
+  Retrieve a specific project from dbt Cloud.
 ---
 
 # dbtcloud_project (Data Source)
 
-
+Retrieve a specific project from dbt Cloud.
 
 ## Example Usage
 
@@ -17,14 +17,41 @@ description: |-
 // legacy names will be removed from 0.3 onwards
 
 // projects data sources can use the project_id parameter (preferred uniqueness is ensured)
-data "dbtcloud_project" "test_project" {
-  project_id = var.dbt_cloud_project_id
+data "dbtcloud_project" "project_by_id" {
+  id = 00000000000000
 }
 
 // or they can use project names
 // the provider will raise an error if more than one project is found with the same name
-data "dbtcloud_project" "test_project" {
-  name = "My project name"
+data "dbtcloud_project" "project_by_name" {
+  name = "Project name"
+}
+
+data "dbtcloud_projects" "filtered_projects" {
+  name_contains = "Project"
+}
+
+data "dbtcloud_projects" "all_projects" {
+}
+
+output "project_id_details" {
+  value = data.dbtcloud_project.project_by_id
+}
+
+output "project_name_details" {
+  value = data.dbtcloud_project.project_by_name
+}
+
+output "filtered_projects_count" {
+  value = length(data.dbtcloud_projects.filtered_projects.projects)
+}
+
+output "filtered_projects" {
+  value = data.dbtcloud_projects.filtered_projects.projects
+}
+
+output "project_names" {
+  value = [for project in data.dbtcloud_projects.filtered_projects.projects : project.name]
 }
 ```
 
@@ -33,15 +60,38 @@ data "dbtcloud_project" "test_project" {
 
 ### Optional
 
-- `description` (String) The description of the project
-- `name` (String) Given name for project
-- `project_id` (Number) ID of the project to represent
+- `id` (Number) Project ID
+- `name` (String) Project name
 
 ### Read-Only
 
-- `connection_id` (Number) ID of the connection associated with the project
+- `created_at` (String) When the project was created
+- `dbt_project_subdirectory` (String) Subdirectory for the dbt project inside the git repo
+- `description` (String) Project description
 - `docs_job_id` (Number) ID of Job for the documentation
 - `freshness_job_id` (Number) ID of Job for source freshness
-- `id` (String) The ID of this resource.
-- `repository_id` (Number) ID of the repository associated with the project
-- `state` (Number, Deprecated) Project state should be 1 = active, as 2 = deleted
+- `project_connection` (Attributes) Details for the connection linked to the project (see [below for nested schema](#nestedatt--project_connection))
+- `repository` (Attributes) Details for the repository linked to the project (see [below for nested schema](#nestedatt--repository))
+- `semantic_layer_config_id` (Number) Semantic layer config ID
+- `state` (Number) Project state should be 1 = active, as 2 = deleted
+- `type` (Number) The type of dbt project (default or hybrid)
+- `updated_at` (String) When the project was last updated
+
+<a id="nestedatt--project_connection"></a>
+### Nested Schema for `project_connection`
+
+Read-Only:
+
+- `adapter_version` (String) Version of the adapter for the connection. Will tell what connection type it is
+- `id` (Number) Connection ID
+- `name` (String) Connection name
+
+
+<a id="nestedatt--repository"></a>
+### Nested Schema for `repository`
+
+Read-Only:
+
+- `id` (Number) Repository ID
+- `pull_request_url_template` (String) URL template for PRs
+- `remote_url` (String) URL of the git repo remote

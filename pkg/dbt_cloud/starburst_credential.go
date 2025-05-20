@@ -30,7 +30,6 @@ type StarburstCredentialData struct {
 	State                        int                                   `json:"state"`
 	Threads                      int                                   `json:"threads"`
 	TargetName                   string                                `json:"target_name"`
-	AdapterID                    int                                   `json:"adapter_id"`
 	AdapterVersion               string                                `json:"adapter_version,omitempty"`
 	UnencryptedCredentialDetails StarburstUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
@@ -45,7 +44,6 @@ type StarburstCredentialRequest struct {
 	State             int                      `json:"state"`
 	Threads           int                      `json:"threads"`
 	TargetName        string                   `json:"target_name"`
-	AdapterID         int                      `json:"adapter_id,omitempty"`
 	AdapterVersion    string                   `json:"adapter_version,omitempty"`
 	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }

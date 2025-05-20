@@ -13,32 +13,11 @@ Databricks credential resource
 ## Example Usage
 
 ```terraform
-# when using the Databricks adapter with a new `dbtcloud_global_connection`
-# we don't provide an `adapter_id`
 resource "dbtcloud_databricks_credential" "my_databricks_cred" {
   project_id   = dbtcloud_project.dbt_project.id
   token        = "abcdefgh"
   schema       = "my_schema"
   adapter_type = "databricks"
-}
-
-# when using the Databricks adapter with a legacy `dbtcloud_connection`
-# we provide an `adapter_id`
-resource "dbtcloud_databricks_credential" "my_databricks_cred" {
-  project_id   = dbtcloud_project.dbt_project.id
-  adapter_id   = dbtcloud_connection.my_databricks_connection.adapter_id
-  token        = "abcdefgh"
-  schema       = "my_schema"
-  adapter_type = "databricks"
-}
-
-# when using the Spark adapter
-resource "dbtcloud_databricks_credential" "my_spark_cred" {
-  project_id   = dbtcloud_project.dbt_project.id
-  adapter_id   = dbtcloud_connection.my_databricks_connection.adapter_id
-  token        = "abcdefgh"
-  schema       = "my_schema"
-  adapter_type = "spark"
 }
 ```
 
@@ -54,7 +33,6 @@ resource "dbtcloud_databricks_credential" "my_spark_cred" {
 
 ### Optional
 
-- `adapter_id` (Number) Databricks adapter ID for the credential (do not fill in when using global connections, only to be used for connections created with the legacy connection resource `dbtcloud_connection')
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
 - `target_name` (String, Deprecated) Target name
 

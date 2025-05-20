@@ -3,6 +3,7 @@ package notification_test
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -10,10 +11,36 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+func cleanupExistingNotifications(userID int) error {
+	apiClient, err := acctest_helper.SharedClient()
+	if err != nil {
+		return fmt.Errorf("Issue getting the client: %v", err)
+	}
+
+	notifications, err := apiClient.GetAllNotifications()
+	if err != nil {
+		return fmt.Errorf("Failed to list notifications: %v", err)
+	}
+
+	for _, notification := range notifications {
+		if notification.UserId == userID {
+
+			notification.State = dbt_cloud.STATE_DELETED
+			_, err := apiClient.UpdateNotification(strconv.Itoa(*notification.Id), notification)
+			if err != nil {
+				return fmt.Errorf("Failed to delete notification %d: %v", *notification.Id, err)
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDbtCloudNotificationResource(t *testing.T) {
 
@@ -28,8 +55,15 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+
+			err := cleanupExistingNotifications(userID)
+			if err != nil {
+				t.Fatalf("Failed to cleanup existing notifications: %v", err)
+			}
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudNotificationDestroy,
 		Steps: []resource.TestStep{

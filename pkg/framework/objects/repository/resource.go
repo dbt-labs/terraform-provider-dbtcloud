@@ -114,6 +114,26 @@ func (r *repositoryResource) Create(
 		return
 	}
 
+	// checking potential issues with the creation of GitLab repositories with service tokens
+	if repository.RepositoryCredentialsID == nil && gitlabProjectID != 0 {
+		repositoryIDString := fmt.Sprintf("%d", *repository.ID)
+		projectIDString := fmt.Sprintf("%d", repository.ProjectID)
+		_, err := r.client.DeleteRepository(repositoryIDString, projectIDString)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error deleting invalid repository",
+				err.Error(),
+			)
+			return
+		}
+
+		resp.Diagnostics.AddError(
+			"Invalid repository configuration",
+			"`repository_credentials_id` is not set after creating the repository. This is likely due to creating the repository with a service token. Only user tokens / personal access tokens are supported for GitLab at the moment",
+		)
+		return
+	}
+
 	// Map response to model
 	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", repository.ProjectID, dbt_cloud.ID_DELIMITER, *repository.ID))
 	plan.RepositoryID = types.Int64Value(int64(*repository.ID))
@@ -356,6 +376,12 @@ func (r *repositoryResource) Update(
 		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
 		azureBypass := plan.AzureBypassWebhookRegistrationFailure.ValueBool()
 		updateRepository.AzureBypassWebhookRegistrationFailure = &azureBypass
+	}
+
+	if !plan.GithubInstallationID.IsNull() && 
+	   plan.GitCloneStrategy.ValueString() == "github_app" {
+		githubID := int(plan.GithubInstallationID.ValueInt64())
+		updateRepository.GithubInstallationID = &githubID
 	}
 
 	// Update repository

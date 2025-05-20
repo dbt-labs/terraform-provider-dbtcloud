@@ -64,31 +64,13 @@ func TestAccDbtCloudUserGroupsResource(t *testing.T) {
 		ImportStateVerifyIgnore: []string{},
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			addRoleTestStep,
 			removeRoleTestStep,
 			importStateTestStep,
-		},
-	})
-}
-
-func TestConfDbtCloudUserGroupsResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acctest_helper.TestAccPreCheck(t) },
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(addRoleTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(addRoleTestStep),
-		},
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acctest_helper.TestAccPreCheck(t) },
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(removeRoleTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(removeRoleTestStep),
 		},
 	})
 }

@@ -6,61 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-func TestConformanceBasicConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, user, password)),
-		},
-	})
-}
-
-func TestConformanceModifyConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	clientId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	tenantId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	clientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	// MODIFY: test that running commands in SDKv2 and then the same commands in Framework generates a NoOp plan
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret)),
-		},
-	})
-}
-
-func TestConformanceImportConfig(t *testing.T) {
-	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-
-	// Import: test that running an import in SDKv2 and then the same thing in Framework generates a NoOp plan
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudFabricCredentialDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getBasicConfigTestStep(projectName, user, password), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getBasicConfigTestStep(projectName, user, password)),
-		},
-	})
-}
 
 func TestAccDbtCloudFabricCredentialResource(t *testing.T) {
 
@@ -77,7 +28,7 @@ func TestAccDbtCloudFabricCredentialResource(t *testing.T) {
 
 	var importConfigTestStep = getImportConfigTestStep()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudFabricCredentialDestroy,
@@ -151,15 +102,12 @@ func getImportConfigTestStep() resource.TestStep {
 		ResourceName:            "dbtcloud_fabric_credential.test_credential",
 		ImportState:             true,
 		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user"},
+		ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user", "adapter_type"},
 		ImportStateCheck: func(s []*terraform.InstanceState) error {
 			if len(s) != 1 {
 				return fmt.Errorf("expected 1 state, got %d", len(s))
 			}
 			state := s[0]
-			if state.Attributes["adapter_id"] == "" {
-				return fmt.Errorf("missing adapter_id in import state")
-			}
 			if state.Attributes["client_id"] == "" {
 				return fmt.Errorf("missing client_id in import state")
 			}
@@ -183,21 +131,24 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_fabric_connection" "fabric" {
-	project_id = dbtcloud_project.test_project.id
+resource "dbtcloud_global_connection" "fabric" {
+  name = "My Fabric connection"
+  fabric = {
+    project_id = dbtcloud_project.test_project.id
 	name = "Fabric"
 	database = "testdb"
 	server = "example.com"
 	port = 1234
+  }
 }
 
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
     schema = "my_schema"
     user = "%s"
     password = "%s"
     schema_authorization = "sp"
+	adapter_type = "fabric"
 }
 `, projectName, user, password)
 }
@@ -210,21 +161,24 @@ resource "dbtcloud_project" "test_project" {
   name        = "%s"
 }
 
-resource "dbtcloud_fabric_connection" "fabric" {
-	project_id = dbtcloud_project.test_project.id
+resource "dbtcloud_global_connection" "fabric" {
+  name = "My Fabric connection"
+  fabric = {
+    project_id = dbtcloud_project.test_project.id
 	name = "Fabric"
 	database = "testdb"
 	server = "example.com"
 	port = 1234
+  }
 }
 
 resource "dbtcloud_fabric_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
-    adapter_id = dbtcloud_fabric_connection.fabric.adapter_id
     schema = "my_schema_new"
     client_id = "%s"
     tenant_id = "%s"
     client_secret = "%s"
+	adapter_type = "fabric"
 }
 `, projectName, clientId, tenantId, clientSecret)
 }

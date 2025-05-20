@@ -1,7 +1,6 @@
 # when using AD authentication
 resource "dbtcloud_fabric_credential" "my_fabric_cred_ad" {
   project_id           = dbtcloud_project.dbt_project.id
-  adapter_id           = dbtcloud_fabric_connection.my_fabric_connection.adapter_id
   schema               = "my_schema"
   user                 = "my_user"
   password             = "my_password"
@@ -11,7 +10,6 @@ resource "dbtcloud_fabric_credential" "my_fabric_cred_ad" {
 # when using service principal authentication
 resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ" {
   project_id           = dbtcloud_project.dbt_project.id
-  adapter_id           = dbtcloud_fabric_connection.my_fabric_connection.adapter_id
   schema               = "my_schema"
   client_id            = "my_client_id"
   tenant_id            = "my_tenant_id"

@@ -2,13 +2,13 @@
 page_title: "dbtcloud_snowflake_credential Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Snowflake credential resource
+  Snowflake credential resource. This resource is used both as a stand-alone credential, but also as part of the Semantic Layer credential definition for Snowflake.
 ---
 
 # dbtcloud_snowflake_credential (Resource)
 
 
-Snowflake credential resource
+Snowflake credential resource. This resource is used both as a stand-alone credential, but also as part of the Semantic Layer credential definition for Snowflake.
 
 ## Example Usage
 
@@ -31,8 +31,6 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
 - `auth_type` (String) The type of Snowflake credential ('password' or 'keypair')
 - `num_threads` (Number) Number of threads to use
 - `project_id` (Number) Project ID to create the Snowflake credential in
-- `schema` (String) The schema where to create models
-- `user` (String) The username for the Snowflake account
 
 ### Optional
 
@@ -42,6 +40,9 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
 - `private_key` (String, Sensitive) The private key for the Snowflake account
 - `private_key_passphrase` (String, Sensitive) The passphrase for the private key
 - `role` (String) The role to assume
+- `schema` (String) The schema where to create models. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.
+- `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Snowflake credential for the Semantic Layer.
+- `user` (String) The username for the Snowflake account. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.
 - `warehouse` (String) The warehouse to use
 
 ### Read-Only

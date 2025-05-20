@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -30,10 +31,6 @@ var resourceSchema = resource_schema.Schema{
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.RequiresReplace(),
 			},
-		},
-		"adapter_id": resource_schema.Int64Attribute{
-			Required:    true,
-			Description: "Fabric adapter ID for the credential",
 		},
 		"credential_id": resource_schema.Int64Attribute{
 			Computed:    true,
@@ -108,6 +105,16 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 			Description: "Optionally set this to the principal who should own the schemas created by dbt",
+		},
+		"adapter_type": resource_schema.StringAttribute{
+			Description: "The type of the adapter (fabric)",
+			Required:    true,
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+			Validators: []validator.String{
+				stringvalidator.OneOf("fabric"),
+			},
 		},
 	},
 }

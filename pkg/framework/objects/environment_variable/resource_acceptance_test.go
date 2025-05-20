@@ -28,54 +28,43 @@ func TestAccDbtCloudEnvironmentVariableResource(t *testing.T) {
 
 	projectName, environmentName, environmentVariableName := getTestInputData()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
-			getSecretEnvTestStep(projectName, environmentName, environmentVariableName),
 			getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName),
-			getModifyConfigTestStep(projectName, environmentName, environmentVariableName),
 			getImportTestStep(),
 		},
 	})
 }
 
-func TestConformanceSecretEnvStep(t *testing.T) {
+func TestAccDbtCloudEnvironmentVariableResourceSecret(t *testing.T) {
+
 	projectName, environmentName, environmentVariableName := getTestInputData()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getSecretEnvTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getSecretEnvTestStep(projectName, environmentName, environmentVariableName)),
+			getSecretEnvTestStep(projectName, environmentName, environmentVariableName),
+			getImportTestStep(),
 		},
 	})
 }
 
-func TestConformanceNonSecretEnvStep(t *testing.T) {
+func TestAccDbtCloudEnvironmentVariableResourceModify(t *testing.T) {
+
 	projectName, environmentName, environmentVariableName := getTestInputData()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getNonSecretEnvTestStep(projectName, environmentName, environmentVariableName)),
-		},
-	})
-}
-
-func TestConformanceModifyConfigStep(t *testing.T) {
-	projectName, environmentName, environmentVariableName := getTestInputData()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudEnvironmentVariableDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName), acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(getModifyConfigTestStep(projectName, environmentName, environmentVariableName)),
+			getModifyConfigTestStep(projectName, environmentName, environmentVariableName),
+			getImportTestStep(),
 		},
 	})
 }

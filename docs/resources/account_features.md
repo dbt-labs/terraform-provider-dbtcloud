@@ -21,8 +21,10 @@ When destroying the resource or removing the value for an attribute, the feature
 ### Optional
 
 - `advanced_ci` (Boolean) Whether advanced CI is enabled.
+- `ai_features` (Boolean) Whether AI features are enabled.
 - `partial_parsing` (Boolean) Whether partial parsing is enabled.
 - `repo_caching` (Boolean) Whether repository caching is enabled.
+- `warehouse_cost_visibility` (Boolean) Whether warehouse cost visibility is enabled.
 
 ### Read-Only
 

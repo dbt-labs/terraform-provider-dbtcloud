@@ -68,7 +68,7 @@ var createByCloneTestStep = resource.TestStep{
 // TODO: Add more tests
 // we are currently testing in CI the SSH cloning and GH native cloning but not GitLab native and ADO native
 // this would require having the GitLab and ADO native integrations set up in the dbt Cloud account used for CI
-func TestAccDbtCloudRepositoryResource(t *testing.T) {
+func TestAccDbtCloudRepositoryResourceDeploy(t *testing.T) {
 
 	var importDeployTestStep = resource.TestStep{
 		// IMPORT
@@ -78,15 +78,7 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
 	}
 
-	var importCloneTestStep = resource.TestStep{
-		// IMPORT
-		ResourceName:            "dbtcloud_repository.test_repository_github",
-		ImportState:             true,
-		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
-	}
-
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
@@ -95,8 +87,19 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 			importDeployTestStep,
 		},
 	})
+}
 
-	resource.Test(t, resource.TestCase{
+func TestAccDbtCloudRepositoryResourceClone(t *testing.T) {
+
+	var importCloneTestStep = resource.TestStep{
+		// IMPORT
+		ResourceName:            "dbtcloud_repository.test_repository_github",
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudRepositoryDestroy,
@@ -106,26 +109,6 @@ func TestAccDbtCloudRepositoryResource(t *testing.T) {
 		},
 	})
 
-}
-
-func TestConfDbtCloudProjectRepositoryResource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(createByDeployKeyTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(createByDeployKeyTestStep),
-		},
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
-		CheckDestroy: testAccCheckDbtCloudRepositoryDestroy,
-		Steps: []resource.TestStep{
-			acctest_helper.MakeExternalProviderTestStep(createByCloneTestStep, acctest_config.LAST_VERSION_BEFORE_FRAMEWORK_MIGRATION),
-			acctest_helper.MakeCurrentProviderNoOpTestStep(createByCloneTestStep),
-		},
-	})
 }
 
 func testAccDbtCloudRepositoryResourceGithubConfig(repoUrl, projectName string) string {
