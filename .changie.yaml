@@ -3,7 +3,7 @@ unreleasedDir: unreleased
 headerPath: header.tpl.md
 changelogPath: CHANGELOG.md
 versionExt: md
-versionFormat: '# [{{.Version}}](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/v{{.PreviousVersion}}...v{{.Version}})'
+versionFormat: '# [{{.Version}}](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/{{.PreviousVersion}}...{{.Version}})'
 kindFormat: '### {{.Kind}}'
 changeFormat: '* {{.Body}}'
 kinds:
