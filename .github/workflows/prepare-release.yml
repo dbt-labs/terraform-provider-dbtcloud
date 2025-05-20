@@ -1,0 +1,61 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+env:
+  CHANGIE_VERSION: 1.21.1
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Install changie
+        uses: miniscruff/changie-action@v2
+        with:
+          version: ${{ env.CHANGIE_VERSION }}
+          
+      - name: Batch changes
+        uses: miniscruff/changie-action@v2
+        with:
+          version: ${{ env.CHANGIE_VERSION }}
+          args: batch ${{ github.event.inputs.version_bump }}
+          
+      - name: Merge changes
+        uses: miniscruff/changie-action@v2
+        with:
+          version: ${{ env.CHANGIE_VERSION }}
+          args: merge
+          
+      - name: Get latest version
+        id: latest
+        uses: miniscruff/changie-action@v2
+        with:
+          version: ${{ env.CHANGIE_VERSION }}
+          args: latest
+          
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: Release ${{ steps.latest.outputs.output }}
+          branch: release/${{ steps.latest.outputs.output }}
+          commit-message: Release ${{ steps.latest.outputs.output }}
+          body: |
+            This PR prepares release ${{ steps.latest.outputs.output }}
+            
+            - Updates changelog
+            - Ready to be merged to trigger release workflow
