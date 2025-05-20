@@ -25,10 +25,12 @@ jobs:
           fetch-depth: 0
 
       - name: Check for changie changes
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request_target" ]; then
             BASE_BRANCH="${{ github.base_ref }}"
-            CURRENT_BRANCH="${{ github.head_ref }}"
+            CURRENT_BRANCH="${HEAD_REF}"
             
             # Check if there are any changes in the .changes directory
             if ! git diff --name-only origin/$BASE_BRANCH...origin/$CURRENT_BRANCH | grep -q "^.changes/"; then
