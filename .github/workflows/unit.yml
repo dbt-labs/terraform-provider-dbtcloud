@@ -12,6 +12,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pull-requests: write
+
 name: dbt Cloud Integration Tests
 
 jobs:
