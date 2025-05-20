@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-//skip this test as it's flaky
+// Test fails on CI but passes locally
 // func TestAccDbtCloudPartialLicenseMapResource(t *testing.T) {
 // 	groupName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 // 	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)

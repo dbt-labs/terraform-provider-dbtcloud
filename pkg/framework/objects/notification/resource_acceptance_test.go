@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-
 func cleanupExistingNotifications(userID int) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {
@@ -56,10 +55,10 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
 			acctest_helper.TestAccPreCheck(t)
-			
+
 			err := cleanupExistingNotifications(userID)
 			if err != nil {
 				t.Fatalf("Failed to cleanup existing notifications: %v", err)
