@@ -1,0 +1,26 @@
+changesDir: .changes
+unreleasedDir: unreleased
+headerPath: header.tpl.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '# [{{.Version}}](https://github.com/dbt-labs/terraform-provider-dbtcloud/compare/{{.PreviousVersion}}...{{.Version}})'
+kindFormat: '### {{.Kind}}'
+changeFormat: '* {{.Body}}'
+kinds:
+    - label: Changes
+      auto: minor
+    - label: Fixes
+      auto: patch
+    - label: Notes
+      auto: minor
+    - label: Behind the scenes
+      auto: patch
+    - label: Documentation
+      auto: patch
+    - label: Deprecations
+      auto: minor
+newlines:
+    afterChangelogHeader: 1
+    beforeChangelogVersion: 1
+    endOfVersion: 1
+envPrefix: CHANGIE_
