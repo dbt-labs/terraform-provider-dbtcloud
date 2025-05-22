@@ -90,6 +90,23 @@ The installation ID can be found by navigating to `Settings` -> `Applications`,
 and clicking `Configure` on the dbt Cloud GitHub App. The installation ID can be found in the url, for example,
 `https://github.com/settings/installations/<installation_id>`
 
+## Contributions
+
+To help us effectively track contributions and prepare release notes, we require a changelog entry for every pull request. This is easily done using `changie`.
+
+Steps:
+
+1. After committing your code changes, run:
+
+```
+changie new
+```
+
+2. Select the change type: Choose the category that best describes your contribution.
+3. Add your message: Write a short, user-facing note about what you changed.
+
+This process creates a new file in the `.changes` directory. Please include this file in your pull request.
+
 ## Acknowledgement
 
 Thanks to Gary James [[GtheSheep](https://github.com/GtheSheep)], for all the effort put in creating this provider originally
