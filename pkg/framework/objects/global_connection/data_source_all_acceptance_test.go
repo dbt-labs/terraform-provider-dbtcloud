@@ -10,15 +10,10 @@ import (
 )
 
 func TestAccDbtCloudGlobalConnectionsDatasource(t *testing.T) {
-
 	connectionName := acctest.RandStringFromCharSet(19, acctest.CharSetAlphaNum)
 
-	/// TODO: REMOVE ONCE TEST FLAKINESS SOLVED
-	client, _ := acctest_helper.SharedClient()
-	connections, _ := client.GetAllConnections()
-	fmt.Printf("Found connections: %+v\n", connections)
-
-	resource.ParallelTest(t, resource.TestCase{
+	// Unparallelized because of flakiness
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
