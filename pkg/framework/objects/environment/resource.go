@@ -108,6 +108,17 @@ func (r *environmentResource) Create(
 		return
 	}
 
+	customBranchValue := plan.CustomBranch.ValueString()
+	if plan.CustomBranch.IsUnknown() {
+		customBranchValue = types.StringNull().ValueString()
+
+	}
+
+	deploymentType := plan.DeploymentType.ValueString()
+	if plan.DeploymentType.IsUnknown() {
+		deploymentType = types.StringNull().ValueString()
+	}
+
 	environment, err := r.client.CreateEnvironment(
 		plan.IsActive.ValueBool(),
 		int(plan.ProjectID.ValueInt64()),
@@ -115,9 +126,9 @@ func (r *environmentResource) Create(
 		plan.DbtVersion.ValueString(),
 		plan.Type.ValueString(),
 		plan.UseCustomBranch.ValueBool(),
-		plan.CustomBranch.ValueString(),
+		customBranchValue,
 		int(plan.CredentialID.ValueInt64()),
-		plan.DeploymentType.ValueString(),
+		deploymentType,
 		int(plan.ExtendedAttributesID.ValueInt64()),
 		int(plan.ConnectionID.ValueInt64()),
 		plan.EnableModelQueryHistory.ValueBool(),
@@ -141,10 +152,22 @@ func (r *environmentResource) Create(
 		plan.DbtVersion = types.StringValue(environment.Dbt_Version)
 	}
 
-	plan.Type = types.StringValue(environment.Type)
-	plan.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
-	plan.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
-	plan.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	if plan.Type.IsUnknown() {
+		plan.Type = types.StringValue(environment.Type)
+	}
+
+	if plan.UseCustomBranch.IsUnknown() {
+		plan.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
+	}
+
+	if plan.CustomBranch.IsUnknown() {
+		plan.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
+	}
+
+	if plan.DeploymentType.IsUnknown() {
+		plan.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	}
+
 	if environment.ExtendedAttributesID != nil {
 		plan.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
 	} else {
