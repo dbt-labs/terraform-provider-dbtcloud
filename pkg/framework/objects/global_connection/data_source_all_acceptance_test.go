@@ -10,10 +10,10 @@ import (
 )
 
 func TestAccDbtCloudGlobalConnectionsDatasource(t *testing.T) {
-
 	connectionName := acctest.RandStringFromCharSet(19, acctest.CharSetAlphaNum)
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Unparallelized because of flakiness
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -59,7 +59,6 @@ func TestAccDbtCloudGlobalConnectionsDatasource(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDbtCloudGlobalConnectionsDatasourceBasicConfig(
