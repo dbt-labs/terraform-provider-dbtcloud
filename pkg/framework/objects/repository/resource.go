@@ -257,11 +257,9 @@ func (r *repositoryResource) Read(
 		state.RepositoryCredentialsID = types.Int64Null()
 	}
 
-	if repository.GitlabProjectID != nil {
+	if repository.GitlabProjectID != nil { // GitlabProjectID is not returned by the api for the moment, it always return null
 		state.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
-	}else {
-		state.GitlabProjectID = types.Int64Null()
-	} 
+	}
 
 	if repository.GithubInstallationID != nil {
 		state.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
