@@ -259,9 +259,7 @@ func (r *repositoryResource) Read(
 
 	if repository.GitlabProjectID != nil {
 		state.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
-	} else {
-		state.GitlabProjectID = types.Int64Null()
-	}
+	} 
 
 	if repository.GithubInstallationID != nil {
 		state.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
@@ -410,9 +408,7 @@ func (r *repositoryResource) Update(
 
 	if repository.GitlabProjectID != nil {
 		plan.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
-	} else {
-		plan.GitlabProjectID = types.Int64Null()
-	}
+	} 
 
 	if repository.GithubInstallationID != nil {
 		plan.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
