@@ -76,7 +76,7 @@ func (c *Client) CreateRedshiftCredential(
 		Username:      username,
 		Password:      password,
 	}
-	fmt.Println(newRedshiftCredential)
+
 	newRedshiftCredentialData, err := json.Marshal(newRedshiftCredential)
 	if err != nil {
 		return nil, err

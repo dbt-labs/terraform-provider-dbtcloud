@@ -103,7 +103,7 @@ func (r *redshiftCredentialResource) Create(
 		username,
 		password,
 	)
-	fmt.Println(credential)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Redshift credential",
