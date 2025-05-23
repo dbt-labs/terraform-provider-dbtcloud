@@ -2,9 +2,11 @@ package semantic_layer_credential
 
 import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	config_resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 )
 
 var semantic_layer_config_resource_schema = config_resource_schema.Schema{
@@ -104,6 +106,41 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 		"client_x509_cert_url": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "Client X509 Cert URL for the Service Account",
+		},
+	},
+}
+
+var redshift_sl_credential_resource_schema = resource_schema.Schema{
+	Description: "Redshift credential resource. This resource is composed of a Redshift credential and a Semantic Layer configuration. It is used to create a Redshift credential for the Semantic Layer.",
+	Attributes: map[string]resource_schema.Attribute{
+		"id": resource_schema.Int64Attribute{
+			Computed:    true,
+			Description: "The ID of the credential",
+		},
+		"configuration": resource_schema.SingleNestedAttribute{
+			Required:    true,
+			Description: "Semantic Layer credential configuration details.",
+			Attributes:  semantic_layer_config_resource_schema.Attributes, // Reuse the schema
+		},
+		"credential": resource_schema.SingleNestedAttribute{
+			Required:    true,
+			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
+			Attributes:  redshift_credential.RedshiftResourceSchema.Attributes, // Reuse the schema
+		},
+		"project_id": resource_schema.Int64Attribute{
+			Required:    true,
+			Description: "ID of the dbt Cloud project.",
+		},
+		"username": resource_schema.StringAttribute{
+			Required:    true,
+			Description: "Username for Redshift credentials.",
+		},
+		"password": resource_schema.StringAttribute{
+			Sensitive:   true,
+			Description: "The password for the Redshift account",
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString(""),
 		},
 	},
 }

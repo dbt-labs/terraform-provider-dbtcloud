@@ -2,6 +2,7 @@ package semantic_layer_credential
 
 import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -30,4 +31,13 @@ type BigQuerySLCredentialModel struct {
 	TokenURI            types.String                                        `tfsdk:"token_uri"`
 	AuthProviderCertURL types.String                                        `tfsdk:"auth_provider_x509_cert_url"`
 	ClientCertURL       types.String                                        `tfsdk:"client_x509_cert_url"`
+}
+
+type RedshiftSLCredentialModel struct {
+	ID            types.Int64                                         `tfsdk:"id"`
+	Configuration SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
+	Credential    redshift_credential.RedshiftCredentialResourceModel `tfsdk:"credential"`
+	ProjectID     types.Int64                                         `tfsdk:"project_id"`
+	Username      types.String                                        `tfsdk:"username"`
+	Password      types.String                                        `tfsdk:"password"`
 }
