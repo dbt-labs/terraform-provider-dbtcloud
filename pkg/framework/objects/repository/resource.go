@@ -183,7 +183,7 @@ func (r *repositoryResource) Create(
 	} else if azureProjectID != "" {
 		plan.AzureActiveDirectoryProjectID = types.StringValue(azureProjectID)
 	} else {
-		plan.AzureActiveDirectoryProjectID = types.StringNull()
+		plan.AzureActiveDirectoryProjectID = types.StringValue("")
 	}
 
 	if repository.AzureActiveDirectoryRepositoryID != nil {
@@ -191,7 +191,7 @@ func (r *repositoryResource) Create(
 	} else if azureRepositoryID != "" {
 		plan.AzureActiveDirectoryRepositoryID = types.StringValue(azureRepositoryID)
 	} else {
-		plan.AzureActiveDirectoryRepositoryID = types.StringNull()
+		plan.AzureActiveDirectoryRepositoryID = types.StringValue("")
 	}
 
 	if repository.AzureBypassWebhookRegistrationFailure != nil {
@@ -259,6 +259,8 @@ func (r *repositoryResource) Read(
 
 	if repository.GitlabProjectID != nil {
 		state.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
+	}else {
+		state.GitlabProjectID = types.Int64Null()
 	} 
 
 	if repository.GithubInstallationID != nil {
@@ -282,13 +284,13 @@ func (r *repositoryResource) Read(
 	if repository.AzureActiveDirectoryProjectID != nil {
 		state.AzureActiveDirectoryProjectID = types.StringValue(*repository.AzureActiveDirectoryProjectID)
 	} else {
-		state.AzureActiveDirectoryProjectID = types.StringNull()
+		state.AzureActiveDirectoryProjectID = types.StringValue("")
 	}
 
 	if repository.AzureActiveDirectoryRepositoryID != nil {
 		state.AzureActiveDirectoryRepositoryID = types.StringValue(*repository.AzureActiveDirectoryRepositoryID)
 	} else {
-		state.AzureActiveDirectoryRepositoryID = types.StringNull()
+		state.AzureActiveDirectoryRepositoryID = types.StringValue("")
 	}
 
 	if repository.AzureBypassWebhookRegistrationFailure != nil {
@@ -307,7 +309,6 @@ func (r *repositoryResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	// Read plan and state
 	var plan RepositoryResourceModel
 	var state RepositoryResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -316,137 +317,52 @@ func (r *repositoryResource) Update(
 		return
 	}
 
-	// Parse ID
-	parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Invalid ID format",
-			fmt.Sprintf("Expected ID in format project_id%srepository_id, got: %s", dbt_cloud.ID_DELIMITER, state.ID.ValueString()),
-		)
-		return
-	}
-	projectID := parts[0]
-	repositoryID := parts[1]
+	hasIsActiveChange := !plan.IsActive.Equal(state.IsActive)
+	hasPullRequestURLTemplateChange := !plan.PullRequestURLTemplate.Equal(state.PullRequestURLTemplate)
 
-	// Get current repository
-	currentRepository, err := r.client.GetRepository(repositoryID, projectID)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading repository",
-			err.Error(),
-		)
-		return
-	}
+	if hasIsActiveChange || hasPullRequestURLTemplateChange {
+		parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
+		if len(parts) != 2 {
+			resp.Diagnostics.AddError(
+				"Invalid ID format",
+				fmt.Sprintf("Expected ID in format project_id%srepository_id, got: %s", dbt_cloud.ID_DELIMITER, state.ID.ValueString()),
+			)
+			return
+		}
+		projectID := parts[0]
+		repositoryID := parts[1]
 
-	// Prepare update payload
-	updateRepository := dbt_cloud.Repository{
-		ID:                      currentRepository.ID,
-		AccountID:               currentRepository.AccountID,
-		ProjectID:               int(plan.ProjectID.ValueInt64()),
-		RemoteUrl:               plan.RemoteURL.ValueString(),
-		State:                   dbt_cloud.STATE_ACTIVE,
-		GitCloneStrategy:        plan.GitCloneStrategy.ValueString(),
-		RepositoryCredentialsID: currentRepository.RepositoryCredentialsID,
-		DeployKeyID:             currentRepository.DeployKeyID,
-	}
+		repository, err := r.client.GetRepository(repositoryID, projectID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error reading repository",
+				err.Error(),
+			)
+			return
+		}
 
-	if plan.IsActive.ValueBool() == false {
-		updateRepository.State = dbt_cloud.STATE_DELETED
-	}
+		if hasIsActiveChange {
+			if plan.IsActive.ValueBool() {
+				repository.State = dbt_cloud.STATE_ACTIVE
+			} else {
+				repository.State = dbt_cloud.STATE_DELETED
+			}
+		}
 
-	if !plan.PullRequestURLTemplate.IsNull() {
-		updateRepository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
-	}
+		if hasPullRequestURLTemplateChange {
+			repository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
+		}
 
-	if !plan.AzureActiveDirectoryProjectID.IsNull() &&
-		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
-		azureProjectID := plan.AzureActiveDirectoryProjectID.ValueString()
-		updateRepository.AzureActiveDirectoryProjectID = &azureProjectID
+		_, err = r.client.UpdateRepository(repositoryID, projectID, *repository)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error updating repository",
+				err.Error(),
+			)
+			return
+		}
 	}
 
-	if !plan.AzureActiveDirectoryRepositoryID.IsNull() &&
-		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
-		azureRepoID := plan.AzureActiveDirectoryRepositoryID.ValueString()
-		updateRepository.AzureActiveDirectoryRepositoryID = &azureRepoID
-	}
-
-	if !plan.AzureBypassWebhookRegistrationFailure.IsNull() &&
-		plan.GitCloneStrategy.ValueString() == "azure_active_directory_app" {
-		azureBypass := plan.AzureBypassWebhookRegistrationFailure.ValueBool()
-		updateRepository.AzureBypassWebhookRegistrationFailure = &azureBypass
-	}
-
-	if !plan.GithubInstallationID.IsNull() && 
-	   plan.GitCloneStrategy.ValueString() == "github_app" {
-		githubID := int(plan.GithubInstallationID.ValueInt64())
-		updateRepository.GithubInstallationID = &githubID
-	}
-
-	// Update repository
-	repository, err := r.client.UpdateRepository(repositoryID, projectID, updateRepository)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating repository",
-			err.Error(),
-		)
-		return
-	}
-
-	// Update state with the response
-	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", repository.ProjectID, dbt_cloud.ID_DELIMITER, *repository.ID))
-	plan.RepositoryID = types.Int64Value(int64(*repository.ID))
-	plan.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
-	plan.ProjectID = types.Int64Value(int64(repository.ProjectID))
-	plan.RemoteURL = types.StringValue(repository.RemoteUrl)
-	plan.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
-
-	if repository.RepositoryCredentialsID != nil {
-		plan.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))
-	} else {
-		plan.RepositoryCredentialsID = types.Int64Null()
-	}
-
-	if repository.GitlabProjectID != nil {
-		plan.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
-	} 
-
-	if repository.GithubInstallationID != nil {
-		plan.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
-	} else {
-		plan.GithubInstallationID = types.Int64Null()
-	}
-
-	if repository.DeployKey != nil {
-		plan.DeployKey = types.StringValue(repository.DeployKey.PublicKey)
-	} else {
-		plan.DeployKey = types.StringNull()
-	}
-
-	if repository.PullRequestURLTemplate != "" {
-		plan.PullRequestURLTemplate = types.StringValue(repository.PullRequestURLTemplate)
-	} else {
-		plan.PullRequestURLTemplate = types.StringNull()
-	}
-
-	if repository.AzureActiveDirectoryProjectID != nil {
-		plan.AzureActiveDirectoryProjectID = types.StringValue(*repository.AzureActiveDirectoryProjectID)
-	} else {
-		plan.AzureActiveDirectoryProjectID = types.StringNull()
-	}
-
-	if repository.AzureActiveDirectoryRepositoryID != nil {
-		plan.AzureActiveDirectoryRepositoryID = types.StringValue(*repository.AzureActiveDirectoryRepositoryID)
-	} else {
-		plan.AzureActiveDirectoryRepositoryID = types.StringNull()
-	}
-
-	if repository.AzureBypassWebhookRegistrationFailure != nil {
-		plan.AzureBypassWebhookRegistrationFailure = types.BoolValue(*repository.AzureBypassWebhookRegistrationFailure)
-	} else {
-		plan.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
-	}
-
-	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
