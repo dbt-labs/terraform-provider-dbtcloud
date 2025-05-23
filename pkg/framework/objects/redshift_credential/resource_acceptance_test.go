@@ -14,18 +14,25 @@ import (
 )
 
 var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-var dataset = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+var username = acctest.RandString(10)
+var password = acctest.RandString(10)
 
 var createCredentialTestStep = resource.TestStep{
-	Config: testAccDbtCloudRedshiftCredentialResourceBasicConfig(projectName, dataset),
+	Config: testAccDbtCloudRedshiftCredentialResourceBasicConfig(projectName, username, password),
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudRedshiftCredentialExists(
 			"dbtcloud_redshift_credential.test_credential",
 		),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_redshift_credential.test_credential",
-			"dataset",
-			dataset,
+			"username",
+			username,
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_redshift_credential.test_credential",
+			"password",
+			password,
 		),
 	),
 }
@@ -49,7 +56,7 @@ func TestAccDbtCloudRedshiftCredentialResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudRedshiftCredentialResourceBasicConfig(projectName, dataset string) string {
+func testAccDbtCloudRedshiftCredentialResourceBasicConfig(projectName, username string, password string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -57,13 +64,12 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_redshift_credential" "test_credential" {
     is_active = true
     project_id = dbtcloud_project.test_project.id
-    dataset = "%s"
     num_threads = 3
 	default_schema = "test"
-	username = "test"
-	password = "test"
+	username = "%s"
+	password = "%s"
 }
-`, projectName, dataset)
+`, projectName, username, password)
 }
 
 func testAccCheckDbtCloudRedshiftCredentialExists(resource string) resource.TestCheckFunc {

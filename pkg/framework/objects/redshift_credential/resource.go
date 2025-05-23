@@ -162,8 +162,7 @@ func (r *redshiftCredentialResource) Read(
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
 	state.DefaultSchema = types.StringValue(credential.DefaultSchema)
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
-	//state.Username = types.StringValue(credential.Username)
-	//state.Dataset = types.StringValue(credential.Dataset)
+	state.Username = types.StringValue(credential.Username)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

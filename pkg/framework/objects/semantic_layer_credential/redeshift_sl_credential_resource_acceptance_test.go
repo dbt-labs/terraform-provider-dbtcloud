@@ -135,7 +135,7 @@ resource "dbtcloud_redshift_semantic_layer_credential" "test_redshift_semantic_l
 	is_active = true
 	password = "%s"
 	num_threads = 3
-	schema = "test"
+	default_schema = "test"
   }
 	project_id = %d
 	username = "%s"
