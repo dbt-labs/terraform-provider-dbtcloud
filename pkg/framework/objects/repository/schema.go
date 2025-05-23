@@ -4,6 +4,8 @@ import (
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -34,16 +36,25 @@ func ResourceSchema() resource_schema.Schema {
 			"project_id": resource_schema.Int64Attribute{
 				Required:    true,
 				Description: "Project ID to create the repository in",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
 			},
 			"remote_url": resource_schema.StringAttribute{
 				Required:    true,
 				Description: "Git URL for the repository or \\<Group>/\\<Project> for Gitlab",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"git_clone_strategy": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString("deploy_key"),
 				Description: "Git clone strategy for the repository. Can be `deploy_key` (default) for cloning via SSH Deploy Key, `github_app` for GitHub native integration, `deploy_token` for the GitLab native integration and `azure_active_directory_app` for ADO native integration",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"repository_credentials_id": resource_schema.Int64Attribute{
 				Computed:    true,
@@ -51,25 +62,44 @@ func ResourceSchema() resource_schema.Schema {
 			},
 			"gitlab_project_id": resource_schema.Int64Attribute{
 				Optional:    true,
-				Description: "Identifier for the Gitlab project - (for GitLab native integration only)",
+				Description: "Identifier for the Gitlab project -  (for GitLab native integration only)",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
 			},
 			"github_installation_id": resource_schema.Int64Attribute{
 				Optional:    true,
 				Description: "Identifier for the GitHub App - (for GitHub native integration only)",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
 			},
 			"azure_active_directory_project_id": resource_schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "The Azure Dev Ops project ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_project` and the project name - (for ADO native integration only)",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"azure_active_directory_repository_id": resource_schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "The Azure Dev Ops repository ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_repository` along with the ADO Project ID and the repository name - (for ADO native integration only)",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"azure_bypass_webhook_registration_failure": resource_schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(false),
 				Description: "If set to False (the default), the connection will fail if the service user doesn't have access to set webhooks (required for auto-triggering CI jobs). If set to True, the connection will be successful but no automated CI job will be triggered - (for ADO native integration only)",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"fetch_deploy_key": resource_schema.BoolAttribute{
 				Optional:           true,
@@ -85,7 +115,7 @@ func ResourceSchema() resource_schema.Schema {
 			"pull_request_url_template": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "The pull request URL template to be used when opening a pull request from within dbt Cloud's IDE",
+				Description: "URL template for creating a pull request. If it is not set, the default template will create a PR from the current branch to the branch configured in the Development environment.",
 			},
 		},
 	}
