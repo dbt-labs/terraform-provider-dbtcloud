@@ -88,17 +88,22 @@ func (r *redshiftCredentialResource) Create(
 
 	isActive := plan.IsActive.ValueBool()
 	projectID := int(plan.ProjectID.ValueInt64())
-	dataset := plan.Schema.ValueString()
+	defaultSchema := plan.DefaultSchema.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
+	username := plan.Username.ValueString()
+	password := plan.Password.ValueString()
 
 	// Create new credential
 	credential, err := r.client.CreateRedshiftCredential(
 		projectID,
 		"redshift",
 		isActive,
-		dataset,
+		defaultSchema,
 		numThreads,
+		username,
+		password,
 	)
+	fmt.Println(credential)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Redshift credential",
@@ -155,8 +160,10 @@ func (r *redshiftCredentialResource) Read(
 	state.CredentialID = types.Int64Value(int64(*credential.ID))
 	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-	state.Schema = types.StringValue(credential.Schema)
+	state.DefaultSchema = types.StringValue(credential.DefaultSchema)
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
+	//state.Username = types.StringValue(credential.Username)
+	//state.Dataset = types.StringValue(credential.Dataset)
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -190,10 +197,10 @@ func (r *redshiftCredentialResource) Update(
 
 	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
-	dataset := plan.Schema.ValueString()
+	dataset := plan.DefaultSchema.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
-	if (state.Schema.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+	if (state.DefaultSchema.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
 		credential, err := r.client.GetRedshiftCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -203,8 +210,8 @@ func (r *redshiftCredentialResource) Update(
 			return
 		}
 
-		if state.Schema.ValueString() != dataset {
-			credential.Schema = dataset
+		if state.DefaultSchema.ValueString() != dataset {
+			credential.DefaultSchema = dataset
 		}
 		if state.NumThreads.ValueInt64() != int64(numThreads) {
 			credential.Threads = numThreads

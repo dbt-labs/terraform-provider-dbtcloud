@@ -95,7 +95,7 @@ func (d *redshiftCredentialDataSource) Read(
 
 	// Map response body to model
 	state.ID = types.StringValue(fmt.Sprintf("%d%s%d", credential.Project_Id, dbt_cloud.ID_DELIMITER, *credential.ID))
-	state.Schema = types.StringValue(credential.Schema)
+	state.DefaultSchema = types.StringValue(credential.DefaultSchema)
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))

@@ -59,6 +59,9 @@ resource "dbtcloud_redshift_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
     dataset = "%s"
     num_threads = 3
+	default_schema = "test"
+	username = "test"
+	password = "test"
 }
 `, projectName, dataset)
 }

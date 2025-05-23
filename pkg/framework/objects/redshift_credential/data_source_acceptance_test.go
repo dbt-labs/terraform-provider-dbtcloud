@@ -13,7 +13,7 @@ func TestAccDbtCloudRedshiftCredentialDataSource(t *testing.T) {
 
 	randomProjectName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := redshift_credential(randomProjectName, "moo", 64)
+	config := redshift_credential(randomProjectName, 64)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet(
@@ -21,7 +21,6 @@ func TestAccDbtCloudRedshiftCredentialDataSource(t *testing.T) {
 			"credential_id",
 		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_redshift_credential.test", "project_id"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_redshift_credential.test", "dataset"),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_redshift_credential.test", "num_threads"),
 	)
 
@@ -36,7 +35,7 @@ func TestAccDbtCloudRedshiftCredentialDataSource(t *testing.T) {
 	})
 }
 
-func redshift_credential(projectName string, dataset string, numThreads int) string {
+func redshift_credential(projectName string, numThreads int) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test_credential_project" {
         name = "%s"
@@ -47,14 +46,13 @@ func redshift_credential(projectName string, dataset string, numThreads int) str
         num_threads = "%d"
 		username = "test"
 		password = "test"
-		default_schema = "test"
+		default_schema = "test"    
     }
 
     data "dbtcloud_redshift_credential" "test" {
         project_id = dbtcloud_project.test_credential_project.id
         credential_id = dbtcloud_redshift_credential.test_cred.credential_id
-		username = "test"
-		password = "test"
+		default_schema = "test"    
     }
     `, projectName, numThreads)
 }

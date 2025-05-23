@@ -13,13 +13,15 @@ type RedshiftCredentialResponse struct {
 }
 
 type RedshiftCredential struct {
-	ID         *int   `json:"id"`
-	Account_Id int    `json:"account_id"`
-	Project_Id int    `json:"project_id"`
-	Type       string `json:"type"`
-	State      int    `json:"state"`
-	Threads    int    `json:"threads"`
-	Schema     string `json:"schema"`
+	ID            *int   `json:"id"`
+	Account_Id    int    `json:"account_id"`
+	Project_Id    int    `json:"project_id"`
+	Type          string `json:"type"`
+	State         int    `json:"state"`
+	Threads       int    `json:"threads"`
+	DefaultSchema string `json:"default_schema"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
 }
 
 func (c *Client) GetRedshiftCredential(
@@ -61,15 +63,20 @@ func (c *Client) CreateRedshiftCredential(
 	isActive bool,
 	schema string,
 	numThreads int,
+	username string,
+	password string,
 ) (*RedshiftCredential, error) {
 	newRedshiftCredential := RedshiftCredential{
-		Account_Id: c.AccountID,
-		Project_Id: projectId,
-		Type:       type_,
-		State:      STATE_ACTIVE,
-		Schema:     schema,
-		Threads:    numThreads,
+		Account_Id:    c.AccountID,
+		Project_Id:    projectId,
+		Type:          type_,
+		State:         STATE_ACTIVE,
+		Threads:       numThreads,
+		DefaultSchema: schema,
+		Username:      username,
+		Password:      password,
 	}
+	fmt.Println(newRedshiftCredential)
 	newRedshiftCredentialData, err := json.Marshal(newRedshiftCredential)
 	if err != nil {
 		return nil, err

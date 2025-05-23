@@ -54,7 +54,7 @@ var RedshiftResourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 		},
-		"schema": resource_schema.StringAttribute{
+		"default_schema": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "Default schema name",
 		},
@@ -84,13 +84,13 @@ var RedshiftDatasourceSchema = datasource_schema.Schema{
 			Computed:    true,
 			Description: "Whether the Redshift credential is active",
 		},
-		"dataset": datasource_schema.StringAttribute{
-			Computed:    true,
-			Description: "Default dataset name",
-		},
 		"num_threads": datasource_schema.Int64Attribute{
 			Computed:    true,
 			Description: "Number of threads to use",
+		},
+		"default_schema": datasource_schema.StringAttribute{
+			Required:    true,
+			Description: "Default schema name",
 		},
 	},
 }
