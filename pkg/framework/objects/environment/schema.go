@@ -228,12 +228,9 @@ func (r *environmentResource) Schema(
 			},
 			"custom_branch": resource_schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
-				Default:     nil,
 				Description: "The custom branch name to use",
 			},
 			"deployment_type": resource_schema.StringAttribute{
-				Computed:    true,
 				Optional:    true,
 				Description: "The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments",
 			},
