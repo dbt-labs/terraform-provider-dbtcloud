@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -181,12 +182,21 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	if (res.StatusCode != http.StatusOK) &&
 		(res.StatusCode != http.StatusCreated) &&
 		(res.StatusCode != http.StatusNoContent) {
+		
+		urlStr := req.URL.String()
+		bodyStr := string(body)
+
+		if c.Token != "" {
+			urlStr = strings.ReplaceAll(urlStr, c.Token, "[REDACTED_TOKEN]")
+			bodyStr = strings.ReplaceAll(bodyStr, c.Token, "[REDACTED_TOKEN]")
+		}
+		
 		return nil, fmt.Errorf(
 			"%s url: %s, status: %d, body: %s",
 			req.Method,
-			req.URL,
+			urlStr,
 			res.StatusCode,
-			body,
+			bodyStr,
 		)
 	}
 
