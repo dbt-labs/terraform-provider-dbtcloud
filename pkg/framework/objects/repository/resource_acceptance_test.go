@@ -16,7 +16,7 @@ import (
 var repoUrlGithub = "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-var repoUrlGithubApplication = "git://github.com/victorasu/jaffle-shop.git"
+var repoUrlGithubApplication = "git://github.com/dbt-labs/jaffle-shop.git"
 var githubAppInstallationId = acctest_config.AcceptanceTestConfig.GitHubAppInstallationId
 var projectNameGithubApplication = strings.ToUpper(
 	acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),

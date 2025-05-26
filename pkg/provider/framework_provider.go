@@ -15,6 +15,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/synapse_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
@@ -241,6 +242,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		privatelink_endpoint.PrivatelinkEndpointDataSource,
 		group_users.GroupUsersDataSource,
 		runs.RunsDataSource,
+		synapse_credential.SynapseCredentialDataSource,
 	}
 }
 
@@ -284,5 +286,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 		semantic_layer_credential.BigQuerySemanticLayerCredentialResource,
 		semantic_layer_credential.RedshiftSemanticLayerCredentialResource,
+    synapse_credential.SynapseCredentialResource,
 	}
 }
