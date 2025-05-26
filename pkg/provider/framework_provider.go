@@ -44,6 +44,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
@@ -228,6 +229,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		user.UserDataSource,
 		user.UsersDataSource,
 		bigquery_credential.BigqueryCredentialDataSource,
+		redshift_credential.RedshiftCredentialDataSource,
 		postgres_credential.PostgresCredentialDataSource,
 		user_groups.UserGroupDataSource,
 		webhook.WebhookDataSource,
@@ -265,6 +267,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
 		bigquery_credential.BigqueryCredentialResource,
+		redshift_credential.RedshiftCredentialResource,
 		postgres_credential.PostgresCredentialResource,
 		fabric_credential.FabricCredentialResource,
 		user_groups.UserGroupsResource,
@@ -282,6 +285,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		semantic_layer_configuration.SemanticLayerConfigurationResource,
 		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 		semantic_layer_credential.BigQuerySemanticLayerCredentialResource,
-		synapse_credential.SynapseCredentialResource,
+		semantic_layer_credential.RedshiftSemanticLayerCredentialResource,
+    synapse_credential.SynapseCredentialResource,
 	}
 }

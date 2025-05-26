@@ -3,11 +3,9 @@ package environment_test
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -479,84 +477,4 @@ func TestAccDbtCloudEnvironmentResourceVersionless(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckDbtCloudEnvironmentExists(resource string) resource.TestCheckFunc {
-	return func(state *terraform.State) error {
-		rs, ok := state.RootModule().Resources[resource]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resource)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No Record ID is set")
-		}
-
-		projectId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0])
-		if err != nil {
-			return fmt.Errorf("Can't get projectId")
-		}
-		environmentId, err := strconv.Atoi(strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1])
-		if err != nil {
-			return fmt.Errorf("Can't get environmentId")
-		}
-
-		apiClient, err := acctest_helper.SharedClient()
-		if err != nil {
-			return fmt.Errorf("Issue getting the client")
-		}
-
-		_, err = apiClient.GetEnvironment(projectId, environmentId)
-		if err != nil {
-			return fmt.Errorf("error fetching item with resource %s. %s", resource, err)
-		}
-		return nil
-	}
-}
-
-func testAccCheckDbtCloudEnvironmentDestroy(s *terraform.State) error {
-	apiClient, err := acctest_helper.SharedClient()
-	if err != nil {
-		return fmt.Errorf("Issue getting the client")
-	}
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "dbtcloud_environment" {
-			continue
-		}
-
-		// Get the project ID from the state
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
-			return fmt.Errorf("No project_id found in state")
-		}
-
-		// Get the environment ID from the state
-		environmentID := rs.Primary.Attributes["environment_id"]
-		if environmentID == "" {
-			return fmt.Errorf("No environment_id found in state")
-		}
-
-		// Convert IDs to integers
-		projectIDInt, err := strconv.Atoi(projectID)
-		if err != nil {
-			return fmt.Errorf("Error converting project_id to integer: %s", err)
-		}
-
-		environmentIDInt, err := strconv.Atoi(environmentID)
-		if err != nil {
-			return fmt.Errorf("Error converting environment_id to integer: %s", err)
-		}
-
-		_, err = apiClient.GetEnvironment(projectIDInt, environmentIDInt)
-		if err == nil {
-			return fmt.Errorf("Environment still exists")
-		}
-		notFoundErr := "resource-not-found"
-		expectedErr := regexp.MustCompile(notFoundErr)
-		if !expectedErr.Match([]byte(err.Error())) {
-			return fmt.Errorf("expected %s, got %s", notFoundErr, err)
-		}
-	}
-
-	return nil
 }
