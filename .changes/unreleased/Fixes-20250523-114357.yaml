@@ -1,3 +1,0 @@
-kind: Fixes
-body: Fixed issue with environment optional parameters being seen as null instead of being disregarded
-time: 2025-05-23T11:43:57.076932+03:00
