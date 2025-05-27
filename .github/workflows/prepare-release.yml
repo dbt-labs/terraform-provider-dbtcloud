@@ -17,7 +17,7 @@ on:
           - patch
 
 env:
-  CHANGIE_VERSION: 1.21.1
+  CHANGIE_VERSION: v1.21.1
 
 jobs:
   prepare-release:
