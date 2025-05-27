@@ -1,3 +1,0 @@
-kind: Fixes
-body: Obfuscate error messages from the API that would display the token
-time: 2025-05-23T11:30:25.971905+03:00
