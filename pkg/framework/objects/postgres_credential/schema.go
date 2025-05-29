@@ -99,7 +99,7 @@ var resourceSchema = resource_schema.Schema{
 			Optional:    true,
 			Computed:    true,
 			Default:     int64default.StaticInt64(0),
-			Description: "Number of threads to use",
+			Description: "Number of threads to use (required for Redshift)",
 		},
 	},
 }
