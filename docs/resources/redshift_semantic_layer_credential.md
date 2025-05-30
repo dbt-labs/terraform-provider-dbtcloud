@@ -19,12 +19,6 @@ Redshift credential resource. This resource is composed of a Redshift credential
 
 - `configuration` (Attributes) Semantic Layer credential configuration details. (see [below for nested schema](#nestedatt--configuration))
 - `credential` (Attributes) Snowflake credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
-- `project_id` (Number) ID of the dbt Cloud project.
-- `username` (String) Username for Redshift credentials.
-
-### Optional
-
-- `password` (String, Sensitive) The password for the Redshift account
 
 ### Read-Only
 

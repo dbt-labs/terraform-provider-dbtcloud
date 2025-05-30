@@ -6,7 +6,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	config_resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 )
 
 var semantic_layer_config_resource_schema = config_resource_schema.Schema{
@@ -126,21 +125,6 @@ var redshift_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
 			Attributes:  redshift_credential.RedshiftResourceSchema.Attributes, // Reuse the schema
-		},
-		"project_id": resource_schema.Int64Attribute{
-			Required:    true,
-			Description: "ID of the dbt Cloud project.",
-		},
-		"username": resource_schema.StringAttribute{
-			Required:    true,
-			Description: "Username for Redshift credentials.",
-		},
-		"password": resource_schema.StringAttribute{
-			Sensitive:   true,
-			Description: "The password for the Redshift account",
-			Optional:    true,
-			Computed:    true,
-			Default:     stringdefault.StaticString(""),
 		},
 	},
 }
