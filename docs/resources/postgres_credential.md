@@ -37,7 +37,7 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
 ### Optional
 
 - `is_active` (Boolean) Whether the Postgres/Redshift/AlloyDB credential is active
-- `num_threads` (Number) Number of threads to use
+- `num_threads` (Number) Number of threads to use (required for Redshift)
 - `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB
 - `target_name` (String) Default schema name
 
