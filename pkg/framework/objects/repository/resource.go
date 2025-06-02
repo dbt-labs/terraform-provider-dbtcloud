@@ -279,13 +279,17 @@ func (r *repositoryResource) Read(
 		state.PullRequestURLTemplate = types.StringNull()
 	}
 
-	/// AAD Project ID and Repo ID shouldn't have their state values updated unless it's intentional
+	/// AAD Project ID and Repo ID always come up as nil from the API response
 	if repository.AzureActiveDirectoryProjectID != nil {
 		state.AzureActiveDirectoryProjectID = types.StringValue(*repository.AzureActiveDirectoryProjectID)
+	} else if state.AzureActiveDirectoryProjectID.IsNull() {
+		state.AzureActiveDirectoryProjectID = types.StringValue("")
 	}
 
 	if repository.AzureActiveDirectoryRepositoryID != nil {
 		state.AzureActiveDirectoryRepositoryID = types.StringValue(*repository.AzureActiveDirectoryRepositoryID)
+	} else if state.AzureActiveDirectoryRepositoryID.IsNull() {
+		state.AzureActiveDirectoryRepositoryID = types.StringValue("")
 	}
 
 	if repository.AzureBypassWebhookRegistrationFailure != nil {
