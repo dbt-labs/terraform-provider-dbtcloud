@@ -289,11 +289,12 @@ func (c *Client) UpdateSemanticLayerCredential(
 	}
 
 	req, err := http.NewRequest(
-		"POST",
+		"PATCH",
 		fmt.Sprintf(
-			"%s/v3/accounts/%d/semantic-layer-credentials/",
+			"%s/v3/accounts/%d/semantic-layer-credentials/%d",
 			c.HostURL,
 			c.AccountID,
+			credentialId,
 		),
 		strings.NewReader(string(configData)),
 	)
@@ -325,7 +326,7 @@ func (c *Client) DeleteSemanticLayerCredential(
 			"%s/v3/accounts/%d/semantic-layer-credentials/%d/",
 			c.HostURL,
 			c.AccountID,
-			int(credentialId),
+			credentialId,
 		),
 		nil,
 	)
