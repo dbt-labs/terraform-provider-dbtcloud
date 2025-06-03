@@ -41,9 +41,10 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/",
+			"%s/v3/accounts/%s/semantic-layer-credentials/%d",
 			c.HostURL,
 			strconv.Itoa(c.AccountID),
+			id,
 		),
 		nil,
 	)
@@ -56,22 +57,13 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 		return nil, err
 	}
 
-	var credentialsResponse SemanticLayerCredentialListResponse
+	var credentialsResponse SemanticLayerCredentialResponse
 	err = json.Unmarshal(body, &credentialsResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %s", err)
 	}
 
-	var foundCredential *SemanticLayerCredentials
-
-	for i := range credentialsResponse.Data {
-		if int64(*credentialsResponse.Data[i].ID) == id {
-			foundCredential = &credentialsResponse.Data[i]
-			break
-		}
-	}
-
-	return foundCredential, nil
+	return &credentialsResponse.Data, nil
 }
 
 func (c *Client) CreateSemanticLayerCredential(
