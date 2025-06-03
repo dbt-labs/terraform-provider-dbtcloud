@@ -16,7 +16,6 @@ import (
 var repoUrlGithub = "git@github.com:dbt-labs/terraform-provider-dbtcloud.git"
 var projectName = strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-var repoUrlGithubApplication = "git://github.com/dbt-labs/jaffle-shop.git"
 var githubAppInstallationId = acctest_config.AcceptanceTestConfig.GitHubAppInstallationId
 var projectNameGithubApplication = strings.ToUpper(
 	acctest.RandStringFromCharSet(10, acctest.CharSetAlpha),
@@ -44,7 +43,7 @@ var createByDeployKeyTestStep = resource.TestStep{
 var createByCloneTestStep = resource.TestStep{
 	// CREATE Github repository via clone
 	Config: testAccDbtCloudRepositoryResourceGithubApplicationConfig(
-		repoUrlGithubApplication,
+		repoUrlGithub,
 		projectNameGithubApplication,
 		githubAppInstallationId,
 	),
@@ -55,7 +54,7 @@ var createByCloneTestStep = resource.TestStep{
 		resource.TestCheckResourceAttr(
 			"dbtcloud_repository.test_repository_github",
 			"remote_url",
-			repoUrlGithubApplication,
+			repoUrlGithub,
 		),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_repository.test_repository_github",
