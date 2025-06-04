@@ -37,7 +37,4 @@ type RedshiftSLCredentialModel struct {
 	ID            types.Int64                                         `tfsdk:"id"`
 	Configuration SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
 	Credential    redshift_credential.RedshiftCredentialResourceModel `tfsdk:"credential"`
-	ProjectID     types.Int64                                         `tfsdk:"project_id"`
-	Username      types.String                                        `tfsdk:"username"`
-	Password      types.String                                        `tfsdk:"password"`
 }

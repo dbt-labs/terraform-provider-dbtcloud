@@ -27,6 +27,11 @@ type SemanticLayerCredentialsResponse struct {
 	Data   []SemanticLayerCredentials `json:"data"`
 }
 
+type SemanticLayerCredentialListResponse struct {
+	Status ResponseStatus             `json:"status"`
+	Data   []SemanticLayerCredentials `json:"data"`
+}
+
 type SemanticLayerCredentialResponse struct {
 	Status ResponseStatus           `json:"status"`
 	Data   SemanticLayerCredentials `json:"data"`
@@ -36,10 +41,10 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/%s",
+			"%s/v3/accounts/%s/semantic-layer-credentials/%d",
 			c.HostURL,
 			strconv.Itoa(c.AccountID),
-			strconv.Itoa(int(id)),
+			id,
 		),
 		nil,
 	)
@@ -110,9 +115,9 @@ func (c *Client) CreateSemanticLayerCredential(
 	req, err := http.NewRequest(
 		"POST",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/",
+			"%s/v3/accounts/%d/semantic-layer-credentials/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			c.AccountID,
 		),
 		strings.NewReader(string(newCredentialsData)),
 	)
@@ -242,9 +247,9 @@ func (c *Client) CreateSemanticLayerCredentialRedshift(
 	req, err := http.NewRequest(
 		"POST",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/",
+			"%s/v3/accounts/%d/semantic-layer-credentials/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			c.AccountID,
 		),
 		strings.NewReader(string(newCredentialsData)),
 	)
@@ -276,12 +281,12 @@ func (c *Client) UpdateSemanticLayerCredential(
 	}
 
 	req, err := http.NewRequest(
-		"POST",
+		"PATCH",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/%s/",
+			"%s/v3/accounts/%d/semantic-layer-credentials/%d",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
-			strconv.Itoa(int(credentialId)),
+			c.AccountID,
+			credentialId,
 		),
 		strings.NewReader(string(configData)),
 	)
@@ -310,10 +315,10 @@ func (c *Client) DeleteSemanticLayerCredential(
 	req, err := http.NewRequest(
 		"DELETE",
 		fmt.Sprintf(
-			"%s/v3/accounts/%s/semantic-layer-credentials/%s/",
+			"%s/v3/accounts/%d/semantic-layer-credentials/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
-			strconv.Itoa(int(credentialId)),
+			c.AccountID,
+			credentialId,
 		),
 		nil,
 	)

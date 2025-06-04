@@ -28,6 +28,9 @@ func TestDbtCloudSemanticLayerConfigurationRedshiftResource(t *testing.T) {
 	username2 := acctest.RandString(10)
 	password2 := acctest.RandString(10)
 
+	num_threads := "3"
+	defaultSchema := "public"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
@@ -39,6 +42,8 @@ func TestDbtCloudSemanticLayerConfigurationRedshiftResource(t *testing.T) {
 					name,
 					username,
 					password,
+					num_threads,
+					defaultSchema,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
@@ -54,18 +59,28 @@ func TestDbtCloudSemanticLayerConfigurationRedshiftResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"project_id",
+						"credential.project_id",
 						strconv.Itoa(projectID),
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"username",
+						"credential.username",
 						username,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"password",
+						"credential.password",
 						password,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
+						"credential.num_threads",
+						num_threads,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
+						"credential.default_schema",
+						defaultSchema,
 					),
 				),
 			},
@@ -77,6 +92,8 @@ func TestDbtCloudSemanticLayerConfigurationRedshiftResource(t *testing.T) {
 					name2,
 					username2,
 					password2,
+					num_threads,
+					defaultSchema,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
@@ -92,18 +109,28 @@ func TestDbtCloudSemanticLayerConfigurationRedshiftResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"project_id",
+						"credential.project_id",
 						strconv.Itoa(projectID),
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"username",
+						"credential.username",
 						username2,
 					),
 					resource.TestCheckResourceAttr(
 						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
-						"password",
+						"credential.password",
 						password2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
+						"credential.num_threads",
+						num_threads,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_semantic_layer_credential.test_redshift_semantic_layer_credential",
+						"credential.default_schema",
+						defaultSchema,
 					),
 				),
 			},
@@ -117,6 +144,8 @@ func testAccDbtCloudRedshiftSemanticLayerCredentialResource(
 	name string,
 	username string,
 	password string,
+	num_threads string,
+	defaultSchema string,
 
 ) string {
 
@@ -134,14 +163,11 @@ resource "dbtcloud_redshift_semantic_layer_credential" "test_redshift_semantic_l
 	dataset = "test"
 	is_active = true
 	password = "%s"
-	num_threads = 3
-	default_schema = "test"
+	num_threads = %s
+	default_schema = "%s"
   }
-	project_id = %d
-	username = "%s"
-	password = "%s"
   
-}`, strconv.Itoa(projectID), name, strconv.Itoa(projectID), username, password, projectID, username, password)
+}`, strconv.Itoa(projectID), name, strconv.Itoa(projectID), username, password, num_threads, defaultSchema)
 }
 
 func testAccCheckDbtCloudSemanticLayerCredentialRedshiftDestroy(s *terraform.State) error {

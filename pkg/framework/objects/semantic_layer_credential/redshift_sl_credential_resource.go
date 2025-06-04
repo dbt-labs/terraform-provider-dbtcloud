@@ -84,14 +84,14 @@ func (r *redshiftSemanticLayerCredentialResource) Create(
 
 	projectID := plan.Credential.ProjectID.ValueInt64()
 	password := ""
-	if plan.Password.ValueStringPointer() != nil {
-		password = *plan.Password.ValueStringPointer()
+	if plan.Credential.Password.ValueStringPointer() != nil {
+		password = *plan.Credential.Password.ValueStringPointer()
 	}
 
 	createdCredential, err := r.client.CreateSemanticLayerCredentialRedshift(
 		projectID,
 		plan.Credential.IsActive.ValueBool(),
-		plan.Username.ValueString(),
+		plan.Credential.Username.ValueString(),
 		password,
 		int(plan.Credential.NumThreads.ValueInt64()),
 		plan.Configuration.Name.ValueString(),
@@ -171,8 +171,8 @@ func (r *redshiftSemanticLayerCredentialResource) Update(
 
 	//add credential fields to values map
 	values := map[string]interface{}{
-		"username": plan.Username.ValueString(),
-		"password": plan.Password.ValueString(),
+		"username": plan.Credential.Username.ValueString(),
+		"password": plan.Credential.Password.ValueString(),
 	}
 
 	credential.Name = plan.Configuration.Name.ValueString()
@@ -198,8 +198,6 @@ func (r *redshiftSemanticLayerCredentialResource) Update(
 	state.Configuration.Name = types.StringValue(credential.Name)
 
 	//update credential fields
-	state.Password = getStringFromMap(credential.Values, "password")
-	state.Username = getStringFromMap(credential.Values, "username")
 	state.Credential.Password = getStringFromMap(credential.Values, "password")
 	state.Credential.Username = getStringFromMap(credential.Values, "username")
 
