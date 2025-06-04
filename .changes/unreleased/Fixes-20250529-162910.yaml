@@ -1,3 +1,0 @@
-kind: Fixes
-body: Fixed default parameter for Redshift leveraging of Postgres Credential
-time: 2025-05-29T16:29:10.209261+03:00
