@@ -20,6 +20,7 @@ type Project struct {
 	AccountID              int     `json:"account_id"`
 	FreshnessJobId         *int    `json:"freshness_job_id"`
 	DocsJobId              *int    `json:"docs_job_id,"`
+	SemanticLayerConfigID  *int64  `json:"semantic_layer_config_id,omitempty"`
 }
 
 type ProjectListResponse struct {
