@@ -27,11 +27,6 @@ type SemanticLayerCredentialsResponse struct {
 	Data   []SemanticLayerCredentials `json:"data"`
 }
 
-type SemanticLayerCredentialListResponse struct {
-	Status ResponseStatus             `json:"status"`
-	Data   []SemanticLayerCredentials `json:"data"`
-}
-
 type SemanticLayerCredentialResponse struct {
 	Status ResponseStatus           `json:"status"`
 	Data   SemanticLayerCredentials `json:"data"`
@@ -281,9 +276,9 @@ func (c *Client) UpdateSemanticLayerCredential(
 	}
 
 	req, err := http.NewRequest(
-		"PATCH",
+		"POST",
 		fmt.Sprintf(
-			"%s/v3/accounts/%d/semantic-layer-credentials/%d",
+			"%s/v3/accounts/%d/semantic-layer-credentials/%d/",
 			c.HostURL,
 			c.AccountID,
 			credentialId,

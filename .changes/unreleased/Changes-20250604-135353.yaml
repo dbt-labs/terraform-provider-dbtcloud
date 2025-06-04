@@ -1,0 +1,3 @@
+kind: Changes
+body: 'Minor redshift sl credential refactoring. Code review comments solving for PR #451'
+time: 2025-06-04T13:53:53.129735+03:00
