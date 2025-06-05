@@ -24,16 +24,16 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-ci')"
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Debug refs
         run: |
           git remote -v
           git branch -a
           git log --oneline --decorate --graph --all -n 20
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Check for changie changes
         env:
