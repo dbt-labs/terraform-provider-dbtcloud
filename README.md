@@ -90,6 +90,9 @@ The installation ID can be found by navigating to `Settings` -> `Applications`,
 and clicking `Configure` on the dbt Cloud GitHub App. The installation ID can be found in the url, for example,
 `https://github.com/settings/installations/<installation_id>`
 
+`TF_ACC=1` must be set either in your `~/.zshrc`, repo's `.env` or similar source for environment variables, otherwise they will be skipped
+`-count=1` shall be set in order to avoid caching of the acceptance tests, in case you need all test runs to start from scratch
+
 ## Contributions
 
 To help us effectively track contributions and prepare release notes, we require a changelog entry for every pull request. This is easily done using `changie`.
