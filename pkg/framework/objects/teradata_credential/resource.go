@@ -91,6 +91,7 @@ func (r *teradataCredentialResource) Create(
 	schema := plan.Schema.ValueString()
 	projectID := int(plan.ProjectID.ValueInt64())
 	threads := plan.Threads.ValueInt64()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// Create new credential
 	credential, err := r.client.CreateTeradataCredential(
@@ -100,6 +101,7 @@ func (r *teradataCredentialResource) Create(
 		password,
 		schema,
 		int(threads),
+		adapterVersion,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(

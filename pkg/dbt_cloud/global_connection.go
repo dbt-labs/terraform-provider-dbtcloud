@@ -10,7 +10,7 @@ import (
 )
 
 type GlobalConnectionConfig interface {
-	AdapterVersion() string
+	GetAdapterVersion() string
 }
 
 // TODO: Could be improved in the future, maybe creating a client with empty Config
@@ -121,7 +121,7 @@ func (c *GlobalConnectionClient[T]) Create(
 	buffer := new(bytes.Buffer)
 	enc := json.NewEncoder(buffer)
 
-	av := config.AdapterVersion()
+	av := config.GetAdapterVersion()
 
 	payload := globalConnectionPayload[T]{
 		GlobalConnectionCommon: common,
@@ -348,7 +348,7 @@ func (c *GlobalConnectionClient[T]) CreateUpdateEncryption(
 type EmptyConfig struct {
 }
 
-func (EmptyConfig) AdapterVersion() string {
+func (EmptyConfig) GetAdapterVersion() string {
 	return "n/a"
 }
 
@@ -361,10 +361,11 @@ type SnowflakeConfig struct {
 	AllowSso               *bool                     `json:"allow_sso,omitempty"`
 	OauthClientID          *string                   `json:"oauth_client_id,omitempty"`
 	OauthClientSecret      *string                   `json:"oauth_client_secret,omitempty"`
+	AdapterVersion         string                    `json:"adapter_version"`
 }
 
-func (SnowflakeConfig) AdapterVersion() string {
-	return "snowflake_v0"
+func (config SnowflakeConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type BigQueryConfig struct {
@@ -392,59 +393,64 @@ type BigQueryConfig struct {
 	DataprocRegion            nullable.Nullable[string] `json:"dataproc_region,omitempty"`
 	DataprocClusterName       nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
 	Scopes                    []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
+	AdapterVersion            string                    `json:"adapter_version"`
 }
 
-func (BigQueryConfig) AdapterVersion() string {
-	return "bigquery_v0"
+func (config BigQueryConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type DatabricksConfig struct {
-	Host         *string                   `json:"host,omitempty"`
-	HTTPPath     *string                   `json:"http_path,omitempty"`
-	Catalog      nullable.Nullable[string] `json:"catalog,omitempty"`
-	ClientID     nullable.Nullable[string] `json:"client_id,omitempty"`
-	ClientSecret nullable.Nullable[string] `json:"client_secret,omitempty"`
+	Host           *string                   `json:"host,omitempty"`
+	HTTPPath       *string                   `json:"http_path,omitempty"`
+	Catalog        nullable.Nullable[string] `json:"catalog,omitempty"`
+	ClientID       nullable.Nullable[string] `json:"client_id,omitempty"`
+	ClientSecret   nullable.Nullable[string] `json:"client_secret,omitempty"`
+	AdapterVersion string                    `json:"adapter_version"`
 }
 
-func (DatabricksConfig) AdapterVersion() string {
-	return "databricks_v0"
+func (config DatabricksConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 // Redshift and Postgres are the same today but they might diverge in the future to support more authentication methods
 type RedshiftConfig struct {
-	HostName *string                   `json:"hostname,omitempty"`
-	Port     *int64                    `json:"port,omitempty"`
-	DBName   nullable.Nullable[string] `json:"dbname,omitempty"`
+	HostName       *string                   `json:"hostname,omitempty"`
+	Port           *int64                    `json:"port,omitempty"`
+	DBName         nullable.Nullable[string] `json:"dbname,omitempty"`
+	AdapterVersion string                    `json:"adapter_version"`
 }
 
-func (RedshiftConfig) AdapterVersion() string {
-	return "redshift_v0"
+func (config RedshiftConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type PostgresConfig struct {
-	HostName *string                   `json:"hostname,omitempty"`
-	Port     *int64                    `json:"port,omitempty"`
-	DBName   nullable.Nullable[string] `json:"dbname,omitempty"`
+	HostName       *string                   `json:"hostname,omitempty"`
+	Port           *int64                    `json:"port,omitempty"`
+	DBName         nullable.Nullable[string] `json:"dbname,omitempty"`
+	AdapterVersion string                    `json:"adapter_version"`
 }
 
-func (PostgresConfig) AdapterVersion() string {
-	return "postgres_v0"
+func (config PostgresConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 var FabricDriver = "ODBC Driver 18 for SQL Server"
 
 type FabricConfig struct {
-	Driver       *string `json:"driver,omitempty"`
-	Server       *string `json:"server,omitempty"`
-	Port         *int64  `json:"port,omitempty"`
-	Database     *string `json:"database,omitempty"`
-	Retries      *int64  `json:"retries,omitempty"`
-	LoginTimeout *int64  `json:"login_timeout,omitempty"`
-	QueryTimeout *int64  `json:"query_timeout,omitempty"`
+	Driver         *string `json:"driver,omitempty"`
+	Server         *string `json:"server,omitempty"`
+	Port           *int64  `json:"port,omitempty"`
+	Database       *string `json:"database,omitempty"`
+	Retries        *int64  `json:"retries,omitempty"`
+	LoginTimeout   *int64  `json:"login_timeout,omitempty"`
+	QueryTimeout   *int64  `json:"query_timeout,omitempty"`
+	AdapterVersion string  `json:"adapter_version"`
 }
 
-func (FabricConfig) AdapterVersion() string {
-	return "fabric_v0"
+func (config FabricConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 // Right now Synapse and Fabric are the same
@@ -452,27 +458,29 @@ func (FabricConfig) AdapterVersion() string {
 var SynapseDriver = FabricDriver
 
 type SynapseConfig struct {
-	Driver       *string `json:"driver,omitempty"`
-	Host         *string `json:"host,omitempty"`
-	Port         *int64  `json:"port,omitempty"`
-	Database     *string `json:"database,omitempty"`
-	Retries      *int64  `json:"retries,omitempty"`
-	LoginTimeout *int64  `json:"login_timeout,omitempty"`
-	QueryTimeout *int64  `json:"query_timeout,omitempty"`
+	Driver         *string `json:"driver,omitempty"`
+	Host           *string `json:"host,omitempty"`
+	Port           *int64  `json:"port,omitempty"`
+	Database       *string `json:"database,omitempty"`
+	Retries        *int64  `json:"retries,omitempty"`
+	LoginTimeout   *int64  `json:"login_timeout,omitempty"`
+	QueryTimeout   *int64  `json:"query_timeout,omitempty"`
+	AdapterVersion string  `json:"adapter_version"`
 }
 
-func (SynapseConfig) AdapterVersion() string {
-	return "synapse_v0"
+func (config SynapseConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type StarburstConfig struct {
-	Method *string `json:"method,omitempty"`
-	Host   *string `json:"host,omitempty"`
-	Port   *int64  `json:"port,omitempty"`
+	Method         *string `json:"method,omitempty"`
+	Host           *string `json:"host,omitempty"`
+	Port           *int64  `json:"port,omitempty"`
+	AdapterVersion string  `json:"adapter_version"`
 }
 
-func (StarburstConfig) AdapterVersion() string {
-	return "trino_v0"
+func (config StarburstConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type AthenaConfig struct {
@@ -488,10 +496,11 @@ type AthenaConfig struct {
 	NumRetries        nullable.Nullable[int64]  `json:"num_retries,omitempty"`
 	NumBoto3Retries   nullable.Nullable[int64]  `json:"num_boto3_retries,omitempty"`
 	NumIcebergRetries nullable.Nullable[int64]  `json:"num_iceberg_retries,omitempty"`
+	AdapterVersion    string                    `json:"adapter_version"`
 }
 
-func (AthenaConfig) AdapterVersion() string {
-	return "athena_v0"
+func (config AthenaConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type ApacheSparkConfig struct {
@@ -504,11 +513,12 @@ type ApacheSparkConfig struct {
 	Organization   nullable.Nullable[string] `json:"organization,omitempty"`
 	User           nullable.Nullable[string] `json:"user,omitempty"`
 	Auth           nullable.Nullable[string] `json:"auth,omitempty"`
+	AdapterVersion string                    `json:"adapter_version"`
 	// KerberosServiceName any    `json:"kerberos_service_name,omitempty"` // This field comes back but can't be set from the UI
 }
 
-func (ApacheSparkConfig) AdapterVersion() string {
-	return "apache_spark_v0"
+func (config ApacheSparkConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }
 
 type TeradataConfig struct {
@@ -517,8 +527,9 @@ type TeradataConfig struct {
 	Host           *string `json:"host,omitempty"`
 	Retries        *int64  `json:"retries,omitempty"`
 	RequestTimeout *int64  `json:"request_timeout,omitempty"`
+	AdapterVersion string  `json:"adapter_version"`
 }
 
-func (TeradataConfig) AdapterVersion() string {
-	return "teradata_v0"
+func (config TeradataConfig) GetAdapterVersion() string {
+	return config.AdapterVersion
 }

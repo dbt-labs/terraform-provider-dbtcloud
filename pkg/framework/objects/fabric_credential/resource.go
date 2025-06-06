@@ -93,6 +93,7 @@ func (r *fabricCredentialResource) Create(
 	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// Create new credential
 	credential, err := r.client.CreateFabricCredential(
@@ -104,6 +105,7 @@ func (r *fabricCredentialResource) Create(
 		clientSecret,
 		schema,
 		schemaAuthorization,
+		adapterVersion,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -199,6 +201,7 @@ func (r *fabricCredentialResource) Update(
 	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(
@@ -227,7 +230,7 @@ func (r *fabricCredentialResource) Update(
 		State:             1,
 		Threads:           4,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "fabric_v0",
+		AdapterVersion:    adapterVersion,
 	}
 
 	// Update credential

@@ -105,5 +105,11 @@ var resourceSchema = resource_schema.Schema{
 				stringvalidator.OneOf("databricks", "spark"),
 			},
 		},
+		"adapter_version": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("databricks_v0"),
+			Description: "Adapter version (databricks_v0, etc.)",
+		},
 	},
 }

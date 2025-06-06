@@ -23,11 +23,11 @@ type TeradataUnencryptedCredentialDetails struct {
 
 // TeradataCredentialData represents the data returned by the API for an Teradata credential
 type TeradataCredentialData struct {
-	ID                           *int                                  `json:"id"`
-	AccountID                    int                                   `json:"account_id"`
-	Threads                      int                                   `json:"threads"`
-	TargetName                   string                                `json:"target_name"`
-	AdapterVersion               string                                `json:"adapter_version,omitempty"`
+	ID                           *int                                 `json:"id"`
+	AccountID                    int                                  `json:"account_id"`
+	Threads                      int                                  `json:"threads"`
+	TargetName                   string                               `json:"target_name"`
+	AdapterVersion               string                               `json:"adapter_version,omitempty"`
 	UnencryptedCredentialDetails TeradataUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
 
@@ -85,6 +85,7 @@ func (c *Client) CreateTeradataCredential(
 	password string,
 	schema string,
 	threads int,
+	adapterVersion string,
 ) (*TeradataCredentialData, error) {
 	credentialDetails, err := GenerateTeradataCredentialDetails(
 		username,
@@ -105,7 +106,7 @@ func (c *Client) CreateTeradataCredential(
 		TargetName:        DEFAULT_TARGET_NAME,
 		Threads:           threads,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "teradata_v0",
+		AdapterVersion:    adapterVersion,
 	}
 
 	rb, err := json.Marshal(credential)

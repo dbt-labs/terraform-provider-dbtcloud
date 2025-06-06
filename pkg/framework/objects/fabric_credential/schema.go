@@ -116,6 +116,12 @@ var resourceSchema = resource_schema.Schema{
 				stringvalidator.OneOf("fabric"),
 			},
 		},
+		"adapter_version": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("fabric_v0"),
+			Description: "Adapter version (fabric_v0, etc.)",
+		},
 	},
 }
 

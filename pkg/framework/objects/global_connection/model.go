@@ -177,6 +177,7 @@ type BigQueryConfig struct {
 	GcsBucket                 types.String `tfsdk:"gcs_bucket"`
 	DataprocRegion            types.String `tfsdk:"dataproc_region"`
 	DataprocClusterName       types.String `tfsdk:"dataproc_cluster_name"`
+	AdapterVersion            types.String `tfsdk:"adapter_version"`
 }
 
 type SnowflakeConfig struct {
@@ -188,57 +189,64 @@ type SnowflakeConfig struct {
 	OauthClientID          types.String `tfsdk:"oauth_client_id"`
 	OauthClientSecret      types.String `tfsdk:"oauth_client_secret"`
 	// nullable
-	Role types.String `tfsdk:"role"`
+	Role           types.String `tfsdk:"role"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type DatabricksConfig struct {
 	Host     types.String `tfsdk:"host"`
 	HTTPPath types.String `tfsdk:"http_path"`
 	// nullable
-	Catalog      types.String `tfsdk:"catalog"`
-	ClientID     types.String `tfsdk:"client_id"`
-	ClientSecret types.String `tfsdk:"client_secret"`
+	Catalog        types.String `tfsdk:"catalog"`
+	ClientID       types.String `tfsdk:"client_id"`
+	ClientSecret   types.String `tfsdk:"client_secret"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type RedshiftConfig struct {
 	HostName types.String `tfsdk:"hostname"`
 	Port     types.Int64  `tfsdk:"port"`
 	// nullable
-	DBName    types.String     `tfsdk:"dbname"`
-	SSHTunnel *SSHTunnelConfig `tfsdk:"ssh_tunnel"`
+	DBName         types.String     `tfsdk:"dbname"`
+	AdapterVersion types.String     `tfsdk:"adapter_version"`
+	SSHTunnel      *SSHTunnelConfig `tfsdk:"ssh_tunnel"`
 }
 
 type PostgresConfig struct {
 	HostName types.String `tfsdk:"hostname"`
 	Port     types.Int64  `tfsdk:"port"`
 	// nullable
-	DBName    types.String     `tfsdk:"dbname"`
-	SSHTunnel *SSHTunnelConfig `tfsdk:"ssh_tunnel"`
+	DBName         types.String     `tfsdk:"dbname"`
+	SSHTunnel      *SSHTunnelConfig `tfsdk:"ssh_tunnel"`
+	AdapterVersion types.String     `tfsdk:"adapter_version"`
 }
 
 type FabricConfig struct {
-	Server       types.String `tfsdk:"server"`
-	Port         types.Int64  `tfsdk:"port"`
-	Database     types.String `tfsdk:"database"`
-	Retries      types.Int64  `tfsdk:"retries"`
-	LoginTimeout types.Int64  `tfsdk:"login_timeout"`
-	QueryTimeout types.Int64  `tfsdk:"query_timeout"`
+	Server         types.String `tfsdk:"server"`
+	Port           types.Int64  `tfsdk:"port"`
+	Database       types.String `tfsdk:"database"`
+	Retries        types.Int64  `tfsdk:"retries"`
+	LoginTimeout   types.Int64  `tfsdk:"login_timeout"`
+	QueryTimeout   types.Int64  `tfsdk:"query_timeout"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 // Fabric and Synapse are very similar, except Synapse uses Host instead of Server
 type SynapseConfig struct {
-	Host         types.String `tfsdk:"host"`
-	Port         types.Int64  `tfsdk:"port"`
-	Database     types.String `tfsdk:"database"`
-	Retries      types.Int64  `tfsdk:"retries"`
-	LoginTimeout types.Int64  `tfsdk:"login_timeout"`
-	QueryTimeout types.Int64  `tfsdk:"query_timeout"`
+	Host           types.String `tfsdk:"host"`
+	Port           types.Int64  `tfsdk:"port"`
+	Database       types.String `tfsdk:"database"`
+	Retries        types.Int64  `tfsdk:"retries"`
+	LoginTimeout   types.Int64  `tfsdk:"login_timeout"`
+	QueryTimeout   types.Int64  `tfsdk:"query_timeout"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type StarburstConfig struct {
-	Method types.String `tfsdk:"method"`
-	Host   types.String `tfsdk:"host"`
-	Port   types.Int64  `tfsdk:"port"`
+	Method         types.String `tfsdk:"method"`
+	Host           types.String `tfsdk:"host"`
+	Port           types.Int64  `tfsdk:"port"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type AthenaConfig struct {
@@ -255,6 +263,7 @@ type AthenaConfig struct {
 	NumRetries        types.Int64  `tfsdk:"num_retries"`
 	NumBoto3Retries   types.Int64  `tfsdk:"num_boto3_retries"`
 	NumIcebergRetries types.Int64  `tfsdk:"num_iceberg_retries"`
+	AdapterVersion    types.String `tfsdk:"adapter_version"`
 }
 
 type ApacheSparkConfig struct {
@@ -265,9 +274,10 @@ type ApacheSparkConfig struct {
 	ConnectTimeout types.Int64  `tfsdk:"connect_timeout"`
 	ConnectRetries types.Int64  `tfsdk:"connect_retries"`
 	// nullable
-	Organization types.String `tfsdk:"organization"`
-	User         types.String `tfsdk:"user"`
-	Auth         types.String `tfsdk:"auth"`
+	Organization   types.String `tfsdk:"organization"`
+	User           types.String `tfsdk:"user"`
+	Auth           types.String `tfsdk:"auth"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type TeradataConfig struct {
@@ -276,6 +286,7 @@ type TeradataConfig struct {
 	Host           types.String `tfsdk:"host"`
 	Retries        types.Int64  `tfsdk:"retries"`
 	RequestTimeout types.Int64  `tfsdk:"request_timeout"`
+	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
 
 type GlobalConnectionsDatasourceModel struct {

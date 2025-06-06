@@ -170,6 +170,12 @@ var resourceSchema = resource_schema.Schema{
 				stringvalidator.OneOf("synapse"),
 			},
 		},
+		"adapter_version": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("synapse_v0"),
+			Description: "Adapter version (synapse_v0, etc.)",
+		},
 	},
 }
 

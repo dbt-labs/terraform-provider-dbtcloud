@@ -148,6 +148,7 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 	targetName := plan.TargetName.ValueString()
 	catalog := plan.Catalog.ValueString()
 	adapterType := plan.AdapterType.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// For now, just supporting databricks
 	if adapterType == "spark" {
@@ -164,6 +165,7 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 		schema,
 		targetName,
 		catalog,
+		adapterVersion,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Databricks credential", err.Error())

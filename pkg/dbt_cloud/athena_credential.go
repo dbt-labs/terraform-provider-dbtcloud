@@ -89,6 +89,7 @@ func (c *Client) CreateAthenaCredential(
 	awsAccessKeyId string,
 	awsSecretAccessKey string,
 	schema string,
+	adapterVersion string,
 ) (*AthenaCredentialData, error) {
 	credentialDetails, err := GenerateAthenaCredentialDetails(
 		awsAccessKeyId,
@@ -108,7 +109,7 @@ func (c *Client) CreateAthenaCredential(
 		TargetName:        DEFAULT_TARGET_NAME,
 		Threads:           DEFAULT_THREADS,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "athena_v0",
+		AdapterVersion:    adapterVersion,
 	}
 
 	rb, err := json.Marshal(credential)

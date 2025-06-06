@@ -90,6 +90,7 @@ func (r *athenaCredentialResource) Create(
 	awsAccessKeyID := plan.AWSAccessKeyID.ValueString()
 	awsSecretAccessKey := plan.AWSSecretAccessKey.ValueString()
 	schema := plan.Schema.ValueString()
+	version := plan.AdapterVersion.ValueString()
 
 	// Create new credential
 	credential, err := r.client.CreateAthenaCredential(
@@ -97,6 +98,7 @@ func (r *athenaCredentialResource) Create(
 		awsAccessKeyID,
 		awsSecretAccessKey,
 		schema,
+		version,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -188,6 +190,7 @@ func (r *athenaCredentialResource) Update(
 	awsAccessKeyID := plan.AWSAccessKeyID.ValueString()
 	awsSecretAccessKey := plan.AWSSecretAccessKey.ValueString()
 	schema := plan.Schema.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateAthenaCredentialDetails(
@@ -212,7 +215,7 @@ func (r *athenaCredentialResource) Update(
 		State:             1,
 		Threads:           4,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "athena_v0",
+		AdapterVersion:    adapterVersion,
 	}
 
 	// Update credential

@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
@@ -46,6 +47,12 @@ var BigQueryResourceSchema = resource_schema.Schema{
 		"num_threads": resource_schema.Int64Attribute{
 			Required:    true,
 			Description: "Number of threads to use",
+		},
+		"adapter_version": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("bigquery_v0"),
+			Description: "Adapter version (bigquery_v0, bigquery_v1, etc.)",
 		},
 	},
 }

@@ -98,7 +98,7 @@ func (c *Client) CreateSemanticLayerCredential(
 		AccountID:      c.AccountID,
 		ProjectID:      int(projectId),
 		Name:           name,
-		AdapterVersion: "snowflake_v0",
+		AdapterVersion: adapterVersion,
 		Values:         values,
 	}
 
@@ -169,7 +169,7 @@ func (c *Client) CreateSemanticLayerCredentialBigQuery(
 		AccountID:      c.AccountID,
 		ProjectID:      int(projectID),
 		Name:           name,
-		AdapterVersion: "bigquery_v0",
+		AdapterVersion: adapterVersion,
 		Values:         values,
 	}
 
@@ -230,7 +230,7 @@ func (c *Client) CreateSemanticLayerCredentialRedshift(
 		AccountID:      c.AccountID,
 		ProjectID:      int(projectId),
 		Name:           name,
-		AdapterVersion: "redshift_v0",
+		AdapterVersion: adapterVersion,
 		Values:         values,
 	}
 

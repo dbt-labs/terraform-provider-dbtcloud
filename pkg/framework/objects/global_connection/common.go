@@ -35,7 +35,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(snowflakeCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(snowflakeCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -90,7 +90,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(bigqueryCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -219,7 +219,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(databricksCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(databricksCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -272,7 +272,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(redshiftCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(redshiftCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -337,7 +337,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(postgresCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(postgresCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -397,7 +397,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(fabricCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(fabricCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -442,7 +442,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(synapseCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(synapseCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -487,7 +487,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(starburstCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(starburstCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -529,7 +529,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(athenaCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(athenaCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -624,7 +624,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(sparkCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(sparkCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -686,7 +686,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(teradataCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(teradataCfg.GetAdapterVersion())
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 

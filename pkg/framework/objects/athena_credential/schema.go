@@ -6,6 +6,7 @@ import (
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
@@ -53,6 +54,12 @@ var resourceSchema = resource_schema.Schema{
 		"schema": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "The schema where to create models",
+		},
+		"adapter_version": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("athena_v0"),
+			Description: "Adapter version (athena_v0, etc.)",
 		},
 	},
 }

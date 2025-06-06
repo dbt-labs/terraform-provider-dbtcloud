@@ -81,6 +81,7 @@ func (c *Client) CreateSynapseCredential(
 	clientSecret string,
 	schema string,
 	schemaAuthorization string,
+	adapterVersion string,
 ) (*SynapseCredential, error) {
 
 	credentialDetails, err := GenerateSynapseCredentialDetails(
@@ -103,7 +104,7 @@ func (c *Client) CreateSynapseCredential(
 		Type:              "adapter",
 		State:             STATE_ACTIVE,
 		Threads:           NUM_THREADS_CREDENTIAL,
-		AdapterVersion:    "synapse_v0",
+		AdapterVersion:    adapterVersion,
 		CredentialDetails: credentialDetails,
 	}
 

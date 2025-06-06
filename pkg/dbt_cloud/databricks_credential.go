@@ -93,6 +93,7 @@ func (c *Client) CreateDatabricksCredential(
 	schema string,
 	targetName string,
 	catalog string,
+	adapterVersion string,
 
 ) (*DatabricksCredential, error) {
 
@@ -110,7 +111,7 @@ func (c *Client) CreateDatabricksCredential(
 		AccountID:         c.AccountID,
 		ProjectID:         projectId,
 		Type:              "adapter",
-		AdapterVersion:    "databricks_v0",
+		AdapterVersion:    adapterVersion,
 		State:             STATE_ACTIVE,
 		Threads:           NUM_THREADS_CREDENTIAL,
 		CredentialDetails: credentialDetails,
@@ -193,7 +194,6 @@ func GenerateDatabricksCredentialDetails(
 	schema string,
 	targetName string,
 	catalog string,
-
 ) (AdapterCredentialDetails, error) {
 	// the default config is taken from  the calls made to the API
 	// we just remove all the different values and set them to ""

@@ -12,6 +12,7 @@ type AthenaCredentialResourceModel struct {
 	AWSAccessKeyID     types.String `tfsdk:"aws_access_key_id"`
 	AWSSecretAccessKey types.String `tfsdk:"aws_secret_access_key"`
 	Schema             types.String `tfsdk:"schema"`
+	AdapterVersion     types.String `tfsdk:"adapter_version"`
 }
 
 // AthenaCredentialDataSourceModel is the model for the data source

@@ -80,6 +80,7 @@ func (c *Client) CreateFabricCredential(
 	clientSecret string,
 	schema string,
 	schemaAuthorization string,
+	adapterVersion string,
 ) (*FabricCredential, error) {
 
 	credentialDetails, err := GenerateFabricCredentialDetails(
@@ -101,7 +102,7 @@ func (c *Client) CreateFabricCredential(
 		Type:              "adapter",
 		State:             STATE_ACTIVE,
 		Threads:           NUM_THREADS_CREDENTIAL,
-		AdapterVersion:    "fabric_v0",
+		AdapterVersion:    adapterVersion,
 		CredentialDetails: credentialDetails,
 	}
 

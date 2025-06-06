@@ -94,6 +94,7 @@ func (r *synapseCredentialResource) Create(
 	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	if (authentication == "ServicePrincipal" && user != "") || (authentication != "ServicePrincipal" && user == "") {
 		resp.Diagnostics.AddError(
@@ -114,6 +115,7 @@ func (r *synapseCredentialResource) Create(
 		clientSecret,
 		schema,
 		schemaAuthorization,
+		adapterVersion,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(

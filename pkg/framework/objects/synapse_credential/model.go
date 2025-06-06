@@ -17,6 +17,7 @@ type SynapseCredentialResourceModel struct {
 	Schema              types.String `tfsdk:"schema"`
 	SchemaAuthorization types.String `tfsdk:"schema_authorization"`
 	AdapterType         types.String `tfsdk:"adapter_type"`
+	AdapterVersion      types.String `tfsdk:"adapter_version"`
 }
 
 type SynapseCredentialDataSourceModel struct {

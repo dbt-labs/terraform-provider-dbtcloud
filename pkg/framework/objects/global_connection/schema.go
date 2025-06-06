@@ -119,6 +119,12 @@ func (r *globalConnectionResource) Schema(
 						Default:     int64default.StaticInt64(1),
 						Description: "Number of retries for queries",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("bigquery_v0"),
+						Description: "Adapter version (bigquery_v0, bigquery_v1, etc.)",
+					},
 					"location": resource_schema.StringAttribute{
 						Optional:    true,
 						Description: "Location to create new Datasets in",
@@ -208,6 +214,12 @@ func (r *globalConnectionResource) Schema(
 						Default:     booldefault.StaticBool(false),
 						Description: "Whether to allow Snowflake OAuth for the connection. If true, the `oauth_client_id` and `oauth_client_secret` fields must be set",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("snowflake_v0"),
+						Description: "Adapter version (snowflake_v0, snowflake_v1, etc.)",
+					},
 					// TODO: required if allow_sso is true
 					"oauth_client_id": resource_schema.StringAttribute{
 						Optional:    true,
@@ -255,6 +267,12 @@ func (r *globalConnectionResource) Schema(
 						Optional:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("databricks_v0"),
+						Description: "Adapter version (databricks_v0, etc.)",
+					},
 				},
 			},
 			"redshift": resource_schema.SingleNestedAttribute{
@@ -274,6 +292,12 @@ func (r *globalConnectionResource) Schema(
 					"dbname": resource_schema.StringAttribute{
 						Required:    true,
 						Description: "The database name for this connection.",
+					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("redshift_v0"),
+						Description: "Adapter version (redshift_v0, etc.)",
 					},
 					// for SSH tunnel details
 					"ssh_tunnel": resource_schema.SingleNestedAttribute{
@@ -321,6 +345,12 @@ func (r *globalConnectionResource) Schema(
 					"dbname": resource_schema.StringAttribute{
 						Required:    true,
 						Description: "The database name for this connection.",
+					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("postgres_v0"),
+						Description: "Adapter version (postgres_v0, etc.)",
 					},
 					// for SSH tunnel details
 					"ssh_tunnel": resource_schema.SingleNestedAttribute{
@@ -387,6 +417,12 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Description: "The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("fabric_v0"),
+						Description: "Adapter version (fabric_v0, etc.)",
+					},
 				},
 			},
 			"synapse": resource_schema.SingleNestedAttribute{
@@ -425,6 +461,12 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Description: "The number of seconds used to wait for a query before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("synapse_v0"),
+						Description: "Adapter version (synapse_v0, etc.)",
+					},
 				},
 			},
 			"starburst": resource_schema.SingleNestedAttribute{
@@ -450,6 +492,12 @@ func (r *globalConnectionResource) Schema(
 						Default:     int64default.StaticInt64(443),
 						Computed:    true,
 						Description: "The port to connect to for this connection. Default=443",
+					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("starburst_v0"),
+						Description: "Adapter version (starburst_v0, etc.)",
 					},
 				},
 			},
@@ -505,6 +553,12 @@ func (r *globalConnectionResource) Schema(
 						Optional:    true,
 						Description: "Number of times to retry iceberg commit queries to fix ICEBERG_COMMIT_ERROR.",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("athena_v0"),
+						Description: "Adapter version (athena_v0, etc.)",
+					},
 				},
 			},
 			"apache_spark": resource_schema.SingleNestedAttribute{
@@ -556,6 +610,12 @@ func (r *globalConnectionResource) Schema(
 						Optional:    true,
 						Description: "Auth",
 					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("apache_spark_v0"),
+						Description: "Adapter version (apache_spark_v0, etc.)",
+					},
 				},
 			},
 			"teradata": resource_schema.SingleNestedAttribute{
@@ -591,6 +651,12 @@ func (r *globalConnectionResource) Schema(
 						Default:     int64default.StaticInt64(0),
 						Computed:    true,
 						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+					"adapter_version": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("teradata_v0"),
+						Description: "Adapter version (teradata_v0, etc.)",
 					},
 				},
 			},
