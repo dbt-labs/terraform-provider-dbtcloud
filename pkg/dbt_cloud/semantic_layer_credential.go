@@ -16,6 +16,7 @@ type SemanticLayerCredentials struct {
 	Values         map[string]interface{} `json:"values"`
 	AdapterVersion string                 `json:"adapter_version"`
 	SchemaType     string                 `json:"schema_type"`
+	ServiceTokens  []ServiceToken         `json:"service_tokens,omitempty"`
 }
 
 type SemanticLayerCredentialsFilter struct {

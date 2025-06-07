@@ -47,6 +47,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential_service_token_mapping"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
@@ -283,6 +284,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
 		project.ProjectResource,
 		semantic_layer_configuration.SemanticLayerConfigurationResource,
+		semantic_layer_credential_service_token_mapping.SemanticLayerCredentialServiceTokenMappingResource,
 		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 		semantic_layer_credential.BigQuerySemanticLayerCredentialResource,
 		semantic_layer_credential.RedshiftSemanticLayerCredentialResource,
