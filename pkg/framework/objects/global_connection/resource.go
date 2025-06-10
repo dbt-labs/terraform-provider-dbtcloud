@@ -159,6 +159,7 @@ func (r *globalConnectionResource) Create(
 			AllowSso:               plan.SnowflakeConfig.AllowSso.ValueBoolPointer(),
 			OauthClientID:          plan.SnowflakeConfig.OauthClientID.ValueStringPointer(),
 			OauthClientSecret:      plan.SnowflakeConfig.OauthClientSecret.ValueStringPointer(),
+			AdapterVersion:         plan.SnowflakeConfig.AdapterVersion.ValueString(),
 		}
 
 		// nullable fields
@@ -197,6 +198,7 @@ func (r *globalConnectionResource) Create(
 			Scopes: helper.TypesStringSliceToStringSlice(
 				plan.BigQueryConfig.Scopes,
 			),
+			AdapterVersion: *plan.BigQueryConfig.AdapterVersion.ValueStringPointer(),
 		}
 
 		// nullable fields
@@ -262,8 +264,9 @@ func (r *globalConnectionResource) Create(
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.DatabricksConfig](r.client)
 
 		databricksCfg := dbt_cloud.DatabricksConfig{
-			Host:     plan.DatabricksConfig.Host.ValueStringPointer(),
-			HTTPPath: plan.DatabricksConfig.HTTPPath.ValueStringPointer(),
+			Host:           plan.DatabricksConfig.Host.ValueStringPointer(),
+			HTTPPath:       plan.DatabricksConfig.HTTPPath.ValueStringPointer(),
+			AdapterVersion: *plan.DatabricksConfig.AdapterVersion.ValueStringPointer(),
 		}
 
 		// nullable fields
@@ -294,8 +297,9 @@ func (r *globalConnectionResource) Create(
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
 
 		redshiftCfg := dbt_cloud.RedshiftConfig{
-			HostName: plan.RedshiftConfig.HostName.ValueStringPointer(),
-			Port:     plan.RedshiftConfig.Port.ValueInt64Pointer(),
+			HostName:       plan.RedshiftConfig.HostName.ValueStringPointer(),
+			Port:           plan.RedshiftConfig.Port.ValueInt64Pointer(),
+			AdapterVersion: plan.RedshiftConfig.AdapterVersion.ValueString(),
 		}
 
 		// nullable fields
@@ -426,13 +430,14 @@ func (r *globalConnectionResource) Create(
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SynapseConfig](r.client)
 
 		synapseCfg := dbt_cloud.SynapseConfig{
-			Driver:       &dbt_cloud.SynapseDriver,
-			Host:         plan.SynapseConfig.Host.ValueStringPointer(),
-			Port:         plan.SynapseConfig.Port.ValueInt64Pointer(),
-			Database:     plan.SynapseConfig.Database.ValueStringPointer(),
-			Retries:      plan.SynapseConfig.Retries.ValueInt64Pointer(),
-			LoginTimeout: plan.SynapseConfig.LoginTimeout.ValueInt64Pointer(),
-			QueryTimeout: plan.SynapseConfig.QueryTimeout.ValueInt64Pointer(),
+			Driver:         &dbt_cloud.SynapseDriver,
+			Host:           plan.SynapseConfig.Host.ValueStringPointer(),
+			Port:           plan.SynapseConfig.Port.ValueInt64Pointer(),
+			Database:       plan.SynapseConfig.Database.ValueStringPointer(),
+			Retries:        plan.SynapseConfig.Retries.ValueInt64Pointer(),
+			LoginTimeout:   plan.SynapseConfig.LoginTimeout.ValueInt64Pointer(),
+			QueryTimeout:   plan.SynapseConfig.QueryTimeout.ValueInt64Pointer(),
+			AdapterVersion: plan.SynapseConfig.AdapterVersion.ValueString(),
 		}
 
 		// nullable fields
@@ -712,6 +717,8 @@ func (r *globalConnectionResource) Update(
 		if plan.SnowflakeConfig.OauthClientSecret != state.SnowflakeConfig.OauthClientSecret {
 			warehouseConfigChanges.OauthClientSecret = plan.SnowflakeConfig.OauthClientSecret.ValueStringPointer()
 		}
+
+		warehouseConfigChanges.AdapterVersion = plan.SnowflakeConfig.AdapterVersion.ValueString()
 
 		// nullable fields
 		// when the values are Null, we still want to send it as null to the PATCH payload, to remove it, otherwise the omitempty doesn't add it to the payload and it doesn't get updated

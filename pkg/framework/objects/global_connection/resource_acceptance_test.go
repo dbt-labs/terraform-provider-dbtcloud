@@ -26,6 +26,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName,
 					oAuthClientID,
 					oAuthClientSecret,
+					"snowflake_v0",
 				),
 				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
 				Check: resource.ComposeTestCheckFunc(
@@ -77,6 +78,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName2,
 					oAuthClientID,
 					oAuthClientSecret,
+					"snowflake_v0",
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -111,7 +113,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceBasicConfig(
-	connectionName, oAuthClientID, oAuthClientSecret string,
+	connectionName, oAuthClientID, oAuthClientSecret, adapterVersion string,
 ) string {
 	return fmt.Sprintf(`
 
@@ -138,10 +140,11 @@ resource dbtcloud_global_connection test {
     oauth_client_id = "%s"
     oauth_client_secret = "%s"
     client_session_keep_alive = false
+	adapter_version = "%s"
   }
 }
 
-`, connectionName, oAuthClientID, oAuthClientSecret)
+`, connectionName, oAuthClientID, oAuthClientSecret, adapterVersion)
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
@@ -159,7 +162,6 @@ resource dbtcloud_oauth_configuration test {
   authorize_url = "http://example.com"
   application_id_uri = "app-uri"
 }
-
 
 resource dbtcloud_global_connection test {
   name = "%s"

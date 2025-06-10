@@ -30,6 +30,7 @@ func TestAccDbtCloudTeradataCredentialResource(t *testing.T) {
 					schema,
 					user,
 					password,
+					"teradata_v0",
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDbtCloudTeradataCredentialExists("dbtcloud_teradata_credential.test"),
@@ -57,6 +58,7 @@ func TestAccDbtCloudTeradataCredentialResource(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"user",
 					"password",
+					"adapter_version",
 				},
 			},
 			// Update and Read testing
@@ -66,6 +68,7 @@ func TestAccDbtCloudTeradataCredentialResource(t *testing.T) {
 					"updated_schema",
 					user,
 					password,
+					"teradata_v0",
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDbtCloudTeradataCredentialExists("dbtcloud_teradata_credential.test"),
@@ -85,6 +88,7 @@ func testAccDbtCloudTeradataCredentialResourceConfig(
 	schema string,
 	user string,
 	password string,
+	adapterVersion string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test" {
@@ -96,8 +100,9 @@ resource "dbtcloud_teradata_credential" "test" {
   schema               = "%s"
   user                 = "%s"
   password             = "%s"
+  adapter_version      = "%s"
 }
-`, projectName, schema, user, password)
+`, projectName, schema, user, password, adapterVersion)
 }
 
 func testAccCheckDbtCloudTeradataCredentialExists(resource string) resource.TestCheckFunc {

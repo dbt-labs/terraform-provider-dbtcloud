@@ -75,6 +75,7 @@ func getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret strin
 	return resource.TestStep{
 		Config: testAccDbtCloudSynapseCredentialResourceServicePrincipalConfig(
 			projectName,
+			"synapse_v0",
 			clientId,
 			tenantId,
 			clientSecret,
@@ -102,7 +103,7 @@ func getImportConfigTestStep() resource.TestStep {
 		ResourceName:            "dbtcloud_synapse_credential.test_credential",
 		ImportState:             true,
 		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user", "adapter_type"},
+		ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user", "adapter_type", "adapter_version"},
 		ImportStateCheck: func(s []*terraform.InstanceState) error {
 			if len(s) != 1 {
 				return fmt.Errorf("expected 1 state, got %d", len(s))
@@ -155,7 +156,7 @@ resource "dbtcloud_synapse_credential" "test_credential" {
 }
 
 func testAccDbtCloudSynapseCredentialResourceServicePrincipalConfig(
-	projectName, clientId, tenantId, clientSecret string,
+	projectName, adapterVersion, clientId, tenantId, clientSecret string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -170,6 +171,7 @@ resource "dbtcloud_global_connection" "synapse" {
 	database = "testdb"
 	host = "example.com"
 	port = 1234
+	adapter_version = "%s"
   }
 }
 
@@ -181,8 +183,10 @@ resource "dbtcloud_synapse_credential" "test_credential" {
     tenant_id = "%s"
     client_secret = "%s"
 	adapter_type = "synapse"
+	adapter_version = "synapse_v0"
+
 }
-`, projectName, clientId, tenantId, clientSecret)
+`, projectName, adapterVersion, clientId, tenantId, clientSecret)
 }
 
 func testAccCheckDbtCloudSynapseCredentialExists(resource string) resource.TestCheckFunc {

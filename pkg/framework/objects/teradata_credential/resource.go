@@ -193,6 +193,7 @@ func (r *teradataCredentialResource) Update(
 	user := plan.User.ValueString()
 	password := plan.Password.ValueString()
 	schema := plan.Schema.ValueString()
+	adapterVersion := plan.AdapterVersion.ValueString()
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateTeradataCredentialDetails(
@@ -218,7 +219,7 @@ func (r *teradataCredentialResource) Update(
 		State:             1,
 		Threads:           4,
 		CredentialDetails: credentialDetails,
-		AdapterVersion:    "teradata_v0",
+		AdapterVersion:    adapterVersion,
 	}
 
 	// Update credential

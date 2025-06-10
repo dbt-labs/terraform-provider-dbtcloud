@@ -1,6 +1,7 @@
 package teradata_credential
 
 import (
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -64,8 +65,11 @@ var resourceSchema = resource_schema.Schema{
 		"adapter_version": resource_schema.StringAttribute{
 			Optional:    true,
 			Computed:    true,
-			Default:     stringdefault.StaticString("fabric_v0"),
-			Description: "Adapter version (fabric_v0, etc.)",
+			Default:     stringdefault.StaticString("teradata_v0"),
+			Description: "Adapter version (teradata_v0, etc.)",
+			Validators: []validator.String{
+				stringvalidator.OneOf(helper.TeradataAdapterVersions...),
+			},
 		},
 	},
 }

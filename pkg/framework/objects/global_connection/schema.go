@@ -124,6 +124,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("bigquery_v0"),
 						Description: "Adapter version (bigquery_v0, bigquery_v1, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.BigQueryAdapterVersions...),
+						},
 					},
 					"location": resource_schema.StringAttribute{
 						Optional:    true,
@@ -219,6 +222,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("snowflake_v0"),
 						Description: "Adapter version (snowflake_v0, snowflake_v1, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.SnowflakeAdapterVersions...),
+						},
 					},
 					// TODO: required if allow_sso is true
 					"oauth_client_id": resource_schema.StringAttribute{
@@ -272,6 +278,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("databricks_v0"),
 						Description: "Adapter version (databricks_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.DatabricksAdapterVersions...),
+						},
 					},
 				},
 			},
@@ -298,6 +307,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("redshift_v0"),
 						Description: "Adapter version (redshift_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.RedshiftAdapterVersions...),
+						},
 					},
 					// for SSH tunnel details
 					"ssh_tunnel": resource_schema.SingleNestedAttribute{
@@ -351,6 +363,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("postgres_v0"),
 						Description: "Adapter version (postgres_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.PostgresAdapterVersions...),
+						},
 					},
 					// for SSH tunnel details
 					"ssh_tunnel": resource_schema.SingleNestedAttribute{
@@ -422,6 +437,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("fabric_v0"),
 						Description: "Adapter version (fabric_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.FabricAdapterVersions...),
+						},
 					},
 				},
 			},
@@ -466,6 +484,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("synapse_v0"),
 						Description: "Adapter version (synapse_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.SynapseAdapterVersions...),
+						},
 					},
 				},
 			},
@@ -558,6 +579,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("athena_v0"),
 						Description: "Adapter version (athena_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.AthenaAdapterVersions...),
+						},
 					},
 				},
 			},
@@ -615,6 +639,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("apache_spark_v0"),
 						Description: "Adapter version (apache_spark_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.ApacheSparkAdapterVersions...),
+						},
 					},
 				},
 			},
@@ -657,6 +684,9 @@ func (r *globalConnectionResource) Schema(
 						Computed:    true,
 						Default:     stringdefault.StaticString("teradata_v0"),
 						Description: "Adapter version (teradata_v0, etc.)",
+						Validators: []validator.String{
+							stringvalidator.OneOf(helper.TeradataAdapterVersions...),
+						},
 					},
 				},
 			},
