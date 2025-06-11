@@ -88,12 +88,14 @@ func (r *redshiftSemanticLayerCredentialResource) Create(
 		password = *plan.Credential.Password.ValueStringPointer()
 	}
 
-	createdCredential, err := r.client.CreateSemanticLayerCredentialRedshift(
+	values := map[string]interface{}{
+		"username": plan.Credential.Username.ValueString(),
+		"password": password,
+	}
+
+	createdCredential, err := r.client.CreateSemanticLayerCredential(
 		projectID,
-		plan.Credential.IsActive.ValueBool(),
-		plan.Credential.Username.ValueString(),
-		password,
-		int(plan.Credential.NumThreads.ValueInt64()),
+		values,
 		plan.Configuration.Name.ValueString(),
 		plan.Configuration.AdapterVersion.ValueString(),
 	)

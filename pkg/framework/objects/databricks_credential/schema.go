@@ -49,7 +49,7 @@ var dataSourceSchema = datasource_schema.Schema{
 	},
 }
 
-var resourceSchema = resource_schema.Schema{
+var DatabricksResourceSchema = resource_schema.Schema{
 	Description: "Databricks credential resource",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
