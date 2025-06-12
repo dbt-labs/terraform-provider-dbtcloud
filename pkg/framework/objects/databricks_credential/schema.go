@@ -1,9 +1,11 @@
 package databricks_credential
 
 import (
+	sl_cred_validator "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -93,17 +95,31 @@ var DatabricksResourceSchema = resource_schema.Schema{
 		},
 		"schema": resource_schema.StringAttribute{
 			Description: "The schema where to create models",
-			Required:    true,
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("default_schema"),
+			Validators: []validator.String{
+				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "schema"},
+			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
 			Description: "The type of the adapter (databricks or spark)",
-			Required:    true,
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("databricks"),
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},
 			Validators: []validator.String{
 				stringvalidator.OneOf("databricks", "spark"),
+				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "adapter_type"},
 			},
+		},
+		"semantic_layer_credential": resource_schema.BoolAttribute{
+			Optional:    true,
+			Description: "This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Databricks credential for the Semantic Layer.",
+			Computed:    true,
+			Default:     booldefault.StaticBool(false),
 		},
 	},
 }

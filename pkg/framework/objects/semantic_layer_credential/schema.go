@@ -124,7 +124,7 @@ var redshift_sl_credential_resource_schema = resource_schema.Schema{
 		},
 		"credential": resource_schema.SingleNestedAttribute{
 			Required:    true,
-			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
+			Description: "Redshift credential details, but used in the context of the Semantic Layer.",
 			Attributes:  redshift_credential.RedshiftResourceSchema.Attributes, // Reuse the schema
 		},
 	},
