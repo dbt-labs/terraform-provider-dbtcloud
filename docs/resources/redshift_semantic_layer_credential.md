@@ -18,7 +18,7 @@ Redshift credential resource. This resource is composed of a Redshift credential
 ### Required
 
 - `configuration` (Attributes) Semantic Layer credential configuration details. (see [below for nested schema](#nestedatt--configuration))
-- `credential` (Attributes) Snowflake credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
+- `credential` (Attributes) Redshift credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
 
 ### Read-Only
 
