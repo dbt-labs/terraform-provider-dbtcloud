@@ -34,7 +34,7 @@ func (v SemanticLayerCredentialValidator) ValidateString(ctx context.Context, re
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Missing Required Attribute",
-				fmt.Sprintf("`%s`must be provided when `semantic_layer_credential` is false.", v.FieldName),
+				fmt.Sprintf("`%s` must be provided when `semantic_layer_credential` is false.", v.FieldName),
 			)
 		}
 
