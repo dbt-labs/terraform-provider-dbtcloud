@@ -238,7 +238,7 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 }
 
 func (d *databricksCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resourceSchema
+	resp.Schema = DatabricksResourceSchema
 }
 
 func (d *databricksCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

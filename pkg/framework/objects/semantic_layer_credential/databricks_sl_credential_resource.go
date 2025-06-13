@@ -11,39 +11,39 @@ import (
 )
 
 var (
-	_ resource.Resource              = &snowflakeSemanticLayerCredentialResource{}
-	_ resource.ResourceWithConfigure = &snowflakeSemanticLayerCredentialResource{}
+	_ resource.Resource              = &databricksSemanticLayerCredentialResource{}
+	_ resource.ResourceWithConfigure = &databricksSemanticLayerCredentialResource{}
 )
 
-func SnowflakeSemanticLayerCredentialResource() resource.Resource {
-	return &snowflakeSemanticLayerCredentialResource{}
+func DatabricksSemanticLayerCredentialResource() resource.Resource {
+	return &databricksSemanticLayerCredentialResource{}
 }
 
-// dbtCloud.Client for making API calls
-type snowflakeSemanticLayerCredentialResource struct {
+type databricksSemanticLayerCredentialResource struct {
 	client *dbt_cloud.Client
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Metadata(
+func (r *databricksSemanticLayerCredentialResource) Metadata(
 	_ context.Context,
 	req resource.MetadataRequest,
 	resp *resource.MetadataResponse,
 ) {
-	resp.TypeName = req.ProviderTypeName + "_snowflake_semantic_layer_credential"
+	resp.TypeName = req.ProviderTypeName + "_databricks_semantic_layer_credential"
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Read(
+func (r *databricksSemanticLayerCredentialResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	var state SnowflakeSLCredentialModel
-
+	var state DatabricksSLCredentialModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	id := state.ID.ValueInt64()
+	credential, err := r.client.GetSemanticLayerCredential(state.ID.ValueInt64())
 
-	credential, err := r.client.GetSemanticLayerCredential(id)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Issue getting Semantic Layer credential",
@@ -66,35 +66,27 @@ func (r *snowflakeSemanticLayerCredentialResource) Read(
 	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Create(
+func (r *databricksSemanticLayerCredentialResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan SnowflakeSLCredentialModel
+	var plan DatabricksSLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	projectID := plan.Credential.ProjectID.ValueInt64()
-
 	values := map[string]interface{}{
-		"role":                   plan.Credential.Role.ValueString(),
-		"warehouse":              plan.Credential.Warehouse.ValueString(),
-		"user":                   plan.Credential.User.ValueString(),
-		"password":               plan.Credential.Password.ValueString(),
-		"private_key":            plan.Credential.PrivateKey.ValueString(),
-		"private_key_passphrase": plan.Credential.PrivateKeyPassphrase.ValueString(),
-		"auth_type":              plan.Credential.AuthType.ValueString(),
+		"catalog": plan.Credential.Catalog.ValueString(),
+		"token":   plan.Credential.Token.ValueString(),
 	}
 
 	createdCredential, err := r.client.CreateSemanticLayerCredential(
-		projectID,
+		plan.Credential.ProjectID.ValueInt64(),
 		values,
 		plan.Configuration.Name.ValueString(),
 		plan.Configuration.AdapterVersion.ValueString(),
@@ -109,30 +101,25 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 	}
 
 	plan.ID = types.Int64Value(int64(*createdCredential.ID))
-
-	//snowflake credential ids, not used in this case
 	plan.Credential.CredentialID = types.Int64Value(int64(*createdCredential.ID))
 	plan.Credential.ID = types.StringValue(fmt.Sprintf("%d", *createdCredential.ID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Delete(
+func (r *databricksSemanticLayerCredentialResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	var state SnowflakeSLCredentialModel
+	var state DatabricksSLCredentialModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	id := state.ID
-	projectID := state.Credential.ProjectID.ValueInt64()
-
-	err := r.client.DeleteSemanticLayerCredential(projectID, id.ValueInt64())
+	err := r.client.DeleteSemanticLayerCredential(state.Credential.ProjectID.ValueInt64(), state.ID.ValueInt64())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -145,26 +132,24 @@ func (r *snowflakeSemanticLayerCredentialResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Update(
+func (r *databricksSemanticLayerCredentialResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state SnowflakeSLCredentialModel
+	var plan, state DatabricksSLCredentialModel
 
-	// Read plan and state values into the models
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	id := state.ID.ValueInt64()
-
 	credential, err := r.client.GetSemanticLayerCredential(id)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -175,17 +160,12 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	}
 
 	values := map[string]interface{}{
-		"role":                   plan.Credential.Role.ValueString(),
-		"warehouse":              plan.Credential.Warehouse.ValueString(),
-		"user":                   plan.Credential.User.ValueString(),
-		"password":               plan.Credential.Password.ValueString(),
-		"private_key":            plan.Credential.PrivateKey.ValueString(),
-		"private_key_passphrase": plan.Credential.PrivateKeyPassphrase.ValueString(),
-		"auth_type":              plan.Credential.AuthType.ValueString(),
+		"catalog": plan.Credential.Catalog.ValueString(),
+		"token":   plan.Credential.Token.ValueString(),
 	}
 
-	credential.Name = plan.Configuration.Name.ValueString()
 	credential.Values = values
+	credential.Name = plan.Configuration.Name.ValueString()
 
 	_, err = r.client.UpdateSemanticLayerCredential(
 		id,
@@ -206,18 +186,13 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	state.Configuration.Name = types.StringValue(credential.Name)
 
 	//update credential fields
-	state.Credential.AuthType = types.StringValue(credential.Values["auth_type"].(string))
-	state.Credential.Role = types.StringValue(credential.Values["role"].(string))
-	state.Credential.Warehouse = types.StringValue(credential.Values["warehouse"].(string))
-	state.Credential.Password = types.StringValue(credential.Values["password"].(string))
-	state.Credential.User = types.StringValue(credential.Values["user"].(string))
-	state.Credential.PrivateKey = types.StringValue(credential.Values["private_key"].(string))
-	state.Credential.PrivateKeyPassphrase = types.StringValue(credential.Values["private_key_passphrase"].(string))
+	state.Credential.Catalog = types.StringValue(credential.Values["catalog"].(string))
+	state.Credential.Token = types.StringValue(credential.Values["token"].(string))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Configure(
+func (r *databricksSemanticLayerCredentialResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
 	_ *resource.ConfigureResponse,
@@ -229,10 +204,10 @@ func (r *snowflakeSemanticLayerCredentialResource) Configure(
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func (r *snowflakeSemanticLayerCredentialResource) Schema(
+func (r *databricksSemanticLayerCredentialResource) Schema(
 	_ context.Context,
 	req resource.SchemaRequest,
 	resp *resource.SchemaResponse,
 ) {
-	resp.Schema = snowflake_sl_credential_resource_schema
+	resp.Schema = databricks_sl_credential_resource_schema
 }

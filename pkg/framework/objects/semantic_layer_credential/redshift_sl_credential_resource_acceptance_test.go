@@ -160,7 +160,6 @@ resource "dbtcloud_redshift_semantic_layer_credential" "test_redshift_semantic_l
   credential = {
   	project_id = %s
 	username = "%s"
-	dataset = "test"
 	is_active = true
 	password = "%s"
 	num_threads = %s

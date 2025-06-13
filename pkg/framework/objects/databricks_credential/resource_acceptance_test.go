@@ -44,6 +44,11 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 					),
 				),
 			},
+			// ERROR schema must be provided
+			{
+				Config:      testCheckSchemaIsProvided(),
+				ExpectError: regexp.MustCompile("`schema` must be provided when `semantic_layer_credential` is false."),
+			},
 			// RENAME
 			// MODIFY
 			{
@@ -74,7 +79,7 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				ResourceName:            "dbtcloud_databricks_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"token", "adapter_type"},
+				ImportStateVerifyIgnore: []string{"token", "adapter_type", "semantic_layer_credential"},
 			},
 		},
 	})
@@ -119,6 +124,22 @@ resource "dbtcloud_databricks_credential" "test_credential" {
 	adapter_type = "databricks"
 }
 `, projectName, catalogName, targetName, token)
+}
+
+func testCheckSchemaIsProvided() string {
+	return `
+		resource "dbtcloud_project" "test_project" {
+  			name        = "test"
+		}
+
+		resource "dbtcloud_databricks_credential" "test_credential" {
+    		project_id = dbtcloud_project.test_project.id
+    		catalog = "test"
+			target_name = "test"
+    		token   = "test"
+			adapter_type = "databricks"
+		}
+	`
 }
 
 func testAccCheckDbtCloudDatabricksCredentialExists(resource string) resource.TestCheckFunc {
