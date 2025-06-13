@@ -186,7 +186,6 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "test_bigquery_semantic_l
   	project_id = %s
 	is_active = true
     num_threads = 3
-    semantic_layer_credential = true
 	dataset = "test"
   }
   private_key_id = "%s"

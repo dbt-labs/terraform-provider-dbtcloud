@@ -94,7 +94,7 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString(""),
 		},
 		"schema": resource_schema.StringAttribute{
-			Description: "The schema where to create models",
+			Description: "The schema where to create models. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.",
 			Optional:    true,
 			Computed:    true,
 			Default:     stringdefault.StaticString("default_schema"),
@@ -103,7 +103,7 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
-			Description: "The type of the adapter (databricks or spark)",
+			Description: "The type of the adapter (databricks or spark). This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.",
 			Optional:    true,
 			Computed:    true,
 			Default:     stringdefault.StaticString("databricks"),
