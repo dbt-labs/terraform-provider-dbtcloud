@@ -41,9 +41,18 @@ func (d *azureDevOpsRepositoryDataSource) Read(
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("failed to get Azure Dev Ops repository %s in project %s", repositoryName, azureDevOpsProjectID),
+			fmt.Sprintf("Failed to get Azure Dev Ops repository %s in project %s", repositoryName, azureDevOpsProjectID),
 			err.Error(),
 		)
+		return
+	}
+
+	if azureDevOpsRepository == nil {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Azure Dev Ops repository %s in project %s not found", repositoryName, azureDevOpsProjectID),
+			"The repository was not returned by the API.",
+		)
+		return
 	}
 
 	state.ID = types.StringValue(azureDevOpsRepository.ID)
