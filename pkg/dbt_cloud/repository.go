@@ -24,8 +24,8 @@ type Repository struct {
 	DeployKey                             *DeployKey `json:"deploy_key,omitempty"`
 	DeployKeyID                           *int       `json:"deploy_key_id,omitempty"`
 	PullRequestURLTemplate                string     `json:"pull_request_url_template,omitempty"`
-	RemoteBackend                         string     `json:"remote_backend"`
-	FullName                              string     `json:"full_name"`
+	RemoteBackend                         *string    `json:"remote_backend,omitempty"`
+	FullName                              *string    `json:"full_name,omitempty"`
 }
 
 type DeployKey struct {
@@ -155,11 +155,11 @@ func (c *Client) CreateRepository(
 			newRepository.RepositoryCredentialsID = repositoryResponse.Data.RepositoryCredentialsID
 		}
 		
-		if repositoryResponse.Data.RemoteBackend != "" {
+		if repositoryResponse.Data.RemoteBackend != nil {
 			newRepository.RemoteBackend = repositoryResponse.Data.RemoteBackend
 		}
 
-		if repositoryResponse.Data.FullName != "" {
+		if repositoryResponse.Data.FullName != nil {
 			newRepository.FullName = repositoryResponse.Data.FullName
 		}
 

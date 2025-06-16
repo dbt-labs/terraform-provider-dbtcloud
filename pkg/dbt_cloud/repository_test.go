@@ -19,11 +19,13 @@ func TestCreateRepository_PreservesRemoteBackendAndFullName(t *testing.T) {
 	server := testutil.NewMockRepositoryServer(accountID, projectID, repositoryID)
 	defer server.Close()
 
+	backend := "github"
+	fullName := "test/repo"
 	server.SetCreateResponse(&dbt_cloud.RepositoryResponse{
 		Data: dbt_cloud.Repository{
 			ID:                        testutil.IntPtr(repositoryID),
-			RemoteBackend:             "github",
-			FullName:                  "test/repo",
+			RemoteBackend:             &backend,
+			FullName:                  &fullName,
 			DeployKeyID:               testutil.IntPtr(deployKeyID),
 			RepositoryCredentialsID:   testutil.IntPtr(credentialsID),
 		},
@@ -32,8 +34,8 @@ func TestCreateRepository_PreservesRemoteBackendAndFullName(t *testing.T) {
 	server.SetUpdateResponse(&dbt_cloud.RepositoryResponse{
 		Data: dbt_cloud.Repository{
 			ID:                        testutil.IntPtr(repositoryID),
-			RemoteBackend:             "github",
-			FullName:                  "test/repo",
+			RemoteBackend:             &backend,
+			FullName:                  &fullName,
 			DeployKeyID:               testutil.IntPtr(deployKeyID),
 			RepositoryCredentialsID:   testutil.IntPtr(credentialsID),
 		},
@@ -64,12 +66,12 @@ func TestCreateRepository_PreservesRemoteBackendAndFullName(t *testing.T) {
 		t.Fatal("Expected update request to be made")
 	}
 
-	if updateReq.RemoteBackend != "github" {
-		t.Errorf("Expected update request to have RemoteBackend 'github', got %s", updateReq.RemoteBackend)
+	if updateReq.RemoteBackend == nil || *updateReq.RemoteBackend != backend {
+		t.Errorf("Expected update request to have RemoteBackend '%s', got '%v'", backend, updateReq.RemoteBackend)
 	}
 
-	if updateReq.FullName != "test/repo" {
-		t.Errorf("Expected update request to have FullName 'test/repo', got %s", updateReq.FullName)
+	if updateReq.FullName == nil || *updateReq.FullName != fullName {
+		t.Errorf("Expected update request to have FullName '%s', got '%v'", fullName, updateReq.FullName)
 	}
 
 	if *updateReq.DeployKeyID != deployKeyID {
