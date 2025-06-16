@@ -1,16 +1,16 @@
 package semantic_layer_credential_service_token_mapping
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -137,10 +137,10 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Read(ctx context.Co
 	project_id := int(state.ProjectID.ValueInt64())
 
 	sm := dbt_cloud.SemanticLayerCredentialServiceTokenMapping{
-		ID:                         &id,
-		SemanticLayerCredentialID:  cred_id,
-		ServiceTokenID:             token_id,
-		ProjectID:                  project_id,
+		ID:                        &id,
+		SemanticLayerCredentialID: cred_id,
+		ServiceTokenID:            token_id,
+		ProjectID:                 project_id,
 	}
 
 	// Read the semantic layer credential service token mapping
