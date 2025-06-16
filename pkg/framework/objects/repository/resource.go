@@ -352,7 +352,7 @@ func (r *repositoryResource) Update(
 			repository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
 		}
 
-		_, err = r.client.UpdateRepository(repositoryID, projectID, *repository)
+		updatedRepository, err := r.client.UpdateRepository(repositoryID, projectID, *repository)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error updating repository",
@@ -360,9 +360,63 @@ func (r *repositoryResource) Update(
 			)
 			return
 		}
-	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		state.IsActive = types.BoolValue(updatedRepository.State == dbt_cloud.STATE_ACTIVE)
+		state.ProjectID = types.Int64Value(int64(updatedRepository.ProjectID))
+		state.RepositoryID = types.Int64Value(int64(*updatedRepository.ID))
+		state.RemoteURL = types.StringValue(updatedRepository.RemoteUrl)
+		state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+
+		if updatedRepository.RepositoryCredentialsID != nil {
+			state.RepositoryCredentialsID = types.Int64Value(int64(*updatedRepository.RepositoryCredentialsID))
+		} else {
+			state.RepositoryCredentialsID = types.Int64Null()
+		}
+
+		if updatedRepository.GitlabProjectID != nil {
+			state.GitlabProjectID = types.Int64Value(int64(*updatedRepository.GitlabProjectID))
+		}
+
+		if updatedRepository.GithubInstallationID != nil {
+			state.GithubInstallationID = types.Int64Value(int64(*updatedRepository.GithubInstallationID))
+		} else {
+			state.GithubInstallationID = types.Int64Null()
+		}
+
+		if updatedRepository.DeployKey != nil {
+			state.DeployKey = types.StringValue(updatedRepository.DeployKey.PublicKey)
+		} else {
+			state.DeployKey = types.StringNull()
+		}
+
+		if updatedRepository.PullRequestURLTemplate != "" {
+			state.PullRequestURLTemplate = types.StringValue(updatedRepository.PullRequestURLTemplate)
+		} else {
+			state.PullRequestURLTemplate = types.StringNull()
+		}
+
+		if updatedRepository.AzureActiveDirectoryProjectID != nil {
+			state.AzureActiveDirectoryProjectID = types.StringValue(*updatedRepository.AzureActiveDirectoryProjectID)
+		} else {
+			state.AzureActiveDirectoryProjectID = types.StringValue("")
+		}
+
+		if updatedRepository.AzureActiveDirectoryRepositoryID != nil {
+			state.AzureActiveDirectoryRepositoryID = types.StringValue(*updatedRepository.AzureActiveDirectoryRepositoryID)
+		} else {
+			state.AzureActiveDirectoryRepositoryID = types.StringValue("")
+		}
+
+		if updatedRepository.AzureBypassWebhookRegistrationFailure != nil {
+			state.AzureBypassWebhookRegistrationFailure = types.BoolValue(*updatedRepository.AzureBypassWebhookRegistrationFailure)
+		} else {
+			state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
+		}
+
+		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	} else {
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success
