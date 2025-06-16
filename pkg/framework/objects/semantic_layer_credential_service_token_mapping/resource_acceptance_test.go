@@ -21,7 +21,7 @@ func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudServiceTokenDestroy,
+		CheckDestroy:             testAccCheckDbtCloudSLCredServiceTokenMappingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudSLCredServiceTokenMappingResourceConfig(
@@ -115,7 +115,7 @@ resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mappin
 `, projectName, serviceTokenName)
 }
 
-func testAccCheckDbtCloudServiceTokenDestroy(s *terraform.State) error {
+func testAccCheckDbtCloudSLCredServiceTokenMappingDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {
 		return fmt.Errorf("Issue getting the client")
