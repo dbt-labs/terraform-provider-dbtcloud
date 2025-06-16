@@ -105,16 +105,21 @@ func (r *bigQuerySemanticLayerCredentialResource) Create(
 
 	projectID := plan.Credential.ProjectID.ValueInt64()
 
-	createdCredential, err := r.client.CreateSemanticLayerCredentialBigQuery(
+	//add credential fields to values map
+	values := map[string]interface{}{
+		"private_key_id":              plan.PrivateKeyID.ValueString(),
+		"private_key":                 plan.PrivateKey.ValueString(),
+		"client_email":                plan.ClientEmail.ValueString(),
+		"client_id":                   plan.ClientID.ValueString(),
+		"auth_uri":                    plan.AuthURI.ValueString(),
+		"token_uri":                   plan.TokenURI.ValueString(),
+		"auth_provider_x509_cert_url": plan.AuthProviderCertURL.ValueString(),
+		"client_x509_cert_url":        plan.ClientCertURL.ValueString(),
+	}
+
+	createdCredential, err := r.client.CreateSemanticLayerCredential(
 		projectID,
-		plan.PrivateKeyID.ValueString(),
-		plan.PrivateKey.ValueString(),
-		plan.ClientEmail.ValueString(),
-		plan.ClientID.ValueString(),
-		plan.AuthURI.ValueString(),
-		plan.TokenURI.ValueString(),
-		plan.AuthProviderCertURL.ValueString(),
-		plan.ClientCertURL.ValueString(),
+		values,
 		plan.Configuration.Name.ValueString(),
 		plan.Configuration.AdapterVersion.ValueString(),
 	)

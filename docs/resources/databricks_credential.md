@@ -26,14 +26,15 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
 
 ### Required
 
-- `adapter_type` (String) The type of the adapter (databricks or spark)
 - `project_id` (Number) Project ID to create the Databricks credential in
-- `schema` (String) The schema where to create models
 - `token` (String, Sensitive) Token for Databricks user
 
 ### Optional
 
+- `adapter_type` (String) The type of the adapter (databricks or spark). Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
+- `schema` (String) The schema where to create models. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
+- `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Databricks credential for the Semantic Layer.
 - `target_name` (String, Deprecated) Target name
 
 ### Read-Only

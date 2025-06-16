@@ -288,6 +288,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		semantic_layer_credential.SnowflakeSemanticLayerCredentialResource,
 		semantic_layer_credential.BigQuerySemanticLayerCredentialResource,
 		semantic_layer_credential.RedshiftSemanticLayerCredentialResource,
-    synapse_credential.SynapseCredentialResource,
+		semantic_layer_credential.DatabricksSemanticLayerCredentialResource,
+		synapse_credential.SynapseCredentialResource,
 	}
 }
