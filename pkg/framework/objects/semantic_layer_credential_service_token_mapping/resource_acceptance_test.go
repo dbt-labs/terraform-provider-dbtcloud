@@ -14,9 +14,13 @@ import (
 )
 
 func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
+	
+	_, _, projectID := acctest_helper.GetSemanticLayerConfigTestingConfigurations()
+	if projectID == 0 {
+		t.Skip("Skipping test because config is not set")
+	}
 
 	serviceTokenName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -25,8 +29,8 @@ func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDbtCloudSLCredServiceTokenMappingResourceConfig(
+					projectID,
 					serviceTokenName,
-					projectName,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -69,17 +73,15 @@ func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudSLCredServiceTokenMappingResourceConfig(serviceTokenName, projectName string) string {
+func testAccDbtCloudSLCredServiceTokenMappingResourceConfig(projectID int, serviceTokenName  string) string {
 	return fmt.Sprintf(`
-resource "dbtcloud_project" "test_project" {
-  name        = "%s"
-}
+
 resource "dbtcloud_service_token" "test_service_token" {
     name = "%s"
     service_token_permissions {
         permission_set = "git_admin"
         all_projects = false
-        project_id = dbtcloud_project.test_project.id
+        project_id = "%s"
     }
     service_token_permissions {
         permission_set = "job_admin"
@@ -92,12 +94,12 @@ resource "dbtcloud_service_token" "test_service_token" {
 }
 resource "dbtcloud_redshift_semantic_layer_credential" "test" {
   configuration = {
-    project_id = dbtcloud_project.test_project.id
+    project_id = "%s"
 	name = "CredentialName"
 	adapter_version = "redshift_v0"
   }
   credential = {
-  	project_id = dbtcloud_project.test_project.id
+  	project_id = "%s"
 	username = "user"
 	dataset = "test"
 	is_active = true
@@ -110,9 +112,9 @@ resource "dbtcloud_redshift_semantic_layer_credential" "test" {
 resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mapping" {
   semantic_layer_credential_id = dbtcloud_redshift_semantic_layer_credential.test.id
   service_token_id = dbtcloud_service_token.test_service_token.id
-  project_id = dbtcloud_project.test_project.id
+  project_id = "%s"
 }
-`, projectName, serviceTokenName)
+`, serviceTokenName, strconv.Itoa(projectID),  strconv.Itoa(projectID), strconv.Itoa(projectID), strconv.Itoa(projectID))
 }
 
 func testAccCheckDbtCloudSLCredServiceTokenMappingDestroy(s *terraform.State) error {
