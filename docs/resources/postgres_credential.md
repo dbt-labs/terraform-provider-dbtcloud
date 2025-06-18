@@ -29,17 +29,18 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
 
 ### Required
 
-- `default_schema` (String) Default schema name
 - `project_id` (Number) Project ID to create the Postgres/Redshift/AlloyDB credential in.
-- `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections
 - `username` (String) Username for Postgres/Redshift/AlloyDB
 
 ### Optional
 
+- `default_schema` (String) Default schema name. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `is_active` (Boolean) Whether the Postgres/Redshift/AlloyDB credential is active
 - `num_threads` (Number) Number of threads to use (required for Redshift)
 - `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB
+- `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.
 - `target_name` (String) Default schema name
+- `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 
 ### Read-Only
 

@@ -1,6 +1,8 @@
 package postgres_credential
 
 import (
+	sl_cred_validator "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -46,7 +48,7 @@ var datasourceSchema = datasource_schema.Schema{
 
 var warehouseTypes = []string{"postgres", "redshift"}
 
-var resourceSchema = resource_schema.Schema{
+var PostgresResourceSchema = resource_schema.Schema{
 	Description: "Postgres credential resource.",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
@@ -68,17 +70,25 @@ var resourceSchema = resource_schema.Schema{
 			Description: "The system Postgres/Redshift/AlloyDB credential ID.",
 		},
 		"type": resource_schema.StringAttribute{
-			Required:    true,
-			Description: "Type of connection. One of (postgres/redshift). Use postgres for alloydb connections",
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("postgres"),
+			Description: "Type of connection. One of (postgres/redshift). Use postgres for alloydb connections. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
 			Validators: []validator.String{
 				stringvalidator.OneOf(
 					warehouseTypes...,
 				),
+				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "type"},
 			},
 		},
 		"default_schema": resource_schema.StringAttribute{
-			Required:    true,
-			Description: "Default schema name",
+			Optional:    true,
+			Computed:    true,
+			Default:     stringdefault.StaticString("default_schema"),
+			Description: "Default schema name. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
+			Validators: []validator.String{
+				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "default_schema"},
+			},
 		},
 		"target_name": resource_schema.StringAttribute{
 			Optional:    true,
@@ -100,6 +110,12 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     int64default.StaticInt64(0),
 			Description: "Number of threads to use (required for Redshift)",
+		},
+		"semantic_layer_credential": resource_schema.BoolAttribute{
+			Optional:    true,
+			Description: "This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.",
+			Computed:    true,
+			Default:     booldefault.StaticBool(false),
 		},
 	},
 }
