@@ -1,3 +1,0 @@
-kind: Fixes
-body: Add fix for Branch link in IDE redirects to https://github.com/None/tree/main on projects that were created with terraform
-time: 2025-06-16T14:35:17.284117+03:00
