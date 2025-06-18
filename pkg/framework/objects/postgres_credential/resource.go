@@ -159,10 +159,10 @@ func (p *postgresCredentialResource) Create(ctx context.Context, req resource.Cr
 		projectID,
 		isActive,
 		type_value,
-		defaultSchema, 
+		defaultSchema,
 		targetName,
-		username, 
-		password, 
+		username,
+		password,
 		numThreads)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -241,7 +241,7 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.Type = types.StringValue(credential.Type)
 	state.TargetName = types.StringValue(credential.Target_Name)
-	
+
 	// Do not read the password value from the API to avoid refresh differences, keep it as it is in the state
 	if state.Password.IsNull() {
 		state.Password = types.StringValue("")
@@ -255,7 +255,7 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 }
 
 func (p *postgresCredentialResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resourceSchema
+	resp.Schema = PostgresResourceSchema
 }
 
 func (p *postgresCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

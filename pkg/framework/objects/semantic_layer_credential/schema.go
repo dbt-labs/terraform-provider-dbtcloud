@@ -3,6 +3,7 @@ package semantic_layer_credential
 import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
 	config_resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -146,6 +147,26 @@ var databricks_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Databricks credential details, but used in the context of the Semantic Layer.",
 			Attributes:  databricks_credential.DatabricksResourceSchema.Attributes, // Reuse the schema
+		},
+	},
+}
+
+var postgres_sl_credential_resource_schema = resource_schema.Schema{
+	Description: "Postgres credential resource. This resource is composed of a Postgres credential and a Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.",
+	Attributes: map[string]resource_schema.Attribute{
+		"id": resource_schema.Int64Attribute{
+			Computed:    true,
+			Description: "The ID of the credential",
+		},
+		"configuration": resource_schema.SingleNestedAttribute{
+			Required:    true,
+			Description: "Semantic Layer credential configuration details.",
+			Attributes:  semantic_layer_config_resource_schema.Attributes, // Reuse the schema
+		},
+		"credential": resource_schema.SingleNestedAttribute{
+			Required:    true,
+			Description: "Postgres credential details, but used in the context of the Semantic Layer.",
+			Attributes:  postgres_credential.PostgresResourceSchema.Attributes, // Reuse the schema
 		},
 	},
 }

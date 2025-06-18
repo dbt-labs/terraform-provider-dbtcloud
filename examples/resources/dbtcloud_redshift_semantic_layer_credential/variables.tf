@@ -4,7 +4,7 @@ variable "project_id" {
 }
 
 variable "username" {
-  description = "The Snowflake database name"
+  description = "The Redshift database name"
   type        = string
 }
 
