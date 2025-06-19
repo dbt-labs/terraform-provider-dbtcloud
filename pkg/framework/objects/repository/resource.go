@@ -200,6 +200,12 @@ func (r *repositoryResource) Create(
 		plan.AzureBypassWebhookRegistrationFailure = types.BoolValue(azureBypassWebhookRegistrationFailure)
 	}
 
+	// Handle the deprecated FetchDeployKey field - just maintain the planned value
+	// This field doesn't affect API behavior but needs to be consistent for Terraform
+	if plan.FetchDeployKey.IsNull() {
+		plan.FetchDeployKey = types.BoolValue(false)
+	}
+
 	// Set state
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
@@ -298,6 +304,12 @@ func (r *repositoryResource) Read(
 		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
 	}
 
+	// Handle the deprecated FetchDeployKey field - maintain existing value or default to false
+	// This field doesn't affect API behavior but needs to be consistent for Terraform
+	if state.FetchDeployKey.IsNull() {
+		state.FetchDeployKey = types.BoolValue(false)
+	}
+
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -319,104 +331,104 @@ func (r *repositoryResource) Update(
 	hasIsActiveChange := !plan.IsActive.Equal(state.IsActive)
 	hasPullRequestURLTemplateChange := !plan.PullRequestURLTemplate.Equal(state.PullRequestURLTemplate)
 
-	if hasIsActiveChange || hasPullRequestURLTemplateChange {
-		parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
-		if len(parts) != 2 {
-			resp.Diagnostics.AddError(
-				"Invalid ID format",
-				fmt.Sprintf("Expected ID in format project_id%srepository_id, got: %s", dbt_cloud.ID_DELIMITER, state.ID.ValueString()),
-			)
-			return
-		}
-		projectID := parts[0]
-		repositoryID := parts[1]
-
-		repository, err := r.client.GetRepository(repositoryID, projectID)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error reading repository",
-				err.Error(),
-			)
-			return
-		}
-
-		if hasIsActiveChange {
-			if plan.IsActive.ValueBool() {
-				repository.State = dbt_cloud.STATE_ACTIVE
-			} else {
-				repository.State = dbt_cloud.STATE_DELETED
-			}
-		}
-
-		if hasPullRequestURLTemplateChange {
-			repository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
-		}
-
-		updatedRepository, err := r.client.UpdateRepository(repositoryID, projectID, *repository)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error updating repository",
-				err.Error(),
-			)
-			return
-		}
-
-		state.IsActive = types.BoolValue(updatedRepository.State == dbt_cloud.STATE_ACTIVE)
-		state.ProjectID = types.Int64Value(int64(updatedRepository.ProjectID))
-		state.RepositoryID = types.Int64Value(int64(*updatedRepository.ID))
-		state.RemoteURL = types.StringValue(updatedRepository.RemoteUrl)
-		state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
-
-		if updatedRepository.RepositoryCredentialsID != nil {
-			state.RepositoryCredentialsID = types.Int64Value(int64(*updatedRepository.RepositoryCredentialsID))
-		} else {
-			state.RepositoryCredentialsID = types.Int64Null()
-		}
-
-		if updatedRepository.GitlabProjectID != nil {
-			state.GitlabProjectID = types.Int64Value(int64(*updatedRepository.GitlabProjectID))
-		}
-
-		if updatedRepository.GithubInstallationID != nil {
-			state.GithubInstallationID = types.Int64Value(int64(*updatedRepository.GithubInstallationID))
-		} else {
-			state.GithubInstallationID = types.Int64Null()
-		}
-
-		if updatedRepository.DeployKey != nil {
-			state.DeployKey = types.StringValue(updatedRepository.DeployKey.PublicKey)
-		} else {
-			state.DeployKey = types.StringNull()
-		}
-
-		if updatedRepository.PullRequestURLTemplate != "" {
-			state.PullRequestURLTemplate = types.StringValue(updatedRepository.PullRequestURLTemplate)
-		} else {
-			state.PullRequestURLTemplate = types.StringNull()
-		}
-
-		if updatedRepository.AzureActiveDirectoryProjectID != nil {
-			state.AzureActiveDirectoryProjectID = types.StringValue(*updatedRepository.AzureActiveDirectoryProjectID)
-		} else {
-			state.AzureActiveDirectoryProjectID = types.StringValue("")
-		}
-
-		if updatedRepository.AzureActiveDirectoryRepositoryID != nil {
-			state.AzureActiveDirectoryRepositoryID = types.StringValue(*updatedRepository.AzureActiveDirectoryRepositoryID)
-		} else {
-			state.AzureActiveDirectoryRepositoryID = types.StringValue("")
-		}
-
-		if updatedRepository.AzureBypassWebhookRegistrationFailure != nil {
-			state.AzureBypassWebhookRegistrationFailure = types.BoolValue(*updatedRepository.AzureBypassWebhookRegistrationFailure)
-		} else {
-			state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
-		}
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	} else {
-		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid ID format",
+			fmt.Sprintf("Expected ID in format project_id%srepository_id, got: %s", dbt_cloud.ID_DELIMITER, state.ID.ValueString()),
+		)
+		return
 	}
+	projectID := parts[0]
+	repositoryID := parts[1]
+
+	repository, err := r.client.GetRepository(repositoryID, projectID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading repository",
+			err.Error(),
+		)
+		return
+	}
+
+	if hasIsActiveChange {
+		if plan.IsActive.ValueBool() {
+			repository.State = dbt_cloud.STATE_ACTIVE
+		} else {
+			repository.State = dbt_cloud.STATE_DELETED
+		}
+	}
+
+	if hasPullRequestURLTemplateChange {
+		repository.PullRequestURLTemplate = plan.PullRequestURLTemplate.ValueString()
+	}
+
+	updatedRepository, err := r.client.UpdateRepository(repositoryID, projectID, *repository)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating repository",
+			err.Error(),
+		)
+		return
+	}
+
+	state.IsActive = types.BoolValue(updatedRepository.State == dbt_cloud.STATE_ACTIVE)
+	state.ProjectID = types.Int64Value(int64(updatedRepository.ProjectID))
+	state.RepositoryID = types.Int64Value(int64(*updatedRepository.ID))
+	state.RemoteURL = types.StringValue(updatedRepository.RemoteUrl)
+	state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+
+	if updatedRepository.RepositoryCredentialsID != nil {
+		state.RepositoryCredentialsID = types.Int64Value(int64(*updatedRepository.RepositoryCredentialsID))
+	} else {
+		state.RepositoryCredentialsID = types.Int64Null()
+	}
+
+	if updatedRepository.GitlabProjectID != nil {
+		state.GitlabProjectID = types.Int64Value(int64(*updatedRepository.GitlabProjectID))
+	}
+
+	if updatedRepository.GithubInstallationID != nil {
+		state.GithubInstallationID = types.Int64Value(int64(*updatedRepository.GithubInstallationID))
+	} else {
+		state.GithubInstallationID = types.Int64Null()
+	}
+
+	if updatedRepository.DeployKey != nil {
+		state.DeployKey = types.StringValue(updatedRepository.DeployKey.PublicKey)
+	} else {
+		state.DeployKey = types.StringNull()
+	}
+
+	if updatedRepository.PullRequestURLTemplate != "" {
+		state.PullRequestURLTemplate = types.StringValue(updatedRepository.PullRequestURLTemplate)
+	} else {
+		state.PullRequestURLTemplate = types.StringNull()
+	}
+
+	if updatedRepository.AzureActiveDirectoryProjectID != nil {
+		state.AzureActiveDirectoryProjectID = types.StringValue(*updatedRepository.AzureActiveDirectoryProjectID)
+	} else {
+		state.AzureActiveDirectoryProjectID = types.StringValue("")
+	}
+
+	if updatedRepository.AzureActiveDirectoryRepositoryID != nil {
+		state.AzureActiveDirectoryRepositoryID = types.StringValue(*updatedRepository.AzureActiveDirectoryRepositoryID)
+	} else {
+		state.AzureActiveDirectoryRepositoryID = types.StringValue("")
+	}
+
+	if updatedRepository.AzureBypassWebhookRegistrationFailure != nil {
+		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(*updatedRepository.AzureBypassWebhookRegistrationFailure)
+	} else {
+		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
+	}
+
+	// Handle the deprecated FetchDeployKey field - maintain the planned value
+	// This field doesn't affect API behavior but needs to be consistent for Terraform
+	state.FetchDeployKey = plan.FetchDeployKey
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success
