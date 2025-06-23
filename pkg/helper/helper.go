@@ -163,3 +163,10 @@ func NormalizeJSONString(jsonString string) string {
 	jsonString = strings.ReplaceAll(jsonString, "\t", "")
 	return jsonString
 }
+
+func ConvertStringPointer(s *string) types.String {
+	if s != nil { 
+		return types.StringValue(*s)
+	}
+	return types.StringNull()
+}

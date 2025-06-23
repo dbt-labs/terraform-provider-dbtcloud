@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -116,7 +117,7 @@ func (d *projectDataSource) Read(
 	state.ID = types.Int64Value(int64(*project.ID))
 	state.Name = types.StringValue(project.Name)
 	state.Description = types.StringValue(project.Description)
-	state.DbtProjectSubdirectory=types.StringValue(*project.DbtProjectSubdirectory)
+	state.DbtProjectSubdirectory = helper.ConvertStringPointer(project.DbtProjectSubdirectory)
 	if project.ConnectionID != nil {
 		state.ProjectConnection = &ProjectConnection{}
 		state.ProjectConnection.ID = types.Int64Value(int64(*project.ConnectionID))
