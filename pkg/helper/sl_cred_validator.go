@@ -21,6 +21,11 @@ func (v SemanticLayerCredentialValidator) MarkdownDescription(ctx context.Contex
 }
 
 func (v SemanticLayerCredentialValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
 	var semantic_layer_enabled types.Bool
 	semanticLayerPath := req.Path.ParentPath().AtName("semantic_layer_credential")
 	diags := req.Config.GetAttribute(ctx, semanticLayerPath, &semantic_layer_enabled)
@@ -30,7 +35,7 @@ func (v SemanticLayerCredentialValidator) ValidateString(ctx context.Context, re
 	}
 
 	if semantic_layer_enabled.IsNull() || !semantic_layer_enabled.ValueBool() {
-		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || req.ConfigValue.ValueString() == "" {
+		if req.ConfigValue.IsNull() || req.ConfigValue.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Missing Required Attribute",

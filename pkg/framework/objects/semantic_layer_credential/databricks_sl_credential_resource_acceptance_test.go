@@ -27,8 +27,6 @@ func TestAccDbtCloudDatabricksSemanticLayerConfigurationResource(t *testing.T) {
 	catalog2 := ""
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	adapterType := "databricks"
-	schema := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -42,8 +40,6 @@ func TestAccDbtCloudDatabricksSemanticLayerConfigurationResource(t *testing.T) {
 					adapterVersion,
 					catalog,
 					token,
-					adapterType,
-					schema,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
@@ -67,16 +63,6 @@ func TestAccDbtCloudDatabricksSemanticLayerConfigurationResource(t *testing.T) {
 						"credential.token",
 						token,
 					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_databricks_semantic_layer_credential.test",
-						"credential.adapter_type",
-						adapterType,
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_databricks_semantic_layer_credential.test",
-						"credential.schema",
-						schema,
-					),
 				),
 			},
 			// MODIFY general config fields
@@ -87,8 +73,6 @@ func TestAccDbtCloudDatabricksSemanticLayerConfigurationResource(t *testing.T) {
 					adapterVersion,
 					catalog2,
 					token2,
-					adapterType,
-					schema,
 				),
 
 				Check: resource.ComposeTestCheckFunc(
@@ -119,8 +103,6 @@ func testAccDbtCloudDatabricksSemanticLayerCredentialResource(
 	adapterVersion string,
 	catalog string,
 	token string,
-	adapterType string,
-	schema string,
 ) string {
 
 	return fmt.Sprintf(`
@@ -135,10 +117,9 @@ credential = {
   	project_id = "%s"
     catalog = "%s"
     token = "%s"
-    adapter_type = "%s"
-    schema = "%s"
+	semantic_layer_credential = true
   }
-}`, strconv.Itoa(projectID), name, adapterVersion, strconv.Itoa(projectID), catalog, token, adapterType, schema)
+}`, strconv.Itoa(projectID), name, adapterVersion, strconv.Itoa(projectID), catalog, token)
 }
 
 func testAccCheckDbtCloudDatabricksSemanticLayerCredentialDestroy(s *terraform.State) error {
