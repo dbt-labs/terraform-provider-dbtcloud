@@ -1,0 +1,3 @@
+kind: Fixes
+body: Fix update on the repository resource after the resource is imported.
+time: 2025-06-23T10:25:03.088373+03:00
