@@ -70,10 +70,11 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	if !plan.Description.IsNull() {
 		description = plan.Description.ValueString()
 	}
-	dbtProjectSubdirectory := ""
+	var dbtProjectSubdirectory *string
 
 	if !plan.DbtProjectSubdirectory.IsNull() {
-		dbtProjectSubdirectory = plan.DbtProjectSubdirectory.ValueString()
+		subdir := plan.DbtProjectSubdirectory.ValueString()
+		dbtProjectSubdirectory = &subdir
 	}
 
 	var dbtProjectType int64 = 0

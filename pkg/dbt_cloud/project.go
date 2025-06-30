@@ -153,7 +153,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 func (c *Client) CreateProject(
 	name string,
 	description string,
-	dbtProjectSubdirectory string,
+	dbtProjectSubdirectory *string,
 	dbtProjectType int64,
 ) (*Project, error) {
 	newProject := Project{
@@ -163,8 +163,8 @@ func (c *Client) CreateProject(
 		AccountID:      c.AccountID,
 		DbtProjectType: dbtProjectType,
 	}
-	if dbtProjectSubdirectory != "" {
-		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
+	if dbtProjectSubdirectory != nil {
+		newProject.DbtProjectSubdirectory = dbtProjectSubdirectory
 	}
 
 	newProjectData, err := json.Marshal(newProject)
