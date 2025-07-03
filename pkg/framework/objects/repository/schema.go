@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-// ResourceSchema returns the schema for the repository resource
 func ResourceSchema() resource_schema.Schema {
 	return resource_schema.Schema{
 		Description: "Manages a dbt Cloud repository.",
@@ -74,6 +73,13 @@ func ResourceSchema() resource_schema.Schema {
 					int64planmodifier.RequiresReplace(),
 				},
 			},
+			"private_link_endpoint_id": resource_schema.Int64Attribute{
+				Optional:    true,
+				Description: "Identifier for the PrivateLink endpoint.",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
 			"azure_active_directory_project_id": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -121,7 +127,6 @@ func ResourceSchema() resource_schema.Schema {
 	}
 }
 
-// DataSourceSchema returns the schema for the repository data source
 func DataSourceSchema() datasource_schema.Schema {
 	return datasource_schema.Schema{
 		Description: "Retrieve data for a single repository",
@@ -167,6 +172,10 @@ func DataSourceSchema() datasource_schema.Schema {
 			"github_installation_id": datasource_schema.Int64Attribute{
 				Computed:    true,
 				Description: "Identifier for the GitHub installation",
+			},
+			"private_link_endpoint_id": datasource_schema.Int64Attribute{
+				Computed:    true,
+				Description: "Identifier for the PrivateLink endpoint.",
 			},
 			"deploy_key": datasource_schema.StringAttribute{
 				Computed:    true,

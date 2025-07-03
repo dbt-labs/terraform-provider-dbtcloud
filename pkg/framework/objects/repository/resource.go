@@ -11,24 +11,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure the implementation satisfies the expected interfaces
 var (
 	_ resource.Resource                = &repositoryResource{}
 	_ resource.ResourceWithConfigure   = &repositoryResource{}
 	_ resource.ResourceWithImportState = &repositoryResource{}
 )
 
-// RepositoryResource is a function that returns a new repository resource
 func RepositoryResource() resource.Resource {
 	return &repositoryResource{}
 }
 
-// repositoryResource is the resource implementation for repositories
 type repositoryResource struct {
 	client *dbt_cloud.Client
 }
 
-// Metadata returns the resource type name
 func (r *repositoryResource) Metadata(
 	_ context.Context,
 	req resource.MetadataRequest,
@@ -37,7 +33,6 @@ func (r *repositoryResource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
 
-// Schema defines the schema for the resource
 func (r *repositoryResource) Schema(
 	_ context.Context,
 	_ resource.SchemaRequest,
@@ -46,40 +41,40 @@ func (r *repositoryResource) Schema(
 	resp.Schema = ResourceSchema()
 }
 
-// Create creates the resource and sets the initial Terraform state
 func (r *repositoryResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	// Read the plan data
 	var plan RepositoryResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Extract values from plan
 	projectID := int(plan.ProjectID.ValueInt64())
 	remoteURL := plan.RemoteURL.ValueString()
 	isActive := plan.IsActive.ValueBool()
 	gitCloneStrategy := plan.GitCloneStrategy.ValueString()
 	pullRequestURLTemplate := plan.PullRequestURLTemplate.ValueString()
 
-	// Initialize parameters
 	var gitlabProjectID int
 	var githubInstallationID int
+	var privateLinkEndpointID int
 	var azureProjectID string
 	var azureRepositoryID string
 	var azureBypassWebhookRegistrationFailure bool
 
-	// Set optional parameters if provided
 	if !plan.GitlabProjectID.IsNull() {
 		gitlabProjectID = int(plan.GitlabProjectID.ValueInt64())
 	}
 
 	if !plan.GithubInstallationID.IsNull() {
 		githubInstallationID = int(plan.GithubInstallationID.ValueInt64())
+	}
+
+	if !plan.PrivateLinkEndpointID.IsNull() {
+		privateLinkEndpointID = int(plan.PrivateLinkEndpointID.ValueInt64())
 	}
 
 	if !plan.AzureActiveDirectoryProjectID.IsNull() {
@@ -101,6 +96,7 @@ func (r *repositoryResource) Create(
 		gitCloneStrategy,
 		gitlabProjectID,
 		githubInstallationID,
+		privateLinkEndpointID,
 		azureProjectID,
 		azureRepositoryID,
 		azureBypassWebhookRegistrationFailure,
@@ -134,7 +130,6 @@ func (r *repositoryResource) Create(
 		return
 	}
 
-	// Map response to model
 	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", repository.ProjectID, dbt_cloud.ID_DELIMITER, *repository.ID))
 	plan.RepositoryID = types.Int64Value(int64(*repository.ID))
 	plan.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
@@ -162,6 +157,14 @@ func (r *repositoryResource) Create(
 		plan.GithubInstallationID = types.Int64Value(int64(githubInstallationID))
 	} else {
 		plan.GithubInstallationID = types.Int64Null()
+	}
+
+	if repository.PrivateLinkEndpointID != nil {
+		plan.PrivateLinkEndpointID = types.Int64Value(int64(*repository.PrivateLinkEndpointID))
+	} else if privateLinkEndpointID != 0 {
+		plan.PrivateLinkEndpointID = types.Int64Value(int64(privateLinkEndpointID))
+	} else {
+		plan.PrivateLinkEndpointID = types.Int64Null()
 	}
 
 	if repository.DeployKey != nil {
@@ -206,24 +209,20 @@ func (r *repositoryResource) Create(
 		plan.FetchDeployKey = types.BoolValue(false)
 	}
 
-	// Set state
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-// Read refreshes the Terraform state with the latest data
 func (r *repositoryResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
 	resp *resource.ReadResponse,
 ) {
-	// Read the current state
 	var state RepositoryResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Parse the ID
 	parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError(
@@ -236,7 +235,6 @@ func (r *repositoryResource) Read(
 	projectID := parts[0]
 	repositoryID := parts[1]
 
-	// Get the repository
 	repository, err := r.client.GetRepository(repositoryID, projectID)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
@@ -250,7 +248,6 @@ func (r *repositoryResource) Read(
 		return
 	}
 
-	// Update state with values from API response
 	state.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	state.RepositoryID = types.Int64Value(int64(*repository.ID))
@@ -271,6 +268,12 @@ func (r *repositoryResource) Read(
 		state.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
 	} else {
 		state.GithubInstallationID = types.Int64Null()
+	}
+
+	if repository.PrivateLinkEndpointID != nil {
+		state.PrivateLinkEndpointID = types.Int64Value(int64(*repository.PrivateLinkEndpointID))
+	} else {
+		state.PrivateLinkEndpointID = types.Int64Null()
 	}
 
 	if repository.DeployKey != nil {
@@ -310,11 +313,9 @@ func (r *repositoryResource) Read(
 		state.FetchDeployKey = types.BoolValue(false)
 	}
 
-	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Update updates the resource and sets the updated Terraform state on success
 func (r *repositoryResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
@@ -394,6 +395,12 @@ func (r *repositoryResource) Update(
 		state.GithubInstallationID = types.Int64Null()
 	}
 
+	if updatedRepository.PrivateLinkEndpointID != nil {
+		state.PrivateLinkEndpointID = types.Int64Value(int64(*updatedRepository.PrivateLinkEndpointID))
+	} else {
+		state.PrivateLinkEndpointID = types.Int64Null()
+	}
+
 	if updatedRepository.DeployKey != nil {
 		state.DeployKey = types.StringValue(updatedRepository.DeployKey.PublicKey)
 	} else {
@@ -431,20 +438,17 @@ func (r *repositoryResource) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Delete deletes the resource and removes the Terraform state on success
 func (r *repositoryResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
 	resp *resource.DeleteResponse,
 ) {
-	// Read the current state
 	var state RepositoryResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Parse the ID
 	parts := strings.Split(state.ID.ValueString(), dbt_cloud.ID_DELIMITER)
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError(
@@ -456,7 +460,6 @@ func (r *repositoryResource) Delete(
 	projectID := parts[0]
 	repositoryID := parts[1]
 
-	// Delete the repository
 	_, err := r.client.DeleteRepository(repositoryID, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -467,13 +470,11 @@ func (r *repositoryResource) Delete(
 	}
 }
 
-// ImportState imports a resource by ID
 func (r *repositoryResource) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-	// Split the ID into project ID and repository ID
 	parts := strings.Split(req.ID, dbt_cloud.ID_DELIMITER)
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError(
@@ -483,11 +484,9 @@ func (r *repositoryResource) ImportState(
 		return
 	}
 
-	// Set the ID attribute
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 }
 
-// Configure adds the provider configured client to the resource
 func (r *repositoryResource) Configure(
 	_ context.Context,
 	req resource.ConfigureRequest,
