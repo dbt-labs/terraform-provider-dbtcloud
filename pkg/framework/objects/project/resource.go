@@ -97,8 +97,6 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 
 	if project.DbtProjectSubdirectory != nil {
 		plan.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
-	} else {
-		plan.DbtProjectSubdirectory = types.StringNull()
 	}
 
 	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
@@ -145,8 +143,6 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	if project.DbtProjectSubdirectory != nil {
 		state.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
-	} else {
-		state.DbtProjectSubdirectory = types.StringNull()
 	}
 
 	state.DbtProjectType = types.Int64Value(project.DbtProjectType)
@@ -234,8 +230,6 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	if project.DbtProjectSubdirectory != nil {
 		plan.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
-	} else {
-		plan.DbtProjectSubdirectory = types.StringNull()
 	}
 
 	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
