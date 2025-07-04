@@ -1,0 +1,3 @@
+kind: Fixes
+body: Fix provisioning empty string for subdirectory in project resource
+time: 2025-07-04T12:53:01.09827+03:00

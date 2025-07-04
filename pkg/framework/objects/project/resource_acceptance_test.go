@@ -60,6 +60,28 @@ var modifyStep = resource.TestStep{
 	),
 }
 
+var emptyStringStep = resource.TestStep{
+	Config: testAccDbtCloudProjectResourceEmptyStringConfig(projectName, projectDescription),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudProjectExists("dbtcloud_project.test_project"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"name",
+			projectName,
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"dbt_project_subdirectory",
+			"",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_project.test_project",
+			"type",
+			"0",
+		),
+	),
+}
+
 func TestAccDbtCloudProjectResource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,6 +92,7 @@ func TestAccDbtCloudProjectResource(t *testing.T) {
 			createStep,
 			renameStep,
 			modifyStep,
+			emptyStringStep,
 			{
 				ResourceName:            "dbtcloud_project.test_project",
 				ImportState:             true,
@@ -97,6 +120,20 @@ resource "dbtcloud_project" "test_project" {
   name = "%s"
   description = "%s"
   dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
+  type = 0
+}
+`, projectName, projectDescription)
+}
+
+func testAccDbtCloudProjectResourceEmptyStringConfig(
+	projectName string,
+	projectDescription string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+  description = "%s"
+  dbt_project_subdirectory = ""
   type = 0
 }
 `, projectName, projectDescription)
