@@ -14,7 +14,7 @@ type RepositoryDataSourceModel struct {
 	RepositoryCredentialsID               types.Int64  `tfsdk:"repository_credentials_id"`
 	GitlabProjectID                       types.Int64  `tfsdk:"gitlab_project_id"`
 	GithubInstallationID                  types.Int64  `tfsdk:"github_installation_id"`
-	PrivateLinkEndpointID                 types.Int64  `tfsdk:"private_link_endpoint_id"`
+	PrivateLinkEndpointID                 types.String `tfsdk:"private_link_endpoint_id"`
 	DeployKey                             types.String `tfsdk:"deploy_key"`
 	PullRequestURLTemplate                types.String `tfsdk:"pull_request_url_template"`
 	AzureActiveDirectoryProjectID         types.String `tfsdk:"azure_active_directory_project_id"`
@@ -33,7 +33,7 @@ type RepositoryResourceModel struct {
 	RepositoryCredentialsID               types.Int64  `tfsdk:"repository_credentials_id"`
 	GitlabProjectID                       types.Int64  `tfsdk:"gitlab_project_id"`
 	GithubInstallationID                  types.Int64  `tfsdk:"github_installation_id"`
-	PrivateLinkEndpointID                 types.Int64  `tfsdk:"private_link_endpoint_id"`
+	PrivateLinkEndpointID                 types.String `tfsdk:"private_link_endpoint_id"`
 	DeployKey                             types.String `tfsdk:"deploy_key"`
 	PullRequestURLTemplate                types.String `tfsdk:"pull_request_url_template"`
 	AzureActiveDirectoryProjectID         types.String `tfsdk:"azure_active_directory_project_id"`

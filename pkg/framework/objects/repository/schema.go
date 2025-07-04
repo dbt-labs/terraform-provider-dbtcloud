@@ -73,11 +73,11 @@ func ResourceSchema() resource_schema.Schema {
 					int64planmodifier.RequiresReplace(),
 				},
 			},
-			"private_link_endpoint_id": resource_schema.Int64Attribute{
+			"private_link_endpoint_id": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "Identifier for the PrivateLink endpoint.",
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"azure_active_directory_project_id": resource_schema.StringAttribute{
@@ -173,7 +173,7 @@ func DataSourceSchema() datasource_schema.Schema {
 				Computed:    true,
 				Description: "Identifier for the GitHub installation",
 			},
-			"private_link_endpoint_id": datasource_schema.Int64Attribute{
+			"private_link_endpoint_id": datasource_schema.StringAttribute{
 				Computed:    true,
 				Description: "Identifier for the PrivateLink endpoint.",
 			},

@@ -92,9 +92,9 @@ func (d *repositoryDataSource) Read(
 	}
 
 	if repository.PrivateLinkEndpointID != nil {
-		data.PrivateLinkEndpointID = types.Int64Value(int64(*repository.PrivateLinkEndpointID))
+		data.PrivateLinkEndpointID = types.StringValue((*repository.PrivateLinkEndpointID))
 	} else {
-		data.PrivateLinkEndpointID = types.Int64Null()
+		data.PrivateLinkEndpointID = types.StringNull()
 	}
 
 	if repository.DeployKey != nil {

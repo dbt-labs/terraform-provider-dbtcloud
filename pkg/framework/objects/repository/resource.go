@@ -60,7 +60,7 @@ func (r *repositoryResource) Create(
 
 	var gitlabProjectID int
 	var githubInstallationID int
-	var privateLinkEndpointID int
+	var privateLinkEndpointID string
 	var azureProjectID string
 	var azureRepositoryID string
 	var azureBypassWebhookRegistrationFailure bool
@@ -74,7 +74,7 @@ func (r *repositoryResource) Create(
 	}
 
 	if !plan.PrivateLinkEndpointID.IsNull() {
-		privateLinkEndpointID = int(plan.PrivateLinkEndpointID.ValueInt64())
+		privateLinkEndpointID = plan.PrivateLinkEndpointID.ValueString()
 	}
 
 	if !plan.AzureActiveDirectoryProjectID.IsNull() {
@@ -160,11 +160,11 @@ func (r *repositoryResource) Create(
 	}
 
 	if repository.PrivateLinkEndpointID != nil {
-		plan.PrivateLinkEndpointID = types.Int64Value(int64(*repository.PrivateLinkEndpointID))
-	} else if privateLinkEndpointID != 0 {
-		plan.PrivateLinkEndpointID = types.Int64Value(int64(privateLinkEndpointID))
+		plan.PrivateLinkEndpointID = types.StringValue(*repository.PrivateLinkEndpointID)
+	} else if privateLinkEndpointID != "" {
+		plan.PrivateLinkEndpointID = types.StringValue(privateLinkEndpointID)
 	} else {
-		plan.PrivateLinkEndpointID = types.Int64Null()
+		plan.PrivateLinkEndpointID = types.StringNull()
 	}
 
 	if repository.DeployKey != nil {
@@ -271,9 +271,9 @@ func (r *repositoryResource) Read(
 	}
 
 	if repository.PrivateLinkEndpointID != nil {
-		state.PrivateLinkEndpointID = types.Int64Value(int64(*repository.PrivateLinkEndpointID))
+		state.PrivateLinkEndpointID = types.StringValue(*repository.PrivateLinkEndpointID)
 	} else {
-		state.PrivateLinkEndpointID = types.Int64Null()
+		state.PrivateLinkEndpointID = types.StringNull()
 	}
 
 	if repository.DeployKey != nil {
@@ -396,9 +396,9 @@ func (r *repositoryResource) Update(
 	}
 
 	if updatedRepository.PrivateLinkEndpointID != nil {
-		state.PrivateLinkEndpointID = types.Int64Value(int64(*updatedRepository.PrivateLinkEndpointID))
+		state.PrivateLinkEndpointID = types.StringValue(*updatedRepository.PrivateLinkEndpointID)
 	} else {
-		state.PrivateLinkEndpointID = types.Int64Null()
+		state.PrivateLinkEndpointID = types.StringNull()
 	}
 
 	if updatedRepository.DeployKey != nil {

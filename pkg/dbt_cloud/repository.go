@@ -21,7 +21,7 @@ type Repository struct {
 	RepositoryCredentialsID               *int       `json:"repository_credentials_id,omitempty"`
 	GitlabProjectID                       *int       `json:"gitlab_project_id,omitempty"`
 	GithubInstallationID                  *int       `json:"github_installation_id,omitempty"`
-	PrivateLinkEndpointID                 *int       `json:"private_link_endpoint_id,omitempty"`
+	PrivateLinkEndpointID                 *string    `json:"private_link_endpoint_id,omitempty"`
 	DeployKey                             *DeployKey `json:"deploy_key,omitempty"`
 	DeployKeyID                           *int       `json:"deploy_key_id,omitempty"`
 	PullRequestURLTemplate                string     `json:"pull_request_url_template,omitempty"`
@@ -84,7 +84,7 @@ func (c *Client) CreateRepository(
 	gitCloneStrategy string,
 	gitlabProjectID int,
 	githubInstallationID int,
-	privateLinkEndpointID int,
+	privateLinkEndpointID string,
 	azureActiveDirectoryProjectID string,
 	azureActiveDirectoryRepositoryID string,
 	azureBypassWebhookRegistrationFailure bool,
@@ -109,7 +109,7 @@ func (c *Client) CreateRepository(
 	if githubInstallationID != 0 {
 		newRepository.GithubInstallationID = &githubInstallationID
 	}
-	if privateLinkEndpointID != 0 {
+	if privateLinkEndpointID != "" {
 		newRepository.PrivateLinkEndpointID = &privateLinkEndpointID
 	}
 	if azureActiveDirectoryProjectID != "" {
@@ -159,7 +159,7 @@ func (c *Client) CreateRepository(
 		if repositoryResponse.Data.RepositoryCredentialsID != nil {
 			newRepository.RepositoryCredentialsID = repositoryResponse.Data.RepositoryCredentialsID
 		}
-		
+
 		if repositoryResponse.Data.RemoteBackend != nil {
 			newRepository.RemoteBackend = repositoryResponse.Data.RemoteBackend
 		}
