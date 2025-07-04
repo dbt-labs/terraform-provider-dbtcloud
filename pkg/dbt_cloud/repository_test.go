@@ -52,6 +52,7 @@ func TestCreateRepository_PreservesRemoteBackendAndFullName(t *testing.T) {
 		0,
 		"",
 		"",
+		"",
 		false,
 		"https://github.com/test/repo/compare/{{destination}}...{{source}}",
 	)
