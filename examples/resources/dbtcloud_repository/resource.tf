@@ -61,3 +61,12 @@ resource "dbtcloud_repository" "ado_repo" {
   azure_bypass_webhook_registration_failure = false
   git_clone_strategy                        = "azure_active_directory_app"
 }
+
+### repo with private link endpoint
+# You have to have a PrivateLink Endpoint available in the dropdown in the dbt cloud app in the New repository modal, under Git Clone with PrivateLink Endpointed selected
+resource "dbtcloud_repository" "ado_repo" {
+  project_id = dbtcloud_project.dbt_project.id
+  remote_url = "git@github.somecorp.com:username/terraform-provider.git"
+  private_link_endpoint_id = "<private_link_endpoint_id>"
+  pull_request_url_template = "https://github.somecorp.com/username/terraform-provider/revert2/{{destination}}...{{source}}"
+}
