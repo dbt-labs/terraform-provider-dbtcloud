@@ -63,7 +63,7 @@ resource "dbtcloud_repository" "ado_repo" {
 }
 
 ### repo with private link endpoint
-# You have to have a PrivateLink Endpoint available in the dropdown in the dbt cloud app in the New repository modal, under Git Clone with PrivateLink Endpointed selected
+# You have to have a PrivateLink Endpoint available in the dropdown in the dbt cloud app under Project/ New repository modal, under Git Clone with PrivateLink Endpoint selected.
 resource "dbtcloud_repository" "ado_repo" {
   project_id = dbtcloud_project.dbt_project.id
   remote_url = "git@github.somecorp.com:username/terraform-provider.git"
