@@ -35,6 +35,7 @@ Retrieve data for a single repository
 - `gitlab_project_id` (Number) Identifier for the Gitlab project
 - `id` (String) The ID of this resource
 - `is_active` (Boolean) Whether the repository is active
+- `private_link_endpoint_id` (String) Identifier for the PrivateLink endpoint.
 - `pull_request_url_template` (String) The pull request URL template to be used when opening a pull request from within dbt Cloud's IDE
 - `remote_url` (String) Git URL for the repository or \<Group>/\<Project> for Gitlab
 - `repository_credentials_id` (Number) Credentials ID for the repository (From the repository side not the dbt Cloud ID)

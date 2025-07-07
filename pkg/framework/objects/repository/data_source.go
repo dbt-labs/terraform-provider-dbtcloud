@@ -10,23 +10,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure the implementation satisfies the expected interfaces
 var (
 	_ datasource.DataSource              = &repositoryDataSource{}
 	_ datasource.DataSourceWithConfigure = &repositoryDataSource{}
 )
 
-// RepositoryDataSource returns a new repository data source
 func RepositoryDataSource() datasource.DataSource {
 	return &repositoryDataSource{}
 }
 
-// repositoryDataSource is the data source implementation for repositories
 type repositoryDataSource struct {
 	client *dbt_cloud.Client
 }
 
-// Metadata returns the data source type name
 func (d *repositoryDataSource) Metadata(
 	_ context.Context,
 	req datasource.MetadataRequest,
@@ -35,7 +31,6 @@ func (d *repositoryDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
 
-// Schema defines the schema for the data source
 func (d *repositoryDataSource) Schema(
 	_ context.Context,
 	_ datasource.SchemaRequest,
@@ -44,7 +39,6 @@ func (d *repositoryDataSource) Schema(
 	resp.Schema = DataSourceSchema()
 }
 
-// Read fetches the data from the API
 func (d *repositoryDataSource) Read(
 	ctx context.Context,
 	req datasource.ReadRequest,
@@ -52,7 +46,6 @@ func (d *repositoryDataSource) Read(
 ) {
 	var data RepositoryDataSourceModel
 
-	// Read the datasource inputs
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,6 +91,12 @@ func (d *repositoryDataSource) Read(
 		data.GithubInstallationID = types.Int64Null()
 	}
 
+	if repository.PrivateLinkEndpointID != nil {
+		data.PrivateLinkEndpointID = types.StringValue((*repository.PrivateLinkEndpointID))
+	} else {
+		data.PrivateLinkEndpointID = types.StringNull()
+	}
+
 	if repository.DeployKey != nil {
 		data.DeployKey = types.StringValue(repository.DeployKey.PublicKey)
 	} else {
@@ -128,11 +127,9 @@ func (d *repositoryDataSource) Read(
 		data.AzureBypassWebhookRegistrationFailure = types.BoolNull()
 	}
 
-	// Set the response data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Configure adds the provider configured client to the data source
 func (d *repositoryDataSource) Configure(
 	_ context.Context,
 	req datasource.ConfigureRequest,
