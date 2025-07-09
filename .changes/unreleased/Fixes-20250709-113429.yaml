@@ -1,3 +1,3 @@
 kind: Fixes
-body: Revert changing repository id to recreate project repository
+body: Revert change that removed 'required replace' property on repository id to recreate the project repository
 time: 2025-07-09T11:34:29.173306+03:00
