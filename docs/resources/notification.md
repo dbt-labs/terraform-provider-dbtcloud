@@ -46,8 +46,8 @@ resource "dbtcloud_notification" "prod_job_external_notification" {
 
 // and finally, we can set up Slack notifications
 resource "dbtcloud_notification" "prod_job_slack_notifications" {
-  // we still need the ID of a user in dbt Cloud even though it is not used for sending notifications
-  user_id    = 100
+  // we need the ID of the user that set up the Slack Integration to properly send notifications
+  user_id    = 200
   on_failure = [23456, 56788]
   on_cancel  = [dbtcloud_job.prod_job.id]
   // the Type 2 is used for Slack notifications
@@ -62,7 +62,7 @@ resource "dbtcloud_notification" "prod_job_slack_notifications" {
 
 ### Required
 
-- `user_id` (Number) Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one
+- `user_id` (Number) Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one. In the case of a Slack notification, it must be the user_id of the user that set up the Slack Integration.
 
 ### Optional
 

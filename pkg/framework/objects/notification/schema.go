@@ -34,7 +34,7 @@ func (r *notificationResource) Schema(
 			},
 			"user_id": schema.Int64Attribute{
 				Required:    true,
-				Description: "Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one",
+				Description: "Internal dbt Cloud User ID. Must be the user_id for an existing user even if the notification is an external one. In the case of a Slack notification, it must be the user_id of the user that set up the Slack Integration.",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
 				},
