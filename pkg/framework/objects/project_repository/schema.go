@@ -18,6 +18,9 @@ func Schema() schema.Schema {
 			"repository_id": schema.Int64Attribute{
 				Description: "Repository ID",
 				Required:    true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
 			},
 			"project_id": schema.Int64Attribute{
 				Description: "Project ID",
