@@ -58,7 +58,7 @@ resource "dbtcloud_environment" "dev_environment" {
 - `connection_id` (Number) A connection ID (used with Global Connections)
 - `credential_id` (Number) The project ID to which the environment belongs.
 - `custom_branch` (String) The custom branch name to use
-- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
+- `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` or `latest-fusion` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
 - `enable_model_query_history` (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
