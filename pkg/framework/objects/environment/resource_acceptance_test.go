@@ -478,3 +478,48 @@ func TestAccDbtCloudEnvironmentResourceVersionless(t *testing.T) {
 		},
 	})
 }
+
+func TestAccDbtCloudEnvironmentResourceFusion(t *testing.T) {
+	dbtVersionFusion := "latest-fusion"
+	dbtMinorVersion := "1.5.0-latest"
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+					projectName,
+					environmentName,
+					dbtMinorVersion,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						dbtMinorVersion,
+					),
+				),
+			},
+			{
+				Config: testAccDbtCloudEnvironmentResourceNoConnectionBasicConfig(
+					projectName,
+					environmentName,
+					dbtVersionFusion,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudEnvironmentExists("dbtcloud_environment.test_env"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_environment.test_env",
+						"dbt_version",
+						dbtVersionFusion,
+					),
+				),
+			},
+		},
+	})
+}

@@ -3,6 +3,7 @@ package environment
 import (
 	"context"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -205,9 +206,9 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Default:     stringdefault.StaticString("latest"),
-				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, or `latest`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` or `latest-fusion` is recommended. Defaults to `latest` if no version is provided",
 				Validators: []validator.String{
-					stringvalidator.OneOf("latest", "versionless"),
+					helper.DbtVersionValidator{}, // Custom validator to check the dbt version format
 				},
 			},
 			"type": resource_schema.StringAttribute{
