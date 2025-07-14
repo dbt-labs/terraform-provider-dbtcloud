@@ -1,6 +1,6 @@
 resource "dbtcloud_environment" "ci_environment" {
-  // the dbt_version is major.minor.0-latest , major.minor.0-pre or latest (by default, it is set to latest if not configured)
-  dbt_version   = "latest"
+  // the dbt_version is major.minor.0-latest , major.minor.0-pre, latest or latest-fusion (by default, it is set to latest if not configured)
+  dbt_version   = "latest-fusion"
   name          = "CI"
   project_id    = dbtcloud_project.dbt_project.id
   type          = "deployment"
