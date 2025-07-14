@@ -11,11 +11,11 @@ import (
 type DbtVersionValidator struct{}
 
 func (v DbtVersionValidator) Description(ctx context.Context) string {
-	return "Validates that the dbt_version is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, or `latest`."
+	return "Validates that the dbt_version is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, `latest`, or `latest-fusion`."
 }
 
 func (v DbtVersionValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the `dbt_version` is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, or `latest`."
+	return "Validates that the `dbt_version` is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, `latest` or `latest-fusion`."
 }
 
 func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
