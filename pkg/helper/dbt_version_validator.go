@@ -11,11 +11,11 @@ import (
 type DbtVersionValidator struct{}
 
 func (v DbtVersionValidator) Description(ctx context.Context) string {
-	return "Validates that the dbt_version is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, `latest`, or `latest-fusion`."
+	return "Validates that the dbt_version is in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, or `latest-fusion`."
 }
 
 func (v DbtVersionValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the `dbt_version` is in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, `latest` or `latest-fusion`."
+	return "Validates that the `dbt_version` is in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`."
 }
 
 func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
@@ -28,7 +28,7 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	dbtVersion := req.ConfigValue.ValueString()
 
 	// Define the regex pattern for valid dbt_version formats
-	validVersionPattern := `^(latest|versionless|latest-fusion|[0-9]+\.[0-9]+\.0-(latest|pre))$`
+	validVersionPattern := `^(compatible|extended|latest|versionless|latest-fusion|[0-9]+\.[0-9]+\.0-(latest|pre))$`
 	matched, err := regexp.MatchString(validVersionPattern, dbtVersion)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -42,7 +42,7 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	if !matched {
 		resp.Diagnostics.AddError(
 			"Invalid dbt_version Format",
-			fmt.Sprintf("The `dbt_version` must be in the format `major.minor.0-latest`, `major.minor.0-pre`, `versionless`, `latest` or `latest-fusion`. Got: %s", dbtVersion),
+			fmt.Sprintf("The `dbt_version` must be in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. Got: %s", dbtVersion),
 		)
 	}
 }
