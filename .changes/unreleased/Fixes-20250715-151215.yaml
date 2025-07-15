@@ -1,0 +1,3 @@
+kind: Fixes
+body: Allow empty string as Project subdirectory
+time: 2025-07-15T15:12:15.089741+03:00
