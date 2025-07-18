@@ -15,6 +15,7 @@ import (
 var webhookName = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 var webhookName2 = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 var projectName = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+var active = "false"
 
 var basicConfigTestStep = resource.TestStep{
 	Config: testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName),
@@ -52,7 +53,7 @@ var basicConfigTestStep = resource.TestStep{
 }
 
 var modifyConfigTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName),
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, active),
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
@@ -82,6 +83,11 @@ var modifyConfigTestStep = resource.TestStep{
 			"dbtcloud_webhook.test_webhook",
 			"client_url",
 			"https://example.com/test",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"active",
+			active,
 		),
 	),
 }
@@ -131,7 +137,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 `, projectName, webhookName)
 }
 
-func testAccDbtCloudWebhookResourceFullConfig(webhookName, projectName string) string {
+func testAccDbtCloudWebhookResourceFullConfig(webhookName, projectName, active string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -168,8 +174,9 @@ resource "dbtcloud_webhook" "test_webhook" {
 	  "job.run.completed"
 	]
 	job_ids = [dbtcloud_job.test.id]
+	active = "%s"
   }
-`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName)
+`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, active)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {
