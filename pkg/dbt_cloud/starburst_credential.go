@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"net/http"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type StarburstCredentialResponse struct {
@@ -67,7 +68,7 @@ func (c *Client) GetStarburstCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (c *Client) CreateStarburstCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +173,7 @@ func (c *Client) UpdateStarburstCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

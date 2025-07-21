@@ -33,7 +33,7 @@ func (c *Client) GetAzureDevOpsProjects() ([]AzureDevOpsProject, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

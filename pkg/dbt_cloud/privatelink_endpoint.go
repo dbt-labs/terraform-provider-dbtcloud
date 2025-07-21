@@ -37,7 +37,7 @@ func (c *Client) GetPrivatelinkEndpoint(endpointName string, privatelinkEndpoint
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

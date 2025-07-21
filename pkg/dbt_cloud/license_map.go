@@ -27,7 +27,7 @@ func (c *Client) GetLicenseMap(licenseMapId int) (*LicenseMap, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *Client) CreateLicenseMap(licenseType string, ssoLicenseMappingGroups []
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (c *Client) UpdateLicenseMap(licenseMapID int, licenseMap LicenseMap) (*Lic
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (c *Client) DestroyLicenseMap(licenseMapID int) error {
 		return err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return err
 	}

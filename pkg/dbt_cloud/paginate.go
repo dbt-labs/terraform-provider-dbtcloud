@@ -37,7 +37,7 @@ func (c *Client) GetEndpoint(url string) ([]byte, error) {
 		log.Fatalf("Error creating a new request: %v", err)
 	}
 
-	resp, err := c.doRequest(req)
+	resp, err := c.doRequestWithRetry(req)
 	if err != nil {
 		log.Fatalf("Error fetching URL %v: %v", url, err)
 	}

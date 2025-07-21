@@ -73,7 +73,8 @@ func (c *Client) GetDatabricksCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
+
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +136,7 @@ func (c *Client) CreateDatabricksCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +175,7 @@ func (c *Client) UpdateDatabricksCredentialGlobConn(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

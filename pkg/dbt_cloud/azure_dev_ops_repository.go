@@ -43,7 +43,7 @@ func (c *Client) GetAzureDevOpsRepositories(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

@@ -23,11 +23,11 @@ type TeradataUnencryptedCredentialDetails struct {
 
 // TeradataCredentialData represents the data returned by the API for an Teradata credential
 type TeradataCredentialData struct {
-	ID                           *int                                  `json:"id"`
-	AccountID                    int                                   `json:"account_id"`
-	Threads                      int                                   `json:"threads"`
-	TargetName                   string                                `json:"target_name"`
-	AdapterVersion               string                                `json:"adapter_version,omitempty"`
+	ID                           *int                                 `json:"id"`
+	AccountID                    int                                  `json:"account_id"`
+	Threads                      int                                  `json:"threads"`
+	TargetName                   string                               `json:"target_name"`
+	AdapterVersion               string                               `json:"adapter_version,omitempty"`
 	UnencryptedCredentialDetails TeradataUnencryptedCredentialDetails `json:"unencrypted_credential_details"`
 }
 
@@ -64,7 +64,7 @@ func (c *Client) GetTeradataCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (c *Client) CreateTeradataCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (c *Client) UpdateTeradataCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

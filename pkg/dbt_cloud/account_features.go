@@ -36,7 +36,7 @@ func (c *Client) GetAccountFeatures() (*AccountFeatures, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,6 @@ func (c *Client) UpdateAccountFeature(feature string, value bool) error {
 		return err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	return err
 }

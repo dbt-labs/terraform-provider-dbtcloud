@@ -51,7 +51,7 @@ func (c *Client) GetOAuthConfiguration(oAuthConfigurationID int64) (*OAuthConfig
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (c *Client) CreateOAuthConfiguration(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (c *Client) UpdateOAuthConfiguration(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (c *Client) DeleteOAuthConfiguration(
 		return err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return err
 	}

@@ -21,7 +21,7 @@ func (c *Client) DeleteCredential(credentialId, projectId string) (string, error
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}
