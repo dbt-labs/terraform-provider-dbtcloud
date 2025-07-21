@@ -56,7 +56,7 @@ func (c *Client) GetRun(runID int64) (*Run, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (c *Client) GetRuns(filter *RunFilter) (*[]Run, error) {
 	}
 	req.URL.RawQuery = query.Encode()
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (c *Client) TriggerRun(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (c *Client) CancelRun(runID int64) (*Run, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func (c *Client) RetryRun(runID int64) (*Run, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

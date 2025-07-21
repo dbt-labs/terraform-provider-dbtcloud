@@ -62,7 +62,7 @@ func (c *Client) GetEnvironmentVariable(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (c *Client) CreateEnvironmentVariable(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (c *Client) UpdateEnvironmentVariable(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (c *Client) DeleteEnvironmentVariable(
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}

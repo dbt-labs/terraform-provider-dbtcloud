@@ -44,7 +44,7 @@ func (c *Client) GetUserGroups(userId int) (*UserGroupsCurrentAccount, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (c *Client) AssignUserGroups(userId int, groupIDs []int) (*AssignUserGroups
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

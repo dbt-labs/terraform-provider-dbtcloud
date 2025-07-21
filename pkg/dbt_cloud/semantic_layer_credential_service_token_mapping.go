@@ -1,12 +1,11 @@
 package dbt_cloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"bytes"
 )
-
 
 type SemanticLayerCredentialServiceTokenMapping struct {
 	ID                        *int `json:"id"`
@@ -20,13 +19,13 @@ type SemanticLayerCredentialServiceTokenMapping struct {
 // response type for single semantic layer credential service token mapping
 type SemanticLayerCredentialServiceTokenMappingResponse struct {
 	Data   SemanticLayerCredentialServiceTokenMapping `json:"data"`
-	Status ResponseStatus `json:"status"`
+	Status ResponseStatus                             `json:"status"`
 }
 
 // response type for multiple semantic layer credential service token mappings
 type SemanticLayerCredentialServiceTokenMappingArrayResponse struct {
 	Data   []SemanticLayerCredentialServiceTokenMapping `json:"data"`
-	Status ResponseStatus `json:"status"`
+	Status ResponseStatus                               `json:"status"`
 }
 
 func (c *Client) CreateSemanticLayerCredentialServiceTokenMapping(
@@ -35,11 +34,11 @@ func (c *Client) CreateSemanticLayerCredentialServiceTokenMapping(
 	serviceTokenId int,
 ) (*SemanticLayerCredentialServiceTokenMapping, error) {
 	newMapping := SemanticLayerCredentialServiceTokenMapping{
-		AccountID:                  c.AccountID,
-		ProjectID:                  projectId,
-		SemanticLayerCredentialID:  semanticLayerCredentialId,
-		ServiceTokenID:             serviceTokenId,
-		State:                      1,
+		AccountID:                 c.AccountID,
+		ProjectID:                 projectId,
+		SemanticLayerCredentialID: semanticLayerCredentialId,
+		ServiceTokenID:            serviceTokenId,
+		State:                     1,
 	}
 
 	payload, err := json.Marshal(newMapping)
@@ -48,7 +47,7 @@ func (c *Client) CreateSemanticLayerCredentialServiceTokenMapping(
 	}
 
 	req, err := http.NewRequest(
-		"POST", 
+		"POST",
 		fmt.Sprintf(
 			"%s/v3/accounts/%d/semantic-layer-credential-to-service-token-mapping/",
 			c.HostURL,
@@ -58,9 +57,9 @@ func (c *Client) CreateSemanticLayerCredentialServiceTokenMapping(
 	)
 	if err != nil {
 		return nil, err
-	}	
+	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func (c *Client) GetSemanticLayerCredentialServiceTokenMapping(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +96,7 @@ func (c *Client) GetSemanticLayerCredentialServiceTokenMapping(
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var SemanticCredentialTokenMapping SemanticLayerCredentialServiceTokenMapping
 
 	for _, mapping := range credentialsResponse.Data {
@@ -124,7 +123,7 @@ func (c *Client) DeleteSemanticLayerCredentialServiceTokenMapping(id int) error 
 		return err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return err
 	}

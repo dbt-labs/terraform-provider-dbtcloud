@@ -38,7 +38,7 @@ func (c *Client) GetGlobalConnectionAdapter(connectionID int64) (*GlobalConnecti
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *GlobalConnectionClient[T]) Get(connectionID int64) (*GlobalConnectionCo
 		return nil, nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -148,7 +148,7 @@ func (c *GlobalConnectionClient[T]) Create(
 		return nil, nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -197,7 +197,7 @@ func (c *GlobalConnectionClient[T]) Update(
 		return nil, nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -226,7 +226,7 @@ func (c *Client) DeleteGlobalConnection(connectionID int64) (string, error) {
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}
@@ -275,7 +275,7 @@ func (c *GlobalConnectionClient[T]) GetEncryptionsForConnection(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func (c *GlobalConnectionClient[T]) CreateUpdateEncryption(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

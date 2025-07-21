@@ -47,7 +47,7 @@ func (c *Client) GetEnvironmentVariableJobOverride(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (c *Client) CreateEnvironmentVariableJobOverride(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (c *Client) UpdateEnvironmentVariableJobOverride(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *Client) DeleteEnvironmentVariableJobOverride(
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}

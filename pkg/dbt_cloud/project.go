@@ -48,7 +48,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 				return nil, err
 			}
 
-			body, err := c.doRequest(req)
+			body, err := c.doRequestWithRetry(req)
 			if err != nil {
 				return nil, err
 			}
@@ -136,7 +136,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (c *Client) CreateProject(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

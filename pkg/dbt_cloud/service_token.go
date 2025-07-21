@@ -69,7 +69,7 @@ func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *Client) CreateServiceToken(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenP
 		return nil, err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (c *Client) DeleteServiceToken(serviceTokenID int) (string, error) {
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}

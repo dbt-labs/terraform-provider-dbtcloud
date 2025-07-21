@@ -48,7 +48,7 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (c *Client) CreateSemanticLayerCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (c *Client) UpdateSemanticLayerCredential(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (c *Client) DeleteSemanticLayerCredential(
 		return err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return err
 	}

@@ -51,7 +51,7 @@ func (c *Client) GetWebhook(webhookID string) (*WebhookRead, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (c *Client) CreateWebhook(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (c *Client) UpdateWebhook(webhookId string, webhook WebhookWrite) (*Webhook
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (c *Client) DeleteWebhook(webhookId string) (string, error) {
 		return "", err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return "", err
 	}

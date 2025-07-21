@@ -34,6 +34,7 @@ func SharedClient() (*dbt_cloud.Client, error) {
 		HostURL:    hostURL,
 		Token:      token,
 		AccountID:  accountID,
+		DisableRetry: true,
 	}
 
 	return &client, nil

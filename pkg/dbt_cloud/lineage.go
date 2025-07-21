@@ -46,7 +46,7 @@ func (c *Client) GetLineageIntegration(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *Client) CreateLineageIntegration(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (c *Client) UpdateLineageIntegration(
 		return nil, err
 	}
 
-	body, err := c.doRequest(req)
+	body, err := c.doRequestWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (c *Client) DeleteLineageIntegration(projectID int64, lineageIntegrationID 
 		return err
 	}
 
-	_, err = c.doRequest(req)
+	_, err = c.doRequestWithRetry(req)
 	if err != nil {
 		return err
 	}
