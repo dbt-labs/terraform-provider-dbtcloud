@@ -13,11 +13,15 @@ import (
 var versionString = "dev"
 
 type Client struct {
-	HostURL    string
-	HTTPClient *http.Client
-	Token      string
-	AccountURL string
-	AccountID  int
+	HostURL              string
+	HTTPClient           *http.Client
+	Token                string
+	AccountURL           string
+	AccountID            int
+	RetryIntervalSeconds int
+	MaxRetries           int
+	RetriableStatusCodes []string
+	DisableRetry         bool
 }
 
 type ResponseStatus struct {
@@ -93,17 +97,20 @@ type APIError struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string, host_url *string) (*Client, error) {
+func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string) (*Client, error) {
 
 	if (token == nil) || (*token == "") {
 		return nil, fmt.Errorf("token is set but it is empty")
 	}
 
 	c := Client{
-		HTTPClient: &http.Client{Timeout: 30 * time.Second},
-		HostURL:    *host_url,
-		Token:      *token,
-		AccountID:  *account_id,
+		HTTPClient:           &http.Client{Timeout: 30 * time.Second},
+		HostURL:              *host_url,
+		Token:                *token,
+		AccountID:            *account_id,
+		RetryIntervalSeconds: *retryIntervalSeconds,
+		MaxRetries:           *maxRetries,
+		RetriableStatusCodes: retriableStatusCodes,
 	}
 
 	_, runningAcceptanceTests := os.LookupEnv("TF_ACC")
@@ -116,7 +123,7 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 			return nil, err
 		}
 
-		body, err := c.doRequest(req)
+		body, err := c.doRequestWithRetry(req)
 		if err != nil {
 			return nil, err
 		}
@@ -145,62 +152,77 @@ func NewClient(account_id *int, token *string, host_url *string) (*Client, error
 	return &c, nil
 }
 
-func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
+	var err error
 
-	userAgentWithVersion := fmt.Sprintf(
-		"terraform-provider-dbtcloud/%s",
-		versionString,
-	)
-
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Token %s", c.Token))
-	req.Header.Set("User-Agent", userAgentWithVersion)
-
-	res, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
+	// This is needed in case the provider code wants to do retries but the provider config is set to disable retries
+	if c.DisableRetry || c.MaxRetries <= 0 {
+		c.MaxRetries = 1
 	}
 
-	// if this is a 404 on a GET we check the body to see if it is a missing resource or incorrect endpoint
-	if res.StatusCode == 404 && req.Method == "GET" {
-		isResourceNotFound, err := isResourceNotFoundError(body)
+	setRequestHeaders(req, c.Token)
+
+	for i := 0; i < c.MaxRetries; i++ {
+		res, err := c.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
-		if isResourceNotFound {
-			return nil, fmt.Errorf("resource-not-found: %s", req.URL)
+
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+
+		// sometimes the err field comes nil but the status code is 404, so we check the status code
+		// this happens frequently when checking if the resource was destroyed
+		if res.StatusCode == 404 && req.Method == "GET" {
+			isResourceNotFound, err := isResourceNotFoundError(body)
+			if err != nil {
+				return nil, err
+			}
+			if isResourceNotFound {
+				return nil, fmt.Errorf("resource-not-found: %s", req.URL)
+			}
+		}
+
+		if err == nil {
+			return body, nil
+		} else {
+			if isErrorRetriable(res.StatusCode, c.RetriableStatusCodes) {
+				waitDuration := time.Duration(c.RetryIntervalSeconds) * time.Second
+				// Exponential backoff
+				if i > 0 {
+					waitDuration = time.Duration(c.RetryIntervalSeconds) * time.Second * (1 << i) // Exponential backoff
+					fmt.Printf("Waiting for %v before retrying...\n", waitDuration)
+					time.Sleep(waitDuration)
+				} else {
+					// Linear backoff for the first retry
+					fmt.Printf("Waiting for %d seconds before retrying...\n", c.RetryIntervalSeconds)
+					time.Sleep(waitDuration)
+				}
+				continue
+			}
+
+			if strings.Contains(err.Error(), "resource-not-found") {
+				return nil, err
+			}
+		}
+
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("max retries reached for request %s: %w", req.URL, err)
+}
+
+func isErrorRetriable(statusCode int, retriableStatusCodes []string) bool {
+	var retriable bool = false
+	for _, code := range retriableStatusCodes {
+		if code == fmt.Sprintf("%d", statusCode) {
+			retriable = true
+			break
 		}
 	}
 
-	if (res.StatusCode != http.StatusOK) &&
-		(res.StatusCode != http.StatusCreated) &&
-		(res.StatusCode != http.StatusNoContent) {
-		
-		urlStr := req.URL.String()
-		bodyStr := string(body)
-
-		if c.Token != "" {
-			urlStr = strings.ReplaceAll(urlStr, c.Token, "[REDACTED_TOKEN]")
-			bodyStr = strings.ReplaceAll(bodyStr, c.Token, "[REDACTED_TOKEN]")
-		}
-		
-		return nil, fmt.Errorf(
-			"%s url: %s, status: %d, body: %s",
-			req.Method,
-			urlStr,
-			res.StatusCode,
-			bodyStr,
-		)
-	}
-
-	return body, err
+	return retriable
 }
 
 func isResourceNotFoundError(body []byte) (bool, error) {
@@ -213,4 +235,16 @@ func isResourceNotFoundError(body []byte) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func setRequestHeaders(req *http.Request, token string) {
+	userAgentWithVersion := fmt.Sprintf(
+		"terraform-provider-dbtcloud/%s",
+		versionString,
+	)
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
+	req.Header.Set("User-Agent", userAgentWithVersion)
 }

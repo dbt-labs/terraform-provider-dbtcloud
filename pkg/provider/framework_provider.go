@@ -46,8 +46,8 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential_service_token_mapping"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
@@ -99,14 +99,35 @@ func (p *dbtCloudProvider) Schema(
 				Optional:    true,
 				Description: "URL for your dbt Cloud deployment. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_HOST_URL` - Defaults to https://cloud.getdbt.com/api",
 			},
+			"retry_interval_seconds": schema.Int64Attribute{
+				Optional:    true,
+				Description: "The number of seconds to wait before retrying a request that failed due to rate limiting. Defaults to 10 seconds.",
+			},
+			"max_retries": schema.Int64Attribute{
+				Optional:    true,
+				Description: "The maximum number of retries to attempt for requests that fail due to rate limiting. Defaults to 3 retries.",
+			},
+			"disable_retry": schema.BoolAttribute{
+				Optional:    true,
+				Description: "If set to true, the provider will not retry requests that fail due to rate limiting. Defaults to false.",
+			},
+			"retriable_status_codes": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of HTTP status codes that should be retried when encountered. Defaults to [429, 500, 502, 503, 504].",
+			},
 		},
 	}
 }
 
 type dbtCloudProviderModel struct {
-	Token     types.String `tfsdk:"token"`
-	AccountID types.Int64  `tfsdk:"account_id"`
-	HostURL   types.String `tfsdk:"host_url"`
+	Token                types.String `tfsdk:"token"`
+	AccountID            types.Int64  `tfsdk:"account_id"`
+	HostURL              types.String `tfsdk:"host_url"`
+	MaxRetries           types.Int64  `tfsdk:"max_retries"`
+	RetryIntervalSeconds types.Int64  `tfsdk:"retry_interval_seconds"`
+	DisableRetry         types.Bool   `tfsdk:"disable_retry"`
+	RetriableStatusCodes types.List   `tfsdk:"retriable_status_codes"`
 }
 
 func (p *dbtCloudProvider) Configure(
@@ -191,8 +212,39 @@ func (p *dbtCloudProvider) Configure(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	maxRetries := 3
+	if !config.MaxRetries.IsNull() {
+		maxRetries = int(config.MaxRetries.ValueInt64())
+	}
 
-	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL)
+	retryIntervalSeconds := 10
+	if !config.RetryIntervalSeconds.IsNull() {
+		retryIntervalSeconds = int(config.RetryIntervalSeconds.ValueInt64())
+	}
+
+	if config.DisableRetry.ValueBool() {
+		maxRetries = 1
+		retryIntervalSeconds = 0
+	}
+
+	retriableStatusCodes := []string{"429", "500", "502", "503", "504"}
+	if !config.RetriableStatusCodes.IsNull() {
+		retriableStatusCodes = make([]string, len(config.RetriableStatusCodes.Elements()))
+		for i, elem := range config.RetriableStatusCodes.Elements() {
+			strElem, ok := elem.(types.String)
+			if !ok {
+				resp.Diagnostics.AddError(
+					"Invalid Retriable Status Codes",
+					"All elements in the retriable_status_codes list must be strings. "+
+						"Element at index "+strconv.Itoa(i)+" is of an invalid type.",
+				)
+				return
+			}
+			retriableStatusCodes[i] = strElem.ValueString()
+		}
+	}
+
+	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL, &maxRetries, &retryIntervalSeconds, retriableStatusCodes)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create dbt Cloud API Client",
