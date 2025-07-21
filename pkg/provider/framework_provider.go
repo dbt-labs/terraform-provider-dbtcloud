@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment_variable"
@@ -52,11 +53,14 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/webhook"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -115,6 +119,14 @@ func (p *dbtCloudProvider) Schema(
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: "List of HTTP status codes that should be retried when encountered. Defaults to [429, 500, 502, 503, 504].",
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[1-5][0-9][0-9]$`),
+							"must be a valid HTTP status code (100-599)",
+						),
+					),
+				},
 			},
 		},
 	}
