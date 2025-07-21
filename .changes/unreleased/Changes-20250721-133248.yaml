@@ -1,0 +1,3 @@
+kind: Changes
+body: Make all dbt cloud methods use retries
+time: 2025-07-21T13:32:48.565523+03:00
