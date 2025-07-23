@@ -99,8 +99,7 @@ type SingleJobDataSourceModel struct {
 }
 
 type JobResourceModel struct {
-	// Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
-	TimeoutSeconds         types.Int64    `tfsdk:"timeout_seconds"`          // moved under execution , add deprecation message
+	Execution              *JobExecution  `tfsdk:"execution"`                // has timeout-seconds
 	GenerateDocs           types.Bool     `tfsdk:"generate_docs"`            // exists
 	RunGenerateSources     types.Bool     `tfsdk:"run_generate_sources"`     // exists
 	ID                     types.Int64    `tfsdk:"id"`                       // will hold job id?
@@ -119,18 +118,18 @@ type JobResourceModel struct {
 	TriggersOnDraftPr types.Bool   `tfsdk:"triggers_on_draft_pr"` // exists
 	// Environment                   *JobEnvironment       `tfsdk:"environment"`
 	JobCompletionTriggerCondition []*JobCompletionTriggerCondition `tfsdk:"job_completion_trigger_condition"` // exists
-	RunCompareChanges             types.Bool            `tfsdk:"run_compare_changes"`              // exists
-	IsActive                      types.Bool            `tfsdk:"is_active"`
-	TargetName                    types.String          `tfsdk:"target_name"` // add deprecated
-	NumThreads                    types.Int64           `tfsdk:"num_threads"` // add deprecated moved to settings
-	RunLint                       types.Bool            `tfsdk:"run_lint"`
-	ErrorsOnLintFailure           types.Bool            `tfsdk:"errors_on_lint_failure"`
-	ScheduleType                  types.String          `tfsdk:"schedule_type"`
-	ScheduleInterval              types.Int64           `tfsdk:"schedule_interval"`
-	ScheduleHours                 []types.Int64         `tfsdk:"schedule_hours"`
-	ScheduleDays                  []types.Int64         `tfsdk:"schedule_days"`
-	ScheduleCron                  types.String          `tfsdk:"schedule_cron"`    // add deprecated move to schedule
-	DeferringJobId                types.Int64           `tfsdk:"deferring_job_id"` // add deprecated move to deferring_job_definition_id
-	SelfDeferring                 types.Bool            `tfsdk:"self_deferring"`
-	CompareChangesFlags           types.String          `tfsdk:"compare_changes_flags"`
+	RunCompareChanges             types.Bool                       `tfsdk:"run_compare_changes"`              // exists
+	IsActive                      types.Bool                       `tfsdk:"is_active"`
+	TargetName                    types.String                     `tfsdk:"target_name"` // add deprecated
+	NumThreads                    types.Int64                      `tfsdk:"num_threads"` // add deprecated moved to settings
+	RunLint                       types.Bool                       `tfsdk:"run_lint"`
+	ErrorsOnLintFailure           types.Bool                       `tfsdk:"errors_on_lint_failure"`
+	ScheduleType                  types.String                     `tfsdk:"schedule_type"`
+	ScheduleInterval              types.Int64                      `tfsdk:"schedule_interval"`
+	ScheduleHours                 []types.Int64                    `tfsdk:"schedule_hours"`
+	ScheduleDays                  []types.Int64                    `tfsdk:"schedule_days"`
+	ScheduleCron                  types.String                     `tfsdk:"schedule_cron"`    // add deprecated move to schedule
+	DeferringJobId                types.Int64                      `tfsdk:"deferring_job_id"` // add deprecated move to deferring_job_definition_id
+	SelfDeferring                 types.Bool                       `tfsdk:"self_deferring"`
+	CompareChangesFlags           types.String                     `tfsdk:"compare_changes_flags"`
 }

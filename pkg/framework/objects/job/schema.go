@@ -33,11 +33,6 @@ func getJobAttributes() map[string]schema.Attribute {
 				},
 			},
 		},
-		"timeout_seconds": schema.Int64Attribute{
-			Computed:           true,
-			DeprecationMessage: "Moved to execution.timeout_seconds",
-			Description:        "[Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out",
-		},
 		"generate_docs": schema.BoolAttribute{
 			Computed:    true,
 			Description: "Whether the job generate docs",
@@ -329,24 +324,17 @@ func (j *jobResource) Schema(
 					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-			// "execution": resource_schema.SingleNestedAttribute{
-			// 	Optional: true,
-			// 	Computed: true,
-			// 	Attributes: map[string]resource_schema.Attribute{
-			// 		"timeout_seconds": resource_schema.Int64Attribute{
-			// 			Optional:    true,
-			// 			Computed:    true,
-			// 			Default:     int64default.StaticInt64(0),
-			// 			Description: "The number of seconds before the job times out",
-			// 		},
-			// 	},
-			// },
-			"timeout_seconds": resource_schema.Int64Attribute{
-				Optional:           true,
-				Computed:           true,
-				Default:            int64default.StaticInt64(0),
-				DeprecationMessage: "Moved to execution.timeout_seconds",
-				Description:        "[Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out",
+			"execution": resource_schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				Attributes: map[string]resource_schema.Attribute{
+					"timeout_seconds": resource_schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     int64default.StaticInt64(0),
+						Description: "The number of seconds before the job times out",
+					},
+				},
 			},
 			"generate_docs": resource_schema.BoolAttribute{
 				Optional:    true,

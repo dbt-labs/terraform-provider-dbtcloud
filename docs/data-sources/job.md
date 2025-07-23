@@ -43,7 +43,6 @@ Get detailed information for a specific dbt Cloud job.
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--schedule))
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself (overrides value in deferring_job_id)
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--settings))
-- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out
 - `triggers` (Attributes) (see [below for nested schema](#nestedatt--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 

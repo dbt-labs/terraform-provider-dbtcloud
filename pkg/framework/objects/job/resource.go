@@ -87,7 +87,7 @@ func (j *jobResource) ImportState(ctx context.Context, req resource.ImportStateR
 		)
 		return
 	}
-	
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), jobID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), jobID)...)
 }
@@ -162,7 +162,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	selfDeferring := plan.SelfDeferring.ValueBool()
-	timeoutSeconds := int(plan.TimeoutSeconds.ValueInt64())
+	timeoutSeconds := int(plan.Execution.TimeoutSeconds.ValueInt64())
 	triggersOnDraftPR := plan.TriggersOnDraftPr.ValueBool()
 	runCompareChanges := plan.RunCompareChanges.ValueBool()
 	runLint := plan.RunLint.ValueBool()
@@ -241,15 +241,15 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-		plan.ID = types.Int64Value(int64(*createdJob.ID))
-		plan.JobId = types.Int64Value(int64(*createdJob.ID))
+	plan.ID = types.Int64Value(int64(*createdJob.ID))
+	plan.JobId = types.Int64Value(int64(*createdJob.ID))
 
 	if createdJob.JobType != "" {
 		plan.JobType = types.StringValue(createdJob.JobType)
 	} else {
 		plan.JobType = types.StringNull()
 	}
-	
+
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 	createdSelfDeferring := createdJob.DeferringJobId != nil && strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
 	plan.SelfDeferring = types.BoolValue(createdSelfDeferring)
@@ -362,8 +362,8 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ScheduleDays = scheduleDaysNull
 	}
 
-	if retrievedJob.Schedule.Date.Cron != nil && 
-	retrievedJob.Schedule.Date.Type != "interval_cron" { // for interval_cron, the cron expression is auto generated in the code
+	if retrievedJob.Schedule.Date.Cron != nil &&
+		retrievedJob.Schedule.Date.Type != "interval_cron" { // for interval_cron, the cron expression is auto generated in the code
 		state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
 	} else {
 		state.ScheduleCron = types.StringNull()
@@ -384,12 +384,12 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	state.SelfDeferring = types.BoolValue(selfDeferring)
-	state.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
+	state.Execution.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
 
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(retrievedJob.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
-	
+
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
 	// we set the state to the current config value, so it doesn't do anything
 	var customBranchValue types.Bool
@@ -443,7 +443,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
-	
+
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
 	} else {
@@ -578,9 +578,9 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 	}
 
-	job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
+	job.Execution.TimeoutSeconds = int(plan.Execution.TimeoutSeconds.ValueInt64())
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
-	
+
 	if len(plan.JobCompletionTriggerCondition) == 0 {
 		job.JobCompletionTrigger = nil
 	} else {
@@ -598,7 +598,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 		job.JobCompletionTrigger = &jobCondTrigger
 	}
-	
+
 	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
 	job.RunLint = plan.RunLint.ValueBool()
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
@@ -618,11 +618,11 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	} else {
 		plan.JobType = types.StringNull()
 	}
-	
+
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
 	updatedSelfDeferring := updatedJob.DeferringJobId != nil && strconv.Itoa(*updatedJob.DeferringJobId) == updatedJobIDStr
 	plan.SelfDeferring = types.BoolValue(updatedSelfDeferring)
-	
+
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
