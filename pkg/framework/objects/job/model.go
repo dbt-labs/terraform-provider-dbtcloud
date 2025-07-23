@@ -99,7 +99,7 @@ type SingleJobDataSourceModel struct {
 }
 
 type JobResourceModel struct {
-	Execution              *JobExecution  `tfsdk:"execution"`                // has timeout-seconds
+	Execution              types.Object  `tfsdk:"execution"`                // has timeout-seconds
 	GenerateDocs           types.Bool     `tfsdk:"generate_docs"`            // exists
 	RunGenerateSources     types.Bool     `tfsdk:"run_generate_sources"`     // exists
 	ID                     types.Int64    `tfsdk:"id"`                       // will hold job id?

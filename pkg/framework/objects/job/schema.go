@@ -326,7 +326,6 @@ func (j *jobResource) Schema(
 			},
 			"execution": resource_schema.SingleNestedAttribute{
 				Optional: true,
-				Computed: true,
 				Attributes: map[string]resource_schema.Attribute{
 					"timeout_seconds": resource_schema.Int64Attribute{
 						Optional:    true,

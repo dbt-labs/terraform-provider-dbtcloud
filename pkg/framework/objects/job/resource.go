@@ -10,9 +10,12 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var (
@@ -162,7 +165,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	selfDeferring := plan.SelfDeferring.ValueBool()
-	timeoutSeconds := int(plan.Execution.TimeoutSeconds.ValueInt64())
+	timeoutSeconds, _ := getTimeoutFromPlan(ctx, plan)
 	triggersOnDraftPR := plan.TriggersOnDraftPr.ValueBool()
 	runCompareChanges := plan.RunCompareChanges.ValueBool()
 	runLint := plan.RunLint.ValueBool()
@@ -189,7 +192,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 			"statuses":   statuses,
 		}
 	}
-
 
 	createDbtVersion := ""
 	if dbtVersion != nil {
@@ -253,7 +255,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 	createdSelfDeferring := createdJob.DeferringJobId != nil && strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
 	plan.SelfDeferring = types.BoolValue(createdSelfDeferring)
-	
+
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -384,7 +386,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	state.SelfDeferring = types.BoolValue(selfDeferring)
-	state.Execution.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
+	state.Execution, _ = executionStateFromResponse(ctx, retrievedJob)
 
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(retrievedJob.Triggers)
@@ -578,7 +580,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 	}
 
-	job.Execution.TimeoutSeconds = int(plan.Execution.TimeoutSeconds.ValueInt64())
+	job.Execution = getJobExecutionPtrFromPlan(ctx, plan)
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
 
 	if len(plan.JobCompletionTriggerCondition) == 0 {
@@ -628,4 +630,82 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func getTimeoutFromPlan(ctx context.Context, plan JobResourceModel) (int, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// 1. Declare a variable for your target model.
+	var executionSettings JobExecution
+	var timeoutSeconds int // Use a pointer to handle the case where the inner field is null.
+
+	// 2. Check if the execution object is null or unknown. This is true if the user
+	// did not include the `execution` block in their configuration.
+	if plan.Execution.IsNull() || plan.Execution.IsUnknown() {
+		return 0, diags
+	}
+
+	// 3. Use the .As() method to convert the types.Object into your model.
+	diags.Append(plan.Execution.As(ctx, &executionSettings, basetypes.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return 0, diags
+	}
+
+	// 4. Now that you have the populated model, you can access its fields.
+	// It's still important to check if the inner field is null.
+	if !executionSettings.TimeoutSeconds.IsNull() && !executionSettings.TimeoutSeconds.IsUnknown() {
+		timeoutSeconds = int(executionSettings.TimeoutSeconds.ValueInt64())
+	}
+
+	return timeoutSeconds, diags
+}
+
+func getJobExecutionPtrFromPlan(ctx context.Context, plan JobResourceModel) dbt_cloud.JobExecution {
+	var diags diag.Diagnostics
+
+	// 1. Declare a variable for your target model.
+	var executionSettings = dbt_cloud.JobExecution{
+		TimeoutSeconds: 0, // Default to null
+	}
+
+	// 2. Check if the execution object is null or unknown. This is true if the user
+	// did not include the `execution` block in their configuration.
+	if plan.Execution.IsNull() || plan.Execution.IsUnknown() {
+		return executionSettings
+	}
+
+	// 3. Use the .As() method to convert the types.Object into your model.
+	diags.Append(plan.Execution.As(ctx, &executionSettings, basetypes.ObjectAsOptions{})...)
+	if diags.HasError() {
+		return executionSettings
+	}
+
+	return executionSettings
+}
+
+// executionStateFromResponse converts the execution settings from a dbt Cloud API response
+// into a types.Object suitable for the Terraform state.
+func executionStateFromResponse(ctx context.Context, retrievedJob *dbt_cloud.Job) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Define the schema for the execution object. This is needed for creating a null object.
+	attributeTypes := map[string]attr.Type{
+		"timeout_seconds": types.Int64Type,
+	}
+
+	// If the API response doesn't contain execution settings, return a null object.
+	if retrievedJob.Execution.TimeoutSeconds == 0 {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	// If settings were returned, populate our model from the API response.
+	executionModel := JobExecution{
+		TimeoutSeconds: types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds)),
+	}
+
+	// Convert the populated model into a types.Object.
+	executionObject, d := types.ObjectValueFrom(ctx, attributeTypes, executionModel)
+	diags.Append(d...)
+
+	return executionObject, diags
 }
