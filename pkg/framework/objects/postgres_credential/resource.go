@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -227,8 +228,8 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 		}
 
 		resp.Diagnostics.AddError(
-			"Error reading Starburst credential",
-			"Could not read Starburst credential ID "+state.ID.ValueString()+": "+err.Error(),
+			"Error reading Postgres credential",
+			"Could not read Postgres credential ID "+state.ID.ValueString()+": "+err.Error(),
 		)
 		return
 	}
@@ -273,8 +274,14 @@ func (p *postgresCredentialResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	projectID := int(plan.ProjectID.ValueInt64())
-	credentialID := int(plan.CredentialID.ValueInt64())
+	projectID, credentialID, err := helper.SplitIDToInts(
+		state.ID.ValueString(),
+		"postgres_credential",
+	)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid ID format", err.Error())
+		return
+	}
 
 	credential, err := p.client.GetPostgresCredential(projectID, credentialID)
 	if err != nil {

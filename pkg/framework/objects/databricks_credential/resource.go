@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -259,8 +260,14 @@ func (d *databricksCredentialResource) Update(ctx context.Context, req resource.
 }
 
 func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, state *DatabricksCredentialResourceModel, resp *resource.UpdateResponse) {
-	projectID := int(plan.ProjectID.ValueInt64())
-	credentialID := int(plan.CredentialID.ValueInt64())
+	projectID, credentialID, err := helper.SplitIDToInts(
+		state.ID.ValueString(),
+		"databricks_credential",
+	)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid ID format", err.Error())
+		return
+	}
 
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
