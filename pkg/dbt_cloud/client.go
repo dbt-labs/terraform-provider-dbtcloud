@@ -184,6 +184,10 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 			}
 		}
 
+		if res.StatusCode == 400 {
+			return nil, fmt.Errorf("resource-not-found: %s", body)
+		}
+
 		if err == nil {
 			return body, nil
 		} else {
