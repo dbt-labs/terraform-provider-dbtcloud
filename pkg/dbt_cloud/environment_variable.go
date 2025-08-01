@@ -192,6 +192,11 @@ func (c *Client) DeleteEnvironmentVariable(
 	environmentVariableName string,
 	projectID int,
 ) (string, error) {
+
+	if environmentVariableName == "" || projectID <= 0 || c.AccountID <= 0 {
+		return "", fmt.Errorf("invalid parameters: environmentVariableName = %s, projectID = %d, accountID = %d", environmentVariableName, projectID, c.AccountID)
+	}
+
 	environmentVariableData, _ := json.Marshal(map[string]string{"name": environmentVariableName})
 	req, err := http.NewRequest(
 		"DELETE",
