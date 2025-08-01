@@ -1,0 +1,3 @@
+kind: Deprecations
+body: timeout_seconds is deprecated, new property in execution block
+time: 2025-07-23T13:11:35.329628+03:00
