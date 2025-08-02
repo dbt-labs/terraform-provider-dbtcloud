@@ -17,7 +17,7 @@ type Client struct {
 	HTTPClient           *http.Client
 	Token                string
 	AccountURL           string
-	AccountID            int
+	AccountID            int64
 	RetryIntervalSeconds int
 	MaxRetries           int
 	RetriableStatusCodes []string
@@ -47,36 +47,36 @@ type ResponseExtra struct {
 }
 
 type AuthResponseData struct {
-	DocsJobId                      int    `json:"docs_job_id"`
-	FreshnessJobId                 int    `json:"freshness_job_id"`
-	LockReason                     string `json:"lock_reason"`
-	UnlockIfSubscriptionRenewed    bool   `json:"unlock_if_subscription_renewed"`
-	ReadOnlySeats                  int    `json:"read_only_seats"`
-	Id                             int    `json:"id"`
-	Name                           string `json:"name"`
-	State                          int    `json:"state"`
-	Plan                           string `json:"plan"`
-	PendingCancel                  bool   `json:"pending_cancel"`
-	RunSlots                       int    `json:"run_slots"`
-	DeveloperSeats                 int    `json:"developer_seats"`
-	QueueLimit                     int    `json:"queue_limit"`
-	PodMemoryRequestMebibytes      int    `json:"pod_memory_request_mebibytes"`
-	RunDurationLimitSeconds        int    `json:"run_duration_limit_seconds"`
-	EnterpriseAuthenticationMethod string `json:"enterprise_authentication_method"`
-	EnterpriseLoginSlug            string `json:"enterprise_login_slug"`
-	EnterpriseUniqueIdentifier     string `json:"enterprise_unique_identifier"`
-	BillingEmailAddress            string `json:"billing_email_address"`
-	Locked                         bool   `json:"locked"`
-	DevelopFileSystem              bool   `json:"develop_file_system"`
-	UnlockedAt                     string `json:"unlocked_at"`
-	CreatedAt                      string `json:"created_at"`
-	UpdatedAt                      string `json:"updated_at"`
-	StarterRepoUrl                 string `json:"starter_repo_url"`
-	SsoReauth                      bool   `json:"sso_reauth"`
-	GitAuthLevel                   string `json:"git_auth_level"`
-	DocsJob                        string `json:"docs_job"`
-	FreshnessJob                   string `json:"freshness_job"`
-	EnterpriseLoginUrl             string `json:"enterprise_login_url"`
+	DocsJobId                      int64   `json:"docs_job_id"`
+	FreshnessJobId                 int64   `json:"freshness_job_id"`
+	LockReason                     string  `json:"lock_reason"`
+	UnlockIfSubscriptionRenewed    bool    `json:"unlock_if_subscription_renewed"`
+	ReadOnlySeats                  int64   `json:"read_only_seats"`
+	Id                             int64   `json:"id"`
+	Name                           string  `json:"name"`
+	State                          int64   `json:"state"`
+	Plan                           string  `json:"plan"`
+	PendingCancel                  bool    `json:"pending_cancel"`
+	RunSlots                       int64   `json:"run_slots"`
+	DeveloperSeats                 int64   `json:"developer_seats"`
+	QueueLimit                     int64   `json:"queue_limit"`
+	PodMemoryRequestMebibytes      int64   `json:"pod_memory_request_mebibytes"`
+	RunDurationLimitSeconds        int64   `json:"run_duration_limit_seconds"`
+	EnterpriseAuthenticationMethod string  `json:"enterprise_authentication_method"`
+	EnterpriseLoginSlug            string  `json:"enterprise_login_slug"`
+	EnterpriseUniqueIdentifier     string  `json:"enterprise_unique_identifier"`
+	BillingEmailAddress            string  `json:"billing_email_address"`
+	Locked                         bool    `json:"locked"`
+	DevelopFileSystem              bool    `json:"develop_file_system"`
+	UnlockedAt                     string  `json:"unlocked_at"`
+	CreatedAt                      string  `json:"created_at"`
+	UpdatedAt                      string  `json:"updated_at"`
+	StarterRepoUrl                 string  `json:"starter_repo_url"`
+	SsoReauth                      bool    `json:"sso_reauth"`
+	GitAuthLevel                   string  `json:"git_auth_level"`
+	DocsJob                        string  `json:"docs_job"`
+	FreshnessJob                   string  `json:"freshness_job"`
+	EnterpriseLoginUrl             string  `json:"enterprise_login_url"`
 }
 
 // AuthResponse -
@@ -97,7 +97,7 @@ type APIError struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string) (*Client, error) {
+func NewClient(account_id *int64, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string) (*Client, error) {
 
 	if (token == nil) || (*token == "") {
 		return nil, fmt.Errorf("token is set but it is empty")
