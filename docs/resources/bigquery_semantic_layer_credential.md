@@ -23,7 +23,7 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "example" {
   	project_id = var.project_id
 	is_active = true
     num_threads = var.num_threads
-	dataset = var.dataset
+	dataset = "test_dataset"
   }
   private_key_id = var.private_key_id
   private_key = var.private_key
@@ -84,24 +84,3 @@ Read-Only:
 
 - `credential_id` (Number) The internal credential ID
 - `id` (String) The ID of this resource. Contains the project ID and the credential ID.
-
-## Import
-
-Import is supported using the following syntax:
-
-```shell
-# using import blocks (requires Terraform >= 1.5)
-import {
-  to = dbtcloud_bigquery_semantic_layer_credential.example
-  id = "credential_id"
-}
-
-import {
-  to = dbtcloud_bigquery_semantic_layer_credential.example
-  id = "12345"
-}
-
-# using the older import command
-terraform import dbtcloud_bigquery_semantic_layer_credential.example "credential_id"
-terraform import dbtcloud_bigquery_semantic_layer_credential.example 12345
-```
