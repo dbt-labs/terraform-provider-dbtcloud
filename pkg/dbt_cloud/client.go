@@ -188,6 +188,10 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 			return nil, fmt.Errorf("resource-not-found: %s", body)
 		}
 
+		if res.StatusCode == 500 {
+			return nil, fmt.Errorf("internal-server-error: %s", body)
+		}
+
 		if err == nil {
 			return body, nil
 		} else {
