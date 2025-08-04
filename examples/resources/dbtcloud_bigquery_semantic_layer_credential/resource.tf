@@ -8,7 +8,7 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "example" {
   	project_id = var.project_id
 	is_active = true
     num_threads = var.num_threads
-	dataset = var.dataset
+	dataset = "test_dataset"
   }
   private_key_id = var.private_key_id
   private_key = var.private_key
