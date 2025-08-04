@@ -39,7 +39,7 @@ func (c *Client) GetEndpoint(url string) ([]byte, error) {
 
 	resp, err := c.doRequestWithRetry(req)
 	if err != nil {
-		log.Fatalf("Error fetching URL %v: %v", url, err)
+		return nil, err
 	}
 
 	return resp, err
@@ -134,7 +134,10 @@ func (c *Client) GetAllEnvironments(projectID int) ([]Environment, error) {
 		url = fmt.Sprintf("%s?project_id=%d", url, projectID)
 	}
 
-	allEnvironmentsRaw := c.GetData(url)
+	allEnvironmentsRaw, err := c.GetRawData(url)
+	if err != nil {
+		return nil, err
+	}
 
 	allEnvs := []Environment{}
 	for _, env := range allEnvironmentsRaw {
