@@ -53,7 +53,7 @@ func (c *Client) GetRepository(
 	repositoryUrl := fmt.Sprintf(
 		"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 		c.HostURL,
-		strconv.Itoa(c.AccountID),
+		strconv.Itoa(int(c.AccountID)),
 		projectID,
 		repositoryID,
 	)
@@ -96,7 +96,7 @@ func (c *Client) CreateRepository(
 	}
 
 	newRepository := Repository{
-		AccountID:              c.AccountID,
+		AccountID:              int(c.AccountID),
 		ProjectID:              projectID,
 		RemoteUrl:              remoteUrl,
 		State:                  state,
@@ -127,7 +127,7 @@ func (c *Client) CreateRepository(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(projectID),
 		),
 		strings.NewReader(string(newRepositoryData)),
@@ -200,7 +200,7 @@ func (c *Client) UpdateRepository(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			projectID,
 			repositoryID,
 		),
@@ -230,7 +230,7 @@ func (c *Client) DeleteRepository(repositoryID, projectID string) (string, error
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			projectID,
 			repositoryID,
 		),

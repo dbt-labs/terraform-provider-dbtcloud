@@ -34,7 +34,7 @@ func (c *Client) CreateSemanticLayerCredentialServiceTokenMapping(
 	serviceTokenId int,
 ) (*SemanticLayerCredentialServiceTokenMapping, error) {
 	newMapping := SemanticLayerCredentialServiceTokenMapping{
-		AccountID:                 c.AccountID,
+		AccountID:                 int(c.AccountID),
 		ProjectID:                 projectId,
 		SemanticLayerCredentialID: semanticLayerCredentialId,
 		ServiceTokenID:            serviceTokenId,

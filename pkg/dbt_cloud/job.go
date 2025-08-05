@@ -92,7 +92,7 @@ type JobWithEnvironment struct {
 func (c *Client) GetJob(jobID string) (*Job, error) {
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobID),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(int(c.AccountID)), jobID),
 		nil,
 	)
 	if err != nil {
@@ -238,7 +238,7 @@ func (c *Client) CreateJob(
 	}
 
 	newJob := Job{
-		AccountId:            c.AccountID,
+		AccountId:            int(c.AccountID),
 		ProjectId:            projectId,
 		EnvironmentId:        environmentId,
 		Name:                 name,
@@ -279,7 +279,7 @@ func (c *Client) CreateJob(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.Itoa(int(c.AccountID))),
 		strings.NewReader(string(newJobData)),
 	)
 	if err != nil {
@@ -318,7 +318,7 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobId),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(int(c.AccountID)), jobId),
 		strings.NewReader(string(jobData)),
 	)
 	if err != nil {

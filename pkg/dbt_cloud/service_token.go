@@ -46,7 +46,7 @@ type ServiceTokenPermissionListResponse struct {
 
 func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceTokenPermission, error) {
 
-	allServiceTokenPermissionsRaw, err := c.GetRawData(fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/permissions/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)))
+	allServiceTokenPermissionsRaw, err := c.GetRawData(fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/permissions/", c.HostURL, strconv.Itoa(int(c.AccountID)), strconv.Itoa(serviceTokenID)))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceToken
 }
 
 func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/", c.HostURL, strconv.Itoa(int(c.AccountID)), strconv.Itoa(serviceTokenID)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *Client) CreateServiceToken(
 	state int,
 ) (*ServiceToken, error) {
 	newServiceToken := ServiceToken{
-		AccountID: c.AccountID,
+		AccountID: int(c.AccountID),
 		State:     state,
 		Name:      name,
 	}
@@ -108,7 +108,7 @@ func (c *Client) CreateServiceToken(
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/", c.HostURL, c.AccountID), strings.NewReader(string(newServiceTokenData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/", c.HostURL, int(c.AccountID)), strings.NewReader(string(newServiceTokenData)))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/", c.HostURL, strconv.Itoa(c.AccountID), serviceTokenID), strings.NewReader(string(serviceTokenData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/", c.HostURL, strconv.Itoa(int(c.AccountID)), serviceTokenID), strings.NewReader(string(serviceTokenData)))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenP
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/permissions/", c.HostURL, strconv.Itoa(c.AccountID), serviceTokenID), strings.NewReader(string(serviceTokenPermissionData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/permissions/", c.HostURL, strconv.Itoa(int(c.AccountID)), serviceTokenID), strings.NewReader(string(serviceTokenPermissionData)))
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenP
 }
 
 func (c *Client) DeleteServiceToken(serviceTokenID int) (string, error) {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/%d/", c.HostURL, c.AccountID, serviceTokenID), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/%d/", c.HostURL, int(c.AccountID), serviceTokenID), nil)
 	if err != nil {
 		return "", err
 	}

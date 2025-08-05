@@ -98,7 +98,7 @@ func (c *Client) CreateTeradataCredential(
 
 	credential := TeradataCredentialRequest{
 		ID:                nil,
-		AccountID:         c.AccountID,
+		AccountID:         int(c.AccountID),
 		ProjectID:         projectId,
 		Type:              "adapter",
 		State:             STATE_ACTIVE,

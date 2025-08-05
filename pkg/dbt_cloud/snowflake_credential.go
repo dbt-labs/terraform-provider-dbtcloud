@@ -79,7 +79,7 @@ func (c *Client) CreateSnowflakeCredential(
 	numThreads int,
 ) (*SnowflakeCredential, error) {
 	newSnowflakeCredential := SnowflakeCredential{
-		Account_Id: c.AccountID,
+		Account_Id: int(c.AccountID),
 		Project_Id: projectId,
 		Type:       type_,
 		State:      STATE_ACTIVE,

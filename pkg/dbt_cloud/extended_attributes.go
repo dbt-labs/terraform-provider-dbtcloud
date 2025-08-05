@@ -48,7 +48,7 @@ func (c *Client) CreateExtendedAttributes(
 
 	newExtendedAttributes := ExtendedAttributes{
 		State:              state,
-		AccountID:          c.AccountID,
+		AccountID:          int(c.AccountID),
 		ProjectID:          projectId,
 		ExtendedAttributes: extendedAttributes,
 	}

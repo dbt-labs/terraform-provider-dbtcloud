@@ -1,0 +1,10 @@
+[33m48e7088[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-integer-overflow-large-account-ids[m[33m, [m[1;31morigin/fix-integer-overflow-large-account-ids[m[33m)[m fix: resolve integer overflow for large account IDs
+[33m7a5946d[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Handle 400s and return a verbose error message (#505)
+[33mca8ae35[m Merge pull request #504 from dbt-labs/fix_postres_and_databricks_credentials-503
+[33m35bd70c[m move tests in their proper place
+[33mc343987[m fix credential ID bug in postgres and databricks Update functions
+[33mb9838b6[m test that update of databricks credentials works as expected
+[33mc6c9d18[m test that update of postgres credentials works as expected
+[33m40fa008[m Configurable retries mechanism (#498)
+[33m9753eb4[m Removed omitempty from the bool property Active, as this creates an unexpected behavior when json marshalling is done. (#496)
+[33m2db8d60[m[33m ([m[1;33mtag: [m[1;33mv1.1.4[m[33m)[m Release v1.1.4 (#494)

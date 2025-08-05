@@ -55,7 +55,7 @@ func (c *Client) GetIPRestrictions() (*IPRestrictions, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/ip-restrictions/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		nil,
 	)
@@ -108,7 +108,7 @@ func (c *Client) CreateIPRestrictionsRule(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v3/accounts/%s/ip-restrictions/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v3/accounts/%s/ip-restrictions/", c.HostURL, strconv.Itoa(int(c.AccountID))),
 		strings.NewReader(string(newIPRestrictionsData)),
 	)
 	if err != nil {
@@ -143,7 +143,7 @@ func (c *Client) UpdateIPRestrictionsRule(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/ip-restrictions/%s",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			ipRestrictionsId,
 		),
 		strings.NewReader(string(ipRestrictionsData)),
@@ -182,7 +182,7 @@ func (c *Client) DeleteIPRestrictionsRule(ipRestrictionsRuleID int64) error {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/ip-restrictions/%d",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			ipRestrictionsRuleID,
 		),
 		nil,

@@ -40,7 +40,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		nil,
 	)
@@ -71,7 +71,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 				fmt.Sprintf(
 					"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]&offset=%d",
 					c.HostURL,
-					strconv.Itoa(c.AccountID),
+					strconv.Itoa(int(c.AccountID)),
 					numProjects,
 				),
 				nil,
@@ -127,7 +127,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/?include_related=[freshness_job_id,docs_job_id]",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			projectID,
 		),
 		nil,
@@ -160,7 +160,7 @@ func (c *Client) CreateProject(
 		Name:           name,
 		Description:    description,
 		State:          STATE_ACTIVE,
-		AccountID:      c.AccountID,
+		AccountID:      int(c.AccountID),
 		DbtProjectType: dbtProjectType,
 	}
 	if dbtProjectSubdirectory != "" {
@@ -174,7 +174,7 @@ func (c *Client) CreateProject(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(int(c.AccountID))),
 		strings.NewReader(string(newProjectData)),
 	)
 	if err != nil {
@@ -206,7 +206,7 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			projectID,
 		),
 		strings.NewReader(string(projectData)),

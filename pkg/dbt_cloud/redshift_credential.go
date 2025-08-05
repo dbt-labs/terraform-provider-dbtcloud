@@ -67,7 +67,7 @@ func (c *Client) CreateRedshiftCredential(
 	password string,
 ) (*RedshiftCredential, error) {
 	newRedshiftCredential := RedshiftCredential{
-		Account_Id:    c.AccountID,
+		Account_Id:    int(c.AccountID),
 		Project_Id:    projectId,
 		Type:          type_,
 		State:         STATE_ACTIVE,

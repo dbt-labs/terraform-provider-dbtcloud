@@ -32,7 +32,7 @@ func (c *Client) GetModelNotifications(environmentID string) (*ModelNotification
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/environments/%s/model-notifications/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			environmentID,
 		),
 		nil,
@@ -109,7 +109,7 @@ func (c *Client) UpdateModelNotifications(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/environments/%s/model-notifications/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			environmentID,
 		),
 		strings.NewReader(string(modelNotificationsData)),

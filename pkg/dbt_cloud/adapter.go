@@ -95,7 +95,7 @@ func createGenericAdapter(c *Client, newAdapter Adapter, projectID int) (*int, e
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/adapters/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(projectID),
 		),
 		strings.NewReader(string(newAdapterData)),

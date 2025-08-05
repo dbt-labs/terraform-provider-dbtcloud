@@ -39,7 +39,7 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/semantic-layer-credentials/%d",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			id,
 		),
 		nil,
@@ -72,7 +72,7 @@ func (c *Client) CreateSemanticLayerCredential(
 
 	newCredential := SemanticLayerCredentials{
 		SchemaType:     "semantic_layer_credentials",
-		AccountID:      c.AccountID,
+		AccountID:      int(c.AccountID),
 		ProjectID:      int(projectId),
 		Name:           name,
 		AdapterVersion: adapterVersion,

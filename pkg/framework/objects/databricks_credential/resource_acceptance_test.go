@@ -366,7 +366,7 @@ func SetupMockServer(t *testing.T, handlers map[string]MockEndpointHandler) *Moc
 // ResourceTestConfig holds configuration for testing a dbt Cloud resource
 type ResourceTestConfig struct {
 	ResourceType string
-	AccountID    int
+	AccountID    int64
 	ProjectID    int
 	ResourceID   int
 	APIPath      string
@@ -447,7 +447,7 @@ func TestDatabricksCredential_UpdateBugRegression(t *testing.T) {
 		}
 	}()
 
-	accountID, projectID, credentialID := 12345, 67890, 222
+	accountID, projectID, credentialID := int64(12345), int64(67890), int64(222)
 	tracker := &APICallTracker{}
 
 	config := ResourceTestConfig{
@@ -521,7 +521,7 @@ func verifyDatabricksBugIsFixed(t *testing.T, tracker *APICallTracker) resource.
 	}
 }
 
-func updateDatabricksCredentialHandlers(handlers map[string]MockEndpointHandler, accountID, projectID, credentialID int, tracker *APICallTracker) {
+func updateDatabricksCredentialHandlers(handlers map[string]MockEndpointHandler, accountID, projectID, credentialID int64, tracker *APICallTracker) {
 	currentSchema := "test_schema"
 
 	createResponse := func() dbt_cloud.DatabricksCredentialResponse {
