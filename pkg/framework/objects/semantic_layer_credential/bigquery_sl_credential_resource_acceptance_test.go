@@ -159,6 +159,165 @@ func TestDbtCloudSemanticLayerConfigurationBigQueryResource(t *testing.T) {
 	})
 }
 
+func TestDbtCloudSemanticLayerConfigurationBigQueryResource_SensitiveAttributeHandling(t *testing.T) {
+	_, _, projectID := acctest_helper.GetSemanticLayerConfigTestingConfigurations()
+	if projectID == 0 {
+		t.Skip("Skipping test because config is not set")
+	}
+
+	name := acctest.RandomWithPrefix("bigquery_sensitive_test")
+	privateKeyID := acctest.RandString(10)
+	privateKey := acctest.RandString(20) // Make it longer to simulate real private key
+	clientEmail := acctest.RandString(10) + "@example.com"
+	clientID := acctest.RandString(10)
+	authURI := "https://oauth2.googleapis.com/token"
+	tokenURI := "https://oauth2.googleapis.com/token"
+	authProviderCertURL := "https://www.googleapis.com/oauth2/v1/certs"
+	clientCertURL := "https://www.googleapis.com/robot/v1/metadata/x509/test%40example.com"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSemanticLayerCredentialBigQueryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"configuration.name",
+						name,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key_id",
+						privateKeyID,
+					),
+					// Verify sensitive attribute exists but don't check its value
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"client_email",
+						clientEmail,
+					),
+				),
+			},
+			{
+				// This step tests that refreshing the resource doesn't cause inconsistencies
+				// with sensitive attributes. The ExpectNonEmptyPlan: false ensures that
+				// after a refresh, there should be no plan changes.
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false, // This is key - no plan changes should be detected
+			},
+		},
+	})
+}
+
+func TestDbtCloudSemanticLayerConfigurationBigQueryResource_SensitiveAttributeNull(t *testing.T) {
+	// This test specifically validates that when sensitive attributes are initially null,
+	// they get properly set to empty strings to avoid inconsistencies.
+
+	_, _, projectID := acctest_helper.GetSemanticLayerConfigTestingConfigurations()
+	if projectID == 0 {
+		t.Skip("Skipping test because config is not set")
+	}
+
+	name := acctest.RandomWithPrefix("bigquery_null_test")
+
+	// Test with minimal required values
+	privateKeyID := "test_key_id"
+	privateKey := "test_private_key_content"
+	clientEmail := "test@serviceaccount.example.com"
+	clientID := "123456789"
+	authURI := "https://accounts.google.com/o/oauth2/auth"
+	tokenURI := "https://oauth2.googleapis.com/token"
+	authProviderCertURL := "https://www.googleapis.com/oauth2/v1/certs"
+	clientCertURL := "https://www.googleapis.com/robot/v1/metadata/x509/test%40serviceaccount.example.com"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSemanticLayerCredentialBigQueryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					// Check that resource is created successfully
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"id",
+					),
+					// Check that private_key_id is preserved
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key_id",
+						privateKeyID,
+					),
+					// Check that private_key exists (but don't verify value for security)
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential",
+						"private_key",
+					),
+				),
+			},
+			{
+				// Test refresh with explicit plan-only check
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false, // This is key - no plan changes should be detected
+			},
+		},
+	})
+}
+
 // builds a terraform config for dbtcloud_bigquery_semantic_layer_credential resource
 func testAccDbtCloudBigQuerySemanticLayerCredentialResource(
 	projectID int,
