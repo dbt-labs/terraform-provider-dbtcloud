@@ -1,3 +1,0 @@
-kind: Fixes
-body: Removed omitempty from the bool property Active, as this creates an unexpected behavior when json marshalling is done. False values are seen as 0
-time: 2025-07-17T17:24:34.00815+03:00
