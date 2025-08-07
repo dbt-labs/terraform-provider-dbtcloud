@@ -98,7 +98,7 @@ func (c *Client) CreateSynapseCredential(
 	}
 
 	newSynapseCredential := SynapseCredential{
-		Account_Id:        c.AccountID,
+		Account_Id:        int(c.AccountID),
 		Project_Id:        projectId,
 		Type:              "adapter",
 		State:             STATE_ACTIVE,

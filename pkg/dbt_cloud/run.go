@@ -47,7 +47,7 @@ func (c *Client) GetRun(runID int64) (*Run, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/runs/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(int(runID)),
 		),
 		nil,
@@ -76,7 +76,7 @@ func (c *Client) GetRuns(filter *RunFilter) (*[]Run, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/runs/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		nil,
 	)
@@ -157,7 +157,7 @@ func (c *Client) TriggerRun(
 			"%s/v2/accounts/%s/jobs/%s/run/",
 			c.HostURL,
 			strconv.Itoa(int(jobID)),
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		strings.NewReader(string(newRunData)),
 	)
@@ -186,7 +186,7 @@ func (c *Client) CancelRun(runID int64) (*Run, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/runs/%s/cancel",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(int(runID)),
 		),
 		nil,
@@ -216,7 +216,7 @@ func (c *Client) RetryRun(runID int64) (*Run, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/runs/%s/retry",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(int(runID)),
 		),
 		nil,

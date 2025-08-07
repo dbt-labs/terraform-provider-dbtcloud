@@ -75,7 +75,7 @@ func (c *Client) GetEnvironmentVariableJobOverride(
 				int(overrideID) == environmentVariableOverrideID {
 
 				environmentVariableJobOverride := EnvironmentVariableJobOverride{
-					AccountID:       c.AccountID,
+					AccountID:       int(c.AccountID),
 					Name:            envVarName,
 					ProjectID:       projectID,
 					RawValue:        jobMap["value"].(string),
@@ -104,7 +104,7 @@ func (c *Client) CreateEnvironmentVariableJobOverride(
 ) (*EnvironmentVariableJobOverride, error) {
 
 	envOverride := EnvironmentVariableJobOverride{
-		AccountID:       c.AccountID,
+		AccountID:       int(c.AccountID),
 		Name:            name,
 		ProjectID:       projectID,
 		RawValue:        rawValue,
