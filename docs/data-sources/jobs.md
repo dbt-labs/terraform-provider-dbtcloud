@@ -69,7 +69,6 @@ Read-Only:
 - `run_generate_sources` (Boolean) Whether the job test source freshness
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--jobs--schedule))
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))
-- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out
 - `triggers` (Attributes) (see [below for nested schema](#nestedatt--jobs--triggers))
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
