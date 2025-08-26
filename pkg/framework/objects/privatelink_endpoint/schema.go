@@ -1,6 +1,9 @@
 package privatelink_endpoint
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
@@ -29,4 +32,22 @@ var datasourceSchema = datasource_schema.Schema{
 			Description: "CIDR range of the PrivateLink Endpoint",
 		},
 	},
+}
+
+func (r *privatelinkEndpointDataSourceAll) Schema(
+	_ context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
+	var datasourceSchemaAll = datasource_schema.Schema{
+		Description: "Privatelink endpoint data sources.",
+		Attributes: map[string]datasource_schema.Attribute{
+			"id": datasource_schema.StringAttribute{
+				Computed:    true,
+				Description: "The internal ID of the PrivateLink Endpoint",
+			},
+		},
+	}
+
+	resp.Schema = datasourceSchemaAll
 }
