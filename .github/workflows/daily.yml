@@ -1,0 +1,38 @@
+name: Daily dbt Cloud Integration Tests
+
+on:
+  schedule:
+    - cron: '45 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  daily-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
+
+      - name: Install dependencies
+        run: make setup
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run acceptance tests
+        run: make test-acceptance
+        env:
+          DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          DBT_CLOUD_HOST_URL: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION: ${{ secrets.DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION }}

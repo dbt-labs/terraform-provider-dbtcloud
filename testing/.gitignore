@@ -1,0 +1,19 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Terraform plan files
+*.tfplan
+
+# Terraform lock files
+.terraform.lock.hcl
+
+# Terraform provider logs
+terraform-provider-*.log
+
+# Infracost files
+infracost-*.json

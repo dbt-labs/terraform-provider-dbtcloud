@@ -1,0 +1,51 @@
+name: E2E Terraform Test
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Runs daily at 3:00 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
+
+      - name: Build and install provider
+        run: make install
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./testing/cicd
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+
+      - name: Terraform Destroy
+        if: always() # This step will always run, even if the apply fails
+        run: terraform destroy -auto-approve
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
