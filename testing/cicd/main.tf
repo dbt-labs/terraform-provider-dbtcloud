@@ -2,7 +2,7 @@ terraform {
   required_providers {
     dbtcloud = {
       source  = "dbt-labs/dbtcloud"
-      version = ">= 0.2.0"
+      version = ">= 1.2.0"
     }
   }
 }
@@ -38,7 +38,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_environment" "test_environment" {
   project_id = dbtcloud_project.test_project.id
   name       = "Test Environment"
-  dbt_version = "1.7.0"
+  dbt_version = "latest-fusion"
   type       = "development"
 }
 
