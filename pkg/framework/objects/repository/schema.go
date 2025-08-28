@@ -51,9 +51,6 @@ func ResourceSchema() resource_schema.Schema {
 				Computed:    true,
 				Default:     stringdefault.StaticString("deploy_key"),
 				Description: "Git clone strategy for the repository. Can be `deploy_key` (default) for cloning via SSH Deploy Key, `github_app` for GitHub native integration, `deploy_token` for the GitLab native integration and `azure_active_directory_app` for ADO native integration",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"repository_credentials_id": resource_schema.Int64Attribute{
 				Computed:    true,
