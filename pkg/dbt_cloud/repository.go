@@ -168,6 +168,10 @@ func (c *Client) CreateRepository(
 			newRepository.FullName = repositoryResponse.Data.FullName
 		}
 
+		if repositoryResponse.Data.ID == nil {
+			return nil, fmt.Errorf("repository ID is nil after creation")
+		}
+
 		updatedRepo, err := c.UpdateRepository(
 			strconv.Itoa(*repositoryResponse.Data.ID),
 			strconv.Itoa(projectID),
