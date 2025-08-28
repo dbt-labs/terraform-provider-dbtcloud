@@ -72,8 +72,14 @@ resource "dbtcloud_group" "test_group" {
 
 resource "dbtcloud_environment_variable" "test_env_var" {
   project_id = dbtcloud_project.test_project.id
-  name       = "TEST_ENV_VAR"
-  value      = "test_value"
+  name       = "DBT_TEST_ENV_VAR"
+  environment_values = {
+    "project"                           = "default_value"
+    dbtcloud_environment.test_environment.name = "test_value"
+  }
+  depends_on = [
+    dbtcloud_environment.test_environment
+  ]
 }
 
 resource "dbtcloud_webhook" "test_webhook" {
