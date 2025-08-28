@@ -39,7 +39,7 @@ type AssignUserGroupsResponse struct {
 }
 
 func (c *Client) GetUserGroups(userId int) (*UserGroupsCurrentAccount, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(userId)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/%s/", c.HostURL, strconv.Itoa(int(c.AccountID)), strconv.Itoa(userId)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (c *Client) GetUserGroups(userId int) (*UserGroupsCurrentAccount, error) {
 	// we just want to get the ones of the current account
 	userGroupsCurrentAccount := UserGroupsCurrentAccount{}
 	for _, permission := range userGroupsResponse.Data.Permissions {
-		if permission.AccountID == c.AccountID {
+		if int(permission.AccountID) == int(c.AccountID) {
 			userGroupsCurrentAccount.Groups = append(userGroupsCurrentAccount.Groups, permission.Groups...)
 		}
 	}
@@ -79,7 +79,7 @@ func (c *Client) AssignUserGroups(userId int, groupIDs []int) (*AssignUserGroups
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/assign-groups/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(userGroupsData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/assign-groups/", c.HostURL, strconv.Itoa(int(c.AccountID))), strings.NewReader(string(userGroupsData)))
 	if err != nil {
 		return nil, err
 	}

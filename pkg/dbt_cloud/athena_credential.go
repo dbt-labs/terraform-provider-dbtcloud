@@ -101,7 +101,7 @@ func (c *Client) CreateAthenaCredential(
 
 	credential := AthenaCredentialRequest{
 		ID:                nil,
-		AccountID:         c.AccountID,
+		AccountID:         int(c.AccountID),
 		ProjectID:         projectId,
 		Type:              "adapter",
 		State:             STATE_ACTIVE,
