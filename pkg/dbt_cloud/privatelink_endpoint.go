@@ -57,3 +57,22 @@ func (c *Client) GetPrivatelinkEndpoint(endpointName string, privatelinkEndpoint
 
 	return nil, fmt.Errorf("Did not find PrivateLink endpoint with name = '%s' and/or endpoint = '%s'", endpointName, privatelinkEndpointURL)
 }
+
+func (c *Client) GetAllPrivatelinkEndpoints() ([]PrivatelinkEndpoint, error) {
+	url := fmt.Sprintf("%s/v3/accounts/%d/privatelink-endpoints/", c.HostURL, c.AccountID)
+
+	allPrivatelinkEndpointsRaw := c.GetData(url)
+
+	allPrivatelinkEndpoints := []PrivatelinkEndpoint{}
+	for _, privatelinkEndpoint := range allPrivatelinkEndpointsRaw {
+		data, _ := json.Marshal(privatelinkEndpoint)
+		currentPrivatelinkEndpoint := PrivatelinkEndpoint{}
+		err := json.Unmarshal(data, &currentPrivatelinkEndpoint)
+		if err != nil {
+			return nil, err
+		}
+		allPrivatelinkEndpoints = append(allPrivatelinkEndpoints, currentPrivatelinkEndpoint)
+	}
+
+	return allPrivatelinkEndpoints, nil
+}

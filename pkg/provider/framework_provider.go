@@ -305,6 +305,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		environment_variable.EnvironmentVariableDataSource,
 		project.ProjectDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSource,
+		privatelink_endpoint.PrivatelinkEndpointDataSourceAll,
 		group_users.GroupUsersDataSource,
 		runs.RunsDataSource,
 		synapse_credential.SynapseCredentialDataSource,
