@@ -61,3 +61,40 @@ resource "dbtcloud_job" "test_job" {
     schedule = false
   }
 }
+
+resource "dbtcloud_service_token" "test_service_token" {
+  name = "Test Service Token"
+}
+
+resource "dbtcloud_group" "test_group" {
+  name = "Test Group"
+}
+
+resource "dbtcloud_environment_variable" "test_env_var" {
+  project_id = dbtcloud_project.test_project.id
+  name       = "TEST_ENV_VAR"
+  value      = "test_value"
+}
+
+resource "dbtcloud_webhook" "test_webhook" {
+  name        = "Test Webhook"
+  description = "A webhook for testing"
+  client_url  = "https://example.com/webhook"
+  event_types = [
+    "job.run.started",
+    "job.run.completed"
+  ]
+}
+
+resource "dbtcloud_notification" "test_notification_success" {
+  user_id    = 100 # Using a placeholder user ID
+  on_success = [dbtcloud_job.test_job.id]
+  state      = 1 # active
+}
+
+resource "dbtcloud_notification" "test_notification_failure" {
+  user_id    = 100 # Using a placeholder user ID
+  on_failure = [dbtcloud_job.test_job.id]
+  state      = 1 # active
+  notification_type = 4 # PagerDuty
+}
