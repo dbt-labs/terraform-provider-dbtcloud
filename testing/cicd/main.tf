@@ -44,14 +44,8 @@ resource "dbtcloud_environment" "test_environment" {
 
 resource "dbtcloud_repository" "test_repository" {
   project_id = dbtcloud_project.test_project.id
-  remote_url = "git@github.com:dbt-labs/dbt-starter-project.git"
+  remote_url = "git@github.com:dbt-labs/tf-provider-e2e-test.git"
   git_clone_strategy = "deploy_key"
-}
-
-resource "dbtcloud_repository" "test_repository2" {
-  project_id = dbtcloud_project.test_project.id
-  remote_url = "git@github.com:dbt-labs/dbt-starter-project.git"
-  git_clone_strategy = "github_app"
 }
 
 resource "dbtcloud_job" "test_job" {
