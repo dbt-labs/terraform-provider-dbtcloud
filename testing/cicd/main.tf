@@ -31,33 +31,43 @@ variable "dbt_cloud_host_url" {
 }
 
 resource "dbtcloud_project" "test_project" {
-  name        = "Test Project"
-  dbt_project_subdirectory = "/dbt"
+  name                         = "Test Project SL"
+  dbt_project_subdirectory     = "/dbt"
 }
 
 resource "dbtcloud_environment" "test_environment" {
-  project_id = dbtcloud_project.test_project.id
-  name       = "Test Environment"
-  dbt_version = "latest-fusion"
-  type       = "development"
+  project_id  = dbtcloud_project.test_project.id
+  name        = "Test Environment SL"
+  dbt_version = "latest"
+  type        = "deployment"
 }
 
-resource "dbtcloud_repository" "test_repository" {
-  project_id = dbtcloud_project.test_project.id
-  remote_url = "git@github.com:dbt-labs/tf-provider-e2e-test.git"
-  git_clone_strategy = "deploy_key"
+resource "dbtcloud_service_token" "test_service_token" {
+  name = "Test Service Token SL"
 }
 
-resource "dbtcloud_job" "test_job" {
-  project_id = dbtcloud_project.test_project.id
-  environment_id = dbtcloud_environment.test_environment.environment_id
-  name = "Test Job"
-  execute_steps = [
-    "dbt run"
-  ]
-  triggers = {
-    github_webhook = false
-    git_provider_webhook = false
-    schedule = false
+resource "dbtcloud_snowflake_semantic_layer_credential" "test_credential" {
+  configuration = {
+    name            = "Test Credential SL"
+    project_id      = dbtcloud_project.test_project.id
+    adapter_version = "1.0"
   }
+  credential = {
+    auth_type = "password"
+    database  = "test_db"
+    warehouse = "test_wh"
+    user      = "test_user"
+    password  = "test_password"
+    role      = "test_role"
+  }
+}
+
+resource "dbtcloud_semantic_layer_configuration" "test_semantic_layer_config" {
+  project_id     = dbtcloud_project.test_project.id
+  environment_id = dbtcloud_environment.test_environment.environment_id
+}
+
+resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mapping" {
+  service_token_id           = dbtcloud_service_token.test_service_token.id
+  semantic_layer_credential_id = dbtcloud_snowflake_semantic_layer_credential.test_credential.id
 }
