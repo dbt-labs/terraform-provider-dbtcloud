@@ -61,6 +61,7 @@ resource "dbtcloud_snowflake_semantic_layer_credential" "test_credential" {
     role      = "test_role"
     project_id = dbtcloud_project.test_project.id
     num_threads = 1
+    semantic_layer_credential = true
   }
 }
 
