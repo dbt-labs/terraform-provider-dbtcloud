@@ -73,4 +73,5 @@ resource "dbtcloud_semantic_layer_configuration" "test_semantic_layer_config" {
 resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mapping" {
   service_token_id           = dbtcloud_service_token.test_service_token.id
   semantic_layer_credential_id = dbtcloud_snowflake_semantic_layer_credential.test_credential.id
+  project_id = dbtcloud_project.test_project.id
 }
