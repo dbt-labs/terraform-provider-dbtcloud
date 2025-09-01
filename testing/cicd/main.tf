@@ -59,6 +59,8 @@ resource "dbtcloud_snowflake_semantic_layer_credential" "test_credential" {
     user      = "test_user"
     password  = "test_password"
     role      = "test_role"
+    project_id = dbtcloud_project.test_project.id
+    num_threads = 1
   }
 }
 
