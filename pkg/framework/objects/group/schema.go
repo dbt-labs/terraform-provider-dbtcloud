@@ -192,3 +192,57 @@ func (d *groupDataSource) Schema(
 		},
 	}
 }
+
+var groupsDataSourceSchema = datasource_schema.Schema{
+	Description: "Retrieve all groups in the account with optional filtering",
+	Attributes: map[string]datasource_schema.Attribute{
+		"name": datasource_schema.StringAttribute{
+			Optional:    true,
+			Description: "Filter groups by exact name match",
+		},
+		"name_contains": datasource_schema.StringAttribute{
+			Optional:    true,
+			Description: "Filter groups by partial name match (case insensitive)",
+		},
+		"state": datasource_schema.StringAttribute{
+			Optional:    true,
+			Description: "Filter groups by state. Accepts both string and integer formats: 'active'/'1' for active resources, 'deleted'/'2' for deleted resources, 'all' for all resources. Defaults to active groups only if not specified.",
+			Validators: []validator.String{
+				stringvalidator.OneOf("active", "1", "deleted", "2", "all"),
+			},
+		},
+		"groups": datasource_schema.SetNestedAttribute{
+			Computed:    true,
+			Description: "Set of groups in the account",
+			NestedObject: datasource_schema.NestedAttributeObject{
+				Attributes: map[string]datasource_schema.Attribute{
+					"id": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The ID of the group",
+					},
+					"name": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "Group name",
+					},
+					"state": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The state of the group (1=active, 2=deleted)",
+					},
+					"assign_by_default": datasource_schema.BoolAttribute{
+						Computed:    true,
+						Description: "Whether the group will be assigned by default to users",
+					},
+					"scim_managed": datasource_schema.BoolAttribute{
+						Computed:    true,
+						Description: "Whether the group is managed by SCIM",
+					},
+					"sso_mapping_groups": datasource_schema.SetAttribute{
+						ElementType: types.StringType,
+						Computed:    true,
+						Description: "SSO mapping group names for this group",
+					},
+				},
+			},
+		},
+	},
+}
