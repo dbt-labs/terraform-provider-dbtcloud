@@ -27,6 +27,22 @@ type GroupDataSourceModel struct {
 	GroupPermissions []GroupPermission `tfsdk:"group_permissions"`
 }
 
+type GroupsDataSourceModel struct {
+	Name         types.String `tfsdk:"name"`
+	NameContains types.String `tfsdk:"name_contains"`
+	State        types.String `tfsdk:"state"`
+	Groups       []GroupInfo  `tfsdk:"groups"`
+}
+
+type GroupInfo struct {
+	ID               types.Int64  `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	State            types.Int64  `tfsdk:"state"`
+	AssignByDefault  types.Bool   `tfsdk:"assign_by_default"`
+	SSOMappingGroups types.Set    `tfsdk:"sso_mapping_groups"`
+	ScimManaged      types.Bool   `tfsdk:"scim_managed"`
+}
+
 type GroupPermission struct {
 	PermissionSet                 types.String `tfsdk:"permission_set"`
 	ProjectID                     types.Int64  `tfsdk:"project_id"`

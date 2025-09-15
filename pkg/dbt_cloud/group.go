@@ -27,6 +27,7 @@ type Group struct {
 	State            int               `json:"state"`
 	AssignByDefault  bool              `json:"assign_by_default"`
 	SSOMappingGroups []string          `json:"sso_mapping_groups"`
+	ScimManaged      bool              `json:"scim_managed"`
 	Permissions      []GroupPermission `json:"group_permissions,omitempty"`
 }
 
@@ -38,6 +39,11 @@ type GroupResponse struct {
 type GroupPermissionListResponse struct {
 	Data   []GroupPermission `json:"data"`
 	Status ResponseStatus    `json:"status"`
+}
+
+type GroupListResponse struct {
+	Data   []Group        `json:"data"`
+	Status ResponseStatus `json:"status"`
 }
 
 func (c *Client) GetGroup(groupID int) (*Group, error) {
@@ -173,4 +179,49 @@ func (c *Client) UpdateGroupPermissions(
 	}
 
 	return &groupPermissionResponse.Data, nil
+}
+
+func (c *Client) GetAllGroups(name, nameContains, state string) ([]Group, error) {
+	url := fmt.Sprintf(
+		"%s/v3/accounts/%s/groups/",
+		c.HostURL,
+		strconv.Itoa(c.AccountID),
+	)
+
+	// Build query parameters
+	params := []string{}
+	
+	if name != "" {
+		params = append(params, fmt.Sprintf("name=%s", name))
+	}
+	
+	if nameContains != "" {
+		params = append(params, fmt.Sprintf("name__icontains=%s", nameContains))
+	}
+	
+	if state != "" {
+		params = append(params, fmt.Sprintf("state=%s", state))
+	}
+	
+	if len(params) > 0 {
+		url += "?" + strings.Join(params, "&")
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	groupListResponse := GroupListResponse{}
+	err = json.Unmarshal(body, &groupListResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return groupListResponse.Data, nil
 }
