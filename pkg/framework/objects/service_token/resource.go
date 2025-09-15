@@ -228,6 +228,11 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
+	if createdSrvTok == nil || createdSrvTok.ID == nil {
+		resp.Diagnostics.AddError("Error creating the service token", "The created service token or its ID is null")
+		return
+	}
+
 	srvTokPermissions, diags := ConvertServiceTokenPermissionModelToData(ctx, plan.ServiceTokenPermissions, *createdSrvTok.ID, st.client.AccountID)
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
