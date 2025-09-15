@@ -183,6 +183,16 @@ func (r *globalConnectionResource) Schema(
 						),
 						Description: "OAuth scopes for the BigQuery connection",
 					},
+					"adapter_version_override": resource_schema.StringAttribute{
+						Optional:    true,
+						Description: "Adapter version override for the BigQuery connection, use this to force the use of the bigquery_v1 adapter (or other adapter versions available, except bigquery_v0)",
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"bigquery_v0", "bigquery_v1"}...),
+						},
+					},
+				},
+				Validators: []validator.Object{
+					BigqueryTimeoutForV1(),
 				},
 			},
 			// this feels bad, but there is no error/warning when people add extra fields https://github.com/hashicorp/terraform/issues/33570

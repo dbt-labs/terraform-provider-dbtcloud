@@ -177,6 +177,7 @@ type BigQueryConfig struct {
 	GcsBucket                 types.String `tfsdk:"gcs_bucket"`
 	DataprocRegion            types.String `tfsdk:"dataproc_region"`
 	DataprocClusterName       types.String `tfsdk:"dataproc_cluster_name"`
+	AdapterVersionOverride    types.String `tfsdk:"adapter_version_override"`
 }
 
 type SnowflakeConfig struct {

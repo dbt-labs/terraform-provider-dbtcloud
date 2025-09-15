@@ -239,6 +239,7 @@ Required:
 
 Optional:
 
+- `adapter_version_override` (String) Adapter version override for the BigQuery connection, use this to force the use of the bigquery_v1 adapter (or other adapter versions available, except bigquery_v0)
 - `application_id` (String, Sensitive) OAuth Client ID
 - `application_secret` (String, Sensitive) OAuth Client Secret
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
