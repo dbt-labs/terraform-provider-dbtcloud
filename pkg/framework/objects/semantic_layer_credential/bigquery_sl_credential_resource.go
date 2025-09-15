@@ -70,13 +70,6 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.Configuration.Name = types.StringValue(credential.Name)
 	state.Configuration.AdapterVersion = types.StringValue(credential.AdapterVersion)
 
-	// Do not read sensitive values from the API to avoid refresh differences, keep them as they are in the state
-	if state.PrivateKeyID.IsNull() {
-		state.PrivateKeyID = types.StringValue("")
-	}
-	if state.PrivateKey.IsNull() {
-		state.PrivateKey = types.StringValue("")
-	}
 
 	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
@@ -248,13 +241,9 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 	state.Configuration.Name = types.StringValue(updatedCredential.Name)
 	state.Configuration.AdapterVersion = types.StringValue(updatedCredential.AdapterVersion)
 
-	// Do not read sensitive values from the API to avoid refresh differences, keep them as they are in the state
-	if state.PrivateKeyID.IsNull() {
-		state.PrivateKeyID = types.StringValue("")
-	}
-	if state.PrivateKey.IsNull() {
-		state.PrivateKey = types.StringValue("")
-	}
+	// keep the sensitive values from the plan
+	state.PrivateKey = plan.PrivateKey
+	state.PrivateKeyID = plan.PrivateKeyID
 
 	state.AuthURI = getStringFromMap(updatedCredential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(updatedCredential.Values, "token_uri")
