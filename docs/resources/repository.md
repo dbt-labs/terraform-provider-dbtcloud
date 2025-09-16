@@ -109,8 +109,8 @@ resource "dbtcloud_repository" "ado_repo" {
 
 ### Optional
 
-- `azure_active_directory_project_id` (String) The Azure Dev Ops project ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_project` and the project name - (for ADO native integration only)
-- `azure_active_directory_repository_id` (String) The Azure Dev Ops repository ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_repository` along with the ADO Project ID and the repository name - (for ADO native integration only)
+- `azure_active_directory_project_id` (String) The Azure Dev Ops project ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_project` and the project name - (required for ADO native integration only)
+- `azure_active_directory_repository_id` (String) The Azure Dev Ops repository ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_repository` along with the ADO Project ID and the repository name - (required for ADO native integration only)
 - `azure_bypass_webhook_registration_failure` (Boolean) If set to False (the default), the connection will fail if the service user doesn't have access to set webhooks (required for auto-triggering CI jobs). If set to True, the connection will be successful but no automated CI job will be triggered - (for ADO native integration only)
 - `fetch_deploy_key` (Boolean, Deprecated) Whether we should return the public deploy key - (for the `deploy_key` strategy)
 - `git_clone_strategy` (String) Git clone strategy for the repository. Can be `deploy_key` (default) for cloning via SSH Deploy Key, `github_app` for GitHub native integration, `deploy_token` for the GitLab native integration and `azure_active_directory_app` for ADO native integration

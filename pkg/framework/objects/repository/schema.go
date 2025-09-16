@@ -84,7 +84,7 @@ func ResourceSchema() resource_schema.Schema {
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString(""),
-				Description: "The Azure Dev Ops project ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_project` and the project name - (for ADO native integration only)",
+				Description: "The Azure Dev Ops project ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_project` and the project name - (required for ADO native integration only)",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -93,7 +93,7 @@ func ResourceSchema() resource_schema.Schema {
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString(""),
-				Description: "The Azure Dev Ops repository ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_repository` along with the ADO Project ID and the repository name - (for ADO native integration only)",
+				Description: "The Azure Dev Ops repository ID. It can be retrieved via the Azure API or using the data source `dbtcloud_azure_dev_ops_repository` along with the ADO Project ID and the repository name - (required for ADO native integration only)",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
