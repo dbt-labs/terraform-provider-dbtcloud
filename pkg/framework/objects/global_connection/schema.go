@@ -71,7 +71,13 @@ func (r *globalConnectionResource) Schema(
 						Optional:    true,
 						Computed:    true,
 						Default:     int64default.StaticInt64(300),
-						Description: "Timeout in seconds for queries",
+						Description: "Timeout in seconds for queries, to be used ONLY for the bigquery_v0 adapter",
+					},
+					"job_execution_timeout_seconds": resource_schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     int64default.StaticInt64(300),
+						Description: "Timeout in seconds for job execution, to be used for the bigquery_v1 adapter",
 					},
 					"private_key_id": resource_schema.StringAttribute{
 						Required:    true,
@@ -183,16 +189,10 @@ func (r *globalConnectionResource) Schema(
 						),
 						Description: "OAuth scopes for the BigQuery connection",
 					},
-					"adapter_version_override": resource_schema.StringAttribute{
+					"use_legacy_adapter": resource_schema.BoolAttribute{
 						Optional:    true,
-						Description: "Adapter version override for the BigQuery connection, use this to force the use of the bigquery_v1 adapter (or other adapter versions available, except bigquery_v0)",
-						Validators: []validator.String{
-							stringvalidator.OneOf([]string{"bigquery_v0", "bigquery_v1"}...),
-						},
+						Description: "Whether to use the legacy bigquery_v0 adapter. If true, the `timeout_seconds` field will be used",
 					},
-				},
-				Validators: []validator.Object{
-					BigqueryTimeoutForV1(),
 				},
 			},
 			// this feels bad, but there is no error/warning when people add extra fields https://github.com/hashicorp/terraform/issues/33570

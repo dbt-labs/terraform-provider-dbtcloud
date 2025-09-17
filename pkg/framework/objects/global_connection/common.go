@@ -80,7 +80,7 @@ func readGeneric(
 
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.BigQueryConfig](client)
 
-		common, bigqueryCfg, adapterVersion, err := c.GetWithAdapterVersionOverride(connectionID)
+		common, bigqueryCfg, adapterVersion, err := c.GetWithAdapterVersion(connectionID)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "resource-not-found") {
 				return nil, "removeFromState", nil
@@ -109,14 +109,12 @@ func readGeneric(
 		// BigQuery settings
 		state.BigQueryConfig.GCPProjectID = types.StringPointerValue(bigqueryCfg.ProjectID)
 
-		// bigquery_v1 adapter does not support timeout_seconds, so it will always be 300
-		// we set it to 300 in the state to keep things backwards compatible
-		if (adapterVersion == "bigquery_v1") {
-			state.BigQueryConfig.TimeoutSeconds = types.Int64Value(300)
-		} else {
+		// if the adapter version is not the legacy one, timeout_seconds is not supported
+		if adapterVersion == bigqueryCfg.LegacyAdapterVersion() {
 			state.BigQueryConfig.TimeoutSeconds = types.Int64PointerValue(bigqueryCfg.TimeoutSeconds)
 		}
 
+		state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(bigqueryCfg.JobExecutionTimeoutSeconds)
 		state.BigQueryConfig.PrivateKeyID = types.StringPointerValue(bigqueryCfg.PrivateKeyID)
 		state.BigQueryConfig.ClientEmail = types.StringPointerValue(bigqueryCfg.ClientEmail)
 		state.BigQueryConfig.ClientID = types.StringPointerValue(bigqueryCfg.ClientID)
