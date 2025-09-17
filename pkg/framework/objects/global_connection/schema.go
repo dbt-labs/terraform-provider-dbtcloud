@@ -189,7 +189,7 @@ func (r *globalConnectionResource) Schema(
 					},
 					"use_latest_adapter": resource_schema.BoolAttribute{
 						Optional:    true,
-						Description: "Whether to use the latest bigquery_v1 adapter. If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.",
+						Description: "Whether to use the latest bigquery_v1 adapter (use this for BQ WIF). If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.",
 					},
 				},
 			},

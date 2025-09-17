@@ -255,7 +255,7 @@ Optional:
 - `retries` (Number) Number of retries for queries
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries, to be used ONLY for the bigquery_v0 adapter
-- `use_latest_adapter` (Boolean) Whether to use the latest bigquery_v1 adapter. If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.
+- `use_latest_adapter` (Boolean) Whether to use the latest bigquery_v1 adapter (use this for BQ WIF). If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.
 
 
 <a id="nestedatt--databricks"></a>
