@@ -433,7 +433,7 @@ func (SnowflakeConfig) AdapterVersion() string {
 type BigQueryConfig struct {
 	ProjectID                  *string                   `json:"project_id,omitempty"`
 	TimeoutSeconds             *int64                    `json:"timeout_seconds,omitempty"`
-	JobExecutionTimeoutSeconds *int64                    `json:"job_execution_timeout_seconds,omitempty"`
+	JobExecutionTimeoutSeconds nullable.Nullable[int64]  `json:"job_execution_timeout_seconds,omitempty"`
 	PrivateKeyID               *string                   `json:"private_key_id,omitempty"`
 	PrivateKey                 *string                   `json:"private_key,omitempty"`
 	ClientEmail                *string                   `json:"client_email,omitempty"`
@@ -458,11 +458,11 @@ type BigQueryConfig struct {
 	Scopes                     []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
 }
 
-func (BigQueryConfig) AdapterVersion() string {
+func (BigQueryConfig) LatestAdapterVersion() string {
 	return "bigquery_v1"
 }
 
-func (BigQueryConfig) LegacyAdapterVersion() string {
+func (BigQueryConfig) AdapterVersion() string {
 	return "bigquery_v0"
 }
 

@@ -2,6 +2,7 @@ package global_connection_test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -322,6 +323,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryCreateV1Adapter(t *testing.T) {
 					"bigquery.application_id",
 					"bigquery.timeout_seconds",
 					"bigquery.job_execution_timeout_seconds",
+					"bigquery.use_latest_adapter",
 				},
 			},
 		},
@@ -373,27 +375,8 @@ func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) 
 					connectionName,
 					jobExecutionTimeoutSeconds,
 				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_global_connection.test",
-						"id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"adapter_version",
-						"bigquery_v1",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"is_ssh_tunnel_enabled",
-						"false",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"bigquery.job_execution_timeout_seconds",
-						"1000",
-					),
-				),
+				// expect an error
+				ExpectError: regexp.MustCompile("Changing the adapter version is not supported."),
 			},
 
 			// IMPORT
@@ -467,6 +450,7 @@ resource dbtcloud_global_connection test {
     application_id              = "oauth_application_id"
     application_secret          = "oauth_secret_id"
 	job_execution_timeout_seconds = %d
+	use_latest_adapter = true
   }
 }
 

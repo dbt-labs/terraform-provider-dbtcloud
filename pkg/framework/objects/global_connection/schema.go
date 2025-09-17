@@ -75,8 +75,6 @@ func (r *globalConnectionResource) Schema(
 					},
 					"job_execution_timeout_seconds": resource_schema.Int64Attribute{
 						Optional:    true,
-						Computed:    true,
-						Default:     int64default.StaticInt64(300),
 						Description: "Timeout in seconds for job execution, to be used for the bigquery_v1 adapter",
 					},
 					"private_key_id": resource_schema.StringAttribute{
@@ -186,12 +184,12 @@ func (r *globalConnectionResource) Schema(
 									types.StringValue("https://www.googleapis.com/auth/drive"),
 								},
 							),
-						),
+						),	
 						Description: "OAuth scopes for the BigQuery connection",
 					},
-					"use_legacy_adapter": resource_schema.BoolAttribute{
+					"use_latest_adapter": resource_schema.BoolAttribute{
 						Optional:    true,
-						Description: "Whether to use the legacy bigquery_v0 adapter. If true, the `timeout_seconds` field will be used",
+						Description: "Whether to use the latest bigquery_v1 adapter. If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.",
 					},
 				},
 			},

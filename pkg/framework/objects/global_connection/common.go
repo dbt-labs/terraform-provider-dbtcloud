@@ -110,11 +110,16 @@ func readGeneric(
 		state.BigQueryConfig.GCPProjectID = types.StringPointerValue(bigqueryCfg.ProjectID)
 
 		// if the adapter version is not the legacy one, timeout_seconds is not supported
-		if adapterVersion == bigqueryCfg.LegacyAdapterVersion() {
+		if adapterVersion == bigqueryCfg.AdapterVersion() {
 			state.BigQueryConfig.TimeoutSeconds = types.Int64PointerValue(bigqueryCfg.TimeoutSeconds)
 		}
 
-		state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(bigqueryCfg.JobExecutionTimeoutSeconds)
+		var jobExecutionTimeoutSeconds int64
+		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() {
+			jobExecutionTimeoutSeconds = bigqueryCfg.JobExecutionTimeoutSeconds.MustGet()
+			state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(&jobExecutionTimeoutSeconds)
+		}
+
 		state.BigQueryConfig.PrivateKeyID = types.StringPointerValue(bigqueryCfg.PrivateKeyID)
 		state.BigQueryConfig.ClientEmail = types.StringPointerValue(bigqueryCfg.ClientEmail)
 		state.BigQueryConfig.ClientID = types.StringPointerValue(bigqueryCfg.ClientID)

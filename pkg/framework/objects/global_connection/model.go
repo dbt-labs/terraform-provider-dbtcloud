@@ -177,7 +177,7 @@ type BigQueryConfig struct {
 	GcsBucket                  types.String `tfsdk:"gcs_bucket"`
 	DataprocRegion             types.String `tfsdk:"dataproc_region"`
 	DataprocClusterName        types.String `tfsdk:"dataproc_cluster_name"`
-	UseLegacyAdapter           types.Bool   `tfsdk:"use_legacy_adapter"`
+	UseLatestAdapter           types.Bool   `tfsdk:"use_latest_adapter"`
 	JobExecutionTimeoutSeconds types.Int64  `tfsdk:"job_execution_timeout_seconds"`
 }
 

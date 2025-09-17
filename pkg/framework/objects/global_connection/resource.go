@@ -183,24 +183,27 @@ func (r *globalConnectionResource) Create(
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.BigQueryConfig](r.client)
 
 		bigqueryCfg := dbt_cloud.BigQueryConfig{
-			ProjectID:                  plan.BigQueryConfig.GCPProjectID.ValueStringPointer(),
-			TimeoutSeconds:             plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer(),
-			JobExecutionTimeoutSeconds: plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64Pointer(),
-			PrivateKeyID:               plan.BigQueryConfig.PrivateKeyID.ValueStringPointer(),
-			PrivateKey:                 plan.BigQueryConfig.PrivateKey.ValueStringPointer(),
-			ClientEmail:                plan.BigQueryConfig.ClientEmail.ValueStringPointer(),
-			ClientID:                   plan.BigQueryConfig.ClientID.ValueStringPointer(),
-			AuthURI:                    plan.BigQueryConfig.AuthURI.ValueStringPointer(),
-			TokenURI:                   plan.BigQueryConfig.TokenURI.ValueStringPointer(),
-			AuthProviderX509CertURL:    plan.BigQueryConfig.AuthProviderX509CertURL.ValueStringPointer(),
-			ClientX509CertURL:          plan.BigQueryConfig.ClientX509CertURL.ValueStringPointer(),
-			Retries:                    plan.BigQueryConfig.Retries.ValueInt64Pointer(),
+			ProjectID:               plan.BigQueryConfig.GCPProjectID.ValueStringPointer(),
+			TimeoutSeconds:          plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer(),
+			PrivateKeyID:            plan.BigQueryConfig.PrivateKeyID.ValueStringPointer(),
+			PrivateKey:              plan.BigQueryConfig.PrivateKey.ValueStringPointer(),
+			ClientEmail:             plan.BigQueryConfig.ClientEmail.ValueStringPointer(),
+			ClientID:                plan.BigQueryConfig.ClientID.ValueStringPointer(),
+			AuthURI:                 plan.BigQueryConfig.AuthURI.ValueStringPointer(),
+			TokenURI:                plan.BigQueryConfig.TokenURI.ValueStringPointer(),
+			AuthProviderX509CertURL: plan.BigQueryConfig.AuthProviderX509CertURL.ValueStringPointer(),
+			ClientX509CertURL:       plan.BigQueryConfig.ClientX509CertURL.ValueStringPointer(),
+			Retries:                 plan.BigQueryConfig.Retries.ValueInt64Pointer(),
 			Scopes: helper.TypesStringSliceToStringSlice(
 				plan.BigQueryConfig.Scopes,
 			),
 		}
 
 		// nullable fields
+		if !plan.BigQueryConfig.JobExecutionTimeoutSeconds.IsNull() {
+			bigqueryCfg.JobExecutionTimeoutSeconds.Set(plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64())
+		}
+
 		if !plan.BigQueryConfig.Priority.IsNull() {
 			bigqueryCfg.Priority.Set(plan.BigQueryConfig.Priority.ValueString())
 		}
@@ -248,11 +251,11 @@ func (r *globalConnectionResource) Create(
 
 		var createdID int64
 		var adapterVersion string
-		if !plan.BigQueryConfig.UseLegacyAdapter.ValueBool() {
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
 			payloadData, err := c.CreateWithLatestAdapter(
 				commonCfg,
 				bigqueryCfg,
-				bigqueryCfg.AdapterVersion(),
+				bigqueryCfg.LatestAdapterVersion(),
 			)
 			if err != nil {
 				resp.Diagnostics.AddError("Error creating the connection", err.Error())
@@ -267,7 +270,7 @@ func (r *globalConnectionResource) Create(
 				return
 			}
 			createdID = *commonResp.ID
-			adapterVersion = bigqueryCfg.LegacyAdapterVersion()
+			adapterVersion = bigqueryCfg.AdapterVersion()
 		}
 
 		// read the resource after creation to properly set the state
@@ -294,9 +297,9 @@ func (r *globalConnectionResource) Create(
 			return
 		}
 
-		readState.BigQueryConfig.UseLegacyAdapter = plan.BigQueryConfig.UseLegacyAdapter
+		readState.BigQueryConfig.UseLatestAdapter = plan.BigQueryConfig.UseLatestAdapter
 		// dragging this along so it doesn't break backwards compatibility
-		if !plan.BigQueryConfig.UseLegacyAdapter.ValueBool() {
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
 			readState.BigQueryConfig.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds
 		}
 
@@ -796,7 +799,11 @@ func (r *globalConnectionResource) Update(
 			warehouseConfigChanges.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer()
 		}
 		if plan.BigQueryConfig.JobExecutionTimeoutSeconds != state.BigQueryConfig.JobExecutionTimeoutSeconds {
-			warehouseConfigChanges.JobExecutionTimeoutSeconds = plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64Pointer()
+			if plan.BigQueryConfig.JobExecutionTimeoutSeconds.IsNull() {
+				warehouseConfigChanges.JobExecutionTimeoutSeconds.SetNull()
+			} else {
+				warehouseConfigChanges.JobExecutionTimeoutSeconds.Set(plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64())
+			}
 		}
 		if plan.BigQueryConfig.PrivateKeyID != state.BigQueryConfig.PrivateKeyID {
 			warehouseConfigChanges.PrivateKeyID = plan.BigQueryConfig.PrivateKeyID.ValueStringPointer()
@@ -825,28 +832,9 @@ func (r *globalConnectionResource) Update(
 		if plan.BigQueryConfig.Retries != state.BigQueryConfig.Retries {
 			warehouseConfigChanges.Retries = plan.BigQueryConfig.Retries.ValueInt64Pointer()
 		}
-		if plan.BigQueryConfig.UseLegacyAdapter != state.BigQueryConfig.UseLegacyAdapter {
-			// 1. the current state is using the legacy adapter and the new state is either null or false on the legacy adapter (meaning the new adapter)
-			if state.BigQueryConfig.UseLegacyAdapter.ValueBool() && (plan.BigQueryConfig.UseLegacyAdapter.IsNull() || !plan.BigQueryConfig.UseLegacyAdapter.ValueBool()) {
-				// default to the adapter version
-				plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
-				plan.BigQueryConfig.JobCreationTimeoutSeconds = state.BigQueryConfig.TimeoutSeconds
-				// 2. the current state is not using the legacy adapter and the new state is not null and true (meaning the legacy adapter)
-			} else if !state.BigQueryConfig.UseLegacyAdapter.ValueBool() && (!plan.BigQueryConfig.UseLegacyAdapter.IsNull() && plan.BigQueryConfig.UseLegacyAdapter.ValueBool()) {
-				plan.AdapterVersion = types.StringValue(warehouseConfigChanges.LegacyAdapterVersion())
-				plan.BigQueryConfig.TimeoutSeconds = state.BigQueryConfig.JobCreationTimeoutSeconds
-				// 3. the current state is different from the new state, but something was misconfigured. throw an error and stop the update
-			} else {
-				resp.Diagnostics.AddError("Error updating global connection", "The current state is different from the new state, but something was misconfigured. Please check the values and try again.")
+		if plan.BigQueryConfig.UseLatestAdapter != state.BigQueryConfig.UseLatestAdapter {
+			resp.Diagnostics.AddError("Error updating global connection", "Changing the adapter version is not supported.")
 				return
-			}
-		} else {
-			// the state and plan are the same, so update the right fields according to the legacy or new adapter
-			if state.BigQueryConfig.UseLegacyAdapter.ValueBool() {
-				warehouseConfigChanges.TimeoutSeconds = state.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer()
-			} else {
-				warehouseConfigChanges.JobCreationTimeoutSeconds.Set(state.BigQueryConfig.JobCreationTimeoutSeconds.ValueInt64())
-			}
 		}
 
 		left, right := lo.Difference(plan.BigQueryConfig.Scopes, state.BigQueryConfig.Scopes)
@@ -955,7 +943,8 @@ func (r *globalConnectionResource) Update(
 		var err error
 
 		// at this point we have updated the adapter version in the plan, so use it
-		if plan.BigQueryConfig.UseLegacyAdapter.ValueBool() {
+		var adapterVersion string
+		if !plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
 			updateCommon, _, err = c.Update(
 				state.ID.ValueInt64(),
 				globalConfigChanges,
@@ -965,22 +954,24 @@ func (r *globalConnectionResource) Update(
 				resp.Diagnostics.AddError("Error updating global connection", err.Error())
 				return
 			}
+			adapterVersion = warehouseConfigChanges.AdapterVersion()
 		} else {
 			updateCommon, _, err = c.UpdateWithLatestAdapter(
 				state.ID.ValueInt64(),
 				globalConfigChanges,
 				warehouseConfigChanges,
-				warehouseConfigChanges.AdapterVersion(),
+				warehouseConfigChanges.LatestAdapterVersion(),
 			)
 			if err != nil {
 				resp.Diagnostics.AddError("Error updating global connection", err.Error())
 				return
 			}
+			adapterVersion = warehouseConfigChanges.LatestAdapterVersion()
 		}
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+		plan.AdapterVersion = types.StringValue(adapterVersion)
 
 	case plan.DatabricksConfig != nil:
 

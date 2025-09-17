@@ -239,7 +239,6 @@ Required:
 
 Optional:
 
-- `adapter_version_override` (String) Adapter version override for the BigQuery connection, use this to force the use of the bigquery_v1 adapter (or other adapter versions available, except bigquery_v0)
 - `application_id` (String, Sensitive) OAuth Client ID
 - `application_secret` (String, Sensitive) OAuth Client Secret
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
@@ -248,13 +247,15 @@ Optional:
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `impersonate_service_account` (String) Service Account to impersonate when running queries
 - `job_creation_timeout_seconds` (Number) Maximum timeout for the job creation step
+- `job_execution_timeout_seconds` (Number) Timeout in seconds for job execution, to be used for the bigquery_v1 adapter
 - `job_retry_deadline_seconds` (Number) Total number of seconds to wait while retrying the same query
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
 - `priority` (String) The priority with which to execute BigQuery queries (batch or interactive)
 - `retries` (Number) Number of retries for queries
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
-- `timeout_seconds` (Number) Timeout in seconds for queries
+- `timeout_seconds` (Number) Timeout in seconds for queries, to be used ONLY for the bigquery_v0 adapter
+- `use_latest_adapter` (Boolean) Whether to use the latest bigquery_v1 adapter. If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.
 
 
 <a id="nestedatt--databricks"></a>
