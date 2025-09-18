@@ -213,6 +213,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `description` (String) Description for the job
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
+- `execution` (Attributes) (see [below for nested schema](#nestedatt--execution))
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config.
 - `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
@@ -228,7 +229,6 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
-- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 
 ### Read-Only
@@ -245,6 +245,14 @@ Optional:
 - `github_webhook` (Boolean) Whether the job runs automatically on PR creation
 - `on_merge` (Boolean) Whether the job runs automatically once a PR is merged
 - `schedule` (Boolean) Whether the job runs on a schedule
+
+
+<a id="nestedatt--execution"></a>
+### Nested Schema for `execution`
+
+Optional:
+
+- `timeout_seconds` (Number) The number of seconds before the job times out
 
 
 <a id="nestedblock--job_completion_trigger_condition"></a>
