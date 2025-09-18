@@ -165,18 +165,20 @@ type BigQueryConfig struct {
 	Retries                 types.Int64    `tfsdk:"retries"`
 	Scopes                  []types.String `tfsdk:"scopes"`
 	// nullable
-	Priority                  types.String `tfsdk:"priority"`
-	Location                  types.String `tfsdk:"location"`
-	MaximumBytesBilled        types.Int64  `tfsdk:"maximum_bytes_billed"`
-	ExecutionProject          types.String `tfsdk:"execution_project"`
-	ImpersonateServiceAccount types.String `tfsdk:"impersonate_service_account"`
-	JobRetryDeadlineSeconds   types.Int64  `tfsdk:"job_retry_deadline_seconds"`
-	JobCreationTimeoutSeconds types.Int64  `tfsdk:"job_creation_timeout_seconds"`
-	ApplicationID             types.String `tfsdk:"application_id"`
-	ApplicationSecret         types.String `tfsdk:"application_secret"`
-	GcsBucket                 types.String `tfsdk:"gcs_bucket"`
-	DataprocRegion            types.String `tfsdk:"dataproc_region"`
-	DataprocClusterName       types.String `tfsdk:"dataproc_cluster_name"`
+	Priority                   types.String `tfsdk:"priority"`
+	Location                   types.String `tfsdk:"location"`
+	MaximumBytesBilled         types.Int64  `tfsdk:"maximum_bytes_billed"`
+	ExecutionProject           types.String `tfsdk:"execution_project"`
+	ImpersonateServiceAccount  types.String `tfsdk:"impersonate_service_account"`
+	JobRetryDeadlineSeconds    types.Int64  `tfsdk:"job_retry_deadline_seconds"`
+	JobCreationTimeoutSeconds  types.Int64  `tfsdk:"job_creation_timeout_seconds"`
+	ApplicationID              types.String `tfsdk:"application_id"`
+	ApplicationSecret          types.String `tfsdk:"application_secret"`
+	GcsBucket                  types.String `tfsdk:"gcs_bucket"`
+	DataprocRegion             types.String `tfsdk:"dataproc_region"`
+	DataprocClusterName        types.String `tfsdk:"dataproc_cluster_name"`
+	UseLatestAdapter           types.Bool   `tfsdk:"use_latest_adapter"`
+	JobExecutionTimeoutSeconds types.Int64  `tfsdk:"job_execution_timeout_seconds"`
 }
 
 type SnowflakeConfig struct {

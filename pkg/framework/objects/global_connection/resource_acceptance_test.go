@@ -2,6 +2,7 @@ package global_connection_test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -182,15 +183,17 @@ resource dbtcloud_global_connection test {
 func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	timeoutSeconds := int64(1000)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// create with just mandatory fields
+			// // create with just mandatory fields
 			{
 				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfig(
 					connectionName,
+					timeoutSeconds,
 				),
 				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
 				Check: resource.ComposeTestCheckFunc(
@@ -236,6 +239,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfig(
 					connectionName2,
+					timeoutSeconds,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -270,8 +274,132 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 
 }
 
+func TestAccDbtCloudGlobalConnectionBigQueryCreateV1Adapter(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobExecutionTimeoutSeconds := int64(1000)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with just mandatory fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+					connectionName,
+					jobExecutionTimeoutSeconds,
+				),
+				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.job_execution_timeout_seconds",
+						"1000",
+					),
+				),
+			},
+
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.timeout_seconds",
+					"bigquery.job_execution_timeout_seconds",
+					"bigquery.use_latest_adapter",
+				},
+			},
+		},
+	})
+
+}
+
+func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobExecutionTimeoutSeconds := int64(1000)
+	timeoutSeconds := int64(500)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with just mandatory fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithTimeoutSeconds(
+					connectionName,
+					timeoutSeconds,
+				),
+				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.timeout_seconds",
+						"500",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"false",
+					),
+				),
+			},
+			// modify, adding optional fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+					connectionName,
+					jobExecutionTimeoutSeconds,
+				),
+				// expect an error
+				ExpectError: regexp.MustCompile("Changing the adapter version is not supported."),
+			},
+
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.timeout_seconds",
+					"bigquery.adapter_version_override",
+				},
+			},
+		},
+	})
+
+}
+
 func testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfig(
 	connectionName string,
+	timeoutSeconds int64,
 ) string {
 	return fmt.Sprintf(`
 
@@ -281,7 +409,7 @@ resource dbtcloud_global_connection test {
   bigquery = {
 
     gcp_project_id              = "my-gcp-project-id"
-    timeout_seconds             = 1000
+    timeout_seconds             = %d
     private_key_id              = "my-private-key-id"
     private_key                 = "ABCDEFGHIJKL"
     client_email                = "my_client_email"
@@ -296,7 +424,67 @@ resource dbtcloud_global_connection test {
   }
 }
 
-`, connectionName)
+`, connectionName, timeoutSeconds)
+}
+
+func testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+	connectionName string,
+	jobExecutionTimeoutSeconds int64,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+
+    gcp_project_id              = "70403103977025"
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+	job_execution_timeout_seconds = %d
+	use_latest_adapter = true
+  }
+}
+
+`, connectionName, jobExecutionTimeoutSeconds)
+}
+
+func testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithTimeoutSeconds(
+	connectionName string,
+	timeoutSeconds int64,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+
+    gcp_project_id              = "70403103977025"
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+	timeout_seconds = %d
+	use_legacy_adapter = true
+  }
+}
+
+`, connectionName, timeoutSeconds)
 }
 
 func testAccDbtCloudSGlobalConnectionBigQueryResourceFullConfig(

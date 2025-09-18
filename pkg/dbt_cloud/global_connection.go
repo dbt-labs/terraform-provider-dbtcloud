@@ -83,6 +83,14 @@ func NewGlobalConnectionClient[T GlobalConnectionConfig](c *Client) GlobalConnec
 }
 
 func (c *GlobalConnectionClient[T]) Get(connectionID int64) (*GlobalConnectionCommon, *T, error) {
+	data, err := c.get(connectionID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &data.GlobalConnectionCommon, &data.Config, nil
+}
+
+func (c *GlobalConnectionClient[T]) get(connectionID int64) (*globalConnectionPayload[T], error) {
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
@@ -95,33 +103,62 @@ func (c *GlobalConnectionClient[T]) Get(connectionID int64) (*GlobalConnectionCo
 	)
 
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	body, err := c.doRequestWithRetry(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	resp := new(globalConnectionResponse[T])
 
 	err = json.Unmarshal(body, resp)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return &resp.Data.GlobalConnectionCommon, &resp.Data.Config, nil
+	return &resp.Data, nil
+}
+
+func (c *GlobalConnectionClient[T]) GetWithAdapterVersion(
+	connectionID int64,
+) (*GlobalConnectionCommon, *T, string, error) {
+	data, err := c.get(connectionID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	adapterVersion := *data.AdapterVersion
+	common := data.GlobalConnectionCommon
+	config := data.Config
+	return &common, &config, adapterVersion, nil
 }
 
 func (c *GlobalConnectionClient[T]) Create(
 	common GlobalConnectionCommon,
 	config T,
 ) (*GlobalConnectionCommon, *T, error) {
-
-	buffer := new(bytes.Buffer)
-	enc := json.NewEncoder(buffer)
-
 	av := config.AdapterVersion()
+	data, err := c.createGlobalConnection(common, config, av)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &data.GlobalConnectionCommon, &data.Config, nil
+}
+
+func (c *GlobalConnectionClient[T]) CreateWithLatestAdapter(
+	common GlobalConnectionCommon,
+	config T,
+	av string,
+) (*globalConnectionPayload[T], error) {
+	return c.createGlobalConnection(common, config, av)
+}
+
+func (c *GlobalConnectionClient[T]) createGlobalConnection(
+	common GlobalConnectionCommon,
+	config T,
+	av string,
+) (*globalConnectionPayload[T], error) {
 
 	payload := globalConnectionPayload[T]{
 		GlobalConnectionCommon: common,
@@ -130,9 +167,12 @@ func (c *GlobalConnectionClient[T]) Create(
 		Config:                 config,
 	}
 
+	buffer := new(bytes.Buffer)
+	enc := json.NewEncoder(buffer)
+
 	err := enc.Encode(payload)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	req, err := http.NewRequest(
@@ -145,22 +185,41 @@ func (c *GlobalConnectionClient[T]) Create(
 		buffer,
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	body, err := c.doRequestWithRetry(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	resp := new(globalConnectionResponse[T])
 	err = json.Unmarshal(body, resp)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return &resp.Data.GlobalConnectionCommon, &resp.Data.Config, nil
+	return &resp.Data, nil
+}
 
+func (c *GlobalConnectionClient[T]) UpdateWithLatestAdapter(
+	connectionID int64,
+	common GlobalConnectionCommon,
+	config T,
+	av string,
+) (*GlobalConnectionCommon, *T, error) {
+
+	buffer := new(bytes.Buffer)
+	enc := json.NewEncoder(buffer)
+
+	payload := globalConnectionPayload[T]{
+		GlobalConnectionCommon: common,
+		AccountID:              int64(c.AccountID),
+		AdapterVersion:         &av,
+		Config:                 config,
+	}
+
+	return updateGlobalConnection(enc, payload, c, connectionID, buffer)
 }
 
 func (c *GlobalConnectionClient[T]) Update(
@@ -178,6 +237,10 @@ func (c *GlobalConnectionClient[T]) Update(
 		Config:                 config,
 	}
 
+	return updateGlobalConnection(enc, payload, c, connectionID, buffer)
+}
+
+func updateGlobalConnection[T GlobalConnectionConfig](enc *json.Encoder, payload globalConnectionPayload[T], c *GlobalConnectionClient[T], connectionID int64, buffer *bytes.Buffer) (*GlobalConnectionCommon, *T, error) {
 	err := enc.Encode(payload)
 	if err != nil {
 		return nil, nil, err
@@ -368,30 +431,35 @@ func (SnowflakeConfig) AdapterVersion() string {
 }
 
 type BigQueryConfig struct {
-	ProjectID                 *string                   `json:"project_id,omitempty"`
-	TimeoutSeconds            *int64                    `json:"timeout_seconds,omitempty"`
-	PrivateKeyID              *string                   `json:"private_key_id,omitempty"`
-	PrivateKey                *string                   `json:"private_key,omitempty"`
-	ClientEmail               *string                   `json:"client_email,omitempty"`
-	ClientID                  *string                   `json:"client_id,omitempty"`
-	AuthURI                   *string                   `json:"auth_uri,omitempty"`
-	TokenURI                  *string                   `json:"token_uri,omitempty"`
-	AuthProviderX509CertURL   *string                   `json:"auth_provider_x509_cert_url,omitempty"`
-	ClientX509CertURL         *string                   `json:"client_x509_cert_url,omitempty"`
-	Priority                  nullable.Nullable[string] `json:"priority,omitempty"`
-	Retries                   *int64                    `json:"retries,omitempty"` //not nullable because there is a default in the UI
-	Location                  nullable.Nullable[string] `json:"location,omitempty"`
-	MaximumBytesBilled        nullable.Nullable[int64]  `json:"maximum_bytes_billed,omitempty"`
-	ExecutionProject          nullable.Nullable[string] `json:"execution_project,omitempty"`
-	ImpersonateServiceAccount nullable.Nullable[string] `json:"impersonate_service_account,omitempty"`
-	JobRetryDeadlineSeconds   nullable.Nullable[int64]  `json:"job_retry_deadline_seconds,omitempty"`
-	JobCreationTimeoutSeconds nullable.Nullable[int64]  `json:"job_creation_timeout_seconds,omitempty"`
-	ApplicationID             nullable.Nullable[string] `json:"application_id,omitempty"`
-	ApplicationSecret         nullable.Nullable[string] `json:"application_secret,omitempty"`
-	GcsBucket                 nullable.Nullable[string] `json:"gcs_bucket,omitempty"`
-	DataprocRegion            nullable.Nullable[string] `json:"dataproc_region,omitempty"`
-	DataprocClusterName       nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
-	Scopes                    []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
+	ProjectID                  *string                   `json:"project_id,omitempty"`
+	TimeoutSeconds             *int64                    `json:"timeout_seconds,omitempty"`
+	JobExecutionTimeoutSeconds nullable.Nullable[int64]  `json:"job_execution_timeout_seconds,omitempty"`
+	PrivateKeyID               *string                   `json:"private_key_id,omitempty"`
+	PrivateKey                 *string                   `json:"private_key,omitempty"`
+	ClientEmail                *string                   `json:"client_email,omitempty"`
+	ClientID                   *string                   `json:"client_id,omitempty"`
+	AuthURI                    *string                   `json:"auth_uri,omitempty"`
+	TokenURI                   *string                   `json:"token_uri,omitempty"`
+	AuthProviderX509CertURL    *string                   `json:"auth_provider_x509_cert_url,omitempty"`
+	ClientX509CertURL          *string                   `json:"client_x509_cert_url,omitempty"`
+	Priority                   nullable.Nullable[string] `json:"priority,omitempty"`
+	Retries                    *int64                    `json:"retries,omitempty"` //not nullable because there is a default in the UI
+	Location                   nullable.Nullable[string] `json:"location,omitempty"`
+	MaximumBytesBilled         nullable.Nullable[int64]  `json:"maximum_bytes_billed,omitempty"`
+	ExecutionProject           nullable.Nullable[string] `json:"execution_project,omitempty"`
+	ImpersonateServiceAccount  nullable.Nullable[string] `json:"impersonate_service_account,omitempty"`
+	JobRetryDeadlineSeconds    nullable.Nullable[int64]  `json:"job_retry_deadline_seconds,omitempty"`
+	JobCreationTimeoutSeconds  nullable.Nullable[int64]  `json:"job_creation_timeout_seconds,omitempty"`
+	ApplicationID              nullable.Nullable[string] `json:"application_id,omitempty"`
+	ApplicationSecret          nullable.Nullable[string] `json:"application_secret,omitempty"`
+	GcsBucket                  nullable.Nullable[string] `json:"gcs_bucket,omitempty"`
+	DataprocRegion             nullable.Nullable[string] `json:"dataproc_region,omitempty"`
+	DataprocClusterName        nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
+	Scopes                     []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
+}
+
+func (BigQueryConfig) LatestAdapterVersion() string {
+	return "bigquery_v1"
 }
 
 func (BigQueryConfig) AdapterVersion() string {

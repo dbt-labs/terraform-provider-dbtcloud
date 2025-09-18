@@ -80,7 +80,7 @@ func readGeneric(
 
 		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.BigQueryConfig](client)
 
-		common, bigqueryCfg, err := c.Get(connectionID)
+		common, bigqueryCfg, adapterVersion, err := c.GetWithAdapterVersion(connectionID)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "resource-not-found") {
 				return nil, "removeFromState", nil
@@ -90,7 +90,7 @@ func readGeneric(
 
 		// global settings
 		state.ID = types.Int64PointerValue(common.ID)
-		state.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
+		state.AdapterVersion = types.StringValue(adapterVersion)
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
@@ -108,7 +108,18 @@ func readGeneric(
 
 		// BigQuery settings
 		state.BigQueryConfig.GCPProjectID = types.StringPointerValue(bigqueryCfg.ProjectID)
-		state.BigQueryConfig.TimeoutSeconds = types.Int64PointerValue(bigqueryCfg.TimeoutSeconds)
+
+		// if the adapter version is not the legacy one, timeout_seconds is not supported
+		if adapterVersion == bigqueryCfg.AdapterVersion() {
+			state.BigQueryConfig.TimeoutSeconds = types.Int64PointerValue(bigqueryCfg.TimeoutSeconds)
+		}
+
+		var jobExecutionTimeoutSeconds int64
+		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() {
+			jobExecutionTimeoutSeconds = bigqueryCfg.JobExecutionTimeoutSeconds.MustGet()
+			state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(&jobExecutionTimeoutSeconds)
+		}
+
 		state.BigQueryConfig.PrivateKeyID = types.StringPointerValue(bigqueryCfg.PrivateKeyID)
 		state.BigQueryConfig.ClientEmail = types.StringPointerValue(bigqueryCfg.ClientEmail)
 		state.BigQueryConfig.ClientID = types.StringPointerValue(bigqueryCfg.ClientID)

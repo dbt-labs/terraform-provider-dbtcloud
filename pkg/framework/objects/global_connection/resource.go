@@ -200,6 +200,10 @@ func (r *globalConnectionResource) Create(
 		}
 
 		// nullable fields
+		if !plan.BigQueryConfig.JobExecutionTimeoutSeconds.IsNull() {
+			bigqueryCfg.JobExecutionTimeoutSeconds.Set(plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64())
+		}
+
 		if !plan.BigQueryConfig.Priority.IsNull() {
 			bigqueryCfg.Priority.Set(plan.BigQueryConfig.Priority.ValueString())
 		}
@@ -245,17 +249,61 @@ func (r *globalConnectionResource) Create(
 			)
 		}
 
-		commonResp, _, err := c.Create(commonCfg, bigqueryCfg)
+		var createdID int64
+		var adapterVersion string
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
+			payloadData, err := c.CreateWithLatestAdapter(
+				commonCfg,
+				bigqueryCfg,
+				bigqueryCfg.LatestAdapterVersion(),
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Error creating the connection", err.Error())
+				return
+			}
+			createdID = *payloadData.GlobalConnectionCommon.ID
+			adapterVersion = *payloadData.AdapterVersion
+		} else {
+			commonResp, _, err := c.Create(commonCfg, bigqueryCfg)
+			if err != nil {
+				resp.Diagnostics.AddError("Error creating the connection", err.Error())
+				return
+			}
+			createdID = *commonResp.ID
+			adapterVersion = bigqueryCfg.AdapterVersion()
+		}
 
+		// read the resource after creation to properly set the state
+		var newState GlobalConnectionResourceModel
+		newState.ID = types.Int64Value(createdID)
+		newState.BigQueryConfig = &BigQueryConfig{}
+
+		// preserve sensitive fields from the plan
+		newState.BigQueryConfig.PrivateKey = plan.BigQueryConfig.PrivateKey
+		newState.BigQueryConfig.ApplicationID = plan.BigQueryConfig.ApplicationID
+		newState.BigQueryConfig.ApplicationSecret = plan.BigQueryConfig.ApplicationSecret
+		newState.AdapterVersion = types.StringValue(adapterVersion)
+
+		readState, action, err := readGeneric(r.client, &newState, adapterVersion)
 		if err != nil {
-			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			resp.Diagnostics.AddError("Error reading the connection after creation", err.Error())
+			return
+		}
+		if action == "removeFromState" {
+			resp.Diagnostics.AddError(
+				"Resource not found after creation",
+				"The connection was not found after being created. This is an unexpected error.",
+			)
 			return
 		}
 
-		// we set the computed values that don't have any default
-		plan.ID = types.Int64PointerValue(commonResp.ID)
-		plan.AdapterVersion = types.StringValue(bigqueryCfg.AdapterVersion())
-		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+		readState.BigQueryConfig.UseLatestAdapter = plan.BigQueryConfig.UseLatestAdapter
+		// dragging this along so it doesn't break backwards compatibility
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
+			readState.BigQueryConfig.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds
+		}
+
+		plan = *readState
 
 	case plan.DatabricksConfig != nil:
 
@@ -750,6 +798,13 @@ func (r *globalConnectionResource) Update(
 		if plan.BigQueryConfig.TimeoutSeconds != state.BigQueryConfig.TimeoutSeconds {
 			warehouseConfigChanges.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer()
 		}
+		if plan.BigQueryConfig.JobExecutionTimeoutSeconds != state.BigQueryConfig.JobExecutionTimeoutSeconds {
+			if plan.BigQueryConfig.JobExecutionTimeoutSeconds.IsNull() {
+				warehouseConfigChanges.JobExecutionTimeoutSeconds.SetNull()
+			} else {
+				warehouseConfigChanges.JobExecutionTimeoutSeconds.Set(plan.BigQueryConfig.JobExecutionTimeoutSeconds.ValueInt64())
+			}
+		}
 		if plan.BigQueryConfig.PrivateKeyID != state.BigQueryConfig.PrivateKeyID {
 			warehouseConfigChanges.PrivateKeyID = plan.BigQueryConfig.PrivateKeyID.ValueStringPointer()
 		}
@@ -777,6 +832,11 @@ func (r *globalConnectionResource) Update(
 		if plan.BigQueryConfig.Retries != state.BigQueryConfig.Retries {
 			warehouseConfigChanges.Retries = plan.BigQueryConfig.Retries.ValueInt64Pointer()
 		}
+		if plan.BigQueryConfig.UseLatestAdapter != state.BigQueryConfig.UseLatestAdapter {
+			resp.Diagnostics.AddError("Error updating global connection", "Changing the adapter version is not supported.")
+				return
+		}
+
 		left, right := lo.Difference(plan.BigQueryConfig.Scopes, state.BigQueryConfig.Scopes)
 		if len(left) > 0 || len(right) > 0 {
 			warehouseConfigChanges.Scopes = helper.TypesStringSliceToStringSlice(
@@ -879,19 +939,39 @@ func (r *globalConnectionResource) Update(
 			}
 		}
 
-		updateCommon, _, err := c.Update(
-			state.ID.ValueInt64(),
-			globalConfigChanges,
-			warehouseConfigChanges,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Error updating global connection", err.Error())
-			return
+		var updateCommon *dbt_cloud.GlobalConnectionCommon
+		var err error
+
+		// at this point we have updated the adapter version in the plan, so use it
+		var adapterVersion string
+		if !plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
+			updateCommon, _, err = c.Update(
+				state.ID.ValueInt64(),
+				globalConfigChanges,
+				warehouseConfigChanges,
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Error updating global connection", err.Error())
+				return
+			}
+			adapterVersion = warehouseConfigChanges.AdapterVersion()
+		} else {
+			updateCommon, _, err = c.UpdateWithLatestAdapter(
+				state.ID.ValueInt64(),
+				globalConfigChanges,
+				warehouseConfigChanges,
+				warehouseConfigChanges.LatestAdapterVersion(),
+			)
+			if err != nil {
+				resp.Diagnostics.AddError("Error updating global connection", err.Error())
+				return
+			}
+			adapterVersion = warehouseConfigChanges.LatestAdapterVersion()
 		}
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
-		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+		plan.AdapterVersion = types.StringValue(adapterVersion)
 
 	case plan.DatabricksConfig != nil:
 
@@ -1374,7 +1454,7 @@ func (r *globalConnectionResource) Update(
 		if plan.TeradataConfig.TMode != state.TeradataConfig.TMode {
 			warehouseConfigChanges.TMode = plan.TeradataConfig.TMode.ValueStringPointer()
 		}
-		
+
 		updateCommon, _, err := c.Update(
 			state.ID.ValueInt64(),
 			globalConfigChanges,
