@@ -42,7 +42,7 @@ func (c *Client) GetWebhook(webhookID string) (*WebhookRead, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/webhooks/subscription/%s",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			webhookID,
 		),
 		nil,
@@ -95,7 +95,7 @@ func (c *Client) CreateWebhook(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/webhooks/subscriptions",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		strings.NewReader(string(newWebhookData)),
 	)
@@ -128,7 +128,7 @@ func (c *Client) UpdateWebhook(webhookId string, webhook WebhookWrite) (*Webhook
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/webhooks/subscription/%s",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			webhookId,
 		),
 		strings.NewReader(string(webhookData)),
@@ -157,7 +157,7 @@ func (c *Client) DeleteWebhook(webhookId string) (string, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/webhooks/subscription/%s",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			webhookId,
 		),
 		nil,

@@ -42,7 +42,7 @@ func (c *Client) GetOAuthConfiguration(oAuthConfigurationID int64) (*OAuthConfig
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/oauth-configurations/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			oAuthConfigurationID,
 		),
 		nil,
@@ -103,7 +103,7 @@ func (c *Client) CreateOAuthConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/oauth-configurations/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 		),
 		strings.NewReader(string(newOAuthConfigurationData)),
 	)
@@ -139,7 +139,7 @@ func (c *Client) UpdateOAuthConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/oauth-configurations/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			oAuthConfigurationID,
 		),
 		strings.NewReader(string(oAuthConfigurationData)),
@@ -170,7 +170,7 @@ func (c *Client) DeleteOAuthConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/oauth-configurations/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			oAuthConfigurationID,
 		),
 		nil,

@@ -34,7 +34,7 @@ func (c *Client) GetNotification(notificationID string) (*Notification, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/notifications/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			notificationID,
 		),
 		nil,
@@ -70,7 +70,7 @@ func (c *Client) CreateNotification(
 	slackChannelName *string) (*Notification, error) {
 
 	newNotification := Notification{
-		AccountId:        c.AccountID,
+		AccountId:        int(c.AccountID),
 		UserId:           userId,
 		OnCancel:         onCancel,
 		OnFailure:        onFailure,
@@ -90,7 +90,7 @@ func (c *Client) CreateNotification(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.Itoa(int(c.AccountID))),
 		strings.NewReader(string(newNotificationData)),
 	)
 	if err != nil {
@@ -125,7 +125,7 @@ func (c *Client) UpdateNotification(
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/notifications/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			notificationId,
 		),
 		strings.NewReader(string(notificationData)),

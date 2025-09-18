@@ -89,7 +89,7 @@ func (c *Client) CreateEnvironment(
 
 	newEnvironment := Environment{
 		State:                   state,
-		Account_Id:              c.AccountID,
+		Account_Id:              int(c.AccountID),
 		Project_Id:              projectId,
 		Name:                    name,
 		Dbt_Version:             dbtVersion,

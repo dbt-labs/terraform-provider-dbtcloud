@@ -96,7 +96,7 @@ func (c *Client) CreateFabricCredential(
 	}
 
 	newFabricCredential := FabricCredential{
-		Account_Id:        c.AccountID,
+		Account_Id:        int(c.AccountID),
 		Project_Id:        projectId,
 		Type:              "adapter",
 		State:             STATE_ACTIVE,

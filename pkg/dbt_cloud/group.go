@@ -52,7 +52,7 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/groups/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			strconv.Itoa(groupID),
 		),
 		nil,
@@ -81,7 +81,7 @@ func (c *Client) CreateGroup(
 	ssoMappingGroups []string,
 ) (*Group, error) {
 	newGroup := Group{
-		AccountID:        c.AccountID,
+		AccountID:        int(c.AccountID),
 		Name:             name,
 		AssignByDefault:  assignByDefault,
 		SSOMappingGroups: ssoMappingGroups,
@@ -123,7 +123,7 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID),
+		fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(int(c.AccountID)), groupID),
 		strings.NewReader(string(groupData)),
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *Client) UpdateGroupPermissions(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/group-permissions/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.Itoa(int(c.AccountID)),
 			groupID,
 		),
 		strings.NewReader(string(groupPermissionData)),

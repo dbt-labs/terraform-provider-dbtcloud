@@ -108,7 +108,7 @@ func (c *Client) CreateDatabricksCredential(
 	}
 
 	newDatabricksCredential := DatabricksCredentialGlobConn{
-		AccountID:         c.AccountID,
+		AccountID:         int(c.AccountID),
 		ProjectID:         projectId,
 		Type:              "adapter",
 		AdapterVersion:    "databricks_v0",

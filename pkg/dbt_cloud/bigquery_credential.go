@@ -63,7 +63,7 @@ func (c *Client) CreateBigQueryCredential(
 	numThreads int,
 ) (*BigQueryCredential, error) {
 	newBigQueryCredential := BigQueryCredential{
-		Account_Id: c.AccountID,
+		Account_Id: int(c.AccountID),
 		Project_Id: projectId,
 		Type:       type_,
 		State:      STATE_ACTIVE,
