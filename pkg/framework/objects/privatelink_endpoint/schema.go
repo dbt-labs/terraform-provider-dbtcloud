@@ -40,11 +40,35 @@ func (r *privatelinkEndpointDataSourceAll) Schema(
 	resp *datasource.SchemaResponse,
 ) {
 	var datasourceSchemaAll = datasource_schema.Schema{
-		Description: "Privatelink endpoint data sources.",
+		Description: "Retrieve information about all PrivateLink endpoints in the dbt Cloud account.",
 		Attributes: map[string]datasource_schema.Attribute{
-			"id": datasource_schema.StringAttribute{
+			"endpoints": datasource_schema.ListNestedAttribute{
 				Computed:    true,
-				Description: "The internal ID of the PrivateLink Endpoint",
+				Description: "A list of all PrivateLink endpoints in the account",
+				NestedObject: datasource_schema.NestedAttributeObject{
+					Attributes: map[string]datasource_schema.Attribute{
+						"id": datasource_schema.StringAttribute{
+							Computed:    true,
+							Description: "The internal ID of the PrivateLink Endpoint",
+						},
+						"name": datasource_schema.StringAttribute{
+							Computed:    true,
+							Description: "Given descriptive name for the PrivateLink Endpoint",
+						},
+						"type": datasource_schema.StringAttribute{
+							Computed:    true,
+							Description: "Type of the PrivateLink Endpoint",
+						},
+						"private_link_endpoint_url": datasource_schema.StringAttribute{
+							Computed:    true,
+							Description: "URL of the PrivateLink Endpoint",
+						},
+						"cidr_range": datasource_schema.StringAttribute{
+							Computed:    true,
+							Description: "CIDR range of the PrivateLink Endpoint",
+						},
+					},
+				},
 			},
 		},
 	}

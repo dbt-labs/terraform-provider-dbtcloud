@@ -2,7 +2,9 @@ package acctest_helper
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"testing"
@@ -29,11 +31,15 @@ func SharedClient() (*dbt_cloud.Client, error) {
 		hostURL = "https://cloud.getdbt.com/api"
 	}
 
+	parsedURL, err := url.Parse(hostURL)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse serverURL: %s, error: %v", hostURL, err))
+	}
 	client := dbt_cloud.Client{
-		HTTPClient: &http.Client{Timeout: 30 * time.Second},
-		HostURL:    hostURL,
-		Token:      token,
-		AccountID:  accountID,
+		HTTPClient:   &http.Client{Timeout: 30 * time.Second},
+		HostURL:      parsedURL,
+		Token:        token,
+		AccountID:    accountID,
 		DisableRetry: true,
 	}
 

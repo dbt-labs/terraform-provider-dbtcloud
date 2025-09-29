@@ -6,17 +6,18 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 )
 
 type MockRepositoryServer struct {
-	server *httptest.Server
-	createResponse *dbt_cloud.RepositoryResponse
-	updateResponse *dbt_cloud.RepositoryResponse
-	accountID int
-	projectID int
-	repositoryID int
+	server            *httptest.Server
+	createResponse    *dbt_cloud.RepositoryResponse
+	updateResponse    *dbt_cloud.RepositoryResponse
+	accountID         int
+	projectID         int
+	repositoryID      int
 	lastUpdateRequest *dbt_cloud.Repository
 }
 
@@ -61,8 +62,8 @@ func (m *MockRepositoryServer) GetLastUpdateRequest() *dbt_cloud.Repository {
 
 func NewMockRepositoryServer(accountID, projectID, repositoryID int) *MockRepositoryServer {
 	mock := &MockRepositoryServer{
-		accountID: accountID,
-		projectID: projectID,
+		accountID:    accountID,
+		projectID:    projectID,
 		repositoryID: repositoryID,
 	}
 	mock.server = httptest.NewServer(http.HandlerFunc(mock.handleRequest))
@@ -86,8 +87,12 @@ func (m *MockRepositoryServer) URL() string {
 }
 
 func CreateTestClient(serverURL string, accountID int) *dbt_cloud.Client {
+	parsedURL, err := url.Parse(serverURL)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse serverURL: %s, error: %v", serverURL, err))
+	}
 	return &dbt_cloud.Client{
-		HostURL:    serverURL,
+		HostURL:    parsedURL,
 		HTTPClient: &http.Client{},
 		AccountID:  accountID,
 	}
@@ -95,4 +100,4 @@ func CreateTestClient(serverURL string, accountID int) *dbt_cloud.Client {
 
 func IntPtr(i int) *int {
 	return &i
-} 
+}
