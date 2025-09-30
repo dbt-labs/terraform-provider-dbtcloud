@@ -8,7 +8,7 @@ description: |-
 
 # dbtcloud_privatelink_endpoints (Data Source)
 
-Returns all PrivateLink endpoints configured in dbt Cloud account. Unlike the singular `dbtcloud_privatelink_endpoint` data source which finds a specific endpoint by name or URL, this data source retrieves all endpoints, making it useful for listing, iterating, or discovering available endpoints.
+Retrieve information about all PrivateLink endpoints in the dbt Cloud account.
 
 ## Example Usage
 
@@ -66,7 +66,7 @@ resource "dbtcloud_global_connection" "snowflake_connections" {
 
 ### Read-Only
 
-- `endpoints` (List of Object) A list of all PrivateLink endpoints in the account (see [below for nested schema](#nestedatt--endpoints))
+- `endpoints` (Attributes List) A list of all PrivateLink endpoints in the account (see [below for nested schema](#nestedatt--endpoints))
 
 <a id="nestedatt--endpoints"></a>
 ### Nested Schema for `endpoints`
