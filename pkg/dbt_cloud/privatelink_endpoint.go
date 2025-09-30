@@ -3,7 +3,6 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type PrivatelinkEndpoint struct {
@@ -32,26 +31,24 @@ func (c *Client) GetPrivatelinkEndpoint(endpointName string, privatelinkEndpoint
 		return nil, fmt.Errorf("the endpoint name or url needs to be provided")
 	}
 
-	req, err := http.NewRequest("GET", c.BuildAccountV3URL(ResourcePrivatelinkEndpoints), nil)
+	url := c.BuildAccountV3URL(ResourcePrivatelinkEndpoints)
+
+	allPrivatelinkEndpointsRaw, err := c.GetRawData(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get raw data for PrivateLink endpoints: %w", err)
 	}
 
-	body, err := c.doRequestWithRetry(req)
-	if err != nil {
-		return nil, err
-	}
+	for _, privatelinkEndpointRaw := range allPrivatelinkEndpointsRaw {
+		data, _ := json.Marshal(privatelinkEndpointRaw)
+		currentPrivatelinkEndpoint := PrivatelinkEndpoint{}
+		err := json.Unmarshal(data, &currentPrivatelinkEndpoint)
+		if err != nil {
+			return nil, err
+		}
 
-	PrivatelinkEndpointListResponse := PrivatelinkEndpointListResponse{}
-	err = json.Unmarshal(body, &PrivatelinkEndpointListResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, endpoint := range PrivatelinkEndpointListResponse.Data {
-		if (endpointName == "" || endpoint.Name == endpointName) &&
-			(privatelinkEndpointURL == "" || endpoint.PrivatelinkEndpointURL == privatelinkEndpointURL) {
-			return &PrivatelinkEndpointListResponse.Data[i], nil
+		if (endpointName == "" || currentPrivatelinkEndpoint.Name == endpointName) &&
+			(privatelinkEndpointURL == "" || currentPrivatelinkEndpoint.PrivatelinkEndpointURL == privatelinkEndpointURL) {
+			return &currentPrivatelinkEndpoint, nil
 		}
 	}
 
