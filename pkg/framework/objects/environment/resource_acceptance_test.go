@@ -480,7 +480,7 @@ func TestAccDbtCloudEnvironmentResourceVersionless(t *testing.T) {
 }
 
 func TestAccDbtCloudEnvironmentResourceFusion(t *testing.T) {
-	dbtVersionFusion := "latest-fusion"
+	dbtVersionFusion := "latest"
 	dbtMinorVersion := "1.5.0-latest"
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
