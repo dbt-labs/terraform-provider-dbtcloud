@@ -3,7 +3,6 @@ package dbt_cloud
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type PrivatelinkEndpoint struct {
@@ -29,39 +28,40 @@ type PrivatelinkEndpointResponse struct {
 func (c *Client) GetPrivatelinkEndpoint(endpointName string, privatelinkEndpointURL string) (*PrivatelinkEndpoint, error) {
 
 	if endpointName == "" && privatelinkEndpointURL == "" {
-		return nil, fmt.Errorf("The endpoint name or url needs to be provided")
+		return nil, fmt.Errorf("the endpoint name or url needs to be provided")
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%d/private-link-endpoints/", c.HostURL, c.AccountID), nil)
+	url := c.BuildAccountV3URL(ResourcePrivatelinkEndpoints)
+
+	allPrivatelinkEndpointsRaw, err := c.GetRawData(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get raw data for PrivateLink endpoints: %w", err)
 	}
 
-	body, err := c.doRequestWithRetry(req)
-	if err != nil {
-		return nil, err
-	}
+	for _, privatelinkEndpointRaw := range allPrivatelinkEndpointsRaw {
+		data, _ := json.Marshal(privatelinkEndpointRaw)
+		currentPrivatelinkEndpoint := PrivatelinkEndpoint{}
+		err := json.Unmarshal(data, &currentPrivatelinkEndpoint)
+		if err != nil {
+			return nil, err
+		}
 
-	PrivatelinkEndpointListResponse := PrivatelinkEndpointListResponse{}
-	err = json.Unmarshal(body, &PrivatelinkEndpointListResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, endpoint := range PrivatelinkEndpointListResponse.Data {
-		if (endpointName == "" || endpoint.Name == endpointName) &&
-			(privatelinkEndpointURL == "" || endpoint.PrivatelinkEndpointURL == privatelinkEndpointURL) {
-			return &PrivatelinkEndpointListResponse.Data[i], nil
+		if (endpointName == "" || currentPrivatelinkEndpoint.Name == endpointName) &&
+			(privatelinkEndpointURL == "" || currentPrivatelinkEndpoint.PrivatelinkEndpointURL == privatelinkEndpointURL) {
+			return &currentPrivatelinkEndpoint, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Did not find PrivateLink endpoint with name = '%s' and/or endpoint = '%s'", endpointName, privatelinkEndpointURL)
+	return nil, fmt.Errorf("did not find PrivateLink endpoint with name = '%s' and/or endpoint = '%s'", endpointName, privatelinkEndpointURL)
 }
 
 func (c *Client) GetAllPrivatelinkEndpoints() ([]PrivatelinkEndpoint, error) {
-	url := fmt.Sprintf("%s/v3/accounts/%d/privatelink-endpoints/", c.HostURL, c.AccountID)
+	url := c.BuildAccountV3URL(ResourcePrivatelinkEndpoints)
 
-	allPrivatelinkEndpointsRaw := c.GetData(url)
+	allPrivatelinkEndpointsRaw, err := c.GetRawData(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get raw data for all PrivateLink endpoints: %w", err)
+	}
 
 	allPrivatelinkEndpoints := []PrivatelinkEndpoint{}
 	for _, privatelinkEndpoint := range allPrivatelinkEndpointsRaw {

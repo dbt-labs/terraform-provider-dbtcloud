@@ -115,7 +115,7 @@ func (c *Client) GetData(url string) []any {
 }
 
 func (c *Client) GetAllGroupIDsByName(groupName string) []int {
-	url := fmt.Sprintf("%s/v3/accounts/%d/groups/", c.HostURL, c.AccountID)
+	url := c.BuildAccountV3URL(ResourceGroups)
 
 	allGroupsRaw := c.GetData(url)
 

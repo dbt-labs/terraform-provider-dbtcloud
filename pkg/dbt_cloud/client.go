@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -12,8 +13,25 @@ import (
 
 var versionString = "dev"
 
+// API path constants for consistent URL construction
+const (
+	APIVersionV3 = "v3"
+	APIVersionV2 = "v2"
+)
+
+// Resource name constants
+const (
+	ResourceAccounts             = "accounts"
+	ResourcePrivatelinkEndpoints = "private-link-endpoints"
+	ResourceGroups               = "groups"
+	ResourceEnvironments         = "environments"
+	ResourceNotifications        = "notifications"
+	ResourceServiceTokens        = "service-tokens"
+	ResourceLicenseMaps          = "license-maps"
+)
+
 type Client struct {
-	HostURL              string
+	HostURL              *url.URL
 	HTTPClient           *http.Client
 	Token                string
 	AccountURL           string
@@ -103,9 +121,15 @@ func NewClient(account_id *int, token *string, host_url *string, maxRetries *int
 		return nil, fmt.Errorf("token is set but it is empty")
 	}
 
+	// Parse and validate the host URL
+	parsedURL, err := url.Parse(*host_url)
+	if err != nil {
+		return nil, fmt.Errorf("invalid host URL '%s': %w", *host_url, err)
+	}
+
 	c := Client{
 		HTTPClient:           &http.Client{Timeout: 30 * time.Second},
-		HostURL:              *host_url,
+		HostURL:              parsedURL,
 		Token:                *token,
 		AccountID:            *account_id,
 		RetryIntervalSeconds: *retryIntervalSeconds,
@@ -114,8 +138,8 @@ func NewClient(account_id *int, token *string, host_url *string, maxRetries *int
 	}
 
 	_, runningAcceptanceTests := os.LookupEnv("TF_ACC")
-	if account_id != nil && !runningAcceptanceTests {
-		url := fmt.Sprintf("%s/v2/accounts/", *host_url)
+	if !runningAcceptanceTests {
+		url := c.BuildV2URL(ResourceAccounts)
 
 		// authenticate
 		req, err := http.NewRequest("GET", url, nil)
@@ -255,4 +279,61 @@ func setRequestHeaders(req *http.Request, token string) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Token %s", token))
 	req.Header.Set("User-Agent", userAgentWithVersion)
+}
+
+// BuildAccountAPIURL constructs API URLs with consistent formatting
+func (c *Client) BuildAccountAPIURL(version, resource string, pathParams ...interface{}) string {
+	accountResource := fmt.Sprintf("accounts/%d", c.AccountID)
+	if resource != "" {
+		accountResource = fmt.Sprintf("%s/%s", accountResource, resource)
+	}
+	return c.BuildAPIURL(version, accountResource, pathParams...)
+}
+
+func (c *Client) BuildAPIURL(version, resource string, pathParams ...interface{}) string {
+	if c.HostURL == nil {
+		return ""
+	}
+
+	// Build the base path
+	basePath := fmt.Sprintf("/%s", version)
+
+	// Add resource path
+	if resource != "" {
+		basePath = fmt.Sprintf("%s/%s", basePath, resource)
+	}
+
+	// Add any additional path parameters
+	if len(pathParams) > 0 {
+		for _, param := range pathParams {
+			basePath = fmt.Sprintf("%s/%v", basePath, param)
+		}
+	}
+
+	// Ensure trailing slash
+	if !strings.HasSuffix(basePath, "/") {
+		basePath += "/"
+	}
+
+	return fmt.Sprintf("%s%s", c.HostURL, basePath)
+}
+
+// BuildV3URL is a convenience method for v3 API endpoints
+func (c *Client) BuildV3URL(resource string, pathParams ...interface{}) string {
+	return c.BuildAPIURL(APIVersionV3, resource, pathParams...)
+}
+
+// BuildV2URL is a convenience method for v2 API endpoints
+func (c *Client) BuildV2URL(resource string, pathParams ...interface{}) string {
+	return c.BuildAPIURL(APIVersionV2, resource, pathParams...)
+}
+
+// BuildAccountV3URL is a convenience method for v3 API endpoints
+func (c *Client) BuildAccountV3URL(resource string, pathParams ...interface{}) string {
+	return c.BuildAccountAPIURL(APIVersionV3, resource, pathParams...)
+}
+
+// BuildAccountV2URL is a convenience method for v2 API endpoints
+func (c *Client) BuildAccountV2URL(resource string, pathParams ...interface{}) string {
+	return c.BuildAccountAPIURL(APIVersionV2, resource, pathParams...)
 }

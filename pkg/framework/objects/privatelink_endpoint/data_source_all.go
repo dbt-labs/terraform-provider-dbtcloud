@@ -44,14 +44,14 @@ func (p *privatelinkEndpointDataSourceAll) Metadata(_ context.Context, req datas
 }
 
 func (p *privatelinkEndpointDataSourceAll) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state PrivatelinkEndpointDataSourceModel
+	var state PrivatelinkEndpointsDataSourceModel
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	privatelinkEndpoint, err := p.client.GetAllPrivatelinkEndpoints()
+	privatelinkEndpoints, err := p.client.GetAllPrivatelinkEndpoints()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading Privatelink Endpoints",
@@ -60,13 +60,19 @@ func (p *privatelinkEndpointDataSourceAll) Read(ctx context.Context, req datasou
 		return
 	}
 
-	for _, endpoint := range privatelinkEndpoint {
-		state.ID = types.StringValue(endpoint.ID)
-		state.Name = types.StringValue(endpoint.Name)
-		state.PrivatelinkEndpointType = types.StringValue(endpoint.Type)
-		state.PrivatelinkEndpointURL = types.StringValue(endpoint.PrivatelinkEndpointURL)
-		state.CIDRRange = types.StringValue(endpoint.CIDRRange)
+	allEndpoints := []PrivatelinkEndpointDataSourceModel{}
+	for _, endpoint := range privatelinkEndpoints {
+		currentEndpoint := PrivatelinkEndpointDataSourceModel{
+			ID:                      types.StringValue(endpoint.ID),
+			Name:                    types.StringValue(endpoint.Name),
+			PrivatelinkEndpointType: types.StringValue(endpoint.Type),
+			PrivatelinkEndpointURL:  types.StringValue(endpoint.PrivatelinkEndpointURL),
+			CIDRRange:               types.StringValue(endpoint.CIDRRange),
+		}
+		allEndpoints = append(allEndpoints, currentEndpoint)
 	}
+
+	state.Endpoints = allEndpoints
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

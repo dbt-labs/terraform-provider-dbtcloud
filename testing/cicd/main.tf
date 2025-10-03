@@ -38,7 +38,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_environment" "test_environment" {
   project_id = dbtcloud_project.test_project.id
   name       = "Test Environment"
-  dbt_version = "latest-fusion"
+  dbt_version = "latest"
   type       = "development"
 }
 

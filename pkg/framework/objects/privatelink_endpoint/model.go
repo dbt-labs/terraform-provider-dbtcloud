@@ -11,3 +11,7 @@ type PrivatelinkEndpointDataSourceModel struct {
 	PrivatelinkEndpointURL  types.String `tfsdk:"private_link_endpoint_url"`
 	CIDRRange               types.String `tfsdk:"cidr_range"`
 }
+
+type PrivatelinkEndpointsDataSourceModel struct {
+	Endpoints []PrivatelinkEndpointDataSourceModel `tfsdk:"endpoints"`
+}
