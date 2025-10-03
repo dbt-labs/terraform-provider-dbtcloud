@@ -34,6 +34,8 @@ type ProjectResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
+const invalidFileCharacters = `#%&{}<>*?$!'":@`
+
 func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 	req, err := http.NewRequest(
 		"GET",
@@ -163,7 +165,12 @@ func (c *Client) CreateProject(
 		AccountID:      c.AccountID,
 		DbtProjectType: dbtProjectType,
 	}
+
+	dbtProjectSubdirectory = strings.TrimSpace(dbtProjectSubdirectory)
 	if dbtProjectSubdirectory != "" {
+		if err := IsValidSubdirectory(dbtProjectSubdirectory); err != nil {
+			return nil, err
+		}
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
 	}
 
@@ -227,4 +234,24 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 	}
 
 	return &projectResponse.Data, nil
+}
+
+func IsValidSubdirectory(dbtProjectSubdirectory string) error {
+	if strings.HasPrefix(dbtProjectSubdirectory, "/") {
+		return fmt.Errorf("project subdirectory path should not start with a slash")
+	}
+
+	if strings.HasSuffix(dbtProjectSubdirectory, "/") {
+		return fmt.Errorf("project subdirectory path should not end with a slash")
+	}
+
+	if strings.Contains(dbtProjectSubdirectory, "./") || strings.Contains(dbtProjectSubdirectory, "~/") {
+		return fmt.Errorf("project subdirectory path should not contain relative paths like: ../ or ./ or ~/")
+	}
+
+	if strings.ContainsAny(dbtProjectSubdirectory, invalidFileCharacters) {
+		return fmt.Errorf("project subdirectory path should not contain file characters like: %s", invalidFileCharacters)
+	}
+
+	return nil
 }
