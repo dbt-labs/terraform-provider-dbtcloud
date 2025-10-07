@@ -203,6 +203,13 @@ func (c *Client) CreateProject(
 }
 
 func (c *Client) UpdateProject(projectID string, project Project) (*Project, error) {
+	if project.DbtProjectSubdirectory != nil {
+		*project.DbtProjectSubdirectory = strings.TrimSpace(*project.DbtProjectSubdirectory)
+		if err := IsValidSubdirectory(*project.DbtProjectSubdirectory); err != nil {
+			return nil, err
+		}
+	}
+
 	projectData, err := json.Marshal(project)
 	if err != nil {
 		return nil, err
