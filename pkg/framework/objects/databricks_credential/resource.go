@@ -201,6 +201,10 @@ func (d *databricksCredentialResource) deleteGlobal(_ context.Context, state *Da
 		strconv.Itoa(projectID),
 	)
 	if err != nil {
+		// If the resource is already deleted (404), treat as success
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting Databricks credential", err.Error())
 		return
 	}
