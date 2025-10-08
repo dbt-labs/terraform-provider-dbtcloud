@@ -34,7 +34,7 @@ type ProjectResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
-const invalidFileCharacters = `#%&{}<>*?$!'":@`
+const InvalidFileCharacters = `#%&{}<>*?$!'":@`
 
 func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 	req, err := http.NewRequest(
@@ -245,19 +245,19 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 
 func IsValidSubdirectory(dbtProjectSubdirectory string) error {
 	if strings.HasPrefix(dbtProjectSubdirectory, "/") {
-		return fmt.Errorf("project subdirectory path should not start with a slash")
+		return fmt.Errorf(`project subdirectory path should not start with a slash: "%s"`, dbtProjectSubdirectory)
 	}
 
 	if strings.HasSuffix(dbtProjectSubdirectory, "/") {
-		return fmt.Errorf("project subdirectory path should not end with a slash")
+		return fmt.Errorf(`project subdirectory path should not end with a slash: "%s"`, dbtProjectSubdirectory)
 	}
 
 	if strings.Contains(dbtProjectSubdirectory, "./") || strings.Contains(dbtProjectSubdirectory, "~/") {
-		return fmt.Errorf("project subdirectory path should not contain relative paths like: ../ or ./ or ~/")
+		return fmt.Errorf(`project subdirectory path should not contain relative paths: "%s"`, dbtProjectSubdirectory)
 	}
 
-	if strings.ContainsAny(dbtProjectSubdirectory, invalidFileCharacters) {
-		return fmt.Errorf("project subdirectory path should not contain file characters like: %s", invalidFileCharacters)
+	if strings.ContainsAny(dbtProjectSubdirectory, InvalidFileCharacters) {
+		return fmt.Errorf(`project subdirectory path should not contain file characters ("%s"): "%s"`, InvalidFileCharacters, dbtProjectSubdirectory)
 	}
 
 	return nil

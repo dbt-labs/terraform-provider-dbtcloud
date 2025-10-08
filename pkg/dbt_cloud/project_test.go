@@ -1,6 +1,7 @@
 package dbt_cloud_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -55,19 +56,19 @@ func TestIsValidSubdirectory(t *testing.T) {
 			name:        "invalid subdirectory - starts with slash",
 			input:       "/models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not start with a slash",
+			errorMsg:    `project subdirectory path should not start with a slash: "/models"`,
 		},
 		{
 			name:        "invalid subdirectory - starts with slash nested",
 			input:       "/dbt/models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not start with a slash",
+			errorMsg:    `project subdirectory path should not start with a slash: "/dbt/models"`,
 		},
 		{
 			name:        "invalid subdirectory - absolute path",
 			input:       "/usr/local/dbt/models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not start with a slash",
+			errorMsg:    `project subdirectory path should not start with a slash: "/usr/local/dbt/models"`,
 		},
 
 		// Invalid cases - ends with slash
@@ -75,13 +76,13 @@ func TestIsValidSubdirectory(t *testing.T) {
 			name:        "invalid subdirectory - ends with slash",
 			input:       "models/",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not end with a slash",
+			errorMsg:    `project subdirectory path should not end with a slash: "models/"`,
 		},
 		{
 			name:        "invalid subdirectory - nested path ends with slash",
 			input:       "dbt/models/",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not end with a slash",
+			errorMsg:    `project subdirectory path should not end with a slash: "dbt/models/"`,
 		},
 
 		// Invalid cases - relative paths
@@ -89,31 +90,31 @@ func TestIsValidSubdirectory(t *testing.T) {
 			name:        "invalid subdirectory - contains dot slash",
 			input:       "models/./data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain relative paths like: ../ or ./ or ~/",
+			errorMsg:    `project subdirectory path should not contain relative paths: "models/./data"`,
 		},
 		{
 			name:        "invalid subdirectory - contains double dot slash",
 			input:       "models/../data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain relative paths like: ../ or ./ or ~/",
+			errorMsg:    `project subdirectory path should not contain relative paths: "models/../data"`,
 		},
 		{
 			name:        "invalid subdirectory - contains tilde slash",
 			input:       "~/models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain relative paths like: ../ or ./ or ~/",
+			errorMsg:    `project subdirectory path should not contain relative paths: "~/models"`,
 		},
 		{
 			name:        "invalid subdirectory - starts with dot slash",
 			input:       "./models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain relative paths like: ../ or ./ or ~/",
+			errorMsg:    `project subdirectory path should not contain relative paths: "./models"`,
 		},
 		{
 			name:        "invalid subdirectory - contains double dot slash",
 			input:       "../models",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain relative paths like: ../ or ./ or ~/",
+			errorMsg:    `project subdirectory path should not contain relative paths: "../models"`,
 		},
 
 		// Invalid cases - invalid characters
@@ -121,79 +122,79 @@ func TestIsValidSubdirectory(t *testing.T) {
 			name:        "invalid subdirectory - contains hash",
 			input:       "models#data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models#data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains percent",
 			input:       "models%data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models%%data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains ampersand",
 			input:       "models&data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models&data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains curly braces",
 			input:       "models{data}",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models{data}"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains angle brackets",
 			input:       "models<data>",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models<data>"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains asterisk",
 			input:       "models*data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models*data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains question mark",
 			input:       "models?data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models?data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains dollar sign",
 			input:       "models$data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models$data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains exclamation",
 			input:       "models!data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models!data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains single quote",
 			input:       "models'data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models'data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains double quote",
 			input:       "models\"data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models"data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains colon",
 			input:       "models:data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models:data"`, dbt_cloud.InvalidFileCharacters),
 		},
 		{
 			name:        "invalid subdirectory - contains at symbol",
 			input:       "models@data",
 			expectError: true,
-			errorMsg:    "project subdirectory path should not contain file characters like: #%&{}<>*?$!'\":@",
+			errorMsg:    fmt.Sprintf(`project subdirectory path should not contain file characters ("%s"): "models@data"`, dbt_cloud.InvalidFileCharacters),
 		},
 	}
 
