@@ -212,8 +212,22 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 			return nil, fmt.Errorf("resource-not-found: %s", body)
 		}
 
+		// Handle permission errors (401 Unauthorized, 403 Forbidden)
+		if res.StatusCode == 401 {
+			return nil, fmt.Errorf("unauthorized: The API token does not have permission to access this resource. Status: 401, URL: %s, Response: %s", req.URL, body)
+		}
+
+		if res.StatusCode == 403 {
+			return nil, fmt.Errorf("forbidden: The API token does not have permission to perform this action. This may be due to environment-level permissions or other access restrictions. Status: 403, URL: %s, Response: %s", req.URL, body)
+		}
+
 		if res.StatusCode == 500 {
 			return nil, fmt.Errorf("internal-server-error: %s", body)
+		}
+
+		// Check for other non-2xx status codes
+		if res.StatusCode < 200 || res.StatusCode >= 300 {
+			return nil, fmt.Errorf("unexpected status code %d: %s, URL: %s", res.StatusCode, body, req.URL)
 		}
 
 		if err == nil {

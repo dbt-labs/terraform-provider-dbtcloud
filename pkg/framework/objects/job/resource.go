@@ -241,8 +241,25 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-		plan.ID = types.Int64Value(int64(*createdJob.ID))
-		plan.JobId = types.Int64Value(int64(*createdJob.ID))
+	// Defensive check: ensure createdJob and its ID are not nil before dereferencing
+	if createdJob == nil {
+		resp.Diagnostics.AddError(
+			"Error creating job",
+			"Job creation returned nil response without an error. This may indicate a permissions issue or an API problem.",
+		)
+		return
+	}
+
+	if createdJob.ID == nil {
+		resp.Diagnostics.AddError(
+			"Error creating job",
+			"Job creation returned a response without a job ID. This may indicate a permissions issue or an API problem.",
+		)
+		return
+	}
+
+	plan.ID = types.Int64Value(int64(*createdJob.ID))
+	plan.JobId = types.Int64Value(int64(*createdJob.ID))
 
 	if createdJob.JobType != "" {
 		plan.JobType = types.StringValue(createdJob.JobType)
@@ -251,7 +268,12 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
-	createdSelfDeferring := createdJob.DeferringJobId != nil && strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
+	
+	// Check if DeferringJobId is set and matches this job's ID for self-deferring
+	createdSelfDeferring := false
+	if createdJob.DeferringJobId != nil {
+		createdSelfDeferring = strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
+	}
 	plan.SelfDeferring = types.BoolValue(createdSelfDeferring)
 	
 	diags := resp.State.Set(ctx, plan)
