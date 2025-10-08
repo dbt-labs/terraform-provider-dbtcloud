@@ -211,13 +211,15 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 					return nil, fmt.Errorf("resource-not-found-permissions: The resource was not found, but this may be due to insufficient permissions. The API token may not have access to this resource or the environment it belongs to.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
 				}
 
-				// For GET requests, this is typically a legitimate not-found
-				if req.Method == "GET" {
+				// For GET requests or DELETE operations, this is typically a legitimate not-found
+				// (DELETE gets 404 when resource already deleted, which is fine)
+				if req.Method == "GET" || req.Method == "DELETE" {
 					return nil, fmt.Errorf("resource-not-found: %s", req.URL)
 				}
 
-				// For POST/PUT/DELETE, a 404 often indicates permissions issues
-				return nil, fmt.Errorf("resource-not-found: The resource was not found. If you are updating or deleting a resource, this may indicate insufficient permissions.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
+				// For POST/PUT on non-permission 404s, provide additional context
+				// This helps with update/create operations that fail due to permissions
+				return nil, fmt.Errorf("resource-not-found: The resource was not found. If you are updating a resource, this may indicate insufficient permissions.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
 			}
 		}
 
