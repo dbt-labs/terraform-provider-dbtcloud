@@ -87,7 +87,7 @@ func (j *jobResource) ImportState(ctx context.Context, req resource.ImportStateR
 		)
 		return
 	}
-	
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), jobID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), jobID)...)
 }
@@ -190,7 +190,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 	}
 
-
 	createDbtVersion := ""
 	if dbtVersion != nil {
 		createDbtVersion = *dbtVersion
@@ -266,16 +265,16 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	} else {
 		plan.JobType = types.StringNull()
 	}
-	
+
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
-	
+
 	// Check if DeferringJobId is set and matches this job's ID for self-deferring
 	createdSelfDeferring := false
 	if createdJob.DeferringJobId != nil {
 		createdSelfDeferring = strconv.Itoa(*createdJob.DeferringJobId) == jobIDStr
 	}
 	plan.SelfDeferring = types.BoolValue(createdSelfDeferring)
-	
+
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -384,8 +383,8 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ScheduleDays = scheduleDaysNull
 	}
 
-	if retrievedJob.Schedule.Date.Cron != nil && 
-	retrievedJob.Schedule.Date.Type != "interval_cron" { // for interval_cron, the cron expression is auto generated in the code
+	if retrievedJob.Schedule.Date.Cron != nil &&
+		retrievedJob.Schedule.Date.Type != "interval_cron" { // for interval_cron, the cron expression is auto generated in the code
 		state.ScheduleCron = types.StringValue(*retrievedJob.Schedule.Date.Cron)
 	} else {
 		state.ScheduleCron = types.StringNull()
@@ -411,7 +410,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	var triggers map[string]interface{}
 	triggersInput, _ := json.Marshal(retrievedJob.Triggers)
 	json.Unmarshal(triggersInput, &triggers)
-	
+
 	// for now, we allow people to keep the triggers.custom_branch_only config even if the parameter was deprecated in the API
 	// we set the state to the current config value, so it doesn't do anything
 	var customBranchValue types.Bool
@@ -465,7 +464,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
-	
+
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
 	} else {
@@ -602,7 +601,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
-	
+
 	if len(plan.JobCompletionTriggerCondition) == 0 {
 		job.JobCompletionTrigger = nil
 	} else {
@@ -620,17 +619,47 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 		job.JobCompletionTrigger = &jobCondTrigger
 	}
-	
+
 	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
 	job.RunLint = plan.RunLint.ValueBool()
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
+	// Capture what's changing for better error messages
+	oldEnvID := state.EnvironmentID.ValueInt64()
+	newEnvID := plan.EnvironmentID.ValueInt64()
+	oldName := state.Name.ValueString()
+	newName := plan.Name.ValueString()
+
 	updatedJob, err := j.client.UpdateJob(jobIDStr, *job)
 	if err != nil {
+		// Build a well-formatted, context-aware error message
+		var errorMsg strings.Builder
+		errorMsg.WriteString(fmt.Sprintf("Could not update job with ID %s\n\n", jobIDStr))
+		errorMsg.WriteString(fmt.Sprintf("Error: %s\n", err.Error()))
+
+		// Add context about what was being changed
+		var changes []string
+		if oldEnvID != newEnvID {
+			changes = append(changes, fmt.Sprintf("  • environment_id: %d → %d", oldEnvID, newEnvID))
+		}
+		if oldName != newName {
+			changes = append(changes, fmt.Sprintf("  • name: '%s' → '%s'", oldName, newName))
+		}
+
+		if len(changes) > 0 {
+			errorMsg.WriteString("\nAttempted changes:\n")
+			errorMsg.WriteString(strings.Join(changes, "\n"))
+
+			// If environment is changing and it's a permission error, add extra context
+			if oldEnvID != newEnvID && (strings.Contains(err.Error(), "permission") || strings.Contains(err.Error(), "forbidden") || strings.Contains(err.Error(), "resource-not-found-permissions")) {
+				errorMsg.WriteString(fmt.Sprintf("\n\nℹ️  Note: The API token may not have write access to environment %d.\nEnvironment-level permissions are required to move jobs between environments.", newEnvID))
+			}
+		}
+
 		resp.Diagnostics.AddError(
 			"Error updating job",
-			"Could not update job with ID "+jobIDStr+": "+err.Error(),
+			errorMsg.String(),
 		)
 		return
 	}
@@ -640,11 +669,11 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	} else {
 		plan.JobType = types.StringNull()
 	}
-	
+
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
 	updatedSelfDeferring := updatedJob.DeferringJobId != nil && strconv.Itoa(*updatedJob.DeferringJobId) == updatedJobIDStr
 	plan.SelfDeferring = types.BoolValue(updatedSelfDeferring)
-	
+
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

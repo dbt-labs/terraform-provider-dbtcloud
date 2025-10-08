@@ -196,15 +196,28 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 
 		body, err := io.ReadAll(res.Body)
 
-		// sometimes the err field comes nil but the status code is 404, so we check the status code
-		// this happens frequently when checking if the resource was destroyed
-		if res.StatusCode == 404 && req.Method == "GET" {
-			isResourceNotFound, err := isResourceNotFoundError(body)
-			if err != nil {
-				return nil, err
+		// Handle 404 errors - check if it's a true not found or a permissions issue
+		if res.StatusCode == 404 {
+			isResourceNotFound, apiErr, parseErr := parseAPIError(body)
+			if parseErr != nil {
+				// If we can't parse the error, return a generic 404
+				return nil, fmt.Errorf("resource-not-found (status 404): URL: %s, Response: %s", req.URL, body)
 			}
+
 			if isResourceNotFound {
-				return nil, fmt.Errorf("resource-not-found: %s", req.URL)
+				// Check if the error message mentions permissions - this is a common pattern in dbt Cloud API
+				userMsg := strings.ToLower(apiErr.Status.UserMessage)
+				if strings.Contains(userMsg, "permission") || strings.Contains(userMsg, "proper permissions") {
+					return nil, fmt.Errorf("resource-not-found-permissions: The resource was not found, but this may be due to insufficient permissions. The API token may not have access to this resource or the environment it belongs to.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
+				}
+
+				// For GET requests, this is typically a legitimate not-found
+				if req.Method == "GET" {
+					return nil, fmt.Errorf("resource-not-found: %s", req.URL)
+				}
+
+				// For POST/PUT/DELETE, a 404 often indicates permissions issues
+				return nil, fmt.Errorf("resource-not-found: The resource was not found. If you are updating or deleting a resource, this may indicate insufficient permissions.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
 			}
 		}
 
@@ -281,6 +294,17 @@ func isResourceNotFoundError(body []byte) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// parseAPIError parses the API error response and returns whether it's a 404, the full error details, and any parse error
+func parseAPIError(body []byte) (bool, *APIError, error) {
+	var apiErr APIError
+	if unmarshalErr := json.Unmarshal([]byte(body), &apiErr); unmarshalErr != nil {
+		return false, nil, unmarshalErr
+	}
+
+	isNotFound := apiErr.Status.Code == 404
+	return isNotFound, &apiErr, nil
 }
 
 func setRequestHeaders(req *http.Request, token string) {

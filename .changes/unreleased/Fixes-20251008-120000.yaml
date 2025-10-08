@@ -1,0 +1,4 @@
+kind: Fixes
+body: Fixed panic crash when attempting to move jobs to environments with insufficient permissions. Enhanced error messages to show attempted changes and provide environment-specific guidance for permission issues.
+time: 2025-10-08T12:00:00.000000-04:00
+
