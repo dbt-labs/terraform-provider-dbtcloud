@@ -34,6 +34,8 @@ type ProjectResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
+const InvalidFileCharacters = `#%&{}<>*?$!'":@`
+
 func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 	req, err := http.NewRequest(
 		"GET",
@@ -163,7 +165,12 @@ func (c *Client) CreateProject(
 		AccountID:      c.AccountID,
 		DbtProjectType: dbtProjectType,
 	}
+
+	dbtProjectSubdirectory = strings.TrimSpace(dbtProjectSubdirectory)
 	if dbtProjectSubdirectory != "" {
+		if err := IsValidSubdirectory(dbtProjectSubdirectory); err != nil {
+			return nil, err
+		}
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
 	}
 
@@ -196,6 +203,13 @@ func (c *Client) CreateProject(
 }
 
 func (c *Client) UpdateProject(projectID string, project Project) (*Project, error) {
+	if project.DbtProjectSubdirectory != nil {
+		*project.DbtProjectSubdirectory = strings.TrimSpace(*project.DbtProjectSubdirectory)
+		if err := IsValidSubdirectory(*project.DbtProjectSubdirectory); err != nil {
+			return nil, err
+		}
+	}
+
 	projectData, err := json.Marshal(project)
 	if err != nil {
 		return nil, err
@@ -227,4 +241,24 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 	}
 
 	return &projectResponse.Data, nil
+}
+
+func IsValidSubdirectory(dbtProjectSubdirectory string) error {
+	if strings.HasPrefix(dbtProjectSubdirectory, "/") {
+		return fmt.Errorf(`project subdirectory path should not start with a slash: "%s"`, dbtProjectSubdirectory)
+	}
+
+	if strings.HasSuffix(dbtProjectSubdirectory, "/") {
+		return fmt.Errorf(`project subdirectory path should not end with a slash: "%s"`, dbtProjectSubdirectory)
+	}
+
+	if strings.Contains(dbtProjectSubdirectory, "./") || strings.Contains(dbtProjectSubdirectory, "~/") {
+		return fmt.Errorf(`project subdirectory path should not contain relative paths: "%s"`, dbtProjectSubdirectory)
+	}
+
+	if strings.ContainsAny(dbtProjectSubdirectory, InvalidFileCharacters) {
+		return fmt.Errorf(`project subdirectory path should not contain file characters ("%s"): "%s"`, InvalidFileCharacters, dbtProjectSubdirectory)
+	}
+
+	return nil
 }

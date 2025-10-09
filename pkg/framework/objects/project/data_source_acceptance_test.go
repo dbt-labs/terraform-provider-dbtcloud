@@ -39,7 +39,7 @@ func testAccProjectDataSourceConfig(projectName string) string {
 	return fmt.Sprintf(`
     resource "dbtcloud_project" "test" {
 		name = "%s"
-		dbt_project_subdirectory = "/path"
+		dbt_project_subdirectory = "project/subdirectory/path"
 		type = 0
 	}
 

@@ -50,7 +50,7 @@ var modifyStep = resource.TestStep{
 		resource.TestCheckResourceAttr(
 			"dbtcloud_project.test_project",
 			"dbt_project_subdirectory",
-			"/project/subdirectory_where/dbt-is",
+			"project/subdirectory_where/dbt-is",
 		),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_project.test_project",
@@ -119,7 +119,7 @@ func testAccDbtCloudProjectResourceFullConfig(
 resource "dbtcloud_project" "test_project" {
   name = "%s"
   description = "%s"
-  dbt_project_subdirectory = "/project/subdirectory_where/dbt-is"
+  dbt_project_subdirectory = "project/subdirectory_where/dbt-is"
   type = 0
 }
 `, projectName, projectDescription)
