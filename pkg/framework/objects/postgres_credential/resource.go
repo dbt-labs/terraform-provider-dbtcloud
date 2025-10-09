@@ -197,6 +197,10 @@ func (p *postgresCredentialResource) Delete(ctx context.Context, req resource.De
 
 	_, err := p.client.DeletePostgresCredential(strconv.Itoa(credentialID), strconv.Itoa(projectID))
 	if err != nil {
+		// If the resource is already deleted (404), treat as success
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error deleting Postgres credential",
 			"Could not delete Postgres credential, unexpected error: "+err.Error(),
