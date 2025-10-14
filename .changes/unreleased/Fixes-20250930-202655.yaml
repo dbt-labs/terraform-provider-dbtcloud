@@ -1,3 +1,0 @@
-kind: Fixes
-body: Resolved `dbtcloud_privatelink_endpoint` limitation to support filtering across all paginated endpoints, not just the first 100.
-time: 2025-09-30T20:26:55.658212+03:00
