@@ -32,7 +32,7 @@ variable "dbt_cloud_host_url" {
 
 resource "dbtcloud_project" "test_project" {
   name        = "Test Project"
-  dbt_project_subdirectory = "/dbt"
+  dbt_project_subdirectory = "dbt/test-project"
 }
 
 resource "dbtcloud_environment" "test_environment" {
@@ -44,13 +44,14 @@ resource "dbtcloud_environment" "test_environment" {
 
 resource "dbtcloud_repository" "test_repository" {
   project_id = dbtcloud_project.test_project.id
-  remote_url = "https://github.com/dbt-labs/dbt-starter-project"
-  git_clone_strategy = "github_app"
+  remote_url = "git@github.com:dbt-labs/dbt-starter-project.git"
+  git_clone_strategy = "deploy_key"
+
 }
 
 resource "dbtcloud_job" "test_job" {
   project_id = dbtcloud_project.test_project.id
-  environment_id = dbtcloud_environment.test_environment.id
+  environment_id = dbtcloud_environment.test_environment.environment_id
   name = "Test Job"
   execute_steps = [
     "dbt run"
