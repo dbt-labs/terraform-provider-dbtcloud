@@ -41,6 +41,7 @@ resource "dbtcloud_environment" "dev_environment" {
   project_id  = dbtcloud_project.dbt_project.id
   type        = "development"
   connection_id = dbtcloud_global_connection.my_other_global_connection.id
+  // credential_id is not actionable for development environments
 }
 ```
 
@@ -56,7 +57,7 @@ resource "dbtcloud_environment" "dev_environment" {
 ### Optional
 
 - `connection_id` (Number) A connection ID (used with Global Connections)
-- `credential_id` (Number) The project ID to which the environment belongs.
+- `credential_id` (Number) The Credential ID for this environment. A credential is not actionable for development environments, as users have to set their own development credentials in dbt Cloud.
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
