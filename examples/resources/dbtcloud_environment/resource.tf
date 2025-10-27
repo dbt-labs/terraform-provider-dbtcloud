@@ -26,4 +26,5 @@ resource "dbtcloud_environment" "dev_environment" {
   project_id  = dbtcloud_project.dbt_project.id
   type        = "development"
   connection_id = dbtcloud_global_connection.my_other_global_connection.id
+  // credential_id is not actionable for development environments
 }

@@ -193,7 +193,7 @@ func (r *environmentResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     nil,
-				Description: "The project ID to which the environment belongs.",
+				Description: "The Credential ID for this environment. A credential is not actionable for development environments, as users have to set their own development credentials in dbt Cloud.",
 			},
 			"name": resource_schema.StringAttribute{
 				Required:    true,
