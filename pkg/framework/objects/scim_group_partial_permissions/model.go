@@ -1,0 +1,112 @@
+package scim_group_partial_permissions
+
+import (
+	"context"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+type ScimGroupPartialPermissionsResourceModel struct {
+	ID               types.Int64                             `tfsdk:"id"`
+	GroupID          types.Int64                             `tfsdk:"group_id"`
+	GroupPermissions []ScimGroupPartialPermissionModel       `tfsdk:"permissions"`
+}
+
+type ScimGroupPartialPermissionModel struct {
+	PermissionSet                 types.String `tfsdk:"permission_set"`
+	ProjectID                     types.Int64  `tfsdk:"project_id"`
+	AllProjects                   types.Bool   `tfsdk:"all_projects"`
+	WritableEnvironmentCategories types.Set    `tfsdk:"writable_environment_categories"`
+}
+
+// CompareScimGroupPartialPermissions compares two permission models for equality
+func CompareScimGroupPartialPermissions(
+	a ScimGroupPartialPermissionModel,
+	b ScimGroupPartialPermissionModel,
+) bool {
+	if a.PermissionSet.ValueString() != b.PermissionSet.ValueString() {
+		return false
+	}
+	if a.ProjectID.ValueInt64() != b.ProjectID.ValueInt64() {
+		return false
+	}
+	if a.AllProjects.ValueBool() != b.AllProjects.ValueBool() {
+		return false
+	}
+	
+	// Compare writable environment categories
+	if a.WritableEnvironmentCategories.Equal(b.WritableEnvironmentCategories) {
+		return true
+	}
+	
+	return false
+}
+
+func ConvertScimGroupPartialPermissionModelToData(
+	requiredAllPermissions []ScimGroupPartialPermissionModel,
+	groupID int,
+	accountID int,
+) []dbt_cloud.GroupPermission {
+	allPermissions := []dbt_cloud.GroupPermission{}
+
+	for _, permission := range requiredAllPermissions {
+		writableEnvironmentCategoriesSet, _ := permission.WritableEnvironmentCategories.ToSetValue(context.Background())
+		writableEnvironmentCategories := []string{}
+		if !writableEnvironmentCategoriesSet.IsNull() {
+			for _, category := range writableEnvironmentCategoriesSet.Elements() {
+				categoryString, _ := category.ToTerraformValue(context.Background())
+				var categoryVal string
+				_ = categoryString.As(&categoryVal)
+				writableEnvironmentCategories = append(writableEnvironmentCategories, categoryVal)
+			}
+		}
+
+		groupPermission := dbt_cloud.GroupPermission{
+			AccountID:                     accountID,
+			GroupID:                       groupID,
+			Set:                           permission.PermissionSet.ValueString(),
+			AllProjects:                   permission.AllProjects.ValueBool(),
+			WritableEnvironmentCategories: writableEnvironmentCategories,
+		}
+
+		if !permission.ProjectID.IsNull() {
+			projectID := int(permission.ProjectID.ValueInt64())
+			groupPermission.ProjectID = projectID
+		}
+
+		allPermissions = append(allPermissions, groupPermission)
+	}
+
+	return allPermissions
+}
+
+func ConvertScimGroupPartialPermissionDataToModel(
+	groupPermissions []dbt_cloud.GroupPermission,
+) []ScimGroupPartialPermissionModel {
+	permissionModels := []ScimGroupPartialPermissionModel{}
+
+	for _, permission := range groupPermissions {
+		permissionModel := ScimGroupPartialPermissionModel{
+			PermissionSet: types.StringValue(permission.Set),
+			AllProjects:   types.BoolValue(permission.AllProjects),
+		}
+
+		if permission.ProjectID != 0 {
+			permissionModel.ProjectID = types.Int64Value(int64(permission.ProjectID))
+		} else {
+			permissionModel.ProjectID = types.Int64Null()
+		}
+
+		writableEnvironmentCategories, _ := types.SetValueFrom(
+			context.Background(),
+			types.StringType,
+			permission.WritableEnvironmentCategories,
+		)
+		permissionModel.WritableEnvironmentCategories = writableEnvironmentCategories
+
+		permissionModels = append(permissionModels, permissionModel)
+	}
+
+	return permissionModels
+}

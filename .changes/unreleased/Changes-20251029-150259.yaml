@@ -1,0 +1,7 @@
+kind: Changes
+body: |
+  Add new `dbtcloud_scim_group_partial_permissions` resource for federated permission management.
+  This resource enables multiple Terraform workspaces to manage different permissions for the same
+  externally-managed group (e.g., SCIM-synced groups). Platform teams can manage base permissions
+  while individual teams manage project-specific permissions independently.
+time: 2025-10-29T15:02:59.827856-04:00

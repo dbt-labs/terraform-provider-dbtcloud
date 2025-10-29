@@ -48,6 +48,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_permissions"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential_service_token_mapping"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
@@ -333,6 +334,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
 		scim_group_permissions.ScimGroupPermissionsResource,
+		scim_group_partial_permissions.ScimGroupPartialPermissionsResource,
 		service_token.ServiceTokenResource,
 		starburst_credential.StarburstCredentialResource,
 		bigquery_credential.BigqueryCredentialResource,

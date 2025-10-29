@@ -1,0 +1,81 @@
+---
+page_title: "{{.Type}}: {{.Name}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+~> This resource is designed for **federated permission management** where multiple teams manage different permissions for the same externally-managed group (e.g., SCIM groups).
+
+## Use Case Guidelines
+
+Choose the right resource for your use case:
+
+| Resource | Group Creation | Permission Management | Use When |
+|----------|---------------|----------------------|----------|
+| `dbtcloud_group` | ✅ Terraform creates | Full (replaces all) | Single Terraform workspace manages everything |
+| `dbtcloud_group_partial_permissions` | ✅ Terraform creates | Partial (adds/removes) | Multiple workspaces manage same Terraform-created group |
+| `dbtcloud_scim_group_permissions` | ❌ External (SCIM) | Full (replaces all) | External group, single workspace manages all permissions |
+| `dbtcloud_scim_group_partial_permissions` | ❌ External (SCIM) | Partial (adds/removes) | External group, multiple workspaces manage different permissions |
+
+## Federated Permission Management Pattern
+
+This resource enables the following pattern:
+
+```hcl
+# Platform team manages base permissions (workspace 1)
+data "dbtcloud_groups" "data_platform" {
+  name = "data-platform-team"
+}
+
+resource "dbtcloud_scim_group_partial_permissions" "platform_base" {
+  group_id = data.dbtcloud_groups.data_platform.groups[0].id
+  
+  permissions = [
+    {
+      permission_set = "member"
+      all_projects   = true
+    }
+  ]
+}
+
+# Analytics team manages their project permissions (workspace 2)
+data "dbtcloud_groups" "data_platform" {
+  name = "data-platform-team"
+}
+
+data "dbtcloud_project" "analytics" {
+  name = "Analytics"
+}
+
+resource "dbtcloud_scim_group_partial_permissions" "analytics_team" {
+  group_id = data.dbtcloud_groups.data_platform.groups[0].id
+  
+  permissions = [
+    {
+      permission_set = "developer"
+      project_id     = data.dbtcloud_project.analytics.id
+      all_projects   = false
+      writable_environment_categories = ["development", "staging"]
+    }
+  ]
+}
+```
+
+Both resources manage different permissions for the same group without conflicts.
+
+## Example Usage
+
+{{ tffile (printf "examples/resources/%s/resource.tf" .Name)}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+~> **Import Not Supported:** This resource does not support `terraform import` because it manages only a partial subset of permissions. 
+There is no way for Terraform to know which specific permissions this resource instance should manage versus permissions 
+managed by other resources or applied outside of Terraform. You must define the resource in your configuration from the start.
