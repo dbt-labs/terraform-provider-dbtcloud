@@ -23,36 +23,36 @@ jobs:
   prepare-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # actions/checkout@v3
         with:
           fetch-depth: 0
           
       - name: Install changie
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # miniscruff/changie-action@v2
         with:
           version: ${{ env.CHANGIE_VERSION }}
           
       - name: Batch changes
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # miniscruff/changie-action@v2
         with:
           version: ${{ env.CHANGIE_VERSION }}
           args: batch ${{ github.event.inputs.version_bump }}
           
       - name: Merge changes
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # miniscruff/changie-action@v2
         with:
           version: ${{ env.CHANGIE_VERSION }}
           args: merge
           
       - name: Get latest version
         id: latest
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # miniscruff/changie-action@v2
         with:
           version: ${{ env.CHANGIE_VERSION }}
           args: latest
           
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@38e0b6e68b4c852a5500a94740f0e535e0d7ba54 # peter-evans/create-pull-request@v4
         with:
           title: Release ${{ steps.latest.outputs.output }}
           branch: release/${{ steps.latest.outputs.output }}
