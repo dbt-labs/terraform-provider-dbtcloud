@@ -12,7 +12,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # actions/stale@v8
         with:
           stale-issue-message: 'This issue has been marked as Stale because it has been open for 90 days with no activity. If you would like the issue to remain open, please comment on the issue or else it will be closed in 7 days.'
           days-before-stale: 90
