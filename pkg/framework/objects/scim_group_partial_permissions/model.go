@@ -36,6 +36,16 @@ func CompareScimGroupPartialPermissions(
 	}
 	
 	// Compare writable environment categories
+	// Normalize empty sets and null sets - treat them as equivalent
+	// This is needed because the API returns [] for permissions that don't support
+	// environment restrictions (like job_admin, account_admin, billing_admin)
+	aIsEmpty := a.WritableEnvironmentCategories.IsNull() || len(a.WritableEnvironmentCategories.Elements()) == 0
+	bIsEmpty := b.WritableEnvironmentCategories.IsNull() || len(b.WritableEnvironmentCategories.Elements()) == 0
+	
+	if aIsEmpty && bIsEmpty {
+		return true
+	}
+	
 	if a.WritableEnvironmentCategories.Equal(b.WritableEnvironmentCategories) {
 		return true
 	}
@@ -52,8 +62,10 @@ func ConvertScimGroupPartialPermissionModelToData(
 
 	for _, permission := range requiredAllPermissions {
 		writableEnvironmentCategoriesSet, _ := permission.WritableEnvironmentCategories.ToSetValue(context.Background())
+		// Always initialize as empty slice, not nil
+		// The API expects [] for permissions without environment restrictions
 		writableEnvironmentCategories := []string{}
-		if !writableEnvironmentCategoriesSet.IsNull() {
+		if !writableEnvironmentCategoriesSet.IsNull() && len(writableEnvironmentCategoriesSet.Elements()) > 0 {
 			for _, category := range writableEnvironmentCategoriesSet.Elements() {
 				categoryString, _ := category.ToTerraformValue(context.Background())
 				var categoryVal string
@@ -98,12 +110,20 @@ func ConvertScimGroupPartialPermissionDataToModel(
 			permissionModel.ProjectID = types.Int64Null()
 		}
 
-		writableEnvironmentCategories, _ := types.SetValueFrom(
-			context.Background(),
-			types.StringType,
-			permission.WritableEnvironmentCategories,
-		)
-		permissionModel.WritableEnvironmentCategories = writableEnvironmentCategories
+		// Normalize writable_environment_categories: treat empty arrays as null
+		// The API returns [] for permissions that don't support environment restrictions
+		// (like job_admin, account_admin, billing_admin), but we want to represent
+		// this as null in Terraform to avoid perpetual diffs
+		if len(permission.WritableEnvironmentCategories) == 0 {
+			permissionModel.WritableEnvironmentCategories = types.SetNull(types.StringType)
+		} else {
+			writableEnvironmentCategories, _ := types.SetValueFrom(
+				context.Background(),
+				types.StringType,
+				permission.WritableEnvironmentCategories,
+			)
+			permissionModel.WritableEnvironmentCategories = writableEnvironmentCategories
+		}
 
 		permissionModels = append(permissionModels, permissionModel)
 	}
