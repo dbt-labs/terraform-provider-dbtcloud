@@ -43,4 +43,5 @@ provider "dbtcloud" {
 - `max_retries` (Number) The maximum number of retries to attempt for requests that fail due to rate limiting. Defaults to 3 retries.
 - `retriable_status_codes` (List of String) List of HTTP status codes that should be retried when encountered. Defaults to [429, 500, 502, 503, 504].
 - `retry_interval_seconds` (Number) The number of seconds to wait before retrying a request that failed due to rate limiting. Defaults to 10 seconds.
+- `skip_credentials_validation` (Boolean) If set to true, the provider will not validate credentials during initialization. This can be useful for testing and for dbt Cloud API implementations that do not have standard authentication available. Defaults to false.
 - `token` (String, Sensitive) API token for your dbt Cloud. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_TOKEN`

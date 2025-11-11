@@ -116,6 +116,10 @@ func (p *dbtCloudProvider) Schema(
 				Optional:    true,
 				Description: "If set to true, the provider will not retry requests that fail due to rate limiting. Defaults to false.",
 			},
+			"skip_credentials_validation": schema.BoolAttribute{
+				Optional:    true,
+				Description: "If set to true, the provider will not validate credentials during initialization. This can be useful for testing and for dbt Cloud API implementations that do not have standard authentication available. Defaults to false.",
+			},
 			"retriable_status_codes": schema.ListAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
@@ -134,13 +138,14 @@ func (p *dbtCloudProvider) Schema(
 }
 
 type dbtCloudProviderModel struct {
-	Token                types.String `tfsdk:"token"`
-	AccountID            types.Int64  `tfsdk:"account_id"`
-	HostURL              types.String `tfsdk:"host_url"`
-	MaxRetries           types.Int64  `tfsdk:"max_retries"`
-	RetryIntervalSeconds types.Int64  `tfsdk:"retry_interval_seconds"`
-	DisableRetry         types.Bool   `tfsdk:"disable_retry"`
-	RetriableStatusCodes types.List   `tfsdk:"retriable_status_codes"`
+	Token                     types.String `tfsdk:"token"`
+	AccountID                 types.Int64  `tfsdk:"account_id"`
+	HostURL                   types.String `tfsdk:"host_url"`
+	MaxRetries                types.Int64  `tfsdk:"max_retries"`
+	RetryIntervalSeconds      types.Int64  `tfsdk:"retry_interval_seconds"`
+	DisableRetry              types.Bool   `tfsdk:"disable_retry"`
+	SkipCredentialsValidation types.Bool   `tfsdk:"skip_credentials_validation"`
+	RetriableStatusCodes      types.List   `tfsdk:"retriable_status_codes"`
 }
 
 func (p *dbtCloudProvider) Configure(
@@ -257,7 +262,9 @@ func (p *dbtCloudProvider) Configure(
 		}
 	}
 
-	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL, &maxRetries, &retryIntervalSeconds, retriableStatusCodes)
+	skipCredentialsValidation := config.SkipCredentialsValidation.ValueBool()
+
+	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL, &maxRetries, &retryIntervalSeconds, retriableStatusCodes, skipCredentialsValidation)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create dbt Cloud API Client",
