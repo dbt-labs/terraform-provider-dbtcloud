@@ -393,26 +393,6 @@ jobs:
         run: terraform show
         working-directory: ./testing/cicd/semantic_layer_issue_516
 
-      - name: Terraform Destroy
-        if: always() # This step will always run to clean up resources
-        run: |
-          echo "=== CLEANING UP RESOURCES ==="
-          terraform destroy -auto-approve
-          echo "=== CLEANUP COMPLETED ==="
-        working-directory: ./testing/cicd/semantic_layer_issue_516
-        env:
-          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
-          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
-          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
-          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
-          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
-          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
-          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
-          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
-          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
-          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
-
       - name: Upload Terraform Logs
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # actions/upload-artifact@v4
