@@ -65,11 +65,16 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.ID = types.Int64Value(int64(*credential.ID))
 	state.Credential.ProjectID = types.Int64Value(int64(credential.ProjectID))
 	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
+	state.Credential.ID = types.StringValue(fmt.Sprintf("%d", *credential.ID))
+
+	// Read BigQuery-specific credential fields from the Values map
+	state.Credential.IsActive = getBoolFromMap(credential.Values, "is_active")
+	state.Credential.Dataset = getStringFromMap(credential.Values, "dataset")
+	state.Credential.NumThreads = getInt64FromMap(credential.Values, "num_threads")
 
 	state.Configuration.ProjectID = types.Int64Value(int64(credential.ProjectID))
 	state.Configuration.Name = types.StringValue(credential.Name)
 	state.Configuration.AdapterVersion = types.StringValue(credential.AdapterVersion)
-
 
 	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
@@ -78,6 +83,9 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.ClientID = getStringFromMap(credential.Values, "client_id")
 	state.AuthProviderCertURL = getStringFromMap(credential.Values, "auth_provider_x509_cert_url")
 	state.ClientCertURL = getStringFromMap(credential.Values, "client_x509_cert_url")
+
+	// Keep the sensitive values from the current state since they are not returned by the API
+	// (PrivateKey and PrivateKeyID are already in state from line 41 and won't be overwritten)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -90,6 +98,30 @@ func getStringFromMap(m map[string]interface{}, key string) types.String {
 		}
 	}
 	return types.StringNull()
+}
+
+func getBoolFromMap(m map[string]interface{}, key string) types.Bool {
+	if val, ok := m[key]; ok {
+		if b, ok := val.(bool); ok {
+			return types.BoolValue(b)
+		}
+	}
+	return types.BoolNull()
+}
+
+func getInt64FromMap(m map[string]interface{}, key string) types.Int64 {
+	if val, ok := m[key]; ok {
+		// Handle both int and float64 (JSON numbers are often float64)
+		switch v := val.(type) {
+		case int:
+			return types.Int64Value(int64(v))
+		case int64:
+			return types.Int64Value(v)
+		case float64:
+			return types.Int64Value(int64(v))
+		}
+	}
+	return types.Int64Null()
 }
 
 func (r *bigQuerySemanticLayerCredentialResource) Create(
