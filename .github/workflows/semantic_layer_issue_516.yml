@@ -3,6 +3,18 @@ name: Semantic Layer Issue #516 Reproduction
 on:
   workflow_dispatch:
     inputs:
+      account_id:
+        description: 'dbt Cloud Account ID where the environment exists'
+        required: true
+        type: string
+      host_url:
+        description: 'dbt Cloud Host URL (e.g., https://cloud.getdbt.com/api or https://YOUR_ACCOUNT.us1.dbt.com/api)'
+        required: true
+        type: string
+      environment_id:
+        description: 'Pre-existing dbt Cloud Environment ID (must have successful job runs)'
+        required: true
+        type: string
       run_second_apply:
         description: 'Run second terraform apply to reproduce the issue'
         required: false
@@ -74,6 +86,11 @@ jobs:
             default     = "https://cloud.getdbt.com/api"
           }
 
+          variable "environment_id" {
+            description = "Pre-existing Environment ID (must have successful job runs)"
+            type        = number
+          }
+
           variable "bigquery_private_key_id" {
             description = "BigQuery Private Key ID"
             type        = string
@@ -113,7 +130,7 @@ jobs:
               "analytical_layer" = {
                 name = "Test Semantic Layer Project - Issue 516"
                 semantic_layer = {
-                  environment_id = null  # Will be set dynamically
+                  environment_id = var.environment_id  # Use pre-existing environment
                   credentials = [
                     {
                       name            = "semantic layer analytical layer"
@@ -172,20 +189,12 @@ jobs:
             name     = each.value.name
           }
 
-          # Create environments for semantic layer
-          resource "dbtcloud_environment" "semantic_layer_env" {
-            for_each    = local.semantic_layer_projects
-            project_id  = dbtcloud_project.projects[each.key].id
-            name        = "Semantic Layer Test Environment"
-            dbt_version = "latest"
-            type        = "deployment"
-          }
-
           # Create semantic layer configurations (using for_each like in Issue #516)
+          # Using pre-existing environment_id that has successful job runs
           resource "dbtcloud_semantic_layer_configuration" "semantic_layer" {
             for_each       = local.semantic_layer_projects
             project_id     = dbtcloud_project.projects[each.key].id
-            environment_id = dbtcloud_environment.semantic_layer_env[each.key].environment_id
+            environment_id = each.value.semantic_layer.environment_id
           }
 
           # Create BigQuery semantic layer credentials (using for_each like in Issue #516)
@@ -250,9 +259,10 @@ jobs:
         run: terraform plan -out=tfplan_first
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
-          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
-          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -267,9 +277,10 @@ jobs:
           echo "=== FIRST APPLY COMPLETED ==="
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
-          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
-          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -290,9 +301,10 @@ jobs:
         working-directory: ./testing/cicd/semantic_layer_issue_516
         continue-on-error: true
         env:
-          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
-          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -309,9 +321,10 @@ jobs:
         working-directory: ./testing/cicd/semantic_layer_issue_516
         continue-on-error: true
         env:
-          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
-          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -342,9 +355,10 @@ jobs:
           echo "=== CLEANUP COMPLETED ==="
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
-          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
-          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
