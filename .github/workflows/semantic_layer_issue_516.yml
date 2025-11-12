@@ -15,6 +15,10 @@ on:
         description: 'dbt Cloud Host URL (e.g., https://cloud.getdbt.com/api or https://YOUR_ACCOUNT.us1.dbt.com/api)'
         required: true
         type: string
+      project_id:
+        description: 'Pre-existing dbt Cloud Project ID (should contain the environment)'
+        required: true
+        type: string
       environment_id:
         description: 'Pre-existing dbt Cloud Environment ID (must have successful job runs)'
         required: true
@@ -90,6 +94,11 @@ jobs:
             default     = "https://cloud.getdbt.com/api"
           }
 
+          variable "project_id" {
+            description = "Pre-existing Project ID"
+            type        = number
+          }
+
           variable "environment_id" {
             description = "Pre-existing Environment ID (must have successful job runs)"
             type        = number
@@ -129,10 +138,10 @@ jobs:
           cat > locals.tf << 'EOF'
           # Locals to simulate the user's configuration pattern from Issue #516
           locals {
-            # Simulated project configuration
+            # Simulated project configuration using pre-existing project_id
             projects_config = {
               "analytical_layer" = {
-                name = "Test Semantic Layer Project - Issue 516"
+                project_id = var.project_id  # Use pre-existing project
                 semantic_layer = {
                   environment_id = var.environment_id  # Use pre-existing environment
                   credentials = [
@@ -187,17 +196,14 @@ jobs:
           EOF
 
           cat > semantic_layer.tf << 'EOF'
-          # Create test projects
-          resource "dbtcloud_project" "projects" {
-            for_each = local.semantic_layer_projects
-            name     = each.value.name
-          }
+          # Using pre-existing project_id and environment_id
+          # No project creation needed - using existing project
 
           # Create semantic layer configurations (using for_each like in Issue #516)
-          # Using pre-existing environment_id that has successful job runs
+          # Using pre-existing project_id and environment_id that has successful job runs
           resource "dbtcloud_semantic_layer_configuration" "semantic_layer" {
             for_each       = local.semantic_layer_projects
-            project_id     = dbtcloud_project.projects[each.key].id
+            project_id     = each.value.project_id
             environment_id = each.value.semantic_layer.environment_id
           }
 
@@ -206,13 +212,13 @@ jobs:
             for_each = local.semantic_layer_credentials_unique_keys
             
             configuration = {
-              project_id      = dbtcloud_project.projects[each.value.project_key].id
+              project_id      = local.projects_config[each.value.project_key].project_id
               name            = each.value.name
               adapter_version = "bigquery_v0"
             }
             
             credential = {
-              project_id  = dbtcloud_project.projects[each.value.project_key].id
+              project_id  = local.projects_config[each.value.project_key].project_id
               is_active   = each.value.is_active
               num_threads = each.value.num_threads
               dataset     = each.value.dataset
@@ -246,9 +252,14 @@ jobs:
             value       = { for k, v in dbtcloud_bigquery_semantic_layer_credential.semantic_layer : k => v.id }
           }
 
-          output "project_ids" {
-            description = "Map of project IDs"
-            value       = { for k, v in dbtcloud_project.projects : k => v.id }
+          output "project_id_used" {
+            description = "The project ID used for testing"
+            value       = var.project_id
+          }
+
+          output "environment_id_used" {
+            description = "The environment ID used for testing"
+            value       = var.environment_id
           }
           EOF
         working-directory: ./testing/cicd/semantic_layer_issue_516
@@ -266,6 +277,7 @@ jobs:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
@@ -284,6 +296,7 @@ jobs:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
@@ -308,6 +321,7 @@ jobs:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
@@ -328,6 +342,7 @@ jobs:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
@@ -362,6 +377,7 @@ jobs:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
           TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
