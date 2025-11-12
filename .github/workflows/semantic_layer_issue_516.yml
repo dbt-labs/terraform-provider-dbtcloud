@@ -23,6 +23,10 @@ on:
         description: 'Pre-existing dbt Cloud Environment ID (must have successful job runs)'
         required: true
         type: string
+      service_token_id:
+        description: 'Pre-existing Service Token ID to map to the semantic layer credential'
+        required: true
+        type: string
       run_second_apply:
         description: 'Run second terraform apply to reproduce the issue'
         required: false
@@ -104,6 +108,11 @@ jobs:
             type        = number
           }
 
+          variable "service_token_id" {
+            description = "Pre-existing Service Token ID"
+            type        = number
+          }
+
           variable "bigquery_private_key_id" {
             description = "BigQuery Private Key ID"
             type        = string
@@ -151,7 +160,7 @@ jobs:
                       is_active       = true
                       num_threads     = 4
                       dataset         = "test_dataset"
-                      service_tokens  = []  # Will be populated with service token IDs
+                      service_tokens  = [var.service_token_id]  # Use pre-existing service token
                     }
                   ]
                 }
@@ -236,8 +245,13 @@ jobs:
             depends_on = [dbtcloud_semantic_layer_configuration.semantic_layer]
           }
 
-          # Note: Skipping service token mapping since we don't have service tokens in the simplified version
-          # The issue reproduces with just the semantic_layer_configuration and credential resources
+          # Create semantic layer credential service token mapping (using for_each like in Issue #516)
+          resource "dbtcloud_semantic_layer_credential_service_token_mapping" "semantic_layer" {
+            for_each                     = local.semantic_layer_service_tokens_unique_keys
+            semantic_layer_credential_id = dbtcloud_bigquery_semantic_layer_credential.semantic_layer[each.value.credential_key].id
+            service_token_id             = each.value.service_token_id
+            project_id                   = local.projects_config[each.value.project_name].project_id
+          }
           EOF
 
           cat > outputs.tf << 'EOF'
@@ -252,6 +266,11 @@ jobs:
             value       = { for k, v in dbtcloud_bigquery_semantic_layer_credential.semantic_layer : k => v.id }
           }
 
+          output "semantic_layer_service_token_mapping_ids" {
+            description = "Map of semantic layer service token mapping IDs"
+            value       = { for k, v in dbtcloud_semantic_layer_credential_service_token_mapping.semantic_layer : k => v.id }
+          }
+
           output "project_id_used" {
             description = "The project ID used for testing"
             value       = var.project_id
@@ -261,6 +280,11 @@ jobs:
             description = "The environment ID used for testing"
             value       = var.environment_id
           }
+
+          output "service_token_id_used" {
+            description = "The service token ID used for testing"
+            value       = var.service_token_id
+          }
           EOF
         working-directory: ./testing/cicd/semantic_layer_issue_516
 
@@ -268,44 +292,6 @@ jobs:
         id: init
         run: terraform init
         working-directory: ./testing/cicd/semantic_layer_issue_516
-
-      - name: Debug - Show Local Values
-        run: |
-          echo "=== Debugging Local Values ==="
-          echo "Showing projects_config:"
-          terraform console <<EOF
-          local.projects_config
-          EOF
-          
-          echo ""
-          echo "Showing semantic_layer_projects:"
-          terraform console <<EOF
-          local.semantic_layer_projects
-          EOF
-          
-          echo ""
-          echo "Showing semantic_layer_credentials:"
-          terraform console <<EOF
-          local.semantic_layer_credentials
-          EOF
-          
-          echo ""
-          echo "Showing semantic_layer_credentials_unique_keys:"
-          terraform console <<EOF
-          local.semantic_layer_credentials_unique_keys
-          EOF
-        working-directory: ./testing/cicd/semantic_layer_issue_516
-        env:
-          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
-          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
-          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
-          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
-          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
-          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
-          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
-          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
-          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
 
       - name: Terraform Plan (First Run)
         id: plan_first
@@ -317,6 +303,7 @@ jobs:
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -336,6 +323,7 @@ jobs:
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -361,6 +349,7 @@ jobs:
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -382,6 +371,7 @@ jobs:
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
@@ -417,6 +407,7 @@ jobs:
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_project_id: ${{ github.event.inputs.project_id }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_service_token_id: ${{ github.event.inputs.service_token_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
           TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
           TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
