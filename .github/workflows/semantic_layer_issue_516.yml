@@ -7,6 +7,10 @@ on:
         description: 'dbt Cloud Account ID where the environment exists'
         required: true
         type: string
+      token:
+        description: 'dbt Cloud API Token (service token or personal access token with access to the account)'
+        required: true
+        type: string
       host_url:
         description: 'dbt Cloud Host URL (e.g., https://cloud.getdbt.com/api or https://YOUR_ACCOUNT.us1.dbt.com/api)'
         required: true
@@ -260,7 +264,7 @@ jobs:
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
@@ -278,7 +282,7 @@ jobs:
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
@@ -302,7 +306,7 @@ jobs:
         continue-on-error: true
         env:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
@@ -322,7 +326,7 @@ jobs:
         continue-on-error: true
         env:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
@@ -356,7 +360,7 @@ jobs:
         working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
-          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
           TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
           TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
           TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
