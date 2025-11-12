@@ -1,0 +1,4 @@
+kind: Fixes
+body: Fix semantic layer configuration resource being incorrectly removed from state due to transient read failures
+time: 2025-11-12T14:02:16.000000Z
+
