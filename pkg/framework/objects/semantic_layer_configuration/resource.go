@@ -3,7 +3,6 @@ package semantic_layer_configuration
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -45,14 +44,6 @@ func (r *semanticLayerConfigurationResource) Read(
 	retrievedConfig, err := r.client.GetSemanticLayerConfiguration(projectID, configID)
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The Semantic Layer configuration was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("Error getting the Semantic Layer configuration", err.Error())
 		return
 	}
