@@ -1,0 +1,293 @@
+name: Semantic Layer Issue #516 Reproduction
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_second_apply:
+        description: 'Run second terraform apply to reproduce the issue'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce-semantic-layer-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
+
+      - name: Build and install provider
+        run: make install
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
+
+      - name: Create test configuration for semantic layer
+        run: |
+          cat > semantic_layer_test.tf << 'EOF'
+          terraform {
+            required_providers {
+              dbtcloud = {
+                source  = "dbt-labs/dbtcloud"
+                version = ">= 1.2.0"
+              }
+            }
+          }
+
+          provider "dbtcloud" {
+            account_id = var.dbt_cloud_account_id
+            token      = var.dbt_cloud_token
+            host_url   = var.dbt_cloud_host_url
+          }
+
+          variable "dbt_cloud_account_id" {
+            description = "dbt Cloud Account ID"
+            type        = number
+          }
+
+          variable "dbt_cloud_token" {
+            description = "dbt Cloud Token"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "dbt_cloud_host_url" {
+            description = "dbt Cloud Host URL"
+            type        = string
+            default     = "https://cloud.getdbt.com/api"
+          }
+
+          # Create a test project for semantic layer
+          resource "dbtcloud_project" "test_semantic_layer_project" {
+            name = "Test Semantic Layer Project - Issue 516"
+          }
+
+          # Create an environment for semantic layer
+          resource "dbtcloud_environment" "test_semantic_layer_env" {
+            project_id  = dbtcloud_project.test_semantic_layer_project.id
+            name        = "Semantic Layer Test Environment"
+            dbt_version = "1.7"
+            type        = "deployment"
+          }
+
+          # Create semantic layer configuration
+          resource "dbtcloud_semantic_layer_configuration" "test_config" {
+            project_id     = dbtcloud_project.test_semantic_layer_project.id
+            environment_id = dbtcloud_environment.test_semantic_layer_env.environment_id
+          }
+
+          # Create BigQuery semantic layer credential
+          resource "dbtcloud_bigquery_semantic_layer_credential" "test_credential" {
+            configuration = {
+              project_id      = dbtcloud_project.test_semantic_layer_project.id
+              name            = "Test Semantic Layer Credential"
+              adapter_version = "bigquery_v0"
+            }
+            credential = {
+              project_id  = dbtcloud_project.test_semantic_layer_project.id
+              is_active   = true
+              num_threads = 4
+              dataset     = "test_dataset"
+            }
+            private_key_id              = var.bigquery_private_key_id
+            private_key                 = var.bigquery_private_key
+            client_email                = var.bigquery_client_email
+            client_id                   = var.bigquery_client_id
+            auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+            token_uri                   = "https://oauth2.googleapis.com/token"
+            auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+            client_x509_cert_url        = var.bigquery_client_x509_cert_url
+            
+            depends_on = [dbtcloud_semantic_layer_configuration.test_config]
+          }
+
+          # Create service token for mapping
+          resource "dbtcloud_service_token" "test_token" {
+            name = "Test Semantic Layer Service Token - Issue 516"
+          }
+
+          # Create semantic layer credential service token mapping
+          resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mapping" {
+            semantic_layer_credential_id = dbtcloud_bigquery_semantic_layer_credential.test_credential.id
+            service_token_id             = dbtcloud_service_token.test_token.id
+            project_id                   = dbtcloud_project.test_semantic_layer_project.id
+          }
+
+          # Additional variables for BigQuery credentials
+          variable "bigquery_private_key_id" {
+            description = "BigQuery Private Key ID"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_private_key" {
+            description = "BigQuery Private Key"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_email" {
+            description = "BigQuery Client Email"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_id" {
+            description = "BigQuery Client ID"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_x509_cert_url" {
+            description = "BigQuery Client x509 Cert URL"
+            type        = string
+            sensitive   = true
+          }
+
+          # Outputs to verify resource creation
+          output "semantic_layer_config_id" {
+            value = dbtcloud_semantic_layer_configuration.test_config.id
+          }
+
+          output "semantic_layer_credential_id" {
+            value = dbtcloud_bigquery_semantic_layer_credential.test_credential.id
+          }
+
+          output "service_token_mapping_id" {
+            value = dbtcloud_semantic_layer_credential_service_token_mapping.test_mapping.id
+          }
+          EOF
+        working-directory: ./testing/cicd
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./testing/cicd
+
+      - name: Terraform Plan (First Run)
+        id: plan_first
+        run: terraform plan -out=tfplan_first
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
+      - name: Terraform Apply (First Run - Should Succeed)
+        id: apply_first
+        run: |
+          echo "=== FIRST TERRAFORM APPLY ==="
+          terraform apply tfplan_first
+          echo "=== FIRST APPLY COMPLETED ==="
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
+      - name: Show State After First Apply
+        run: terraform show
+        working-directory: ./testing/cicd
+
+      - name: Terraform Plan (Second Run - Check for drift)
+        id: plan_second
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          echo "=== SECOND TERRAFORM PLAN (Checking for drift) ==="
+          terraform plan -out=tfplan_second
+          echo "=== SECOND PLAN COMPLETED ==="
+        working-directory: ./testing/cicd
+        continue-on-error: true
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
+      - name: Terraform Apply (Second Run - Should Reproduce Issue #516)
+        id: apply_second
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          echo "=== SECOND TERRAFORM APPLY (Expected to reproduce Issue #516) ==="
+          terraform apply -auto-approve
+          echo "=== SECOND APPLY COMPLETED ==="
+        working-directory: ./testing/cicd
+        continue-on-error: true
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
+      - name: Check Second Apply Result
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          if [ "${{ steps.apply_second.outcome }}" == "failure" ]; then
+            echo "::warning::Second terraform apply failed - Issue #516 reproduced!"
+            echo "This is the expected behavior demonstrating the bug."
+          else
+            echo "::notice::Second terraform apply succeeded - Issue #516 NOT reproduced"
+            echo "This might indicate the issue has been fixed or environmental differences."
+          fi
+
+      - name: Show State After Second Apply
+        if: always()
+        run: terraform show
+        working-directory: ./testing/cicd
+
+      - name: Terraform Destroy
+        if: always() # This step will always run to clean up resources
+        run: |
+          echo "=== CLEANING UP RESOURCES ==="
+          terraform destroy -auto-approve
+          echo "=== CLEANUP COMPLETED ==="
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
+      - name: Upload Terraform Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-logs
+          path: |
+            ./testing/cicd/.terraform/
+            ./testing/cicd/terraform.tfstate
+            ./testing/cicd/terraform.tfstate.backup
+            ./testing/cicd/*.tfplan
+          retention-days: 7
+
