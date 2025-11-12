@@ -109,8 +109,8 @@ jobs:
           }
 
           variable "service_token_id" {
-            description = "Pre-existing Service Token ID"
-            type        = number
+            description = "Pre-existing Service Token ID (numeric ID, not the token value)"
+            type        = string
           }
 
           variable "bigquery_private_key_id" {
