@@ -31,9 +31,15 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
 
+      - name: Prepare test directory
+        run: |
+          # Create a clean directory for semantic layer tests
+          mkdir -p semantic_layer_issue_516
+        working-directory: ./testing/cicd
+
       - name: Create test configuration for semantic layer
         run: |
-          cat > semantic_layer_test.tf << 'EOF'
+          cat > terraform.tf << 'EOF'
           terraform {
             required_providers {
               dbtcloud = {
@@ -48,7 +54,9 @@ jobs:
             token      = var.dbt_cloud_token
             host_url   = var.dbt_cloud_host_url
           }
+          EOF
 
+          cat > variables.tf << 'EOF'
           variable "dbt_cloud_account_id" {
             description = "dbt Cloud Account ID"
             type        = number
@@ -65,6 +73,39 @@ jobs:
             type        = string
             default     = "https://cloud.getdbt.com/api"
           }
+
+          variable "bigquery_private_key_id" {
+            description = "BigQuery Private Key ID"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_private_key" {
+            description = "BigQuery Private Key"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_email" {
+            description = "BigQuery Client Email"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_id" {
+            description = "BigQuery Client ID"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "bigquery_client_x509_cert_url" {
+            description = "BigQuery Client x509 Cert URL"
+            type        = string
+            sensitive   = true
+          }
+          EOF
+
+          cat > semantic_layer.tf << 'EOF'
 
           # Create a test project for semantic layer
           resource "dbtcloud_project" "test_semantic_layer_project" {
@@ -121,38 +162,9 @@ jobs:
             service_token_id             = dbtcloud_service_token.test_token.id
             project_id                   = dbtcloud_project.test_semantic_layer_project.id
           }
+          EOF
 
-          # Additional variables for BigQuery credentials
-          variable "bigquery_private_key_id" {
-            description = "BigQuery Private Key ID"
-            type        = string
-            sensitive   = true
-          }
-
-          variable "bigquery_private_key" {
-            description = "BigQuery Private Key"
-            type        = string
-            sensitive   = true
-          }
-
-          variable "bigquery_client_email" {
-            description = "BigQuery Client Email"
-            type        = string
-            sensitive   = true
-          }
-
-          variable "bigquery_client_id" {
-            description = "BigQuery Client ID"
-            type        = string
-            sensitive   = true
-          }
-
-          variable "bigquery_client_x509_cert_url" {
-            description = "BigQuery Client x509 Cert URL"
-            type        = string
-            sensitive   = true
-          }
-
+          cat > outputs.tf << 'EOF'
           # Outputs to verify resource creation
           output "semantic_layer_config_id" {
             value = dbtcloud_semantic_layer_configuration.test_config.id
@@ -166,17 +178,17 @@ jobs:
             value = dbtcloud_semantic_layer_credential_service_token_mapping.test_mapping.id
           }
           EOF
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
 
       - name: Terraform Init
         id: init
         run: terraform init
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
 
       - name: Terraform Plan (First Run)
         id: plan_first
         run: terraform plan -out=tfplan_first
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
@@ -193,7 +205,7 @@ jobs:
           echo "=== FIRST TERRAFORM APPLY ==="
           terraform apply tfplan_first
           echo "=== FIRST APPLY COMPLETED ==="
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
@@ -206,7 +218,7 @@ jobs:
 
       - name: Show State After First Apply
         run: terraform show
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
 
       - name: Terraform Plan (Second Run - Check for drift)
         id: plan_second
@@ -215,7 +227,7 @@ jobs:
           echo "=== SECOND TERRAFORM PLAN (Checking for drift) ==="
           terraform plan -out=tfplan_second
           echo "=== SECOND PLAN COMPLETED ==="
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
         continue-on-error: true
         env:
           TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
@@ -234,7 +246,7 @@ jobs:
           echo "=== SECOND TERRAFORM APPLY (Expected to reproduce Issue #516) ==="
           terraform apply -auto-approve
           echo "=== SECOND APPLY COMPLETED ==="
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
         continue-on-error: true
         env:
           TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
@@ -260,7 +272,7 @@ jobs:
       - name: Show State After Second Apply
         if: always()
         run: terraform show
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
 
       - name: Terraform Destroy
         if: always() # This step will always run to clean up resources
@@ -268,7 +280,7 @@ jobs:
           echo "=== CLEANING UP RESOURCES ==="
           terraform destroy -auto-approve
           echo "=== CLEANUP COMPLETED ==="
-        working-directory: ./testing/cicd
+        working-directory: ./testing/cicd/semantic_layer_issue_516
         env:
           TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
@@ -285,9 +297,10 @@ jobs:
         with:
           name: terraform-logs
           path: |
-            ./testing/cicd/.terraform/
-            ./testing/cicd/terraform.tfstate
-            ./testing/cicd/terraform.tfstate.backup
-            ./testing/cicd/*.tfplan
+            ./testing/cicd/semantic_layer_issue_516/.terraform/
+            ./testing/cicd/semantic_layer_issue_516/terraform.tfstate
+            ./testing/cicd/semantic_layer_issue_516/terraform.tfstate.backup
+            ./testing/cicd/semantic_layer_issue_516/*.tfplan
+            ./testing/cicd/semantic_layer_issue_516/*.tf
           retention-days: 7
 
