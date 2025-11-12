@@ -116,7 +116,7 @@ jobs:
           resource "dbtcloud_environment" "test_semantic_layer_env" {
             project_id  = dbtcloud_project.test_semantic_layer_project.id
             name        = "Semantic Layer Test Environment"
-            dbt_version = "1.7"
+            dbt_version = "latest"
             type        = "deployment"
           }
 
