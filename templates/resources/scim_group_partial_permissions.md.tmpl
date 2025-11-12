@@ -1,0 +1,156 @@
+---
+page_title: "{{.Type}}: {{.Name}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+~> This resource is designed for **federated permission management** where multiple teams manage different permissions for the same externally-managed group (e.g., SCIM groups).
+
+~> **Warning: Duplicate Permissions Across States** - If multiple Terraform states define the **exact same permission** (identical `permission_set`, `project_id`, `all_projects`, and `writable_environment_categories`), they will reference the same underlying permission object in dbt Cloud. This creates a conflict: when one state deletes its resource, it removes the permission from dbt Cloud, causing drift in other states that reference the same permission. **Best Practice:** Ensure each Terraform state manages **distinct** permissions. Coordinate with other teams to avoid defining identical permissions, or differentiate them using `writable_environment_categories`.
+
+## Use Case Guidelines
+
+Choose the right resource for your use case:
+
+| Resource | Group Creation | Permission Management | Use When |
+|----------|---------------|----------------------|----------|
+| `dbtcloud_group` | ✅ Terraform creates | Full (replaces all) | Single Terraform workspace manages everything |
+| `dbtcloud_group_partial_permissions` | ✅ Terraform creates | Partial (adds/removes) | Multiple workspaces manage same Terraform-created group |
+| `dbtcloud_scim_group_permissions` | ❌ External (SCIM) | Full (replaces all) | External group, single workspace manages all permissions |
+| `dbtcloud_scim_group_partial_permissions` | ❌ External (SCIM) | Partial (adds/removes) | External group, multiple workspaces manage different permissions |
+
+## Federated Permission Management Pattern
+
+This resource enables the following pattern:
+
+```hcl
+# Platform team manages base permissions (workspace 1)
+data "dbtcloud_groups" "data_platform" {
+  name = "data-platform-team"
+}
+
+resource "dbtcloud_scim_group_partial_permissions" "platform_base" {
+  group_id = data.dbtcloud_groups.data_platform.groups[0].id
+  
+  permissions = [
+    {
+      permission_set = "member"
+      all_projects   = true
+    }
+  ]
+}
+
+# Analytics team manages their project permissions (workspace 2)
+data "dbtcloud_groups" "data_platform" {
+  name = "data-platform-team"
+}
+
+data "dbtcloud_project" "analytics" {
+  name = "Analytics"
+}
+
+resource "dbtcloud_scim_group_partial_permissions" "analytics_team" {
+  group_id = data.dbtcloud_groups.data_platform.groups[0].id
+  
+  permissions = [
+    {
+      permission_set = "developer"
+      project_id     = data.dbtcloud_project.analytics.id
+      all_projects   = false
+      writable_environment_categories = ["development", "staging"]
+    }
+  ]
+}
+```
+
+Both resources manage different permissions for the same group without conflicts.
+
+## Important Limitations
+
+### Duplicate Permissions Across States
+
+**The Problem:** If multiple Terraform states define identical permissions, they will reference the same permission object in dbt Cloud's API. There is no reference counting or ownership tracking.
+
+**What Happens:**
+1. State A creates a permission (e.g., developer on project 100)
+2. State B defines the same permission and references the existing one
+3. State A destroys its resource → permission is deleted from dbt Cloud
+4. State B still expects the permission to exist → **drift and conflicts**
+
+**Example of Conflict (❌ Avoid):**
+
+```hcl
+# Terraform State 1 (Platform Team)
+resource "dbtcloud_scim_group_partial_permissions" "platform" {
+  group_id = 12345
+  permissions = [{
+    permission_set = "developer"
+    project_id     = 100
+    all_projects   = false
+    writable_environment_categories = ["development"]
+  }]
+}
+
+# Terraform State 2 (Another Team) - IDENTICAL permission!
+resource "dbtcloud_scim_group_partial_permissions" "other_team" {
+  group_id = 12345
+  permissions = [{
+    permission_set = "developer"
+    project_id     = 100  # Same!
+    all_projects   = false
+    writable_environment_categories = ["development"]  # Same!
+  }]
+}
+# ❌ When State 1 destroys, State 2 will experience drift
+```
+
+**Example of Safe Usage (✅ Recommended):**
+
+```hcl
+# Terraform State 1 (Platform Team) - Development environments
+resource "dbtcloud_scim_group_partial_permissions" "platform_dev" {
+  group_id = 12345
+  permissions = [{
+    permission_set = "developer"
+    project_id     = 100
+    all_projects   = false
+    writable_environment_categories = ["development"]  # Different!
+  }]
+}
+
+# Terraform State 2 (SRE Team) - Production environments
+resource "dbtcloud_scim_group_partial_permissions" "sre_prod" {
+  group_id = 12345
+  permissions = [{
+    permission_set = "developer"
+    project_id     = 100  # Same project is OK
+    all_projects   = false
+    writable_environment_categories = ["staging", "production"]  # Different!
+  }]
+}
+# ✅ These are distinct permissions - no conflicts
+```
+
+**Coordination Strategies:**
+
+1. **Differentiate by writable environments** - Most common and recommended
+2. **Assign permission ownership** - Document which team manages which permission
+3. **Use single state for identical permissions** - If needed, manage from one place
+4. **Consider full permissions resource** - Use `dbtcloud_scim_group_permissions` if one state should own all permissions
+
+## Example Usage
+
+{{ tffile (printf "examples/resources/%s/resource.tf" .Name)}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+~> **Import Not Supported:** This resource does not support `terraform import` because it manages only a partial subset of permissions. 
+There is no way for Terraform to know which specific permissions this resource instance should manage versus permissions 
+managed by other resources or applied outside of Terraform. You must define the resource in your configuration from the start.
