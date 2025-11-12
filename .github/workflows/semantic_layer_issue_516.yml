@@ -160,7 +160,7 @@ jobs:
                       is_active       = true
                       num_threads     = 4
                       dataset         = "test_dataset"
-                      service_tokens  = [var.service_token_id]  # Use pre-existing service token
+                      token_id        = var.service_token_id  # Use pre-existing service token ID
                     }
                   ]
                 }
@@ -188,13 +188,12 @@ jobs:
             }
 
             semantic_layer_service_tokens = flatten([
-              for credential_key, credential in local.semantic_layer_credentials_unique_keys : [
-                for token in credential.service_tokens : {
-                  project_name       = credential.project_key,
-                  credential_key     = credential_key,
-                  service_token_id   = token
-                }
-              ]
+              for credential_key, credential in local.semantic_layer_credentials_unique_keys : 
+              try(credential.token_id, null) != null ? [{
+                project_name       = credential.project_key,
+                credential_key     = credential_key,
+                service_token_id   = credential.token_id
+              }] : []
             ])
 
             semantic_layer_service_tokens_unique_keys = {
