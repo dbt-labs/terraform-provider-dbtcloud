@@ -105,40 +105,106 @@ jobs:
           }
           EOF
 
-          cat > semantic_layer.tf << 'EOF'
+          cat > locals.tf << 'EOF'
+          # Locals to simulate the user's configuration pattern from Issue #516
+          locals {
+            # Simulated project configuration
+            projects_config = {
+              "analytical_layer" = {
+                name = "Test Semantic Layer Project - Issue 516"
+                semantic_layer = {
+                  environment_id = null  # Will be set dynamically
+                  credentials = [
+                    {
+                      name            = "semantic layer analytical layer"
+                      service_account = "test"
+                      is_active       = true
+                      num_threads     = 4
+                      dataset         = "test_dataset"
+                      service_tokens  = []  # Will be populated with service token IDs
+                    }
+                  ]
+                }
+              }
+            }
 
-          # Create a test project for semantic layer
-          resource "dbtcloud_project" "test_semantic_layer_project" {
-            name = "Test Semantic Layer Project - Issue 516"
+            semantic_layer_projects = {
+              for k, v in local.projects_config : k => v if try(v.semantic_layer, null) != null
+            }
+
+            semantic_layer_credentials = flatten([
+              for k, v in local.semantic_layer_projects : [
+                for credential in v.semantic_layer.credentials : [
+                  merge(
+                    credential,
+                    { "project_key" : k }
+                  )
+                ]
+              ]
+            ])
+
+            semantic_layer_credentials_unique_keys = {
+              for credential in local.semantic_layer_credentials :
+              "${credential.project_key}-${credential.name}" => credential
+            }
+
+            semantic_layer_service_tokens = flatten([
+              for credential_key, credential in local.semantic_layer_credentials_unique_keys : [
+                for token in credential.service_tokens : {
+                  project_name       = credential.project_key,
+                  credential_key     = credential_key,
+                  service_token_id   = token
+                }
+              ]
+            ])
+
+            semantic_layer_service_tokens_unique_keys = {
+              for token in local.semantic_layer_service_tokens :
+              "${token.credential_key}-${token.service_token_id}" => token
+            }
+          }
+          EOF
+
+          cat > semantic_layer.tf << 'EOF'
+          # Create test projects
+          resource "dbtcloud_project" "projects" {
+            for_each = local.semantic_layer_projects
+            name     = each.value.name
           }
 
-          # Create an environment for semantic layer
-          resource "dbtcloud_environment" "test_semantic_layer_env" {
-            project_id  = dbtcloud_project.test_semantic_layer_project.id
+          # Create environments for semantic layer
+          resource "dbtcloud_environment" "semantic_layer_env" {
+            for_each    = local.semantic_layer_projects
+            project_id  = dbtcloud_project.projects[each.key].id
             name        = "Semantic Layer Test Environment"
             dbt_version = "latest"
             type        = "deployment"
           }
 
-          # Create semantic layer configuration
-          resource "dbtcloud_semantic_layer_configuration" "test_config" {
-            project_id     = dbtcloud_project.test_semantic_layer_project.id
-            environment_id = dbtcloud_environment.test_semantic_layer_env.environment_id
+          # Create semantic layer configurations (using for_each like in Issue #516)
+          resource "dbtcloud_semantic_layer_configuration" "semantic_layer" {
+            for_each       = local.semantic_layer_projects
+            project_id     = dbtcloud_project.projects[each.key].id
+            environment_id = dbtcloud_environment.semantic_layer_env[each.key].environment_id
           }
 
-          # Create BigQuery semantic layer credential
-          resource "dbtcloud_bigquery_semantic_layer_credential" "test_credential" {
+          # Create BigQuery semantic layer credentials (using for_each like in Issue #516)
+          resource "dbtcloud_bigquery_semantic_layer_credential" "semantic_layer" {
+            for_each = local.semantic_layer_credentials_unique_keys
+            
             configuration = {
-              project_id      = dbtcloud_project.test_semantic_layer_project.id
-              name            = "Test Semantic Layer Credential"
+              project_id      = dbtcloud_project.projects[each.value.project_key].id
+              name            = each.value.name
               adapter_version = "bigquery_v0"
             }
+            
             credential = {
-              project_id  = dbtcloud_project.test_semantic_layer_project.id
-              is_active   = true
-              num_threads = 4
-              dataset     = "test_dataset"
+              project_id  = dbtcloud_project.projects[each.value.project_key].id
+              is_active   = each.value.is_active
+              num_threads = each.value.num_threads
+              dataset     = each.value.dataset
             }
+            
             private_key_id              = var.bigquery_private_key_id
             private_key                 = var.bigquery_private_key
             client_email                = var.bigquery_client_email
@@ -148,34 +214,28 @@ jobs:
             auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
             client_x509_cert_url        = var.bigquery_client_x509_cert_url
             
-            depends_on = [dbtcloud_semantic_layer_configuration.test_config]
+            depends_on = [dbtcloud_semantic_layer_configuration.semantic_layer]
           }
 
-          # Create service token for mapping
-          resource "dbtcloud_service_token" "test_token" {
-            name = "Test Semantic Layer Service Token - Issue 516"
-          }
-
-          # Create semantic layer credential service token mapping
-          resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mapping" {
-            semantic_layer_credential_id = dbtcloud_bigquery_semantic_layer_credential.test_credential.id
-            service_token_id             = dbtcloud_service_token.test_token.id
-            project_id                   = dbtcloud_project.test_semantic_layer_project.id
-          }
+          # Note: Skipping service token mapping since we don't have service tokens in the simplified version
+          # The issue reproduces with just the semantic_layer_configuration and credential resources
           EOF
 
           cat > outputs.tf << 'EOF'
           # Outputs to verify resource creation
-          output "semantic_layer_config_id" {
-            value = dbtcloud_semantic_layer_configuration.test_config.id
+          output "semantic_layer_config_ids" {
+            description = "Map of semantic layer configuration IDs"
+            value       = { for k, v in dbtcloud_semantic_layer_configuration.semantic_layer : k => v.id }
           }
 
-          output "semantic_layer_credential_id" {
-            value = dbtcloud_bigquery_semantic_layer_credential.test_credential.id
+          output "semantic_layer_credential_ids" {
+            description = "Map of semantic layer credential IDs"
+            value       = { for k, v in dbtcloud_bigquery_semantic_layer_credential.semantic_layer : k => v.id }
           }
 
-          output "service_token_mapping_id" {
-            value = dbtcloud_semantic_layer_credential_service_token_mapping.test_mapping.id
+          output "project_ids" {
+            description = "Map of project IDs"
+            value       = { for k, v in dbtcloud_project.projects : k => v.id }
           }
           EOF
         working-directory: ./testing/cicd/semantic_layer_issue_516
