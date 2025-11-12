@@ -94,41 +94,28 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Create(ctx context.
 	cred_id := plan.SemanticLayerCredentialID.ValueInt64()
 	token_id := plan.ServiceTokenID.ValueInt64()
 
-	// Create the semantic layer credential service token mapping
-	mapping, err := r.client.CreateSemanticLayerCredentialServiceTokenMapping(
-		int(project_id),
-		int(cred_id),
-		int(token_id),
-	)
-
+	// check if the mapping already exists
+	existingMapping, err := r.client.GetSemanticLayerCredentialServiceTokenMapping(dbt_cloud.SemanticLayerCredentialServiceTokenMapping{
+		SemanticLayerCredentialID: int(cred_id),
+		ServiceTokenID:            int(token_id),
+		ProjectID:                 int(project_id),
+	})
 	if err != nil {
-		// Check if it's a duplicate key error - if so, try to read the existing resource
-		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "already exists") {
-			resp.Diagnostics.AddWarning(
-				"Resource already exists",
-				"The Semantic Layer Credential Service Token Mapping already exists in dbt Cloud. Attempting to import the existing resource into Terraform state.",
-			)
+		resp.Diagnostics.AddError(
+			"Error Checking Semantic Layer Credential Service Token Mapping",
+			err.Error(),
+		)
+		return
+	}
+	mapping := existingMapping
 
-			// Try to read the existing mapping
-			existingSearch := dbt_cloud.SemanticLayerCredentialServiceTokenMapping{
-				SemanticLayerCredentialID: int(cred_id),
-				ServiceTokenID:            int(token_id),
-				ProjectID:                 int(project_id),
-			}
-
-			existingMapping, readErr := r.client.GetSemanticLayerCredentialServiceTokenMapping(existingSearch)
-			if readErr != nil {
-				resp.Diagnostics.AddError(
-					"Error Creating Semantic Layer Credential Service Token Mapping",
-					fmt.Sprintf("The resource already exists but could not be read to import into state.\n\nOriginal create error: %s\n\nRead error: %s", err.Error(), readErr.Error()),
-				)
-				return
-			}
-
-			// Successfully found the existing resource - use it
-			mapping = existingMapping
-		} else {
-			// Different error - return it
+	if mapping == nil {
+		mapping, err = r.client.CreateSemanticLayerCredentialServiceTokenMapping(
+			int(project_id),
+			int(cred_id),
+			int(token_id),
+		)
+		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error Creating Semantic Layer Credential Service Token Mapping",
 				err.Error(),
