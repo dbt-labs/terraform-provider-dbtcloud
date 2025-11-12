@@ -3,6 +3,7 @@ package semantic_layer_credential_service_token_mapping
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 
@@ -101,11 +102,39 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Create(ctx context.
 	)
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Creating Semantic Layer Credential Service Token Mapping",
-			err.Error(),
-		)
-		return
+		// Check if it's a duplicate key error - if so, try to read the existing resource
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "already exists") {
+			resp.Diagnostics.AddWarning(
+				"Resource already exists",
+				"The Semantic Layer Credential Service Token Mapping already exists in dbt Cloud. Attempting to import the existing resource into Terraform state.",
+			)
+
+			// Try to read the existing mapping
+			existingSearch := dbt_cloud.SemanticLayerCredentialServiceTokenMapping{
+				SemanticLayerCredentialID: int(cred_id),
+				ServiceTokenID:            int(token_id),
+				ProjectID:                 int(project_id),
+			}
+
+			existingMapping, readErr := r.client.GetSemanticLayerCredentialServiceTokenMapping(existingSearch)
+			if readErr != nil {
+				resp.Diagnostics.AddError(
+					"Error Creating Semantic Layer Credential Service Token Mapping",
+					fmt.Sprintf("The resource already exists but could not be read to import into state.\n\nOriginal create error: %s\n\nRead error: %s", err.Error(), readErr.Error()),
+				)
+				return
+			}
+
+			// Successfully found the existing resource - use it
+			mapping = existingMapping
+		} else {
+			// Different error - return it
+			resp.Diagnostics.AddError(
+				"Error Creating Semantic Layer Credential Service Token Mapping",
+				err.Error(),
+			)
+			return
+		}
 	}
 
 	// Set the ID in the state
@@ -146,6 +175,17 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Read(ctx context.Co
 	// Read the semantic layer credential service token mapping
 	mapping, err := r.client.GetSemanticLayerCredentialServiceTokenMapping(sm)
 	if err != nil {
+		// Check if the error is a "resource-not-found" error
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			// Resource no longer exists, remove it from state
+			resp.Diagnostics.AddWarning(
+				"Resource not found",
+				"The Semantic Layer Credential Service Token Mapping was not found and has been removed from the state.",
+			)
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Error Reading Semantic Layer Credential Service Token Mapping",
 			err.Error(),
