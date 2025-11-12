@@ -269,6 +269,44 @@ jobs:
         run: terraform init
         working-directory: ./testing/cicd/semantic_layer_issue_516
 
+      - name: Debug - Show Local Values
+        run: |
+          echo "=== Debugging Local Values ==="
+          echo "Showing projects_config:"
+          terraform console <<EOF
+          local.projects_config
+          EOF
+          
+          echo ""
+          echo "Showing semantic_layer_projects:"
+          terraform console <<EOF
+          local.semantic_layer_projects
+          EOF
+          
+          echo ""
+          echo "Showing semantic_layer_credentials:"
+          terraform console <<EOF
+          local.semantic_layer_credentials
+          EOF
+          
+          echo ""
+          echo "Showing semantic_layer_credentials_unique_keys:"
+          terraform console <<EOF
+          local.semantic_layer_credentials_unique_keys
+          EOF
+        working-directory: ./testing/cicd/semantic_layer_issue_516
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ github.event.inputs.account_id }}
+          TF_VAR_dbt_cloud_token: ${{ github.event.inputs.token }}
+          TF_VAR_dbt_cloud_host_url: ${{ github.event.inputs.host_url }}
+          TF_VAR_project_id: ${{ github.event.inputs.project_id }}
+          TF_VAR_environment_id: ${{ github.event.inputs.environment_id }}
+          TF_VAR_bigquery_private_key_id: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY_ID }}
+          TF_VAR_bigquery_private_key: ${{ secrets.TEST_BIGQUERY_PRIVATE_KEY }}
+          TF_VAR_bigquery_client_email: ${{ secrets.TEST_BIGQUERY_CLIENT_EMAIL }}
+          TF_VAR_bigquery_client_id: ${{ secrets.TEST_BIGQUERY_CLIENT_ID }}
+          TF_VAR_bigquery_client_x509_cert_url: ${{ secrets.TEST_BIGQUERY_CLIENT_X509_CERT_URL }}
+
       - name: Terraform Plan (First Run)
         id: plan_first
         run: terraform plan -out=tfplan_first
