@@ -14,9 +14,10 @@ resource "dbtcloud_global_connection" "athena" {
   athena = {
     region_name    = "us-east-1"
     database       = "mydatabase"
-    s3_staging_dir = "my_dir"
+    s3_staging_dir = "s3://my-bucket/my-staging-dir/"
     // example of optional fields
-    work_group = "my_work_group"
+    work_group     = "my_work_group"
+    s3_data_dir    = "s3://my-bucket/my-data-dir/"
   }
 }
 
