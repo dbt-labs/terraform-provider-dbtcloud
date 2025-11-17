@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 
+	job_validators "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -82,6 +83,10 @@ func getJobAttributes() map[string]schema.Attribute {
 		"deferring_environment_id": schema.Int64Attribute{
 			Computed:    true,
 			Description: "The ID of the environment this job defers to",
+		},
+		"force_node_selection": schema.BoolAttribute{
+			Computed:    true,
+			Description: "Whether force node selection (SAO) is enabled for this job",
 		},
 		"triggers": schema.SingleNestedAttribute{
 			Computed: true,
@@ -462,6 +467,14 @@ func (j *jobResource) Schema(
 			"dbt_version": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions",
+			},
+			"force_node_selection": resource_schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified.",
+				Validators: []validator.Bool{
+					job_validators.ForceNodeSelectionValidator(),
+				},
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,

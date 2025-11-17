@@ -70,7 +70,6 @@ func (d *jobsDataSource) Read(
 	allJobs := []JobDataSourceModel{}
 	for _, job := range apiJobs {
 
-
 		var jobCompletionTriggerCondition *JobCompletionTrigger
 		if job.JobCompletionTrigger != nil {
 			jobCompletionTriggerCondition = &JobCompletionTrigger{
@@ -87,6 +86,11 @@ func (d *jobsDataSource) Read(
 					),
 				},
 			}
+		}
+
+		forceNodeSelection := types.BoolNull()
+		if job.ForceNodeSelection != nil {
+			forceNodeSelection = types.BoolValue(*job.ForceNodeSelection)
 		}
 
 		currentJob := JobDataSourceModel{
@@ -112,6 +116,7 @@ func (d *jobsDataSource) Read(
 			DeferringEnvironmentID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
 				job.DeferringEnvironmentId),
 			),
+			ForceNodeSelection: forceNodeSelection,
 			Triggers: &JobTriggers{
 				GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),
 				GitProviderWebhook: types.BoolValue(job.Triggers.GitProviderWebhook),
