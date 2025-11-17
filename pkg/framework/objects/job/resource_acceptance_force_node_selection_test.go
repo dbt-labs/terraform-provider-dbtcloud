@@ -83,6 +83,9 @@ func TestAccDbtCloudJobResourceForceNodeSelection(t *testing.T) {
 }
 
 func TestAccDbtCloudJobResourceForceNodeSelectionOptional(t *testing.T) {
+	if acctest_config.IsDbtCloudPR() {
+		t.Skip("Skipping: latest-fusion not supported in CI environment")
+	}
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -147,6 +150,10 @@ func TestAccDbtCloudJobResourceForceNodeSelectionValidation(t *testing.T) {
 }
 
 func TestAccDbtCloudJobResourceForceNodeSelectionWithLatestFusion(t *testing.T) {
+	if acctest_config.IsDbtCloudPR() {
+		t.Skip("Skipping: latest-fusion not supported in CI environment")
+	}
+
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
