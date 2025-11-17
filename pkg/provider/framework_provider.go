@@ -16,6 +16,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/spark_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/synapse_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/teradata_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
@@ -47,8 +48,8 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_partial_permissions"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential_service_token_mapping"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/service_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/starburst_credential"
@@ -303,6 +304,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		webhook.WebhookDataSource,
 		databricks_credential.DatabricksCredentialDataSource,
 		snowflake_credential.SnowflakeCredentialDataSource,
+		spark_credential.SparkCredentialDataSource,
 		extended_attributes.ExtendedAttributesDataSource,
 		teradata_credential.TeradataCredentialDataSource,
 		environment_variable.EnvironmentVariableDataSource,
@@ -346,6 +348,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		databricks_credential.DatabricksCredentialResource,
 		environment.EnvironmentResource,
 		snowflake_credential.SnowflakeCredentialResource,
+		spark_credential.SparkCredentialResource,
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
 		job.JobResource,
