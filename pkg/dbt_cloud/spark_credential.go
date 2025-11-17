@@ -48,7 +48,7 @@ type SparkCredentialGlobConn struct {
 	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }
 
-type SparkCredentialGLobConnPatch struct {
+type SparkCredentialGlobConnPatch struct {
 	ID                int                      `json:"id"`
 	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }
@@ -149,7 +149,7 @@ func (c *Client) CreateSparkCredential(
 func (c *Client) UpdateSparkCredentialGlobConn(
 	projectId int,
 	credentialId int,
-	sparkCredential SparkCredentialGLobConnPatch,
+	sparkCredential SparkCredentialGlobConnPatch,
 ) (*SparkCredential, error) {
 	sparkCredentialData, err := json.Marshal(sparkCredential)
 	if err != nil {

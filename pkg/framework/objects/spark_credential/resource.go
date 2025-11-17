@@ -283,7 +283,7 @@ func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state 
 			}
 		}
 
-		sparkPatch := dbt_cloud.SparkCredentialGLobConnPatch{
+		sparkPatch := dbt_cloud.SparkCredentialGlobConnPatch{
 			ID:                credentialID,
 			CredentialDetails: patchCredentialsDetails,
 		}
