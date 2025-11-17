@@ -71,10 +71,10 @@ Read-Only:
 - `num_retries` (Number) Number of times to retry a failing query.
 - `poll_interval` (Number) Interval in seconds to use for polling the status of query results in Athena.
 - `region_name` (String) AWS region of your Athena instance.
-- `s3_data_dir` (String) Prefix for storing tables, if different from the connection's S3 staging directory.
+- `s3_data_dir` (String) Prefix for storing tables, if different from the connection's S3 staging directory. Must be in the format 's3://bucket-name/path/'.
 - `s3_data_naming` (String) How to generate table paths in the S3 data directory.
-- `s3_staging_dir` (String) S3 location to store Athena query results and metadata.
-- `s3_tmp_table_dir` (String) Prefix for storing temporary tables, if different from the connection's S3 data directory.
+- `s3_staging_dir` (String) S3 location to store Athena query results and metadata. Must be in the format 's3://bucket-name/path/'.
+- `s3_tmp_table_dir` (String) Prefix for storing temporary tables, if different from the connection's S3 data directory. Must be in the format 's3://bucket-name/path/'.
 - `spark_work_group` (String) Identifier of Athena Spark workgroup for running Python models.
 - `work_group` (String) Identifier of Athena workgroup.
 

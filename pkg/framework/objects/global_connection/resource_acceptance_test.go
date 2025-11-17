@@ -1383,7 +1383,7 @@ resource dbtcloud_global_connection test {
   athena = {
     region_name = "region"
     database = "database"
-    s3_staging_dir = "s3_staging_dir"
+    s3_staging_dir = "s3://test-bucket/staging/"
   }
 }
 
@@ -1400,12 +1400,12 @@ resource dbtcloud_global_connection test {
   athena = {
     region_name = "region"
     database = "database2"
-    s3_staging_dir = "other_s3_staging_dir"
+    s3_staging_dir = "s3://test-bucket/other-staging/"
     work_group = "work_group" 
     spark_work_group = "spark_work_group"
-    s3_data_dir = "s3_data_dir"
+    s3_data_dir = "s3://test-bucket/data/"
     s3_data_naming = "s3_data_naming"
-    s3_tmp_table_dir = "s3_tmp_table_dir"
+    s3_tmp_table_dir = "s3://test-bucket/tmp/"
     poll_interval = 123
     num_retries = 2
     num_boto3_retries = 3

@@ -3,6 +3,7 @@ package global_connection
 import (
 	"context"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection/validators"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -184,7 +185,7 @@ func (r *globalConnectionResource) Schema(
 									types.StringValue("https://www.googleapis.com/auth/drive"),
 								},
 							),
-						),	
+						),
 						Description: "OAuth scopes for the BigQuery connection",
 					},
 					"use_latest_adapter": resource_schema.BoolAttribute{
@@ -475,7 +476,10 @@ func (r *globalConnectionResource) Schema(
 					},
 					"s3_staging_dir": resource_schema.StringAttribute{
 						Required:    true,
-						Description: "S3 location to store Athena query results and metadata.",
+						Description: "S3 location to store Athena query results and metadata. Must be in the format 's3://bucket-name/path/'.",
+						Validators: []validator.String{
+							validators.S3PathValidator{},
+						},
 					},
 					"work_group": resource_schema.StringAttribute{
 						Optional:    true,
@@ -487,7 +491,10 @@ func (r *globalConnectionResource) Schema(
 					},
 					"s3_data_dir": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "Prefix for storing tables, if different from the connection's S3 staging directory.",
+						Description: "Prefix for storing tables, if different from the connection's S3 staging directory. Must be in the format 's3://bucket-name/path/'.",
+						Validators: []validator.String{
+							validators.S3PathValidator{},
+						},
 					},
 					"s3_data_naming": resource_schema.StringAttribute{
 						Optional:    true,
@@ -495,7 +502,10 @@ func (r *globalConnectionResource) Schema(
 					},
 					"s3_tmp_table_dir": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "Prefix for storing temporary tables, if different from the connection's S3 data directory.",
+						Description: "Prefix for storing temporary tables, if different from the connection's S3 data directory. Must be in the format 's3://bucket-name/path/'.",
+						Validators: []validator.String{
+							validators.S3PathValidator{},
+						},
 					},
 					"poll_interval": resource_schema.Int64Attribute{
 						Optional:    true,
@@ -993,7 +1003,7 @@ func (r *globalConnectionDataSource) Schema(
 					},
 					"s3_staging_dir": datasource_schema.StringAttribute{
 						Computed:    true,
-						Description: "S3 location to store Athena query results and metadata.",
+						Description: "S3 location to store Athena query results and metadata. Must be in the format 's3://bucket-name/path/'.",
 					},
 					"work_group": datasource_schema.StringAttribute{
 						Computed:    true,
@@ -1005,7 +1015,7 @@ func (r *globalConnectionDataSource) Schema(
 					},
 					"s3_data_dir": datasource_schema.StringAttribute{
 						Computed:    true,
-						Description: "Prefix for storing tables, if different from the connection's S3 staging directory.",
+						Description: "Prefix for storing tables, if different from the connection's S3 staging directory. Must be in the format 's3://bucket-name/path/'.",
 					},
 					"s3_data_naming": datasource_schema.StringAttribute{
 						Computed:    true,
@@ -1013,7 +1023,7 @@ func (r *globalConnectionDataSource) Schema(
 					},
 					"s3_tmp_table_dir": datasource_schema.StringAttribute{
 						Computed:    true,
-						Description: "Prefix for storing temporary tables, if different from the connection's S3 data directory.",
+						Description: "Prefix for storing temporary tables, if different from the connection's S3 data directory. Must be in the format 's3://bucket-name/path/'.",
 					},
 					"poll_interval": datasource_schema.Int64Attribute{
 						Computed:    true,
