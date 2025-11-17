@@ -1,4 +1,4 @@
-package databricks_credential
+package spark_credential
 
 import (
 	"context"
@@ -14,20 +14,20 @@ import (
 )
 
 var (
-	_ resource.Resource                = &databricksCredentialResource{}
-	_ resource.ResourceWithConfigure   = &databricksCredentialResource{}
-	_ resource.ResourceWithImportState = &databricksCredentialResource{}
+	_ resource.Resource                = &sparkCredentialResource{}
+	_ resource.ResourceWithConfigure   = &sparkCredentialResource{}
+	_ resource.ResourceWithImportState = &sparkCredentialResource{}
 )
 
-func DatabricksCredentialResource() resource.Resource {
-	return &databricksCredentialResource{}
+func SparkCredentialResource() resource.Resource {
+	return &sparkCredentialResource{}
 }
 
-type databricksCredentialResource struct {
+type sparkCredentialResource struct {
 	client *dbt_cloud.Client
 }
 
-func (d *databricksCredentialResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (d *sparkCredentialResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ":")
 	if len(idParts) != 2 {
 		resp.Diagnostics.AddError(
@@ -55,9 +55,9 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		return
 	}
 
-	credentialResponse, err := d.client.GetDatabricksCredential(projectID, credentialID)
+	credentialResponse, err := d.client.GetSparkCredential(projectID, credentialID)
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting databricks credential", err.Error())
+		resp.Diagnostics.AddError("Error getting Apache Spark credential", err.Error())
 		return
 	}
 
@@ -96,22 +96,12 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		credentialResponse.UnencryptedCredentialDetails.Schema,
 	)...)
 
-	// Set catalog
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("catalog"),
-		credentialResponse.UnencryptedCredentialDetails.Catalog,
-	)...)
-
-	// Set adapter_type - this is required but not returned from the API
-	// Since it's in the ImportStateVerifyIgnore list, we can skip it
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 
-func (d *databricksCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (d *sparkCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -131,8 +121,8 @@ func (d *databricksCredentialResource) Configure(ctx context.Context, req resour
 	d.client = client
 }
 
-func (d *databricksCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan DatabricksCredentialResourceModel
+func (d *sparkCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan SparkCredentialResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -142,36 +132,25 @@ func (d *databricksCredentialResource) Create(ctx context.Context, req resource.
 	d.createGlobal(ctx, &plan, resp)
 }
 
-func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *DatabricksCredentialResourceModel, resp *resource.CreateResponse) {
+func (d *sparkCredentialResource) createGlobal(ctx context.Context, plan *SparkCredentialResourceModel, resp *resource.CreateResponse) {
 	projectID := int(plan.ProjectID.ValueInt64())
 	token := plan.Token.ValueString()
 	schema := plan.Schema.ValueString()
 	targetName := plan.TargetName.ValueString()
-	catalog := plan.Catalog.ValueString()
-	adapterType := plan.AdapterType.ValueString()
 
-	if adapterType == "spark" {
-		resp.Diagnostics.AddError(
-			"For spark credentials, please use the spark_credential resource",
-			"Spark credentials are now a separate resource. Please use the spark_credential resource instead.",
-		)
-		return
-	}
-
-	databricksCredential, err := d.client.CreateDatabricksCredential(
+	sparkCredential, err := d.client.CreateSparkCredential(
 		projectID,
 		token,
 		schema,
 		targetName,
-		catalog,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating Databricks credential", err.Error())
+		resp.Diagnostics.AddError("Error creating Apache Spark credential", err.Error())
 		return
 	}
 
-	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", databricksCredential.Project_Id, dbt_cloud.ID_DELIMITER, *databricksCredential.ID))
-	plan.CredentialID = types.Int64Value(int64(*databricksCredential.ID))
+	plan.ID = types.StringValue(fmt.Sprintf("%d%s%d", sparkCredential.Project_Id, dbt_cloud.ID_DELIMITER, *sparkCredential.ID))
+	plan.CredentialID = types.Int64Value(int64(*sparkCredential.ID))
 
 	diags := resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -180,8 +159,8 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 	}
 }
 
-func (d *databricksCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state DatabricksCredentialResourceModel
+func (d *sparkCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state SparkCredentialResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -191,7 +170,7 @@ func (d *databricksCredentialResource) Delete(ctx context.Context, req resource.
 	d.deleteGlobal(ctx, &state, resp)
 }
 
-func (d *databricksCredentialResource) deleteGlobal(_ context.Context, state *DatabricksCredentialResourceModel, resp *resource.DeleteResponse) {
+func (d *sparkCredentialResource) deleteGlobal(_ context.Context, state *SparkCredentialResourceModel, resp *resource.DeleteResponse) {
 	projectID := int(state.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
@@ -204,17 +183,17 @@ func (d *databricksCredentialResource) deleteGlobal(_ context.Context, state *Da
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			return
 		}
-		resp.Diagnostics.AddError("Error deleting Databricks credential", err.Error())
+		resp.Diagnostics.AddError("Error deleting Apache Spark credential", err.Error())
 		return
 	}
 }
 
-func (d *databricksCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_databricks_credential"
+func (d *sparkCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_spark_credential"
 }
 
-func (d *databricksCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state DatabricksCredentialResourceModel
+func (d *sparkCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state SparkCredentialResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -224,13 +203,12 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 	projectID := int(state.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
-	credential, err := d.client.GetDatabricksCredential(projectID, credentialID)
+	credential, err := d.client.GetSparkCredential(projectID, credentialID)
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading Databricks credential", "Could not read Databricks credential ID "+state.ID.ValueString()+": "+err.Error())
+		resp.Diagnostics.AddError("Error reading Apache Spark credential", "Could not read Apache Spark credential ID "+state.ID.ValueString()+": "+err.Error())
 		return
 	}
 
-	state.Catalog = types.StringValue(credential.UnencryptedCredentialDetails.Catalog)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
 	state.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
 
@@ -241,12 +219,12 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 	}
 }
 
-func (d *databricksCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = DatabricksResourceSchema
+func (d *sparkCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = SparkResourceSchema
 }
 
-func (d *databricksCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state DatabricksCredentialResourceModel
+func (d *sparkCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state SparkCredentialResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -262,10 +240,10 @@ func (d *databricksCredentialResource) Update(ctx context.Context, req resource.
 	d.updateGlobal(ctx, &plan, &state, resp)
 }
 
-func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, state *DatabricksCredentialResourceModel, resp *resource.UpdateResponse) {
+func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state *SparkCredentialResourceModel, resp *resource.UpdateResponse) {
 	projectID, credentialID, err := helper.SplitIDToInts(
 		state.ID.ValueString(),
-		"databricks_credential",
+		"spark_credential",
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid ID format", err.Error())
@@ -275,14 +253,12 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
 		!plan.TargetName.Equal(state.TargetName) ||
-		!plan.Catalog.Equal(state.Catalog) ||
 		!plan.Schema.Equal(state.Schema) {
 
-		patchCredentialsDetails, err := dbt_cloud.GenerateDatabricksCredentialDetails(
+		patchCredentialsDetails, err := dbt_cloud.GenerateSparkCredentialDetails(
 			plan.Token.ValueString(),
 			plan.Schema.ValueString(),
 			plan.TargetName.ValueString(),
-			plan.Catalog.ValueString(),
 		)
 		if err != nil {
 			resp.Diagnostics.AddError("Error generating credential details", err.Error())
@@ -304,21 +280,17 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 				if plan.TargetName.Equal(state.TargetName) {
 					delete(patchCredentialsDetails.Fields, key)
 				}
-			case "catalog":
-				if plan.Catalog.Equal(state.Catalog) {
-					delete(patchCredentialsDetails.Fields, key)
-				}
 			}
 		}
 
-		databricksPatch := dbt_cloud.DatabricksCredentialGLobConnPatch{
+		sparkPatch := dbt_cloud.SparkCredentialGlobConnPatch{
 			ID:                credentialID,
 			CredentialDetails: patchCredentialsDetails,
 		}
 
-		_, err = d.client.UpdateDatabricksCredentialGlobConn(projectID, credentialID, databricksPatch)
+		_, err = d.client.UpdateSparkCredentialGlobConn(projectID, credentialID, sparkPatch)
 		if err != nil {
-			resp.Diagnostics.AddError("Error updating Databricks credential", err.Error())
+			resp.Diagnostics.AddError("Error updating Apache Spark credential", err.Error())
 			return
 		}
 	}

@@ -103,9 +103,10 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
-			Description: "The type of the adapter (databricks or spark). Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
+			Description: "The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
 			Optional:    true,
 			Computed:    true,
+			DeprecationMessage: "This field is deprecated and will be removed in a future release. Semantic Layer spark credentials are not supported yet, only databricks is supported.",
 			Default:     stringdefault.StaticString("databricks"),
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
