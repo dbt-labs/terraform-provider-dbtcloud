@@ -1,7 +1,0 @@
-kind: Changes
-body: |
-  Added new `dbtcloud_spark_credential` resource and data source for managing Apache Spark credentials.
-  This enables users to create and manage Apache Spark credentials separately from Databricks credentials,
-  providing proper support for Apache Spark connections with the correct adapter version (apache_spark_v0).
-time: 2025-11-17T11:42:20.000000-05:00
-
