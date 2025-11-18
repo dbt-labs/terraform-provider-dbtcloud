@@ -31,7 +31,7 @@ type jobDataSource struct {
 
 func (j *jobDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	tflog.Debug(context.Background(), "Configuring dbt Cloud job data source")
-	
+
 	if req.ProviderData == nil {
 		return
 	}
@@ -67,13 +67,13 @@ func (j *jobDataSource) ValidateConfig(
 }
 
 func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	
+
 	var state SingleJobDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
-	
+
 	jobIdValue := state.JobId.ValueInt64()
-	
+
 	jobId := strconv.FormatInt(jobIdValue, 10)
 
 	job, err := j.client.GetJob(jobId)
@@ -100,6 +100,13 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	state.DeferringJobId = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.DeferringJobId))
 	state.SelfDeferring = types.BoolValue(job.DeferringJobId != nil && *job.DeferringJobId == *job.ID)
 	state.DeferringEnvironmentID = types.Int64PointerValue(helper.IntPointerToInt64Pointer(job.DeferringEnvironmentId))
+
+	if job.ForceNodeSelection != nil {
+		state.ForceNodeSelection = types.BoolValue(*job.ForceNodeSelection)
+	} else {
+		state.ForceNodeSelection = types.BoolNull()
+	}
+
 	state.Triggers = &JobTriggers{
 		GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),
 		GitProviderWebhook: types.BoolValue(job.Triggers.GitProviderWebhook),

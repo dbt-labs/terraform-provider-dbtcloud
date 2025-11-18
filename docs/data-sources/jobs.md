@@ -59,6 +59,7 @@ Read-Only:
 - `environment_id` (Number) The ID of environment
 - `execute_steps` (List of String) The list of steps to run in the job
 - `execution` (Attributes) (see [below for nested schema](#nestedatt--jobs--execution))
+- `force_node_selection` (Boolean) Whether force node selection (SAO) is enabled for this job
 - `generate_docs` (Boolean) Whether the job generate docs
 - `id` (Number) The ID of the job
 - `job_id` (Number) The ID of the job

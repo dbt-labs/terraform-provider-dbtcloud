@@ -71,6 +71,7 @@ type Job struct {
 	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
 	ExecuteSteps           []string              `json:"execute_steps"`
 	Execution              JobExecution          `json:"execution"`
+	ForceNodeSelection     *bool                 `json:"force_node_selection,omitempty"`
 	GenerateDocs           bool                  `json:"generate_docs"`
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 	JobType                string                `json:"job_type,omitempty"`
@@ -142,6 +143,7 @@ func (c *Client) CreateJob(
 	errorsOnLintFailure bool,
 	jobType string,
 	compareChangesFlags string,
+	forceNodeSelection *bool,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -251,6 +253,7 @@ func (c *Client) CreateJob(
 		GenerateDocs:         generateDocs,
 		RunGenerateSources:   runGenerateSources,
 		Execution:            jobExecution,
+		ForceNodeSelection:   forceNodeSelection,
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
 		JobType:              finalJobType,

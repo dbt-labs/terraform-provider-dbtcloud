@@ -175,6 +175,12 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
+	var forceNodeSelection *bool
+	if !plan.ForceNodeSelection.IsNull() {
+		fns := plan.ForceNodeSelection.ValueBool()
+		forceNodeSelection = &fns
+	}
+
 	var jobCompletionTriggerCondition map[string]any
 
 	if len(plan.JobCompletionTriggerCondition) != 0 {
@@ -231,6 +237,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		errorsOnLintFailure,
 		jobType,
 		compareChangesFlags,
+		forceNodeSelection,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -264,6 +271,16 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.JobType = types.StringValue(createdJob.JobType)
 	} else {
 		plan.JobType = types.StringNull()
+	}
+
+	// Populate force_node_selection from API response
+	if createdJob.ForceNodeSelection != nil {
+		plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
+	} else {
+		// If not set in config and API doesn't return it, keep it null
+		if plan.ForceNodeSelection.IsNull() {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
 	}
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
@@ -465,6 +482,12 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
 
+	if retrievedJob.ForceNodeSelection != nil {
+		state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
+	} else {
+		state.ForceNodeSelection = types.BoolNull()
+	}
+
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
 	} else {
@@ -624,6 +647,13 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.RunLint = plan.RunLint.ValueBool()
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
+
+	if plan.ForceNodeSelection.IsNull() {
+		job.ForceNodeSelection = nil
+	} else {
+		fns := plan.ForceNodeSelection.ValueBool()
+		job.ForceNodeSelection = &fns
+	}
 
 	// Capture what's changing for better error messages
 	oldEnvID := state.EnvironmentID.ValueInt64()
