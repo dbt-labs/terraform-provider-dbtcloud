@@ -59,19 +59,9 @@ variable "snowflake_oauth_client_secret" {
   sensitive   = true
 }
 
-# Create OAuth configuration for Snowflake
-resource "dbtcloud_oauth_configuration" "test_oauth" {
-  name               = "Test OAuth Configuration - Issue 507"
-  oauth_provider     = "snowflake"
-  client_id          = var.snowflake_oauth_client_id
-  client_secret      = var.snowflake_oauth_client_secret
-  account_identifier = var.snowflake_account
-}
-
-# Create global connection with OAuth configuration
+# Create global connection with Snowflake OAuth
 resource "dbtcloud_global_connection" "test_snowflake_oauth" {
-  name                   = "Test Snowflake OAuth Connection - Issue 507"
-  oauth_configuration_id = dbtcloud_oauth_configuration.test_oauth.id
+  name = "Test Snowflake OAuth Connection - Issue 507"
   snowflake = {
     account             = var.snowflake_account
     database            = var.snowflake_database
@@ -97,10 +87,6 @@ resource "dbtcloud_environment" "test_oauth_env" {
 }
 
 # Outputs to verify resource creation
-output "oauth_configuration_id" {
-  value = dbtcloud_oauth_configuration.test_oauth.id
-}
-
 output "global_connection_id" {
   value = dbtcloud_global_connection.test_snowflake_oauth.id
 }
