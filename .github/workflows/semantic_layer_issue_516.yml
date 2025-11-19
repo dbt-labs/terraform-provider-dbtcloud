@@ -31,9 +31,17 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
 
+      - name: Clean up test directory
+        run: |
+          rm -f ./testing/cicd/*.tf
+          rm -f ./testing/cicd/*.tfstate*
+          rm -f ./testing/cicd/*.tfplan
+          rm -rf ./testing/cicd/.terraform
+          rm -f ./testing/cicd/.terraform.lock.hcl
+
       - name: Create test configuration for issue 507 (global connection OAuth)
         run: |
-          cat > issue_507_test.tf << 'EOF'
+          cat > main.tf << 'EOF'
           terraform {
             required_providers {
               dbtcloud = {
