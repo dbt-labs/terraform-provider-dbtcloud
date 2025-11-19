@@ -82,13 +82,13 @@ jobs:
           variable "snowflake_database" {
             description = "Snowflake Database"
             type        = string
-            default     = "TEST_DATABASE"
+            default     = "ANALYTICS"
           }
 
           variable "snowflake_warehouse" {
             description = "Snowflake Warehouse"
             type        = string
-            default     = "TEST_WAREHOUSE"
+            default     = "COMPUTE_WH"
           }
 
           variable "snowflake_oauth_client_id" {
