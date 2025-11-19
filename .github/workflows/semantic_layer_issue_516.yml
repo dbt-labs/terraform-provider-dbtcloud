@@ -164,8 +164,8 @@ jobs:
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
           TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
-          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
-          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE || 'ANALYTICS' }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH' }}
           TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
           TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
 
@@ -181,8 +181,8 @@ jobs:
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
           TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
-          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
-          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE || 'ANALYTICS' }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH' }}
           TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
           TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
 
@@ -204,8 +204,8 @@ jobs:
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
           TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
-          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
-          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE || 'ANALYTICS' }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH' }}
           TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
           TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
 
@@ -223,8 +223,8 @@ jobs:
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
           TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
-          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
-          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE || 'ANALYTICS' }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH' }}
           TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
           TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
 
@@ -256,8 +256,8 @@ jobs:
           TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
           TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
-          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
-          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE || 'ANALYTICS' }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH' }}
           TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
           TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
 
