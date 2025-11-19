@@ -125,7 +125,7 @@ jobs:
           resource "dbtcloud_environment" "test_oauth_env" {
             project_id    = dbtcloud_project.test_oauth_project.id
             name          = "OAuth Test Environment"
-            dbt_version   = "1.7"
+            dbt_version   = "latest"
             type          = "deployment"
             connection_id = dbtcloud_global_connection.test_snowflake_oauth.id
           }
