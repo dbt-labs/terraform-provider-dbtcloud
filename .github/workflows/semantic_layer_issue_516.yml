@@ -31,6 +31,31 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
 
+      - name: Validate required secrets
+        run: |
+          echo "Validating required secrets are set..."
+          if [ -z "${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}" ]; then
+            echo "::error::TEST_DBT_CLOUD_ACCOUNT_ID secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.TEST_DBT_CLOUD_TOKEN }}" ]; then
+            echo "::error::TEST_DBT_CLOUD_TOKEN secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}" ]; then
+            echo "::error::TEST_SNOWFLAKE_ACCOUNT secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}" ]; then
+            echo "::error::TEST_SNOWFLAKE_OAUTH_CLIENT_ID secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}" ]; then
+            echo "::error::TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are set ✓"
+
       - name: Clean up test directory
         run: |
           rm -f ./testing/cicd/*.tf
