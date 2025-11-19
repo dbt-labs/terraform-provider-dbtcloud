@@ -1,0 +1,281 @@
+name: Issue #507 Reproduction - Global Connection OAuth
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_second_apply:
+        description: 'Run second terraform apply to reproduce the issue'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce-issue-507:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
+
+      - name: Build and install provider
+        run: make install
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
+
+      - name: Create test configuration for issue 507 (global connection OAuth)
+        run: |
+          cat > issue_507_test.tf << 'EOF'
+          terraform {
+            required_providers {
+              dbtcloud = {
+                source  = "dbt-labs/dbtcloud"
+                version = ">= 1.2.0"
+              }
+            }
+          }
+
+          provider "dbtcloud" {
+            account_id = var.dbt_cloud_account_id
+            token      = var.dbt_cloud_token
+            host_url   = var.dbt_cloud_host_url
+          }
+
+          variable "dbt_cloud_account_id" {
+            description = "dbt Cloud Account ID"
+            type        = number
+          }
+
+          variable "dbt_cloud_token" {
+            description = "dbt Cloud Token"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "dbt_cloud_host_url" {
+            description = "dbt Cloud Host URL"
+            type        = string
+            default     = "https://cloud.getdbt.com/api"
+          }
+
+          variable "snowflake_account" {
+            description = "Snowflake Account"
+            type        = string
+          }
+
+          variable "snowflake_database" {
+            description = "Snowflake Database"
+            type        = string
+            default     = "TEST_DATABASE"
+          }
+
+          variable "snowflake_warehouse" {
+            description = "Snowflake Warehouse"
+            type        = string
+            default     = "TEST_WAREHOUSE"
+          }
+
+          variable "snowflake_oauth_client_id" {
+            description = "Snowflake OAuth Client ID"
+            type        = string
+            sensitive   = true
+          }
+
+          variable "snowflake_oauth_client_secret" {
+            description = "Snowflake OAuth Client Secret"
+            type        = string
+            sensitive   = true
+          }
+
+          # Create OAuth configuration for Snowflake
+          resource "dbtcloud_oauth_configuration" "test_oauth" {
+            name               = "Test OAuth Configuration - Issue 507"
+            oauth_provider     = "snowflake"
+            client_id          = var.snowflake_oauth_client_id
+            client_secret      = var.snowflake_oauth_client_secret
+            account_identifier = var.snowflake_account
+          }
+
+          # Create global connection with OAuth configuration
+          resource "dbtcloud_global_connection" "test_snowflake_oauth" {
+            name                    = "Test Snowflake OAuth Connection - Issue 507"
+            oauth_configuration_id  = dbtcloud_oauth_configuration.test_oauth.id
+            snowflake = {
+              account   = var.snowflake_account
+              database  = var.snowflake_database
+              warehouse = var.snowflake_warehouse
+              allow_sso = true
+              oauth_client_id     = var.snowflake_oauth_client_id
+              oauth_client_secret = var.snowflake_oauth_client_secret
+            }
+          }
+
+          # Create a test project to use the connection
+          resource "dbtcloud_project" "test_oauth_project" {
+            name = "Test OAuth Project - Issue 507"
+          }
+
+          # Create an environment using the global connection
+          resource "dbtcloud_environment" "test_oauth_env" {
+            project_id    = dbtcloud_project.test_oauth_project.id
+            name          = "OAuth Test Environment"
+            dbt_version   = "1.7"
+            type          = "deployment"
+            connection_id = dbtcloud_global_connection.test_snowflake_oauth.id
+          }
+
+          # Outputs to verify resource creation
+          output "oauth_configuration_id" {
+            value = dbtcloud_oauth_configuration.test_oauth.id
+          }
+
+          output "global_connection_id" {
+            value = dbtcloud_global_connection.test_snowflake_oauth.id
+          }
+
+          output "global_connection_adapter_version" {
+            value       = dbtcloud_global_connection.test_snowflake_oauth.adapter_version
+            description = "This is a read-only attribute that should not cause issues on subsequent applies"
+          }
+
+          output "project_id" {
+            value = dbtcloud_project.test_oauth_project.id
+          }
+
+          output "environment_id" {
+            value = dbtcloud_environment.test_oauth_env.environment_id
+          }
+          EOF
+        working-directory: ./testing/cicd
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./testing/cicd
+
+      - name: Terraform Plan (First Run)
+        id: plan_first
+        run: terraform plan -out=tfplan_first
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
+          TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
+
+      - name: Terraform Apply (First Run - Should Succeed)
+        id: apply_first
+        run: |
+          echo "=== FIRST TERRAFORM APPLY ==="
+          terraform apply tfplan_first
+          echo "=== FIRST APPLY COMPLETED ==="
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
+          TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
+
+      - name: Show State After First Apply
+        run: terraform show
+        working-directory: ./testing/cicd
+
+      - name: Terraform Plan (Second Run - Check for drift)
+        id: plan_second
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          echo "=== SECOND TERRAFORM PLAN (Checking for drift) ==="
+          terraform plan -out=tfplan_second
+          echo "=== SECOND PLAN COMPLETED ==="
+        working-directory: ./testing/cicd
+        continue-on-error: true
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
+          TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
+
+      - name: Terraform Apply (Second Run - Should Reproduce Issue #507)
+        id: apply_second
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          echo "=== SECOND TERRAFORM APPLY (Expected to reproduce Issue #507) ==="
+          terraform apply -auto-approve
+          echo "=== SECOND APPLY COMPLETED ==="
+        working-directory: ./testing/cicd
+        continue-on-error: true
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
+          TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
+
+      - name: Check Second Apply Result
+        if: ${{ github.event.inputs.run_second_apply == 'true' || github.event.inputs.run_second_apply == '' }}
+        run: |
+          if [ "${{ steps.apply_second.outcome }}" == "failure" ]; then
+            echo "::warning::Second terraform apply failed - Issue #507 reproduced!"
+            echo "This is the expected behavior demonstrating the bug."
+          else
+            echo "::notice::Second terraform apply succeeded - Issue #507 NOT reproduced"
+            echo "This might indicate the issue has been fixed or environmental differences."
+          fi
+
+      - name: Show State After Second Apply
+        if: always()
+        run: terraform show
+        working-directory: ./testing/cicd
+
+      - name: Terraform Destroy
+        if: always() # This step will always run to clean up resources
+        run: |
+          echo "=== CLEANING UP RESOURCES ==="
+          terraform destroy -auto-approve
+          echo "=== CLEANUP COMPLETED ==="
+        working-directory: ./testing/cicd
+        env:
+          TF_VAR_dbt_cloud_account_id: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          TF_VAR_dbt_cloud_token: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          TF_VAR_dbt_cloud_host_url: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          TF_VAR_snowflake_account: ${{ secrets.TEST_SNOWFLAKE_ACCOUNT }}
+          TF_VAR_snowflake_database: ${{ secrets.TEST_SNOWFLAKE_DATABASE }}
+          TF_VAR_snowflake_warehouse: ${{ secrets.TEST_SNOWFLAKE_WAREHOUSE }}
+          TF_VAR_snowflake_oauth_client_id: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_ID }}
+          TF_VAR_snowflake_oauth_client_secret: ${{ secrets.TEST_SNOWFLAKE_OAUTH_CLIENT_SECRET }}
+
+      - name: Upload Terraform Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-logs
+          path: |
+            ./testing/cicd/.terraform/
+            ./testing/cicd/terraform.tfstate
+            ./testing/cicd/terraform.tfstate.backup
+            ./testing/cicd/*.tfplan
+          retention-days: 7
+
