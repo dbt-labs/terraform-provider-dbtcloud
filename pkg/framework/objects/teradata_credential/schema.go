@@ -1,6 +1,7 @@
 package teradata_credential
 
 import (
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -53,6 +54,9 @@ var resourceSchema = resource_schema.Schema{
 		"schema": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "The schema where to create models",
+			Validators: []validator.String{
+				helper.SchemaNameValidator(),
+			},
 		},
 		"threads": resource_schema.Int64Attribute{
 			Optional:    true,

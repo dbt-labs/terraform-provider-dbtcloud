@@ -1,7 +1,7 @@
 package postgres_credential
 
 import (
-	sl_cred_validator "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -83,7 +83,7 @@ var PostgresResourceSchema = resource_schema.Schema{
 				stringvalidator.OneOf(
 					warehouseTypes...,
 				),
-				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "type"},
+				helper.SemanticLayerCredentialValidator{FieldName: "type"},
 			},
 		},
 		"default_schema": resource_schema.StringAttribute{
@@ -92,7 +92,8 @@ var PostgresResourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString("default_schema"),
 			Description: "Default schema name. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
 			Validators: []validator.String{
-				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "default_schema"},
+				helper.SemanticLayerCredentialValidator{FieldName: "default_schema"},
+				helper.SchemaNameValidator(),
 			},
 		},
 		"target_name": resource_schema.StringAttribute{

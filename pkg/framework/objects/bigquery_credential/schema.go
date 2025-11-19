@@ -1,12 +1,14 @@
 package bigquery_credential
 
 import (
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 var BigQueryResourceSchema = resource_schema.Schema{
@@ -42,6 +44,9 @@ var BigQueryResourceSchema = resource_schema.Schema{
 		"dataset": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "Default dataset name",
+			Validators: []validator.String{
+				helper.SchemaNameValidator(),
+			},
 		},
 		"num_threads": resource_schema.Int64Attribute{
 			Required:    true,
