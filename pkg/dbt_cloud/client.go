@@ -115,7 +115,7 @@ type APIError struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string) (*Client, error) {
+func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool) (*Client, error) {
 
 	if (token == nil) || (*token == "") {
 		return nil, fmt.Errorf("token is set but it is empty")
@@ -138,7 +138,7 @@ func NewClient(account_id *int, token *string, host_url *string, maxRetries *int
 	}
 
 	_, runningAcceptanceTests := os.LookupEnv("TF_ACC")
-	if !runningAcceptanceTests {
+	if !runningAcceptanceTests && !skipCredentialsValidation {
 		url := c.BuildV2URL(ResourceAccounts)
 
 		// authenticate
