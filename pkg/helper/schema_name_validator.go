@@ -10,13 +10,12 @@ import (
 // Pre-compiled regex for performance
 var schemaNamePattern = regexp.MustCompile(`^[a-zA-Z0-9_()"'{} ]*$`)
 
-// SchemaNameValidator returns a validator that ensures schema/dataset names
-// contain only allowed characters: letters, numbers, underscore, parentheses,
-// quotes, curly braces, dot, and space.
+// SchemaNameValidator returns a validator that ensures schema names contain only allowed characters:
+// letters, numbers, underscore, parentheses, quotes, curly braces, and space.
 func SchemaNameValidator() validator.String {
 	return stringvalidator.RegexMatches(
 		schemaNamePattern,
-		"The schema/dataset name contains invalid characters. "+
-			"Only letters, numbers, underscores, parentheses, quotes, curly braces, dots, and spaces are allowed.",
+		"The schema name contains invalid characters. "+
+			"Only letters, numbers, underscores, parentheses, quotes, curly braces, and spaces are allowed.",
 	)
 }
