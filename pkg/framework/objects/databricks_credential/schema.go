@@ -76,10 +76,10 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 		},
 		"target_name": resource_schema.StringAttribute{
-			Description: "Target name",
-			Optional:    true,
-			Computed:    true,
-			Default:     stringdefault.StaticString("default"),
+			Description:        "Target name",
+			Optional:           true,
+			Computed:           true,
+			Default:            stringdefault.StaticString("default"),
 			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
 		"token": resource_schema.StringAttribute{
@@ -104,11 +104,11 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
-			Description:        "The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
-			Optional:           true,
-			Computed:           true,
+			Description: "The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
+			Optional:    true,
+			Computed:    true,
 			DeprecationMessage: "This field is deprecated and will be removed in a future release. Semantic Layer spark credentials are not supported yet, only databricks is supported.",
-			Default:            stringdefault.StaticString("databricks"),
+			Default:     stringdefault.StaticString("databricks"),
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},
