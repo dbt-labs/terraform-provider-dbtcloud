@@ -2,6 +2,7 @@ package snowflake_credential
 
 import (
 	snowflake_credential "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential/validators"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -105,6 +106,9 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString("default_schema"),
 			Description: "The schema where to create models. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.",
+			Validators: []validator.String{
+				helper.SchemaNameValidator(),
+			},
 		},
 		"user": resource_schema.StringAttribute{
 			Optional:    true,

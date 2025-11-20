@@ -1,6 +1,7 @@
 package redshift_credential
 
 import (
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -8,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 var RedshiftResourceSchema = resource_schema.Schema{
@@ -57,6 +59,9 @@ var RedshiftResourceSchema = resource_schema.Schema{
 		"default_schema": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "Default schema name",
+			Validators: []validator.String{
+				helper.SchemaNameValidator(),
+			},
 		},
 		"num_threads": resource_schema.Int64Attribute{
 			Required:    true,

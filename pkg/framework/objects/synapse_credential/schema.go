@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -153,6 +154,9 @@ var resourceSchema = resource_schema.Schema{
 		"schema": resource_schema.StringAttribute{
 			Required:    true,
 			Description: "The schema where to create the dbt models",
+			Validators: []validator.String{
+				helper.SchemaNameValidator(),
+			},
 		},
 		"schema_authorization": resource_schema.StringAttribute{
 			Optional:    true,

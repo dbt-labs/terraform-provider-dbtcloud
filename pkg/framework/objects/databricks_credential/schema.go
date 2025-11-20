@@ -1,7 +1,7 @@
 package databricks_credential
 
 import (
-	sl_cred_validator "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -99,7 +99,8 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString("default_schema"),
 			Validators: []validator.String{
-				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "schema"},
+				helper.SemanticLayerCredentialValidator{FieldName: "schema"},
+				helper.SchemaNameValidator(),
 			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
@@ -113,7 +114,7 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 			Validators: []validator.String{
 				stringvalidator.OneOf("databricks", "spark"),
-				sl_cred_validator.SemanticLayerCredentialValidator{FieldName: "adapter_type"},
+				helper.SemanticLayerCredentialValidator{FieldName: "adapter_type"},
 			},
 		},
 		"semantic_layer_credential": resource_schema.BoolAttribute{
