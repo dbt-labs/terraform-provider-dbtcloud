@@ -125,7 +125,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		dbtVersion = &dbtVersionValue
 	}
 
-	isActive := plan.IsActive.ValueBool()
+	isActive := true // when being created, the job should be active by default
 	triggers := map[string]any{
 		"github_webhook":       plan.Triggers.GithubWebhook.ValueBool(),
 		"git_provider_webhook": plan.Triggers.GitProviderWebhook.ValueBool(),
