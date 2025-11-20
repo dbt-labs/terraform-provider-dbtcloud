@@ -1,0 +1,3 @@
+kind: Changes
+body: Job is_active field enforced to be true on resource creation
+time: 2025-11-20T15:09:29.039013+02:00
