@@ -223,8 +223,9 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 			}
 		}
 
+		// Handle 400 Bad Request errors - these are validation/constraint errors, NOT "not found" errors
 		if res.StatusCode == 400 {
-			return nil, fmt.Errorf("resource-not-found: %s", body)
+			return nil, fmt.Errorf("bad-request: %s", body)
 		}
 
 		// Handle permission errors (401 Unauthorized, 403 Forbidden)
