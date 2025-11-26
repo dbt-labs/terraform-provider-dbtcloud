@@ -1,3 +1,0 @@
-kind: Changes
-body: Added skip_credentials_validation flag to provider for skipping credential validation during initialization
-time: 2025-11-11T17:17:04.65679+02:00
