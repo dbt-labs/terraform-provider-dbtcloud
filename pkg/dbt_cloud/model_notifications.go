@@ -14,7 +14,7 @@ type ModelNotificationsResponse struct {
 }
 
 type ModelNotifications struct {
-	ID            *int   `json:"id,omitempty"`
+	ID            *int   `json:"id,omitempty" validate:"required,ne=0"`
 	CreatedAt     string `json:"created_at,omitempty"`
 	UpdatedAt     string `json:"updated_at,omitempty"`
 	AccountID     int    `json:"account_id,omitempty"`
@@ -49,6 +49,11 @@ func (c *Client) GetModelNotifications(environmentID string) (*ModelNotification
 	modelNotificationsResponse := ModelNotificationsResponse{}
 	err = json.Unmarshal(body, &modelNotificationsResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response
+	if err := ValidateResponse(&modelNotificationsResponse.Data, "ModelNotifications"); err != nil {
 		return nil, err
 	}
 
@@ -126,6 +131,11 @@ func (c *Client) UpdateModelNotifications(
 	modelNotificationsResponse := ModelNotificationsResponse{}
 	err = json.Unmarshal(body, &modelNotificationsResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response
+	if err := ValidateResponse(&modelNotificationsResponse.Data, "ModelNotifications"); err != nil {
 		return nil, err
 	}
 
