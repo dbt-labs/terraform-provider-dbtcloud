@@ -250,9 +250,13 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		return nil, err
 	}
 
-	// Validate the response has required fields
-	if err := ValidateProjectResponse(projectResponse.Data.ID, &projectResponse.Data); err != nil {
-		return nil, err
+	// Skip validation for delete operations (STATE_DELETED) as the API may return nil ID
+	// and we don't use the response data for deleted resources
+	if project.State != STATE_DELETED {
+		// Validate the response has required fields
+		if err := ValidateProjectResponse(projectResponse.Data.ID, &projectResponse.Data); err != nil {
+			return nil, err
+		}
 	}
 
 	return &projectResponse.Data, nil

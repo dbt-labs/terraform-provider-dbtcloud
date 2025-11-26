@@ -155,9 +155,13 @@ func (c *Client) UpdateNotification(
 		return nil, err
 	}
 
-	// Validate the response has required fields
-	if err := ValidateNotificationResponse(notificationResponse.Data.Id, &notificationResponse.Data); err != nil {
-		return nil, err
+	// Skip validation for delete operations (STATE_DELETED) as the API may return nil ID
+	// and we don't use the response data for deleted resources
+	if notification.State != STATE_DELETED {
+		// Validate the response has required fields
+		if err := ValidateNotificationResponse(notificationResponse.Data.Id, &notificationResponse.Data); err != nil {
+			return nil, err
+		}
 	}
 
 	return &notificationResponse.Data, nil
