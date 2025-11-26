@@ -149,6 +149,11 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		return nil, err
 	}
 
+	// Validate the response has required fields
+	if err := ValidateProjectResponse(projectResponse.Data.ID, &projectResponse.Data); err != nil {
+		return nil, err
+	}
+
 	return &projectResponse.Data, nil
 }
 
@@ -199,6 +204,11 @@ func (c *Client) CreateProject(
 		return nil, err
 	}
 
+	// Validate the response has required fields
+	if err := ValidateProjectResponse(projectResponse.Data.ID, &projectResponse.Data); err != nil {
+		return nil, err
+	}
+
 	return &projectResponse.Data, nil
 }
 
@@ -237,6 +247,11 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 	projectResponse := ProjectResponse{}
 	err = json.Unmarshal(body, &projectResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response has required fields
+	if err := ValidateProjectResponse(projectResponse.Data.ID, &projectResponse.Data); err != nil {
 		return nil, err
 	}
 

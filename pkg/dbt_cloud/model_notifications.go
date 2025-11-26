@@ -52,6 +52,11 @@ func (c *Client) GetModelNotifications(environmentID string) (*ModelNotification
 		return nil, err
 	}
 
+	// Validate the response has required fields
+	if err := ValidateModelNotificationsResponse(modelNotificationsResponse.Data.ID, &modelNotificationsResponse.Data); err != nil {
+		return nil, err
+	}
+
 	return &modelNotificationsResponse.Data, nil
 }
 
@@ -126,6 +131,11 @@ func (c *Client) UpdateModelNotifications(
 	modelNotificationsResponse := ModelNotificationsResponse{}
 	err = json.Unmarshal(body, &modelNotificationsResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response has required fields
+	if err := ValidateModelNotificationsResponse(modelNotificationsResponse.Data.ID, &modelNotificationsResponse.Data); err != nil {
 		return nil, err
 	}
 

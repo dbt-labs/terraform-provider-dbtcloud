@@ -54,6 +54,11 @@ func (c *Client) GetNotification(notificationID string) (*Notification, error) {
 		return nil, err
 	}
 
+	// Validate the response has required fields
+	if err := ValidateNotificationResponse(notificationResponse.Data.Id, &notificationResponse.Data); err != nil {
+		return nil, err
+	}
+
 	return &notificationResponse.Data, nil
 }
 
@@ -108,6 +113,11 @@ func (c *Client) CreateNotification(
 		return nil, err
 	}
 
+	// Validate the response has required fields
+	if err := ValidateNotificationResponse(notificationResponse.Data.Id, &notificationResponse.Data); err != nil {
+		return nil, err
+	}
+
 	return &notificationResponse.Data, nil
 }
 
@@ -142,6 +152,11 @@ func (c *Client) UpdateNotification(
 	notificationResponse := NotificationResponse{}
 	err = json.Unmarshal(body, &notificationResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response has required fields
+	if err := ValidateNotificationResponse(notificationResponse.Data.Id, &notificationResponse.Data); err != nil {
 		return nil, err
 	}
 
