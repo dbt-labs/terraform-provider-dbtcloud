@@ -29,6 +29,12 @@ provider "dbtcloud" {
   account_id = var.dbt_cloud_account_id
   token      = var.dbt_cloud_token
   host_url   = "https://cloud.getdbt.com/api"
+  timeout_seconds = 60
+  max_retries = 10
+  retry_interval_seconds = 10
+  disable_retry = false
+  skip_credentials_validation = false
+  retriable_status_codes = ["429", "500", "502", "503", "504"]
 }
 ```
 
@@ -44,4 +50,5 @@ provider "dbtcloud" {
 - `retriable_status_codes` (List of String) List of HTTP status codes that should be retried when encountered. Defaults to [429, 500, 502, 503, 504].
 - `retry_interval_seconds` (Number) The number of seconds to wait before retrying a request that failed due to rate limiting. Defaults to 10 seconds.
 - `skip_credentials_validation` (Boolean) If set to true, the provider will not validate credentials during initialization. This can be useful for testing and for dbt Cloud API implementations that do not have standard authentication available. Defaults to false.
+- `timeout_seconds` (Number) The timeout duration in seconds for HTTP requests to the dbt Cloud API. Defaults to 30 seconds.
 - `token` (String, Sensitive) API token for your dbt Cloud. Instead of setting the parameter, you can set the environment variable `DBT_CLOUD_TOKEN`
