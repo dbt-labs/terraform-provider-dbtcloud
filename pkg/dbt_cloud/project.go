@@ -9,7 +9,7 @@ import (
 )
 
 type Project struct {
-	ID                     *int    `json:"id,omitempty"`
+	ID                     *int    `json:"id,omitempty" validate:"required,ne=0"`
 	Name                   string  `json:"name"`
 	Description            string  `json:"description"`
 	DbtProjectSubdirectory *string `json:"dbt_project_subdirectory,omitempty"`
@@ -149,6 +149,11 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		return nil, err
 	}
 
+	// Validate the response
+	if err := ValidateResponse(&projectResponse.Data, "Project"); err != nil {
+		return nil, err
+	}
+
 	return &projectResponse.Data, nil
 }
 
@@ -199,6 +204,11 @@ func (c *Client) CreateProject(
 		return nil, err
 	}
 
+	// Validate the response
+	if err := ValidateResponse(&projectResponse.Data, "Project"); err != nil {
+		return nil, err
+	}
+
 	return &projectResponse.Data, nil
 }
 
@@ -238,6 +248,14 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 	err = json.Unmarshal(body, &projectResponse)
 	if err != nil {
 		return nil, err
+	}
+
+	// Skip validation for delete operations (STATE_DELETED) as the API may return nil ID
+	// and we don't use the response data for deleted resources
+	if project.State != STATE_DELETED {
+		if err := ValidateResponse(&projectResponse.Data, "Project"); err != nil {
+			return nil, err
+		}
 	}
 
 	return &projectResponse.Data, nil

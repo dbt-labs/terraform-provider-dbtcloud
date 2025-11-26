@@ -14,7 +14,7 @@ type NotificationResponse struct {
 }
 
 type Notification struct {
-	Id               *int    `json:"id,omitempty"`
+	Id               *int    `json:"id,omitempty" validate:"required,ne=0"`
 	AccountId        int     `json:"account_id"`
 	UserId           int     `json:"user_id"`
 	OnCancel         []int   `json:"on_cancel"`
@@ -51,6 +51,11 @@ func (c *Client) GetNotification(notificationID string) (*Notification, error) {
 	notificationResponse := NotificationResponse{}
 	err = json.Unmarshal(body, &notificationResponse)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate the response
+	if err := ValidateResponse(&notificationResponse.Data, "Notification"); err != nil {
 		return nil, err
 	}
 
@@ -108,6 +113,11 @@ func (c *Client) CreateNotification(
 		return nil, err
 	}
 
+	// Validate the response
+	if err := ValidateResponse(&notificationResponse.Data, "Notification"); err != nil {
+		return nil, err
+	}
+
 	return &notificationResponse.Data, nil
 }
 
@@ -143,6 +153,14 @@ func (c *Client) UpdateNotification(
 	err = json.Unmarshal(body, &notificationResponse)
 	if err != nil {
 		return nil, err
+	}
+
+	// Skip validation for delete operations (STATE_DELETED) as the API may return nil ID
+	// and we don't use the response data for deleted resources
+	if notification.State != STATE_DELETED {
+		if err := ValidateResponse(&notificationResponse.Data, "Notification"); err != nil {
+			return nil, err
+		}
 	}
 
 	return &notificationResponse.Data, nil
