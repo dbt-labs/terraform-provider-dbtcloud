@@ -253,3 +253,149 @@ func TestIsResourceNotFoundError(t *testing.T) {
 		})
 	}
 }
+
+// TestNewClientTimeout tests that the timeout configuration is properly set on the client
+func TestNewClientTimeout(t *testing.T) {
+	// Set environment variable for acceptance test to skip validation
+	t.Setenv("TF_ACC", "1")
+
+	tests := []struct {
+		name                   string
+		timeoutSeconds         int
+		expectedTimeoutSeconds int
+	}{
+		{
+			name:                   "default timeout of 30 seconds",
+			timeoutSeconds:         30,
+			expectedTimeoutSeconds: 30,
+		},
+		{
+			name:                   "custom timeout of 60 seconds",
+			timeoutSeconds:         60,
+			expectedTimeoutSeconds: 60,
+		},
+		{
+			name:                   "custom timeout of 10 seconds",
+			timeoutSeconds:         10,
+			expectedTimeoutSeconds: 10,
+		},
+		{
+			name:                   "custom timeout of 120 seconds",
+			timeoutSeconds:         120,
+			expectedTimeoutSeconds: 120,
+		},
+		{
+			name:                   "short timeout of 5 seconds",
+			timeoutSeconds:         5,
+			expectedTimeoutSeconds: 5,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup test parameters
+			accountID := 123456
+			token := "test_token_12345"
+			hostURL := "https://cloud.getdbt.com/api"
+			maxRetries := 3
+			retryIntervalSeconds := 10
+			retriableStatusCodes := []string{"429", "500"}
+			skipValidation := true
+
+			// Create client
+			client, err := NewClient(
+				&accountID,
+				&token,
+				&hostURL,
+				&maxRetries,
+				&retryIntervalSeconds,
+				retriableStatusCodes,
+				skipValidation,
+				&tt.timeoutSeconds,
+			)
+
+			if err != nil {
+				t.Fatalf("unexpected error creating client: %v", err)
+			}
+
+			// Verify timeout is set correctly in the client struct
+			if client.TimeoutSeconds != tt.expectedTimeoutSeconds {
+				t.Errorf("expected TimeoutSeconds=%d, got %d",
+					tt.expectedTimeoutSeconds, client.TimeoutSeconds)
+			}
+
+			// Verify HTTP client timeout is set correctly
+			expectedTimeout := tt.expectedTimeoutSeconds
+			actualTimeoutSeconds := int(client.HTTPClient.Timeout.Seconds())
+			if actualTimeoutSeconds != expectedTimeout {
+				t.Errorf("expected HTTPClient.Timeout=%ds, got %ds",
+					expectedTimeout, actualTimeoutSeconds)
+			}
+		})
+	}
+}
+
+// TestNewClientValidation tests basic validation in NewClient
+func TestNewClientValidation(t *testing.T) {
+	tests := []struct {
+		name          string
+		token         *string
+		hostURL       *string
+		expectedError string
+	}{
+		{
+			name:          "empty token",
+			token:         stringPtr(""),
+			hostURL:       stringPtr("https://cloud.getdbt.com/api"),
+			expectedError: "token is set but it is empty",
+		},
+		{
+			name:          "nil token",
+			token:         nil,
+			hostURL:       stringPtr("https://cloud.getdbt.com/api"),
+			expectedError: "token is set but it is empty",
+		},
+		{
+			name:          "invalid host URL",
+			token:         stringPtr("test_token"),
+			hostURL:       stringPtr("://invalid-url"),
+			expectedError: "invalid host URL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			accountID := 123456
+			maxRetries := 3
+			retryIntervalSeconds := 10
+			timeoutSeconds := 30
+			retriableStatusCodes := []string{"429"}
+			skipValidation := true
+
+			_, err := NewClient(
+				&accountID,
+				tt.token,
+				tt.hostURL,
+				&maxRetries,
+				&retryIntervalSeconds,
+				retriableStatusCodes,
+				skipValidation,
+				&timeoutSeconds,
+			)
+
+			if err == nil {
+				t.Errorf("expected error containing %q, got nil", tt.expectedError)
+				return
+			}
+
+			if !strings.Contains(err.Error(), tt.expectedError) {
+				t.Errorf("expected error containing %q, got %q", tt.expectedError, err.Error())
+			}
+		})
+	}
+}
+
+// Helper function for creating string pointers
+func stringPtr(s string) *string {
+	return &s
+}

@@ -135,6 +135,10 @@ func (p *dbtCloudProvider) Schema(
 					),
 				},
 			},
+			"timeout_seconds": schema.Int64Attribute{
+				Optional:    true,
+				Description: "The timeout duration in seconds for HTTP requests to the dbt Cloud API. Defaults to 30 seconds.",
+			},
 		},
 	}
 }
@@ -148,6 +152,7 @@ type dbtCloudProviderModel struct {
 	DisableRetry              types.Bool   `tfsdk:"disable_retry"`
 	SkipCredentialsValidation types.Bool   `tfsdk:"skip_credentials_validation"`
 	RetriableStatusCodes      types.List   `tfsdk:"retriable_status_codes"`
+	TimeoutSeconds            types.Int64  `tfsdk:"timeout_seconds"`
 }
 
 func (p *dbtCloudProvider) Configure(
@@ -266,7 +271,12 @@ func (p *dbtCloudProvider) Configure(
 
 	skipCredentialsValidation := config.SkipCredentialsValidation.ValueBool()
 
-	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL, &maxRetries, &retryIntervalSeconds, retriableStatusCodes, skipCredentialsValidation)
+	timeoutSeconds := 30
+	if !config.TimeoutSeconds.IsNull() {
+		timeoutSeconds = int(config.TimeoutSeconds.ValueInt64())
+	}
+
+	client, err := dbt_cloud.NewClient(&accountID, &token, &hostURL, &maxRetries, &retryIntervalSeconds, retriableStatusCodes, skipCredentialsValidation, &timeoutSeconds)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create dbt Cloud API Client",

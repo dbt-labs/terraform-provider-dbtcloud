@@ -40,6 +40,7 @@ type Client struct {
 	MaxRetries           int
 	RetriableStatusCodes []string
 	DisableRetry         bool
+	TimeoutSeconds       int
 }
 
 type ResponseStatus struct {
@@ -115,7 +116,7 @@ type APIError struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool) (*Client, error) {
+func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool, timeoutSeconds *int) (*Client, error) {
 
 	if (token == nil) || (*token == "") {
 		return nil, fmt.Errorf("token is set but it is empty")
@@ -128,13 +129,14 @@ func NewClient(account_id *int, token *string, host_url *string, maxRetries *int
 	}
 
 	c := Client{
-		HTTPClient:           &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:           &http.Client{Timeout: time.Duration(*timeoutSeconds) * time.Second},
 		HostURL:              parsedURL,
 		Token:                *token,
 		AccountID:            *account_id,
 		RetryIntervalSeconds: *retryIntervalSeconds,
 		MaxRetries:           *maxRetries,
 		RetriableStatusCodes: retriableStatusCodes,
+		TimeoutSeconds:       *timeoutSeconds,
 	}
 
 	_, runningAcceptanceTests := os.LookupEnv("TF_ACC")
