@@ -1,0 +1,3 @@
+kind: Deprecations
+body: Removed project_artefacts as it was deprecated in v1.0
+time: 2025-11-26T10:31:02.746406+02:00

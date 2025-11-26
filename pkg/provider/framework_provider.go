@@ -44,7 +44,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
@@ -340,7 +339,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
-		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
 		scim_group_permissions.ScimGroupPermissionsResource,
 		scim_group_partial_permissions.ScimGroupPartialPermissionsResource,
