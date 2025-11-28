@@ -1,8 +1,6 @@
 module github.com/dbt-labs/terraform-provider-dbtcloud
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.24.8
 
 require (
 	github.com/go-playground/validator/v10 v10.28.0
