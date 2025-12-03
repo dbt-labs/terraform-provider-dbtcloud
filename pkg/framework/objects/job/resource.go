@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,21 @@ type jobResource struct {
 }
 
 func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if !req.Plan.Raw.IsNull() {
+		var plan JobResourceModel
+		resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+
+		executeSteps := make([]string, len(plan.ExecuteSteps))
+		for i, step := range plan.ExecuteSteps {
+			executeSteps[i] = step.ValueString()
+		}
+
+		if err := j.validateExecuteSteps(executeSteps); err != nil {
+			resp.Diagnostics.AddError("Error validating execute steps", err.Error())
+			return
+		}
+	}
+
 	// Don't do anything on resource creation or deletion
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
@@ -117,6 +133,11 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	executeSteps := make([]string, len(plan.ExecuteSteps))
 	for i, step := range plan.ExecuteSteps {
 		executeSteps[i] = step.ValueString()
+	}
+
+	if err := j.validateExecuteSteps(executeSteps); err != nil {
+		resp.Diagnostics.AddError("Error validating execute steps", err.Error())
+		return
 	}
 
 	var dbtVersion *string
@@ -544,6 +565,12 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	for i, step := range plan.ExecuteSteps {
 		executeSteps[i] = step.ValueString()
 	}
+
+	if err := j.validateExecuteSteps(executeSteps); err != nil {
+		resp.Diagnostics.AddError("Error validating execute steps", err.Error())
+		return
+	}
+
 	job.ExecuteSteps = executeSteps
 
 	// todo check if trigger handling is ok
@@ -709,4 +736,56 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (j *jobResource) validateExecuteSteps(executeSteps []string) error {
+	dbt_flags := []string{
+		"--warn-error",
+		"--use-experimental-parser",
+		"--no-partial-parse",
+		"--fail-fast",
+	}
+
+	dbt_commands := []string{
+		"run",
+		"test",
+		"archive",
+		"snapshot",
+		"seed",
+		"source",
+		"compile",
+		"ls",
+		"list",
+		`docs\s+generate`,
+		"parse",
+		"build",
+		"clone",
+		"debug",
+		"retry",
+		"compare",
+		"sl",
+	}
+
+	// Build regex pattern for valid commands
+	flagsPattern := strings.Join(dbt_flags, "|")
+	commandsPattern := strings.Join(dbt_commands, "|")
+	validCommandsPattern := fmt.Sprintf(`^\s*dbt\s+((%s)\s+)*(%s)\s*.*$`, flagsPattern, commandsPattern)
+	validCommandsRegex := regexp.MustCompile(validCommandsPattern)
+
+	// Validate each execute step individually
+	for _, step := range executeSteps {
+		// Check if step matches valid dbt command pattern
+		if !validCommandsRegex.MatchString(step) {
+			return fmt.Errorf("invalid command: %s", step)
+		}
+
+		// Check that each flag isn't used more than once within this step
+		for _, flag := range dbt_flags {
+			if strings.Count(step, flag) > 1 {
+				return fmt.Errorf("flag %s can only be used once per step in: %s", flag, step)
+			}
+		}
+	}
+
+	return nil
 }
