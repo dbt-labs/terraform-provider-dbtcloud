@@ -32,14 +32,16 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		var plan JobResourceModel
 		resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
-		executeSteps := make([]string, len(plan.ExecuteSteps))
-		for i, step := range plan.ExecuteSteps {
-			executeSteps[i] = step.ValueString()
-		}
+		if plan.ValidateExecuteSteps.ValueBool() {
+			executeSteps := make([]string, len(plan.ExecuteSteps))
+			for i, step := range plan.ExecuteSteps {
+				executeSteps[i] = step.ValueString()
+			}
 
-		if err := j.validateExecuteSteps(executeSteps); err != nil {
-			resp.Diagnostics.AddError("Error validating execute steps", err.Error())
-			return
+			if err := j.validateExecuteSteps(executeSteps); err != nil {
+				resp.Diagnostics.AddError("Error validating execute steps", err.Error())
+				return
+			}
 		}
 	}
 
@@ -133,11 +135,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	executeSteps := make([]string, len(plan.ExecuteSteps))
 	for i, step := range plan.ExecuteSteps {
 		executeSteps[i] = step.ValueString()
-	}
-
-	if err := j.validateExecuteSteps(executeSteps); err != nil {
-		resp.Diagnostics.AddError("Error validating execute steps", err.Error())
-		return
 	}
 
 	var dbtVersion *string
@@ -565,12 +562,6 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	for i, step := range plan.ExecuteSteps {
 		executeSteps[i] = step.ValueString()
 	}
-
-	if err := j.validateExecuteSteps(executeSteps); err != nil {
-		resp.Diagnostics.AddError("Error validating execute steps", err.Error())
-		return
-	}
-
 	job.ExecuteSteps = executeSteps
 
 	// todo check if trigger handling is ok

@@ -108,6 +108,7 @@ func TestAccDbtCloudJobResourceExecuteStepsValid(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
+					"validate_execute_steps",
 				},
 			},
 		},
@@ -146,6 +147,7 @@ func TestAccDbtCloudJobResourceExecuteStepsMultipleFlags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
+					"validate_execute_steps",
 				},
 			},
 		},
@@ -183,6 +185,7 @@ resource "dbtcloud_job" "test_job" {
     project_id = dbtcloud_project.test_job_project.id
     environment_id = dbtcloud_environment.test_job_environment.environment_id
     execute_steps = ` + stepsStr + `
+    validate_execute_steps = true
     triggers = {
         "github_webhook": false,
         "git_provider_webhook": false,
