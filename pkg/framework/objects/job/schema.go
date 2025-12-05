@@ -484,6 +484,12 @@ func (j *jobResource) Schema(
 					listvalidator.SizeAtLeast(1),
 				},
 			},
+			"validate_execute_steps": resource_schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "When set to `true`, the provider will validate the `execute_steps` during plan time to ensure they contain valid dbt commands. If a command is not recognized (e.g., a new dbt command not yet supported by the provider), the validation will fail. Defaults to `false` to allow flexibility with newer dbt commands.",
+			},
 			"is_active": resource_schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,

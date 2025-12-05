@@ -113,6 +113,7 @@ type JobResourceModel struct {
 	Description            types.String   `tfsdk:"description"`              // exists
 	DbtVersion             types.String   `tfsdk:"dbt_version"`              // exists
 	ExecuteSteps           []types.String `tfsdk:"execute_steps"`            // exists
+	ValidateExecuteSteps   types.Bool     `tfsdk:"validate_execute_steps"`   // opt-in validation
 	DeferringEnvironmentID types.Int64    `tfsdk:"deferring_environment_id"` // exists
 	ForceNodeSelection     types.Bool     `tfsdk:"force_node_selection"`     // exists
 	Triggers               *JobTriggers   `tfsdk:"triggers"`                 // exists
