@@ -81,11 +81,6 @@ jobs:
       # we install Terraform beforehand, otherwise each test requires downloading it
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # hashicorp/setup-terraform@v3
 
-      - name: Print account ID (base64)
-        run: echo "$DBT_CLOUD_ACCOUNT_ID" | base64
-        env:
-          DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
-
       - name: make ${{ matrix.target }}
         run: make ${{ matrix.target }}
         env:
