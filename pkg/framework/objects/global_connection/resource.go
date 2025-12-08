@@ -743,6 +743,21 @@ func (r *globalConnectionResource) Update(
 		}
 	}
 
+	// Handle IsSshTunnelEnabled flag based on SSH tunnel presence change (only Postgres and Redshift support SSH tunnels)
+	sshTunnelStateChanged := false
+	var sshTunnelPlan, sshTunnelState *SSHTunnelConfig
+	if plan.PostgresConfig != nil && state.PostgresConfig != nil {
+		sshTunnelPlan = plan.PostgresConfig.SSHTunnel
+		sshTunnelState = state.PostgresConfig.SSHTunnel
+	} else if plan.RedshiftConfig != nil && state.RedshiftConfig != nil {
+		sshTunnelPlan = plan.RedshiftConfig.SSHTunnel
+		sshTunnelState = state.RedshiftConfig.SSHTunnel
+	}
+	if (sshTunnelPlan != nil) != (sshTunnelState != nil) {
+		sshTunnelStateChanged = true
+		globalConfigChanges.IsSshTunnelEnabled = lo.ToPtr(sshTunnelPlan != nil)
+	}
+
 	switch {
 	case plan.SnowflakeConfig != nil:
 
@@ -1065,7 +1080,7 @@ func (r *globalConnectionResource) Update(
 			}
 		}
 
-		if warehouseConfigChanged {
+		if warehouseConfigChanged || sshTunnelStateChanged {
 			updateCommon, _, err := c.Update(
 				state.ID.ValueInt64(),
 				globalConfigChanges,
@@ -1126,7 +1141,7 @@ func (r *globalConnectionResource) Update(
 			}
 		}
 
-		if warehouseConfigChanged {
+		if warehouseConfigChanged || sshTunnelStateChanged {
 			updateCommon, _, err := c.Update(
 				state.ID.ValueInt64(),
 				globalConfigChanges,
