@@ -231,6 +231,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `target_name` (String) Target name for the dbt profile
 - `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
+- `validate_execute_steps` (Boolean) When set to `true`, the provider will validate the `execute_steps` during plan time to ensure they contain valid dbt commands. If a command is not recognized (e.g., a new dbt command not yet supported by the provider), the validation will fail. Defaults to `false` to allow flexibility with newer dbt commands.
 
 ### Read-Only
 
