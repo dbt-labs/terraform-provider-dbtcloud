@@ -767,7 +767,7 @@ func (j *jobResource) validateExecuteSteps(executeSteps []string) error {
 	for _, step := range executeSteps {
 		// Check if step matches valid dbt command pattern
 		if !validCommandsRegex.MatchString(step) {
-			return fmt.Errorf("invalid command: %s", step)
+			return fmt.Errorf("invalid command: %s. Allowed commands are: %s", step, strings.Join(dbt_commands, ", "))
 		}
 
 		// Check that each flag isn't used more than once within this step
