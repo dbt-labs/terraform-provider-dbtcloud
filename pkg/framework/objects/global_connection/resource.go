@@ -351,6 +351,12 @@ func (r *globalConnectionResource) Create(
 			redshiftCfg.DBName.Set(plan.RedshiftConfig.DBName.ValueString())
 		}
 
+		sshTunnelEnabled := false
+		if plan.RedshiftConfig.SSHTunnel != nil {
+			sshTunnelEnabled = true
+		}
+		commonCfg.IsSshTunnelEnabled = &sshTunnelEnabled
+
 		commonResp, _, err := c.Create(commonCfg, redshiftCfg)
 		if err != nil {
 			resp.Diagnostics.AddError("Error creating the connection", err.Error())
@@ -409,6 +415,12 @@ func (r *globalConnectionResource) Create(
 			resp.Diagnostics.AddError("Error creating the connection", err.Error())
 			return
 		}
+
+		sshTunnelEnabled := false
+		if plan.PostgresConfig.SSHTunnel != nil {
+			sshTunnelEnabled = true
+		}
+		commonCfg.IsSshTunnelEnabled = &sshTunnelEnabled
 
 		// SSH tunnel settings
 		if plan.PostgresConfig.SSHTunnel != nil {
@@ -834,7 +846,7 @@ func (r *globalConnectionResource) Update(
 		}
 		if plan.BigQueryConfig.UseLatestAdapter != state.BigQueryConfig.UseLatestAdapter {
 			resp.Diagnostics.AddError("Error updating global connection", "Changing the adapter version is not supported.")
-				return
+			return
 		}
 
 		left, right := lo.Difference(plan.BigQueryConfig.Scopes, state.BigQueryConfig.Scopes)
