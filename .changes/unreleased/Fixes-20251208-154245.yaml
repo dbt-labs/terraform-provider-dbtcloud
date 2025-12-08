@@ -1,0 +1,3 @@
+kind: Fixes
+body: SSH Tunnel flag correctly set for Postgres and Redshift connections
+time: 2025-12-08T15:42:45.59928+02:00
