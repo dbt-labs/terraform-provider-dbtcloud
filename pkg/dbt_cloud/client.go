@@ -226,7 +226,7 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 		}
 
 		if res.StatusCode == 400 {
-			return nil, fmt.Errorf("bad-request: %s", body)
+			return nil, fmt.Errorf("resource-not-found: %s", body)
 		}
 
 		// Handle permission errors (401 Unauthorized, 403 Forbidden)
