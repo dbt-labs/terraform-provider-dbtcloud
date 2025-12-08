@@ -26,7 +26,7 @@ func buildAcctestConfig() AcctestConfig {
 		DbtCloudUserEmail: determineStringValue(
 			"ACC_TEST_DBT_CLOUD_USER_EMAIL",
 			"d"+"ev@"+"db"+"tla"+"bs.c"+"om",
-			"beno"+"it"+".per"+"igaud"+"@"+"fisht"+"ownanalytics"+"."+"com",
+			"beno"+"it"+".per"+"igaud"+"@"+"db"+"tla"+"bs."+"com",
 		),
 		DbtCloudGroupIds: determineStringValue(
 			"ACC_TEST_DBT_CLOUD_GROUP_IDS",
