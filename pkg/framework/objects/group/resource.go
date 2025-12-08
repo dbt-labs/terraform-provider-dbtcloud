@@ -123,8 +123,11 @@ func (r *groupResource) Create(
 			"Unable to assign permissions to the group",
 			"Error: "+err.Error(),
 		)
+
+		// TODO: Delete the group if the permissions update fails
 		return
 	}
+
 	plan.ID = types.Int64Value(int64(*createdGroup.ID))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
