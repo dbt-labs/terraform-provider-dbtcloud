@@ -38,6 +38,10 @@ var (
 		"metadata_only",
 		"semantic_layer_only",
 		"webhooks_only",
+		"fusion_admin",
+		"cost_management_viewer",
+		"cost_management_admin",
+		"manage_marketplace_apps",
 	}
 )
 

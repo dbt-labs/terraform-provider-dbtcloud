@@ -12,27 +12,31 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 
 | Permission name | `permission_set = ...` |
 | --- | --- |
-| Account Admin | `"account_admin"` |
-| Account Viewer | `"account_viewer"` |
-| Admin | `"admin"` |
-| Analyst | `"analyst"` |
-| Billing Admin | `"billing_admin"` |
-| Database Admin | `"database_admin"` |
-| Developer | `"developer"` |
-| Git Admin | `"git_admin"` |
-| Job Admin | `"job_admin"` |
-| Job Runner | `"job_runner"` |
-| Job Viewer | `"job_viewer"` |
-| Member | `"member"` |
-| Metadata Only | `"metadata_only"` |
-| Owner | `"owner"` |
-| Project Creator | `"project_creator"` |
-| Read-Only | `"readonly"` |
-| Security Admin | `"security_admin"` |
-| Semantic Layer Only | `"semantic_layer_only"` |
-| Stakeholder | `"stakeholder"` |
-| Team Admin | `"team_admin"` |
-| Webhooks Only | `"webhooks_only"` |
+|Account Admin | account_admin|
+|Account Viewer | account_viewer|
+|Admin | admin|
+|Analyst | analyst|
+|Billing Admin | billing_admin|
+|Cost Management viewer | cost_management_viewer|
+|Cost Management admin | cost_management_admin|
+|Database Admin | database_admin|
+|Developer | developer|
+|Fusion Admin | fusion_admin|
+|Git Admin | git_admin|
+|Job Admin | job_admin|
+|Job Runner | job_runner|
+|Job Viewer | job_viewer|
+|Manage marketplace apps | manage_marketplace_apps|
+|Member | member|
+|Metadata Only | metadata_only|
+|Owner | owner|
+|Project Creator | project_creator|
+|Read-Only | readonly|
+|Security Admin | security_admin|
+|Semantic Layer Only | semantic_layer_only|
+|Stakeholder | stakeholder|
+|Team Admin | team_admin|
+|Webhooks Only | webhooks_only|
 
 
 
