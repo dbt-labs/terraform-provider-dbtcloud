@@ -694,32 +694,32 @@ func TestAccDbtCloudGlobalConnectionRedshiftResource(t *testing.T) {
 					),
 				),
 			},
-			// modify, adding optional fields
-			{
-				Config: testAccDbtCloudSGlobalConnectionRedshiftResourceFullConfig(
-					connectionName,
+		// modify, adding optional fields
+		{
+			Config: testAccDbtCloudSGlobalConnectionRedshiftResourceFullConfig(
+				connectionName,
+			),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrSet(
+					"dbtcloud_global_connection.test",
+					"id",
 				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_global_connection.test",
-						"id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"adapter_version",
-						"redshift_v0",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"is_ssh_tunnel_enabled",
-						"false",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_global_connection.test",
-						"redshift.ssh_tunnel.public_key",
-					),
+				resource.TestCheckResourceAttr(
+					"dbtcloud_global_connection.test",
+					"adapter_version",
+					"redshift_v0",
 				),
-			},
+				resource.TestCheckResourceAttr(
+					"dbtcloud_global_connection.test",
+					"is_ssh_tunnel_enabled",
+					"true",
+				),
+				resource.TestCheckResourceAttrSet(
+					"dbtcloud_global_connection.test",
+					"redshift.ssh_tunnel.public_key",
+				),
+			),
+		},
 			// IMPORT WITH ALL FIELDS
 			{
 				ResourceName:            "dbtcloud_global_connection.test",
@@ -835,32 +835,32 @@ func TestAccDbtCloudGlobalConnectionPostgresResource(t *testing.T) {
 					),
 				),
 			},
-			// modify, adding optional fields
-			{
-				Config: testAccDbtCloudSGlobalConnectionPostgresResourceFullConfig(
-					connectionName,
+		// modify, adding optional fields
+		{
+			Config: testAccDbtCloudSGlobalConnectionPostgresResourceFullConfig(
+				connectionName,
+			),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrSet(
+					"dbtcloud_global_connection.test",
+					"id",
 				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_global_connection.test",
-						"id",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"adapter_version",
-						"postgres_v0",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_global_connection.test",
-						"is_ssh_tunnel_enabled",
-						"false",
-					),
-					resource.TestCheckResourceAttrSet(
-						"dbtcloud_global_connection.test",
-						"postgres.ssh_tunnel.public_key",
-					),
+				resource.TestCheckResourceAttr(
+					"dbtcloud_global_connection.test",
+					"adapter_version",
+					"postgres_v0",
 				),
-			},
+				resource.TestCheckResourceAttr(
+					"dbtcloud_global_connection.test",
+					"is_ssh_tunnel_enabled",
+					"true",
+				),
+				resource.TestCheckResourceAttrSet(
+					"dbtcloud_global_connection.test",
+					"postgres.ssh_tunnel.public_key",
+				),
+			),
+		},
 			// IMPORT WITH ALL FIELDS
 			{
 				ResourceName:            "dbtcloud_global_connection.test",
