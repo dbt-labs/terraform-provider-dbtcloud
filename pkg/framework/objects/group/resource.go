@@ -124,7 +124,15 @@ func (r *groupResource) Create(
 			"Error: "+err.Error(),
 		)
 
-		// TODO: Delete the group if the permissions update fails
+		// Delete the group if the permissions update fails
+		createdGroup.State = dbt_cloud.STATE_DELETED
+		_, deleteErr := r.client.UpdateGroup(*createdGroup.ID, *createdGroup)
+		if deleteErr != nil {
+			resp.Diagnostics.AddError(
+				"Unable to delete group after permissions failure",
+				"Error: "+deleteErr.Error(),
+			)
+		}
 		return
 	}
 
