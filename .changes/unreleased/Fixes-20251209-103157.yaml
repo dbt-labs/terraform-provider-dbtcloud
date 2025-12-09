@@ -1,0 +1,3 @@
+kind: Fixes
+body: Lingering group deleted if permissions update fails
+time: 2025-12-09T10:31:57.245811+02:00
