@@ -144,16 +144,20 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 	// Validate job_type field changes if the field is being explicitly set
 	// Note: If plan.JobType is set but state.JobType is null (first time setting it),
 	// the validation will happen in Update against the actual server value
+	// Skip validation if either value is empty (empty means "not explicitly set")
 	if !plan.JobType.IsNull() && !state.JobType.IsNull() {
 		prevJobType := state.JobType.ValueString()
 		newJobType := plan.JobType.ValueString()
 
-		if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
-			resp.Diagnostics.AddError(
-				"Invalid job_type change",
-				fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
-			)
-			return
+		// Only validate if both values are non-empty (explicitly set)
+		if prevJobType != "" && newJobType != "" {
+			if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+				resp.Diagnostics.AddError(
+					"Invalid job_type change",
+					fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
+				)
+				return
+			}
 		}
 	}
 }
@@ -757,7 +761,8 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Handle job_type updates with validation
-	if !plan.JobType.IsNull() {
+	// Only validate and set if the plan has an explicit non-empty job_type value
+	if !plan.JobType.IsNull() && plan.JobType.ValueString() != "" {
 		newJobType := plan.JobType.ValueString()
 		prevJobType := job.JobType // This is the current value from the API
 
