@@ -3,6 +3,7 @@ package environment
 import (
 	"context"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment/validators"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -223,10 +224,16 @@ func (r *environmentResource) Schema(
 				Optional:    true,
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether to use a custom git branch in this environment",
+				Validators: []validator.Bool{
+					validators.UseCustomBranchValidator{},
+				},
 			},
 			"custom_branch": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "The custom branch name to use",
+				Validators: []validator.String{
+					validators.CustomBranchValidator{},
+				},
 			},
 			"deployment_type": resource_schema.StringAttribute{
 				Optional:    true,

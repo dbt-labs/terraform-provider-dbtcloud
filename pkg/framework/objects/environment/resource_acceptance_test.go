@@ -523,3 +523,68 @@ func TestAccDbtCloudEnvironmentResourceFusion(t *testing.T) {
 		},
 	})
 }
+
+// TestAccDbtCloudEnvironmentResourceCustomBranchValidation tests that the custom_branch
+// and use_custom_branch fields are validated correctly. This addresses GitHub issue #574.
+func TestAccDbtCloudEnvironmentResourceCustomBranchValidation(t *testing.T) {
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Test: custom_branch set but use_custom_branch is false - should error
+			{
+				Config: testAccDbtCloudEnvironmentResourceCustomBranchWithoutUseFlag(
+					projectName,
+					environmentName,
+				),
+				ExpectError: regexp.MustCompile("Inconsistent custom branch configuration"),
+			},
+			// Test: use_custom_branch is true but custom_branch is not set - should error
+			{
+				Config: testAccDbtCloudEnvironmentResourceUseCustomBranchWithoutBranch(
+					projectName,
+					environmentName,
+				),
+				ExpectError: regexp.MustCompile("Missing custom_branch"),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudEnvironmentResourceCustomBranchWithoutUseFlag(
+	projectName, environmentName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name              = "%s"
+  type              = "development"
+  project_id        = dbtcloud_project.test_project.id
+  use_custom_branch = false
+  custom_branch     = "my-custom-branch"
+}
+`, projectName, environmentName)
+}
+
+func testAccDbtCloudEnvironmentResourceUseCustomBranchWithoutBranch(
+	projectName, environmentName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name              = "%s"
+  type              = "development"
+  project_id        = dbtcloud_project.test_project.id
+  use_custom_branch = true
+}
+`, projectName, environmentName)
+}
