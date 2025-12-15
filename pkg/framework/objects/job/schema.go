@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -475,6 +475,9 @@ func (j *jobResource) Schema(
 				Validators: []validator.Bool{
 					job_validators.ForceNodeSelectionValidator(),
 				},
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
@@ -586,6 +589,9 @@ func (j *jobResource) Schema(
 						path.MatchRoot("deferring_job_id"),
 					),
 				},
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"triggers_on_draft_pr": resource_schema.BoolAttribute{
 				Optional:    true,
@@ -603,9 +609,6 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 
 			// todo add these after

@@ -23,8 +23,58 @@ var (
 	_ resource.ResourceWithModifyPlan  = &jobResource{}
 )
 
+// Job type constants matching the server-side JobType enum
+const (
+	JobTypeCI        = "ci"
+	JobTypeMerge     = "merge"
+	JobTypeScheduled = "scheduled"
+	JobTypeOther     = "other"
+	JobTypeAdaptive  = "adaptive"
+)
+
 type jobResource struct {
 	client *dbt_cloud.Client
+}
+
+// validateJobTypeChange validates if a job type transition is allowed.
+// This mirrors the server-side validation in _validate_job_type_change.
+func validateJobTypeChange(prevJobType, newJobType string) error {
+	// If no change, always allowed
+	if prevJobType == newJobType {
+		return nil
+	}
+
+	// If previous type is empty (not set), any new type is allowed
+	if prevJobType == "" {
+		return nil
+	}
+
+	// CI jobs can only stay CI
+	if prevJobType == JobTypeCI && newJobType != JobTypeCI {
+		return fmt.Errorf("the job type field for this job can only be set to 'ci'")
+	}
+
+	// Adaptive jobs can only stay adaptive
+	if prevJobType == JobTypeAdaptive && newJobType != JobTypeAdaptive {
+		return fmt.Errorf("the job type field for this job can only be set to 'adaptive'")
+	}
+
+	// Scheduled jobs can only change to scheduled or other
+	if prevJobType == JobTypeScheduled && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
+		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
+	}
+
+	// Other jobs can only change to scheduled or other
+	if prevJobType == JobTypeOther && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
+		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
+	}
+
+	// Merge jobs - treating similar to CI (cannot change away from merge)
+	if prevJobType == JobTypeMerge && newJobType != JobTypeMerge {
+		return fmt.Errorf("the job type field for this job can only be set to 'merge'")
+	}
+
+	return nil
 }
 
 func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
@@ -88,6 +138,26 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 
 		if oldType != newType {
 			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
+		}
+	}
+
+	// Validate job_type field changes if the field is being explicitly set
+	// Note: If plan.JobType is set but state.JobType is null (first time setting it),
+	// the validation will happen in Update against the actual server value
+	// Skip validation if either value is empty (empty means "not explicitly set")
+	if !plan.JobType.IsNull() && !state.JobType.IsNull() {
+		prevJobType := state.JobType.ValueString()
+		newJobType := plan.JobType.ValueString()
+
+		// Only validate if both values are non-empty (explicitly set)
+		if prevJobType != "" && newJobType != "" {
+			if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+				resp.Diagnostics.AddError(
+					"Invalid job_type change",
+					fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
+				)
+				return
+			}
 		}
 	}
 }
@@ -399,7 +469,15 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.ScheduleType = types.StringValue(retrievedJob.Schedule.Date.Type)
 
 	schedule := 1
-	if retrievedJob.Schedule.Time.Interval > 0 {
+	if retrievedJob.Schedule.Date.Type == "interval_cron" && retrievedJob.Schedule.Date.Cron != nil {
+		// For interval_cron, parse the interval from the cron expression (e.g., "4 */5 * * 0,1,2,3,4,5,6")
+		cronParts := strings.Split(*retrievedJob.Schedule.Date.Cron, " ")
+		if len(cronParts) >= 2 && strings.HasPrefix(cronParts[1], "*/") {
+			if intervalVal, err := strconv.Atoi(strings.TrimPrefix(cronParts[1], "*/")); err == nil {
+				schedule = intervalVal
+			}
+		}
+	} else if retrievedJob.Schedule.Time.Interval > 0 {
 		schedule = retrievedJob.Schedule.Time.Interval
 	}
 	state.ScheduleInterval = types.Int64Value(int64(schedule))
@@ -617,6 +695,15 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if scheduleType == "custom_cron" || scheduleType == "every_day" {
 		job.Schedule.Date.Days = nil
 	}
+	if scheduleType == "interval_cron" {
+		// For interval_cron, build the cron expression like CreateJob does
+		daysStr := make([]string, len(plan.ScheduleDays))
+		for i, day := range plan.ScheduleDays {
+			daysStr[i] = strconv.Itoa(int(day.ValueInt64()))
+		}
+		cronExpr := fmt.Sprintf("4 */%d * * %s", scheduleInterval, strings.Join(daysStr, ","))
+		job.Schedule.Date.Cron = &cronExpr
+	}
 
 	if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
 		job.DeferringEnvironmentId = nil
@@ -673,6 +760,24 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.ForceNodeSelection = &fns
 	}
 
+	// Handle job_type updates with validation
+	// Only validate and set if the plan has an explicit non-empty job_type value
+	if !plan.JobType.IsNull() && plan.JobType.ValueString() != "" {
+		newJobType := plan.JobType.ValueString()
+		prevJobType := job.JobType // This is the current value from the API
+
+		// Validate the job type change
+		if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid job_type change",
+				fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
+			)
+			return
+		}
+
+		job.JobType = newJobType
+	}
+
 	// Capture what's changing for better error messages
 	oldEnvID := state.EnvironmentID.ValueInt64()
 	newEnvID := plan.EnvironmentID.ValueInt64()
@@ -716,6 +821,13 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.JobType = types.StringValue(updatedJob.JobType)
 	} else {
 		plan.JobType = types.StringNull()
+	}
+
+	// Populate force_node_selection from API response
+	if updatedJob.ForceNodeSelection != nil {
+		plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+	} else {
+		plan.ForceNodeSelection = types.BoolNull()
 	}
 
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
