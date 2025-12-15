@@ -23,8 +23,58 @@ var (
 	_ resource.ResourceWithModifyPlan  = &jobResource{}
 )
 
+// Job type constants matching the server-side JobType enum
+const (
+	JobTypeCI        = "ci"
+	JobTypeMerge     = "merge"
+	JobTypeScheduled = "scheduled"
+	JobTypeOther     = "other"
+	JobTypeAdaptive  = "adaptive"
+)
+
 type jobResource struct {
 	client *dbt_cloud.Client
+}
+
+// validateJobTypeChange validates if a job type transition is allowed.
+// This mirrors the server-side validation in _validate_job_type_change.
+func validateJobTypeChange(prevJobType, newJobType string) error {
+	// If no change, always allowed
+	if prevJobType == newJobType {
+		return nil
+	}
+
+	// If previous type is empty (not set), any new type is allowed
+	if prevJobType == "" {
+		return nil
+	}
+
+	// CI jobs can only stay CI
+	if prevJobType == JobTypeCI && newJobType != JobTypeCI {
+		return fmt.Errorf("the job type field for this job can only be set to 'ci'")
+	}
+
+	// Adaptive jobs can only stay adaptive
+	if prevJobType == JobTypeAdaptive && newJobType != JobTypeAdaptive {
+		return fmt.Errorf("the job type field for this job can only be set to 'adaptive'")
+	}
+
+	// Scheduled jobs can only change to scheduled or other
+	if prevJobType == JobTypeScheduled && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
+		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
+	}
+
+	// Other jobs can only change to scheduled or other
+	if prevJobType == JobTypeOther && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
+		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
+	}
+
+	// Merge jobs - treating similar to CI (cannot change away from merge)
+	if prevJobType == JobTypeMerge && newJobType != JobTypeMerge {
+		return fmt.Errorf("the job type field for this job can only be set to 'merge'")
+	}
+
+	return nil
 }
 
 func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
@@ -88,6 +138,22 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 
 		if oldType != newType {
 			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
+		}
+	}
+
+	// Validate job_type field changes if the field is being explicitly set
+	// Note: If plan.JobType is set but state.JobType is null (first time setting it),
+	// the validation will happen in Update against the actual server value
+	if !plan.JobType.IsNull() && !state.JobType.IsNull() {
+		prevJobType := state.JobType.ValueString()
+		newJobType := plan.JobType.ValueString()
+
+		if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid job_type change",
+				fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
+			)
+			return
 		}
 	}
 }
@@ -688,6 +754,23 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	} else {
 		fns := plan.ForceNodeSelection.ValueBool()
 		job.ForceNodeSelection = &fns
+	}
+
+	// Handle job_type updates with validation
+	if !plan.JobType.IsNull() {
+		newJobType := plan.JobType.ValueString()
+		prevJobType := job.JobType // This is the current value from the API
+
+		// Validate the job type change
+		if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid job_type change",
+				fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
+			)
+			return
+		}
+
+		job.JobType = newJobType
 	}
 
 	// Capture what's changing for better error messages
