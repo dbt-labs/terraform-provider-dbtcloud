@@ -198,9 +198,6 @@ func (r *environmentResource) Schema(
 			"name": resource_schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the environment",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"dbt_version": resource_schema.StringAttribute{
 				Computed:    true,
