@@ -399,7 +399,15 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.ScheduleType = types.StringValue(retrievedJob.Schedule.Date.Type)
 
 	schedule := 1
-	if retrievedJob.Schedule.Time.Interval > 0 {
+	if retrievedJob.Schedule.Date.Type == "interval_cron" && retrievedJob.Schedule.Date.Cron != nil {
+		// For interval_cron, parse the interval from the cron expression (e.g., "4 */5 * * 0,1,2,3,4,5,6")
+		cronParts := strings.Split(*retrievedJob.Schedule.Date.Cron, " ")
+		if len(cronParts) >= 2 && strings.HasPrefix(cronParts[1], "*/") {
+			if intervalVal, err := strconv.Atoi(strings.TrimPrefix(cronParts[1], "*/")); err == nil {
+				schedule = intervalVal
+			}
+		}
+	} else if retrievedJob.Schedule.Time.Interval > 0 {
 		schedule = retrievedJob.Schedule.Time.Interval
 	}
 	state.ScheduleInterval = types.Int64Value(int64(schedule))
@@ -617,6 +625,15 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if scheduleType == "custom_cron" || scheduleType == "every_day" {
 		job.Schedule.Date.Days = nil
 	}
+	if scheduleType == "interval_cron" {
+		// For interval_cron, build the cron expression like CreateJob does
+		daysStr := make([]string, len(plan.ScheduleDays))
+		for i, day := range plan.ScheduleDays {
+			daysStr[i] = strconv.Itoa(int(day.ValueInt64()))
+		}
+		cronExpr := fmt.Sprintf("4 */%d * * %s", scheduleInterval, strings.Join(daysStr, ","))
+		job.Schedule.Date.Cron = &cronExpr
+	}
 
 	if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
 		job.DeferringEnvironmentId = nil
@@ -716,6 +733,13 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.JobType = types.StringValue(updatedJob.JobType)
 	} else {
 		plan.JobType = types.StringNull()
+	}
+
+	// Populate force_node_selection from API response
+	if updatedJob.ForceNodeSelection != nil {
+		plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+	} else {
+		plan.ForceNodeSelection = types.BoolNull()
 	}
 
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)

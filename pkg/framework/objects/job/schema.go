@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -475,6 +476,9 @@ func (j *jobResource) Schema(
 				Validators: []validator.Bool{
 					job_validators.ForceNodeSelectionValidator(),
 				},
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
@@ -585,6 +589,9 @@ func (j *jobResource) Schema(
 					boolvalidator.ConflictsWith(
 						path.MatchRoot("deferring_job_id"),
 					),
+				},
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"triggers_on_draft_pr": resource_schema.BoolAttribute{
