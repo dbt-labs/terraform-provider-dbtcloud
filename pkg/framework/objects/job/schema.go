@@ -604,6 +604,7 @@ func (j *jobResource) Schema(
 				Computed:    true,
 				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
