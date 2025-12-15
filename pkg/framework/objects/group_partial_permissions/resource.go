@@ -265,6 +265,7 @@ func (r *groupPartialPermissionsResource) Delete(
 			"Issue getting Group",
 			"Error: "+err.Error(),
 		)
+		return
 	}
 
 	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
