@@ -39,6 +39,7 @@ resource "dbtcloud_global_connection" "athena" {
   }
 }
 
+// BigQuery connection with Service Account JSON authentication
 resource "dbtcloud_global_connection" "bigquery" {
   name = "My BigQuery connection"
   bigquery = {
@@ -52,8 +53,19 @@ resource "dbtcloud_global_connection" "bigquery" {
     token_uri                   = "my_token_uri"
     auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
     client_x509_cert_url        = "my_client_x509_cert_url"
-    application_id              = "oauth_application_id"
-    application_secret          = "oauth_secret_id"
+    // optional: explicitly set the auth type (defaults to service-account-json behavior when not set)
+    deployment_env_auth_type    = "service-account-json"
+  }
+}
+
+// BigQuery connection with External OAuth (Workload Identity Federation)
+resource "dbtcloud_global_connection" "bigquery_wif" {
+  name = "My BigQuery WIF connection"
+  bigquery = {
+    gcp_project_id           = "my-gcp-project-id"
+    application_id           = "oauth_application_id"
+    application_secret       = "oauth_secret_id"
+    deployment_env_auth_type = "external-oauth-wif"
   }
 }
 
@@ -228,22 +240,20 @@ Optional:
 
 Required:
 
-- `auth_provider_x509_cert_url` (String) Auth Provider X509 Cert URL for the Service Account
-- `auth_uri` (String) Auth URI for the Service Account
-- `client_email` (String) Service Account email
-- `client_id` (String) Client ID of the Service Account
-- `client_x509_cert_url` (String) Client X509 Cert URL for the Service Account
 - `gcp_project_id` (String) The GCP project ID to use for the connection
-- `private_key` (String, Sensitive) Private Key for the Service Account
-- `private_key_id` (String) Private Key ID for the Service Account
-- `token_uri` (String) Token URI for the Service Account
 
 Optional:
 
-- `application_id` (String, Sensitive) OAuth Client ID
-- `application_secret` (String, Sensitive) OAuth Client Secret
+- `application_id` (String, Sensitive) OAuth Client ID. Required when using 'external-oauth-wif' authentication.
+- `application_secret` (String, Sensitive) OAuth Client Secret. Required when using 'external-oauth-wif' authentication.
+- `auth_provider_x509_cert_url` (String) Auth Provider X509 Cert URL for the Service Account. Required when using 'service-account-json' authentication.
+- `auth_uri` (String) Auth URI for the Service Account. Required when using 'service-account-json' authentication.
+- `client_email` (String) Service Account email. Required when using 'service-account-json' authentication.
+- `client_id` (String) Client ID of the Service Account. Required when using 'service-account-json' authentication.
+- `client_x509_cert_url` (String) Client X509 Cert URL for the Service Account. Required when using 'service-account-json' authentication.
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
 - `dataproc_region` (String) Google Cloud region for PySpark workloads on Dataproc
+- `deployment_env_auth_type` (String) Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'.
 - `execution_project` (String) Project to bill for query execution
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `impersonate_service_account` (String) Service Account to impersonate when running queries
@@ -253,9 +263,12 @@ Optional:
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
 - `priority` (String) The priority with which to execute BigQuery queries (batch or interactive)
+- `private_key` (String, Sensitive) Private Key for the Service Account. Required when using 'service-account-json' authentication.
+- `private_key_id` (String) Private Key ID for the Service Account. Required when using 'service-account-json' authentication.
 - `retries` (Number) Number of retries for queries
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries, to be used ONLY for the bigquery_v0 adapter
+- `token_uri` (String) Token URI for the Service Account. Required when using 'service-account-json' authentication.
 - `use_latest_adapter` (Boolean) Whether to use the latest bigquery_v1 adapter (use this for BQ WIF). If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.
 
 

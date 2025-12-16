@@ -456,6 +456,7 @@ type BigQueryConfig struct {
 	DataprocRegion             nullable.Nullable[string] `json:"dataproc_region,omitempty"`
 	DataprocClusterName        nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
 	Scopes                     []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
+	DeploymentEnvAuthType      nullable.Nullable[string] `json:"deployment_env_auth_type,omitempty"`
 }
 
 func (BigQueryConfig) LatestAdapterVersion() string {

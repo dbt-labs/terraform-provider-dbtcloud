@@ -209,6 +209,14 @@ func readGeneric(
 			state.BigQueryConfig.DataprocClusterName = types.StringNull()
 		}
 
+		if !bigqueryCfg.DeploymentEnvAuthType.IsNull() {
+			state.BigQueryConfig.DeploymentEnvAuthType = types.StringValue(
+				bigqueryCfg.DeploymentEnvAuthType.MustGet(),
+			)
+		} else {
+			state.BigQueryConfig.DeploymentEnvAuthType = types.StringNull()
+		}
+
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: ApplicationID, ApplicationSecret, PrivateKey
 

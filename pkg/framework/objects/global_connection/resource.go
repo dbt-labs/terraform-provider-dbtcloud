@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection/validators"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -40,18 +41,20 @@ func (r *globalConnectionResource) Metadata(
 
 func (r globalConnectionResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 
-	var validators []path.Expression
+	var warehouseValidators []path.Expression
 	for _, warehouse := range supportedGlobalConfigTypes {
-		validators = append(validators, path.MatchRoot(warehouse))
+		warehouseValidators = append(warehouseValidators, path.MatchRoot(warehouse))
 	}
 
 	return []resource.ConfigValidator{
-		resourcevalidator.ExactlyOneOf(validators...),
+		resourcevalidator.ExactlyOneOf(warehouseValidators...),
 		// BigQuery doesn't support Private Link today
 		resourcevalidator.Conflicting(
 			path.MatchRoot("bigquery"),
 			path.MatchRoot("private_link_endpoint_id"),
 		),
+		// BigQuery auth type validation
+		validators.BigQueryAuthValidator{},
 	}
 }
 
@@ -246,6 +249,11 @@ func (r *globalConnectionResource) Create(
 		if !plan.BigQueryConfig.DataprocClusterName.IsNull() {
 			bigqueryCfg.DataprocClusterName.Set(
 				plan.BigQueryConfig.DataprocClusterName.ValueString(),
+			)
+		}
+		if !plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
+			bigqueryCfg.DeploymentEnvAuthType.Set(
+				plan.BigQueryConfig.DeploymentEnvAuthType.ValueString(),
 			)
 		}
 
@@ -962,6 +970,15 @@ func (r *globalConnectionResource) Update(
 			} else {
 				warehouseConfigChanges.DataprocClusterName.Set(
 					plan.BigQueryConfig.DataprocClusterName.ValueString(),
+				)
+			}
+		}
+		if plan.BigQueryConfig.DeploymentEnvAuthType != state.BigQueryConfig.DeploymentEnvAuthType {
+			if plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
+				warehouseConfigChanges.DeploymentEnvAuthType.SetNull()
+			} else {
+				warehouseConfigChanges.DeploymentEnvAuthType.Set(
+					plan.BigQueryConfig.DeploymentEnvAuthType.ValueString(),
 				)
 			}
 		}
