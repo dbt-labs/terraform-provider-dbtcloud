@@ -209,7 +209,7 @@ func readGeneric(
 			state.BigQueryConfig.DataprocClusterName = types.StringNull()
 		}
 
-		if !bigqueryCfg.DeploymentEnvAuthType.IsNull() {
+		if bigqueryCfg.DeploymentEnvAuthType.IsSpecified() && !bigqueryCfg.DeploymentEnvAuthType.IsNull() {
 			state.BigQueryConfig.DeploymentEnvAuthType = types.StringValue(
 				bigqueryCfg.DeploymentEnvAuthType.MustGet(),
 			)
