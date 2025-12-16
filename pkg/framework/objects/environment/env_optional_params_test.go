@@ -168,6 +168,7 @@ resource "dbtcloud_environment" "test_env" {
   project_id = dbtcloud_project.test_project.id
   connection_id = dbtcloud_global_connection.test.id
 
+  use_custom_branch = true
   custom_branch = "%s"
   deployment_type = "%s"
 
