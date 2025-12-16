@@ -311,6 +311,9 @@ func (r *globalConnectionResource) Create(
 			readState.BigQueryConfig.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds
 		}
 
+		// preserve DeploymentEnvAuthType from plan since API may not return it
+		readState.BigQueryConfig.DeploymentEnvAuthType = plan.BigQueryConfig.DeploymentEnvAuthType
+
 		plan = *readState
 
 	case plan.DatabricksConfig != nil:
