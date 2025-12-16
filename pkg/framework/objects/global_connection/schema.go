@@ -194,10 +194,12 @@ func (r *globalConnectionResource) Schema(
 					},
 					"deployment_env_auth_type": resource_schema.StringAttribute{
 						Optional: true,
+						Computed: true,
+						Default:  stringdefault.StaticString("service-account-json"),
 						Validators: []validator.String{
 							stringvalidator.OneOf([]string{"service-account-json", "external-oauth-wif"}...),
 						},
-						Description: "Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'.",
+						Description: "Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'. Defaults to 'service-account-json'.",
 					},
 				},
 			},
