@@ -245,9 +245,14 @@ func (r *environmentResource) Update(
 		envToUpdate.DeploymentType = &deploymentType
 	}
 
-	if plan.ExtendedAttributesID.ValueInt64() != state.ExtendedAttributesID.ValueInt64() {
-		extendedAttrID := int(plan.ExtendedAttributesID.ValueInt64())
-		envToUpdate.ExtendedAttributesID = &extendedAttrID
+	// Handle extended_attributes_id - need to properly handle null values
+	if !plan.ExtendedAttributesID.Equal(state.ExtendedAttributesID) {
+		if plan.ExtendedAttributesID.IsNull() {
+			envToUpdate.ExtendedAttributesID = nil
+		} else {
+			extendedAttrID := int(plan.ExtendedAttributesID.ValueInt64())
+			envToUpdate.ExtendedAttributesID = &extendedAttrID
+		}
 	}
 
 	if plan.ConnectionID.ValueInt64() != state.ConnectionID.ValueInt64() {
