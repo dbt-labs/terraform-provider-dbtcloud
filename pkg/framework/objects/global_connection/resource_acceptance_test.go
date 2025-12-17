@@ -377,16 +377,29 @@ func TestAccDbtCloudGlobalConnectionBigQueryExternalOAuthWIF(t *testing.T) {
 func testAccDbtCloudSGlobalConnectionBigQueryResourceExternalOAuthWIFConfig(
 	connectionName string,
 ) string {
+	// TODO: Remove the bogus service account fields once the API supports external-oauth-wif
+	// without requiring private_key_id, private_key, client_email, client_id, auth_uri,
+	// token_uri, auth_provider_x509_cert_url, and client_x509_cert_url
 	return fmt.Sprintf(`
 
 resource dbtcloud_global_connection test {
   name = "%s"
 
   bigquery = {
-    gcp_project_id         = "my-gcp-project-id"
-    application_id         = "oauth_application_id"
-    application_secret     = "oauth_secret_id"
+    gcp_project_id           = "my-gcp-project-id"
+    application_id           = "oauth_application_id"
+    application_secret       = "oauth_secret_id"
     deployment_env_auth_type = "external-oauth-wif"
+
+    // TODO: Remove these bogus fields once API supports external-oauth-wif without them
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
   }
 }
 

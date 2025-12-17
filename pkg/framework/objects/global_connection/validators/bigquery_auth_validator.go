@@ -51,6 +51,10 @@ func (v BigQueryAuthValidator) ValidateResource(
 
 	authTypeValue := authType.ValueString()
 
+	// TODO: Update this validation once the API supports external-oauth-wif without requiring
+	// service account fields. Currently, the API requires service account fields regardless
+	// of auth type, so we only add the extra requirement for OAuth fields when using WIF.
+
 	if authTypeValue == "external-oauth-wif" {
 		// Validate that application_id and application_secret are set
 		oauthFields := []string{"application_id", "application_secret"}
@@ -70,34 +74,34 @@ func (v BigQueryAuthValidator) ValidateResource(
 				)
 			}
 		}
-	} else if authTypeValue == "service-account-json" {
-		// Validate that all service account fields are set
-		serviceAccountFields := []string{
-			"private_key_id",
-			"private_key",
-			"client_email",
-			"client_id",
-			"auth_uri",
-			"token_uri",
-			"auth_provider_x509_cert_url",
-			"client_x509_cert_url",
+	}
+
+	// Service account fields are currently required by the API for all auth types
+	serviceAccountFields := []string{
+		"private_key_id",
+		"private_key",
+		"client_email",
+		"client_id",
+		"auth_uri",
+		"token_uri",
+		"auth_provider_x509_cert_url",
+		"client_x509_cert_url",
+	}
+
+	for _, field := range serviceAccountFields {
+		var fieldValue types.String
+		diags = req.Config.GetAttribute(ctx, path.Root("bigquery").AtName(field), &fieldValue)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
 
-		for _, field := range serviceAccountFields {
-			var fieldValue types.String
-			diags = req.Config.GetAttribute(ctx, path.Root("bigquery").AtName(field), &fieldValue)
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-
-			if fieldValue.IsNull() || fieldValue.IsUnknown() {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("bigquery").AtName(field),
-					"Missing Required Field for Service Account JSON",
-					"When deployment_env_auth_type is 'service-account-json', the field '"+field+"' must be specified.",
-				)
-			}
+		if fieldValue.IsNull() || fieldValue.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("bigquery").AtName(field),
+				"Missing Required Field for BigQuery",
+				"The field '"+field+"' must be specified for BigQuery connections.",
+			)
 		}
 	}
 }
