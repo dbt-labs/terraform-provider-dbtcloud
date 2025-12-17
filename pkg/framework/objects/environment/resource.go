@@ -245,10 +245,14 @@ func (r *environmentResource) Update(
 		envToUpdate.DeploymentType = &deploymentType
 	}
 
-	// Handle extended_attributes_id - need to properly handle null values
+	// Handle extended_attributes_id - need to properly handle null and unknown values
 	if !plan.ExtendedAttributesID.Equal(state.ExtendedAttributesID) {
-		if plan.ExtendedAttributesID.IsNull() {
-			envToUpdate.ExtendedAttributesID = nil
+		if plan.ExtendedAttributesID.IsNull() || plan.ExtendedAttributesID.IsUnknown() {
+			// If null or unknown, don't change the value (preserve existing or let API handle)
+			// We only explicitly set nil if the state had a value and plan is null (removal)
+			if !state.ExtendedAttributesID.IsNull() && plan.ExtendedAttributesID.IsNull() {
+				envToUpdate.ExtendedAttributesID = nil
+			}
 		} else {
 			extendedAttrID := int(plan.ExtendedAttributesID.ValueInt64())
 			envToUpdate.ExtendedAttributesID = &extendedAttrID
