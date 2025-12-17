@@ -452,6 +452,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) 
 					"bigquery.application_id",
 					"bigquery.timeout_seconds",
 					"bigquery.adapter_version_override",
+					"bigquery.deployment_env_auth_type",
 				},
 			},
 		},
