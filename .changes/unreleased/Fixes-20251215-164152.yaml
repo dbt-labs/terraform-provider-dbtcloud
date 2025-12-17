@@ -1,3 +1,0 @@
-kind: Fixes
-body: Return if a partial group permission delete fails
-time: 2025-12-15T16:41:52.589366+02:00
