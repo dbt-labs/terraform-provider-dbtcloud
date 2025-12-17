@@ -243,6 +243,9 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Description: "The ID of the extended attributes applied",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"connection_id": resource_schema.Int64Attribute{
 				Optional:    true,
