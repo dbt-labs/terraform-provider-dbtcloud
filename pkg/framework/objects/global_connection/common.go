@@ -115,7 +115,7 @@ func readGeneric(
 		}
 
 		var jobExecutionTimeoutSeconds int64
-		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() {
+		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() && !bigqueryCfg.JobExecutionTimeoutSeconds.IsNull() {
 			jobExecutionTimeoutSeconds = bigqueryCfg.JobExecutionTimeoutSeconds.MustGet()
 			state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(&jobExecutionTimeoutSeconds)
 		}
