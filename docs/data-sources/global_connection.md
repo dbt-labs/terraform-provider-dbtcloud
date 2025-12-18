@@ -97,6 +97,7 @@ Read-Only:
 - `client_x509_cert_url` (String) Client X509 Cert URL for the Service Account
 - `dataproc_cluster_name` (String) Dataproc cluster name for PySpark workloads
 - `dataproc_region` (String) Google Cloud region for PySpark workloads on Dataproc
+- `deployment_env_auth_type` (String) Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'.
 - `execution_project` (String) Project to bill for query execution
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `impersonate_service_account` (String) Service Account to impersonate when running queries

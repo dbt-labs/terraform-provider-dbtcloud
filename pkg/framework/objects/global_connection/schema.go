@@ -79,37 +79,37 @@ func (r *globalConnectionResource) Schema(
 						Description: "Timeout in seconds for job execution, to be used for the bigquery_v1 adapter",
 					},
 					"private_key_id": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Private Key ID for the Service Account",
+						Optional:    true,
+						Description: "Private Key ID for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"private_key": resource_schema.StringAttribute{
-						Required:    true,
+						Optional:    true,
 						Sensitive:   true,
-						Description: "Private Key for the Service Account",
+						Description: "Private Key for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"client_email": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Service Account email",
+						Optional:    true,
+						Description: "Service Account email. Required when using 'service-account-json' authentication.",
 					},
 					"client_id": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Client ID of the Service Account",
+						Optional:    true,
+						Description: "Client ID of the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"auth_uri": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Auth URI for the Service Account",
+						Optional:    true,
+						Description: "Auth URI for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"token_uri": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Token URI for the Service Account",
+						Optional:    true,
+						Description: "Token URI for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"auth_provider_x509_cert_url": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Auth Provider X509 Cert URL for the Service Account",
+						Optional:    true,
+						Description: "Auth Provider X509 Cert URL for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"client_x509_cert_url": resource_schema.StringAttribute{
-						Required:    true,
-						Description: "Client X509 Cert URL for the Service Account",
+						Optional:    true,
+						Description: "Client X509 Cert URL for the Service Account. Required when using 'service-account-json' authentication.",
 					},
 					"priority": resource_schema.StringAttribute{
 						Optional: true,
@@ -150,12 +150,12 @@ func (r *globalConnectionResource) Schema(
 					},
 					"application_id": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client ID",
+						Description: "OAuth Client ID. Required when using 'external-oauth-wif' authentication.",
 						Sensitive:   true,
 					},
 					"application_secret": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client Secret",
+						Description: "OAuth Client Secret. Required when using 'external-oauth-wif' authentication.",
 						Sensitive:   true,
 					},
 					"gcs_bucket": resource_schema.StringAttribute{
@@ -191,6 +191,15 @@ func (r *globalConnectionResource) Schema(
 					"use_latest_adapter": resource_schema.BoolAttribute{
 						Optional:    true,
 						Description: "Whether to use the latest bigquery_v1 adapter (use this for BQ WIF). If true, the `job_execution_timeout_seconds` field will be used. Warning! changing the adapter version (from legacy to latest or vice versa) is not supported.",
+					},
+					"deployment_env_auth_type": resource_schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+						Default:  stringdefault.StaticString("service-account-json"),
+						Validators: []validator.String{
+							stringvalidator.OneOf([]string{"service-account-json", "external-oauth-wif"}...),
+						},
+						Description: "Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'. Defaults to 'service-account-json'.",
 					},
 				},
 			},
@@ -749,6 +758,10 @@ func (r *globalConnectionDataSource) Schema(
 						Computed:    true,
 						ElementType: types.StringType,
 						Description: "OAuth scopes for the BigQuery connection",
+					},
+					"deployment_env_auth_type": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "Authentication type for deployment environments. Can be 'service-account-json' or 'external-oauth-wif'.",
 					},
 				},
 			},

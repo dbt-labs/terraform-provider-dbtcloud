@@ -115,7 +115,7 @@ func readGeneric(
 		}
 
 		var jobExecutionTimeoutSeconds int64
-		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() {
+		if bigqueryCfg.JobExecutionTimeoutSeconds.IsSpecified() && !bigqueryCfg.JobExecutionTimeoutSeconds.IsNull() {
 			jobExecutionTimeoutSeconds = bigqueryCfg.JobExecutionTimeoutSeconds.MustGet()
 			state.BigQueryConfig.JobExecutionTimeoutSeconds = types.Int64PointerValue(&jobExecutionTimeoutSeconds)
 		}
@@ -208,6 +208,15 @@ func readGeneric(
 		} else {
 			state.BigQueryConfig.DataprocClusterName = types.StringNull()
 		}
+
+		// Only update DeploymentEnvAuthType if the API returns a value
+		// Otherwise, preserve the existing state value (which may have the schema default)
+		if bigqueryCfg.DeploymentEnvAuthType.IsSpecified() && !bigqueryCfg.DeploymentEnvAuthType.IsNull() {
+			state.BigQueryConfig.DeploymentEnvAuthType = types.StringValue(
+				bigqueryCfg.DeploymentEnvAuthType.MustGet(),
+			)
+		}
+		// If not specified or null from API, keep the existing state.BigQueryConfig.DeploymentEnvAuthType value
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: ApplicationID, ApplicationSecret, PrivateKey

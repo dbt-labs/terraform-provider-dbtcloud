@@ -233,6 +233,11 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.deployment_env_auth_type",
+						"service-account-json",
+					),
 				),
 			},
 			// modify, removing optional fields to check PATCH when we remove fields
@@ -267,6 +272,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
 					"bigquery.private_key",
 					"bigquery.application_secret",
 					"bigquery.application_id",
+					"bigquery.deployment_env_auth_type",
 				},
 			},
 		},
@@ -324,11 +330,161 @@ func TestAccDbtCloudGlobalConnectionBigQueryCreateV1Adapter(t *testing.T) {
 					"bigquery.timeout_seconds",
 					"bigquery.job_execution_timeout_seconds",
 					"bigquery.use_latest_adapter",
+					"bigquery.deployment_env_auth_type",
 				},
 			},
 		},
 	})
 
+}
+
+func TestAccDbtCloudGlobalConnectionBigQueryExternalOAuthWIF(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with external-oauth-wif auth type
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceExternalOAuthWIFConfig(
+					connectionName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.deployment_env_auth_type",
+						"external-oauth-wif",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.private_key",
+					"bigquery.deployment_env_auth_type",
+				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeout tests that
+// creating a BigQuery connection with use_latest_adapter=true but without specifying
+// job_execution_timeout_seconds does not cause a null pointer panic.
+// This is a regression test for the fix in common.go where we added a null check
+// for JobExecutionTimeoutSeconds.
+func TestAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeout(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with use_latest_adapter=true but WITHOUT job_execution_timeout_seconds
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeoutConfig(
+					connectionName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.use_latest_adapter",
+						"true",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.use_latest_adapter",
+					"bigquery.timeout_seconds",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeoutConfig(
+	connectionName string,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id = "my-gcp-project-id"
+    // use_latest_adapter=true but NO job_execution_timeout_seconds specified
+    // This tests that the null check for JobExecutionTimeoutSeconds works correctly
+    use_latest_adapter = true
+
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName)
+}
+
+func testAccDbtCloudSGlobalConnectionBigQueryResourceExternalOAuthWIFConfig(
+	connectionName string,
+) string {
+	// TODO: Remove the bogus service account fields once the API supports external-oauth-wif
+	// without requiring private_key_id, private_key, client_email, client_id, auth_uri,
+	// token_uri, auth_provider_x509_cert_url, and client_x509_cert_url
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id           = "my-gcp-project-id"
+    application_id           = "oauth_application_id"
+    application_secret       = "oauth_secret_id"
+    deployment_env_auth_type = "external-oauth-wif"
+
+    // TODO: Remove these bogus fields once API supports external-oauth-wif without them
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName)
 }
 
 func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) {
@@ -390,6 +546,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) 
 					"bigquery.application_id",
 					"bigquery.timeout_seconds",
 					"bigquery.adapter_version_override",
+					"bigquery.deployment_env_auth_type",
 				},
 			},
 		},
@@ -522,6 +679,7 @@ resource dbtcloud_global_connection test {
     priority                     = "batch"
     retries                      = 3
     scopes                       = ["dummyscope"]
+    deployment_env_auth_type     = "service-account-json"
 
   }
 }
@@ -694,32 +852,32 @@ func TestAccDbtCloudGlobalConnectionRedshiftResource(t *testing.T) {
 					),
 				),
 			},
-		// modify, adding optional fields
-		{
-			Config: testAccDbtCloudSGlobalConnectionRedshiftResourceFullConfig(
-				connectionName,
-			),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttrSet(
-					"dbtcloud_global_connection.test",
-					"id",
+			// modify, adding optional fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionRedshiftResourceFullConfig(
+					connectionName,
 				),
-				resource.TestCheckResourceAttr(
-					"dbtcloud_global_connection.test",
-					"adapter_version",
-					"redshift_v0",
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"redshift_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"redshift.ssh_tunnel.public_key",
+					),
 				),
-				resource.TestCheckResourceAttr(
-					"dbtcloud_global_connection.test",
-					"is_ssh_tunnel_enabled",
-					"true",
-				),
-				resource.TestCheckResourceAttrSet(
-					"dbtcloud_global_connection.test",
-					"redshift.ssh_tunnel.public_key",
-				),
-			),
-		},
+			},
 			// IMPORT WITH ALL FIELDS
 			{
 				ResourceName:            "dbtcloud_global_connection.test",
@@ -835,32 +993,32 @@ func TestAccDbtCloudGlobalConnectionPostgresResource(t *testing.T) {
 					),
 				),
 			},
-		// modify, adding optional fields
-		{
-			Config: testAccDbtCloudSGlobalConnectionPostgresResourceFullConfig(
-				connectionName,
-			),
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttrSet(
-					"dbtcloud_global_connection.test",
-					"id",
+			// modify, adding optional fields
+			{
+				Config: testAccDbtCloudSGlobalConnectionPostgresResourceFullConfig(
+					connectionName,
 				),
-				resource.TestCheckResourceAttr(
-					"dbtcloud_global_connection.test",
-					"adapter_version",
-					"postgres_v0",
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"postgres_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"is_ssh_tunnel_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"postgres.ssh_tunnel.public_key",
+					),
 				),
-				resource.TestCheckResourceAttr(
-					"dbtcloud_global_connection.test",
-					"is_ssh_tunnel_enabled",
-					"true",
-				),
-				resource.TestCheckResourceAttrSet(
-					"dbtcloud_global_connection.test",
-					"postgres.ssh_tunnel.public_key",
-				),
-			),
-		},
+			},
 			// IMPORT WITH ALL FIELDS
 			{
 				ResourceName:            "dbtcloud_global_connection.test",

@@ -179,6 +179,7 @@ type BigQueryConfig struct {
 	DataprocClusterName        types.String `tfsdk:"dataproc_cluster_name"`
 	UseLatestAdapter           types.Bool   `tfsdk:"use_latest_adapter"`
 	JobExecutionTimeoutSeconds types.Int64  `tfsdk:"job_execution_timeout_seconds"`
+	DeploymentEnvAuthType      types.String `tfsdk:"deployment_env_auth_type"`
 }
 
 type SnowflakeConfig struct {

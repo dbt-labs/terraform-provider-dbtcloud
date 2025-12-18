@@ -21,6 +21,7 @@ resource "dbtcloud_global_connection" "athena" {
   }
 }
 
+// BigQuery connection with Service Account JSON authentication
 resource "dbtcloud_global_connection" "bigquery" {
   name = "My BigQuery connection"
   bigquery = {
@@ -34,8 +35,30 @@ resource "dbtcloud_global_connection" "bigquery" {
     token_uri                   = "my_token_uri"
     auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
     client_x509_cert_url        = "my_client_x509_cert_url"
-    application_id              = "oauth_application_id"
-    application_secret          = "oauth_secret_id"
+    // optional: explicitly set the auth type (defaults to service-account-json behavior when not set)
+    deployment_env_auth_type    = "service-account-json"
+  }
+}
+
+// BigQuery connection with External OAuth (Workload Identity Federation)
+// TODO: Currently the API still requires service account fields even with external-oauth-wif
+resource "dbtcloud_global_connection" "bigquery_wif" {
+  name = "My BigQuery WIF connection"
+  bigquery = {
+    gcp_project_id           = "my-gcp-project-id"
+    application_id           = "oauth_application_id"
+    application_secret       = "oauth_secret_id"
+    deployment_env_auth_type = "external-oauth-wif"
+
+    // TODO: These fields should not be required for external-oauth-wif in the future
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
   }
 }
 
