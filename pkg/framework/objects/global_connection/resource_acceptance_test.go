@@ -378,6 +378,83 @@ func TestAccDbtCloudGlobalConnectionBigQueryExternalOAuthWIF(t *testing.T) {
 	})
 }
 
+// TestAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeout tests that
+// creating a BigQuery connection with use_latest_adapter=true but without specifying
+// job_execution_timeout_seconds does not cause a null pointer panic.
+// This is a regression test for the fix in common.go where we added a null check
+// for JobExecutionTimeoutSeconds.
+func TestAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeout(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with use_latest_adapter=true but WITHOUT job_execution_timeout_seconds
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeoutConfig(
+					connectionName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.use_latest_adapter",
+						"true",
+					),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.use_latest_adapter",
+					"bigquery.timeout_seconds",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryLatestAdapterWithoutJobExecutionTimeoutConfig(
+	connectionName string,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id = "my-gcp-project-id"
+    // use_latest_adapter=true but NO job_execution_timeout_seconds specified
+    // This tests that the null check for JobExecutionTimeoutSeconds works correctly
+    use_latest_adapter = true
+
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName)
+}
+
 func testAccDbtCloudSGlobalConnectionBigQueryResourceExternalOAuthWIFConfig(
 	connectionName string,
 ) string {
