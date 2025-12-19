@@ -43,12 +43,7 @@ func (r *databricksSemanticLayerCredentialResource) Read(
 	}
 
 	credential, err := r.client.GetSemanticLayerCredential(state.ID.ValueInt64())
-
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Issue getting Semantic Layer credential",
-			"Error: "+err.Error(),
-		)
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			resp.Diagnostics.AddWarning(
 				"Resource not found",
@@ -57,7 +52,10 @@ func (r *databricksSemanticLayerCredentialResource) Read(
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting the Semantic Layer configuration", err.Error())
+		resp.Diagnostics.AddError(
+			"Issue getting Semantic Layer credential",
+			"Error: "+err.Error(),
+		)
 		return
 	}
 
