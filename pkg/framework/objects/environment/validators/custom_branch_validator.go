@@ -21,6 +21,11 @@ func (v CustomBranchValidator) MarkdownDescription(ctx context.Context) string {
 }
 
 func (v CustomBranchValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if custom_branch is unknown (will be validated when value is known)
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
 	// Get the value of use_custom_branch
 	var useCustomBranch types.Bool
 	useCustomBranchPath := path.Root("use_custom_branch")
@@ -72,6 +77,11 @@ func (v UseCustomBranchValidator) ValidateBool(ctx context.Context, req validato
 	diags := req.Config.GetAttribute(ctx, customBranchPath, &customBranch)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	// Skip validation if custom_branch is unknown (will be validated when value is known)
+	if customBranch.IsUnknown() {
 		return
 	}
 
