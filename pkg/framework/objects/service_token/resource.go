@@ -220,9 +220,19 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	name := plan.Name.ValueString()
-	state := plan.State.ValueInt64()
+	// Note: state is not part of the creation request - API defaults to 1 (active)
+	// The API response will contain the actual state value
 
-	createdSrvTok, err := st.client.CreateServiceToken(name, int(state))
+	// Convert permissions to permission grants for creation via permission_grants field
+	permissionGrants, diags := ConvertServiceTokenPermissionModelToGrant(ctx, plan.ServiceTokenPermissions)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	// Create service token with permission_grants (permissions are set during creation)
+	// Note: state is not part of the creation request - API defaults to 1 (active)
+	createdSrvTok, err := st.client.CreateServiceToken(name, permissionGrants)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to create the service token", err.Error())
 		return
@@ -233,19 +243,14 @@ func (st *serviceTokenResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	srvTokPermissions, diags := ConvertServiceTokenPermissionModelToData(ctx, plan.ServiceTokenPermissions, *createdSrvTok.ID, st.client.AccountID)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-
-	updatedSvcTokPerms, err := st.client.UpdateServiceTokenPermissions(*createdSrvTok.ID, srvTokPermissions)
+	// Fetch permissions that were set during creation
+	fetchedPerms, err := st.client.GetServiceTokenPermissions(*createdSrvTok.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to assign permissions to the service token", err.Error())
+		resp.Diagnostics.AddError("Error getting service token permissions", err.Error())
 		return
 	}
 
-	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *updatedSvcTokPerms)
+	perms, diags := ConvertServiceTokenPermissionDataToModel(ctx, *fetchedPerms)
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return

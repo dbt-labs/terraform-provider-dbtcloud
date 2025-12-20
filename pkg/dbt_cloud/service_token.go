@@ -19,6 +19,20 @@ type ServiceTokenPermission struct {
 	WritableEnvs   []EnvironmentCategory `json:"writable_environment_categories,omitempty"`
 }
 
+// ServiceTokenPermissionGrant is used for creating service tokens via the API
+// It has a simpler structure than ServiceTokenPermission (no account_id, service_token_id, state, all_projects)
+type ServiceTokenPermissionGrant struct {
+	PermissionSet               string                 `json:"permission_set"`
+	ProjectID                   *int                   `json:"project_id,omitempty"`
+	WritableEnvironmentCategories *[]EnvironmentCategory `json:"writable_environment_categories,omitempty"`
+}
+
+// CreateServiceTokenRequest is the request body for creating a service token
+type CreateServiceTokenRequest struct {
+	Name            string                      `json:"name"`
+	PermissionGrants []ServiceTokenPermissionGrant `json:"permission_grants,omitempty"`
+}
+
 type ServiceToken struct {
 	ID          *int                     `json:"id"`
 	AccountID   int                      `json:"account_id"`
@@ -96,19 +110,18 @@ func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
 
 func (c *Client) CreateServiceToken(
 	name string,
-	state int,
+	permissionGrants []ServiceTokenPermissionGrant,
 ) (*ServiceToken, error) {
-	newServiceToken := ServiceToken{
-		AccountID: c.AccountID,
-		State:     state,
-		Name:      name,
+	createRequest := CreateServiceTokenRequest{
+		Name:            name,
+		PermissionGrants: permissionGrants,
 	}
-	newServiceTokenData, err := json.Marshal(newServiceToken)
+	createRequestData, err := json.Marshal(createRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/", c.HostURL, c.AccountID), strings.NewReader(string(newServiceTokenData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%d/service-tokens/", c.HostURL, c.AccountID), strings.NewReader(string(createRequestData)))
 	if err != nil {
 		return nil, err
 	}
