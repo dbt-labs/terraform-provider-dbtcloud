@@ -119,6 +119,12 @@ func (r *environmentResource) Create(
 		deploymentType = types.StringNull().ValueString()
 	}
 
+	// Handle connection_id: if null/unknown, pass 0 to API (API will auto-assign)
+	connectionID := int(0)
+	if !plan.ConnectionID.IsNull() && !plan.ConnectionID.IsUnknown() {
+		connectionID = int(plan.ConnectionID.ValueInt64())
+	}
+
 	environment, err := r.client.CreateEnvironment(
 		plan.IsActive.ValueBool(),
 		int(plan.ProjectID.ValueInt64()),
@@ -130,7 +136,7 @@ func (r *environmentResource) Create(
 		int(plan.CredentialID.ValueInt64()),
 		deploymentType,
 		int(plan.ExtendedAttributesID.ValueInt64()),
-		int(plan.ConnectionID.ValueInt64()),
+		connectionID,
 		plan.EnableModelQueryHistory.ValueBool(),
 	)
 
@@ -174,11 +180,16 @@ func (r *environmentResource) Create(
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+
+	// Handle connection_id: API may auto-assign a connection_id when none is provided (0)
+	// Always use the API's returned value to avoid "inconsistent result" errors
 	if environment.ConnectionID != nil {
 		plan.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
 	} else {
-		plan.ConnectionID = types.Int64Value(0)
+		// If API returns nil, set to null (no default value anymore)
+		plan.ConnectionID = types.Int64Null()
 	}
+
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
