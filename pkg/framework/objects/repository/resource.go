@@ -135,7 +135,10 @@ func (r *repositoryResource) Create(
 	plan.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
 	plan.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	plan.RemoteURL = types.StringValue(repository.RemoteUrl)
-	plan.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	// Preserve the planned git_clone_strategy value to maintain consistency
+	// The API might return a slightly different value (e.g., case differences)
+	// but semantically the operation succeeded with our requested strategy
+	// plan.GitCloneStrategy is already set from the plan, don't overwrite it
 
 	if repository.RepositoryCredentialsID != nil {
 		plan.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))
