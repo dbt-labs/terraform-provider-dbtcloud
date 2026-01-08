@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	stdtime "time"
 )
 
 type JobTrigger struct {
@@ -63,10 +65,10 @@ type Job struct {
 	ProjectId              int                   `json:"project_id"`
 	EnvironmentId          int                   `json:"environment_id"`
 	Name                   string                `json:"name"`
-	CompareChangesFlags    string                `json:"compare_changes_flags"`
+	CompareChangesFlags    *string               `json:"compare_changes_flags,omitempty"`
 	DbtVersion             *string               `json:"dbt_version"`
-	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
-	DeferringJobId         *int                  `json:"deferring_job_definition_id"`
+	DeferringEnvironmentId *int                  `json:"deferring_environment_id,omitempty"`
+	DeferringJobId         *int                  `json:"deferring_job_definition_id,omitempty"`
 	Description            string                `json:"description"`
 	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
 	ExecuteSteps           []string              `json:"execute_steps"`
@@ -75,7 +77,7 @@ type Job struct {
 	GenerateDocs           bool                  `json:"generate_docs"`
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 	JobType                string                `json:"job_type,omitempty"`
-	RunCompareChanges      bool                  `json:"run_compare_changes"`
+	RunCompareChanges      *bool                 `json:"run_compare_changes,omitempty"`
 	RunGenerateSources     bool                  `json:"run_generate_sources"`
 	RunLint                bool                  `json:"run_lint"`
 	Schedule               JobSchedule           `json:"schedule"`
@@ -239,6 +241,16 @@ func (c *Client) CreateJob(
 		}
 	}
 
+	// Detect CI / Merge triggers to decide whether to drop deferral (SAO-incompatible)
+	isGithubWebhook := false
+	if v, ok := triggers["github_webhook"].(bool); ok {
+		isGithubWebhook = v
+	}
+	isOnMerge := false
+	if v, ok := triggers["on_merge"].(bool); ok {
+		isOnMerge = v
+	}
+
 	newJob := Job{
 		AccountId:            c.AccountID,
 		ProjectId:            projectId,
@@ -257,13 +269,27 @@ func (c *Client) CreateJob(
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
 		JobType:              finalJobType,
-		RunCompareChanges:    runCompareChanges,
 		RunLint:              runLint,
 		ErrorsOnLintFailure:  errorsOnLintFailure,
-		CompareChangesFlags:  compareChangesFlags,
+	}
+	// SAO control: explicitly send run_compare_changes=false to suppress server defaults.
+	// Only send compare_changes_flags when SAO is enabled.
+	if runCompareChanges {
+		newJob.RunCompareChanges = &runCompareChanges
+		if compareChangesFlags != "" {
+			newJob.CompareChangesFlags = &compareChangesFlags
+		}
+	} else {
+		disable := false
+		newJob.RunCompareChanges = &disable
 	}
 	if dbtVersion != "" {
 		newJob.DbtVersion = &dbtVersion
+	}
+	// For CI / Merge jobs, drop deferral to avoid SAO validation
+	if isGithubWebhook || isOnMerge {
+		deferringJobId = 0
+		deferringEnvironmentID = 0
 	}
 	if deferringJobId != 0 {
 		newJob.DeferringJobId = &deferringJobId
@@ -275,10 +301,50 @@ func (c *Client) CreateJob(
 	} else {
 		newJob.DeferringEnvironmentId = nil
 	}
+	// #region agent log
+	debugLog := map[string]any{
+		"location":              "job.go:CreateJob",
+		"message":               "CreateJob payload",
+		"hypothesisId":          "H5",
+		"runCompareChanges":     runCompareChanges,
+		"compareChangesFlags":   compareChangesFlags,
+		"jobRunCompareChanges":  newJob.RunCompareChanges,
+		"jobCompareChangesFlags": newJob.CompareChangesFlags,
+		"deferringEnvironmentID": deferringEnvironmentID,
+		"jobDeferringEnvironmentId": newJob.DeferringEnvironmentId,
+		"isGithubWebhook":       isGithubWebhook,
+		"isOnMerge":             isOnMerge,
+		"jobName":               name,
+		"timestamp":             fmt.Sprintf("%d", stdtime.Now().UnixMilli()),
+	}
+	if debugBytes, _ := json.Marshal(debugLog); len(debugBytes) > 0 {
+		if f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+			f.Write(append(debugBytes, '\n'))
+			f.Close()
+		}
+	}
+	// #endregion
+
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
 		return nil, err
 	}
+
+	// #region agent log
+	debugLog2 := map[string]any{
+		"location":           "job.go:CreateJob:payload",
+		"message":            "Actual JSON payload",
+		"hypothesisId":       "H1-H4",
+		"payload":            string(newJobData),
+		"timestamp":          fmt.Sprintf("%d", stdtime.Now().UnixMilli()),
+	}
+	if debugBytes2, _ := json.Marshal(debugLog2); len(debugBytes2) > 0 {
+		if f2, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+			f2.Write(append(debugBytes2, '\n'))
+			f2.Close()
+		}
+	}
+	// #endregion
 
 	req, err := http.NewRequest(
 		"POST",

@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -361,6 +363,45 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.JobType = types.StringNull()
 	}
 
+	// Ensure compare_changes_flags is ALWAYS known after Create.
+	// If the API does not return a value, explicitly set it to null (not unknown).
+	if createdJob.RunCompareChanges != nil {
+		plan.RunCompareChanges = types.BoolValue(*createdJob.RunCompareChanges)
+	} else {
+		plan.RunCompareChanges = types.BoolValue(false)
+	}
+	if createdJob.CompareChangesFlags != nil {
+		plan.CompareChangesFlags = types.StringValue(*createdJob.CompareChangesFlags)
+	} else {
+		plan.CompareChangesFlags = types.StringNull()
+	}
+
+	// #region agent log
+	// Debug: prove we are not leaving compare_changes_flags unknown after Create (causes "invalid result object after apply")
+	if b, _ := json.Marshal(map[string]any{
+		"sessionId":     "debug-session",
+		"runId":         "pre-fix",
+		"hypothesisId":  "H12",
+		"location":      "job/resource.go:Create",
+		"message":       "Post-create state fields",
+		"timestamp":     time.Now().UnixMilli(),
+		"data": map[string]any{
+			"jobName":                      name,
+			"jobId":                        func() any { if createdJob.ID != nil { return *createdJob.ID }; return nil }(),
+			"apiRunCompareChangesIsNil":    createdJob.RunCompareChanges == nil,
+			"apiCompareChangesFlagsIsNil":  createdJob.CompareChangesFlags == nil,
+			"planRunCompareChangesIsNull":  plan.RunCompareChanges.IsNull(),
+			"planCompareChangesFlagsKnown": !(plan.CompareChangesFlags.IsUnknown()),
+			"planCompareChangesFlagsIsNull": plan.CompareChangesFlags.IsNull(),
+		},
+	}); len(b) > 0 {
+		if f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+			_, _ = f.Write(append(b, '\n'))
+			_ = f.Close()
+		}
+	}
+	// #endregion agent log
+
 	// Populate force_node_selection from API response
 	if createdJob.ForceNodeSelection != nil {
 		plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
@@ -573,8 +614,16 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.JobCompletionTriggerCondition = nil
 	}
 
-	state.RunCompareChanges = types.BoolValue(retrievedJob.RunCompareChanges)
-	state.CompareChangesFlags = types.StringValue(retrievedJob.CompareChangesFlags)
+	if retrievedJob.RunCompareChanges != nil {
+		state.RunCompareChanges = types.BoolValue(*retrievedJob.RunCompareChanges)
+	} else {
+		state.RunCompareChanges = types.BoolValue(false)
+	}
+	if retrievedJob.CompareChangesFlags != nil {
+		state.CompareChangesFlags = types.StringValue(*retrievedJob.CompareChangesFlags)
+	} else {
+		state.CompareChangesFlags = types.StringNull()
+	}
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
 
@@ -748,10 +797,17 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.JobCompletionTrigger = &jobCondTrigger
 	}
 
-	job.RunCompareChanges = plan.RunCompareChanges.ValueBool()
 	job.RunLint = plan.RunLint.ValueBool()
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
-	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
+	// Only set RunCompareChanges and CompareChangesFlags when SAO is explicitly enabled
+	if plan.RunCompareChanges.ValueBool() {
+		runCompareChanges := true
+		job.RunCompareChanges = &runCompareChanges
+		if !plan.CompareChangesFlags.IsNull() {
+			ccf := plan.CompareChangesFlags.ValueString()
+			job.CompareChangesFlags = &ccf
+		}
+	}
 
 	if plan.ForceNodeSelection.IsNull() {
 		job.ForceNodeSelection = nil

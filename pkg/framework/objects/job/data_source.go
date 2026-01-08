@@ -122,7 +122,7 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 	state.JobType = types.StringValue(job.JobType)
 	state.TriggersOnDraftPr = types.BoolValue(job.TriggersOnDraftPR)
-	state.RunCompareChanges = types.BoolValue(job.RunCompareChanges)
+	state.RunCompareChanges = types.BoolPointerValue(job.RunCompareChanges)
 
 	if job.JobCompletionTrigger != nil {
 		state.JobCompletionTriggerCondition = []*JobCompletionTriggerCondition{

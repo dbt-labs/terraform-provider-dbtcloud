@@ -602,7 +602,8 @@ func (j *jobResource) Schema(
 			"compare_changes_flags": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString("--select state:modified"),
+				// No default - only set when run_compare_changes is true
+				// Setting a default causes SAO validation errors for CI/Merge jobs
 				Description: "The model selector for checking changes in the compare changes Advanced CI feature",
 			},
 			"job_type": resource_schema.StringAttribute{

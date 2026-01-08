@@ -132,7 +132,7 @@ func (d *jobsDataSource) Read(
 			},
 			JobType:           types.StringValue(job.JobType),
 			TriggersOnDraftPr: types.BoolValue(job.TriggersOnDraftPR),
-			RunCompareChanges: types.BoolValue(job.RunCompareChanges),
+			RunCompareChanges: types.BoolPointerValue(job.RunCompareChanges),
 			Environment: &JobEnvironment{
 				ProjectID:      types.Int64Value(int64(job.Environment.Project_Id)),
 				ID:             types.Int64Value(int64(*job.Environment.ID)),
