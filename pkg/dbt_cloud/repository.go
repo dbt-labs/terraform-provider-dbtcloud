@@ -17,7 +17,7 @@ type Repository struct {
 	AzureActiveDirectoryProjectID         *string    `json:"azure_active_directory_project_id,omitempty"`
 	AzureActiveDirectoryRepositoryID      *string    `json:"azure_active_directory_repository_id,omitempty"`
 	AzureBypassWebhookRegistrationFailure *bool      `json:"azure_bypass_webhook_registration_failure,omitempty"`
-	GitCloneStrategy                      string     `json:"git_clone_strategy"`
+	GitCloneStrategy                      string     `json:"git_clone_strategy,omitempty"`
 	RepositoryCredentialsID               *int       `json:"repository_credentials_id,omitempty"`
 	GitlabProjectID                       *int       `json:"gitlab_project_id,omitempty"`
 	GithubInstallationID                  *int       `json:"github_installation_id,omitempty"`
@@ -100,22 +100,38 @@ func (c *Client) CreateRepository(
 		ProjectID:              projectID,
 		RemoteUrl:              remoteUrl,
 		State:                  state,
-		GitCloneStrategy:       gitCloneStrategy,
 		PullRequestURLTemplate: pullRequestURLTemplate,
 	}
-	if gitlabProjectID != 0 {
-		newRepository.GitlabProjectID = &gitlabProjectID
+
+	// Always set git_clone_strategy if provided
+	if gitCloneStrategy != "" {
+		newRepository.GitCloneStrategy = gitCloneStrategy
 	}
+
+	// Determine remote_backend based on integration type and always send it
+	var remoteBackend string
 	if githubInstallationID != 0 {
+		// GitHub App integration
+		remoteBackend = "github"
 		newRepository.GithubInstallationID = &githubInstallationID
-	}
-	if privateLinkEndpointID != "" {
-		newRepository.PrivateLinkEndpointID = &privateLinkEndpointID
-	}
-	if azureActiveDirectoryProjectID != "" {
+	} else if gitlabProjectID != 0 {
+		// GitLab integration
+		remoteBackend = "gitlab"
+		newRepository.GitlabProjectID = &gitlabProjectID
+	} else if azureActiveDirectoryProjectID != "" {
+		// Azure DevOps integration
+		remoteBackend = "azure_active_directory"
 		newRepository.AzureActiveDirectoryProjectID = &azureActiveDirectoryProjectID
 		newRepository.AzureActiveDirectoryRepositoryID = &azureActiveDirectoryRepositoryID
 		newRepository.AzureBypassWebhookRegistrationFailure = &azureBypassWebhookRegistrationFailure
+	} else {
+		// Manual/deploy_key - use manual_config
+		remoteBackend = "manual_config"
+	}
+	newRepository.RemoteBackend = &remoteBackend
+
+	if privateLinkEndpointID != "" {
+		newRepository.PrivateLinkEndpointID = &privateLinkEndpointID
 	}
 	newRepositoryData, err := json.Marshal(newRepository)
 	if err != nil {
