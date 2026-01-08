@@ -135,10 +135,15 @@ func (r *repositoryResource) Create(
 	plan.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
 	plan.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	plan.RemoteURL = types.StringValue(repository.RemoteUrl)
-	// Preserve the planned git_clone_strategy value to maintain consistency
-	// The API might return a slightly different value (e.g., case differences)
-	// but semantically the operation succeeded with our requested strategy
-	// plan.GitCloneStrategy is already set from the plan, don't overwrite it
+	// When github_installation_id is provided, the API automatically changes git_clone_strategy to "github_app"
+	// We must use the API's returned value to avoid Terraform detecting a mismatch and wanting to replace the resource
+	if githubInstallationID != 0 {
+		// github_installation_id was provided, use API's returned value (will be "github_app")
+		plan.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	} else {
+		// No github_installation_id, preserve planned value to handle case differences, etc.
+		// plan.GitCloneStrategy is already set from the plan, don't overwrite it
+	}
 
 	if repository.RepositoryCredentialsID != nil {
 		plan.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))

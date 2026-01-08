@@ -226,6 +226,19 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 		}
 
 		if res.StatusCode == 400 {
+			// Parse the API error to check for specific error messages we can improve
+			_, apiErr, parseErr := parseAPIError(body)
+			if parseErr == nil && apiErr != nil {
+				// Check if the error is about latest-fusion not being available
+				// The error is typically in data.dbt_version field
+				if dataMap, ok := apiErr.Data.(map[string]interface{}); ok {
+					if dbtVersionErr, ok := dataMap["dbt_version"].(string); ok {
+						if strings.Contains(dbtVersionErr, "latest-fusion") && strings.Contains(dbtVersionErr, "deprecated") {
+							return nil, fmt.Errorf("resource-not-found: latest-fusion is not available in this account. Please contact technical support to enable the Fusion engine.\n\nOriginal API error: %s", dbtVersionErr)
+						}
+					}
+				}
+			}
 			return nil, fmt.Errorf("resource-not-found: %s", body)
 		}
 
