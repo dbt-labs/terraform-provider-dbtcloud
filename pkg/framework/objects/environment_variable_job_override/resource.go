@@ -102,6 +102,56 @@ func (r *environmentVariableJobOverrideResource) Create(
 	)
 
 	if err != nil {
+		// If the API says the job override already exists, adopt it into state and update it if needed.
+		lowerErr := strings.ToLower(err.Error())
+		alreadyExists := strings.Contains(lowerErr, "already exists")
+		if alreadyExists {
+			existing, findErr := r.client.FindEnvironmentVariableJobOverrideByName(projectID, jobDefinitionID, name)
+			if findErr != nil || existing == nil || existing.ID == nil {
+				resp.Diagnostics.AddError(
+					"Error creating envrionment variable",
+					"Environment variable job override already exists but could not be discovered: "+findErr.Error(),
+				)
+				return
+			}
+
+			// If desired value differs, update existing override to match config.
+			if existing.RawValue != rawValue {
+				updatePayload := dbt_cloud.EnvironmentVariableJobOverride{
+					ProjectID:       projectID,
+					AccountID:       existing.AccountID,
+					Name:            name,
+					ID:              existing.ID,
+					JobDefinitionID: jobDefinitionID,
+					RawValue:        rawValue,
+					Type:            "job",
+				}
+				_, updErr := r.client.UpdateEnvironmentVariableJobOverride(projectID, *existing.ID, updatePayload)
+				if updErr != nil {
+					resp.Diagnostics.AddError(
+						"Error updating envrionment variable job override",
+						"Override existed but could not be updated: "+updErr.Error(),
+					)
+					return
+				}
+			}
+
+			plan.ID = types.StringValue(fmt.Sprintf(
+				"%d%s%d%s%d",
+				existing.ProjectID,
+				dbt_cloud.ID_DELIMITER,
+				existing.JobDefinitionID,
+				dbt_cloud.ID_DELIMITER,
+				*existing.ID,
+			))
+			plan.AccountID = types.Int64Value(int64(existing.AccountID))
+			plan.EnvironmentVariableJobOverrideID = types.Int64Value(int64(*existing.ID))
+
+			diags = resp.State.Set(ctx, plan)
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
 		resp.Diagnostics.AddError(
 			"Error creating envrionment variable",
 			"Could not create environment variable, unexpected error: "+err.Error(),

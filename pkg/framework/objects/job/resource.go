@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -375,32 +373,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	} else {
 		plan.CompareChangesFlags = types.StringNull()
 	}
-
-	// #region agent log
-	// Debug: prove we are not leaving compare_changes_flags unknown after Create (causes "invalid result object after apply")
-	if b, _ := json.Marshal(map[string]any{
-		"sessionId":     "debug-session",
-		"runId":         "pre-fix",
-		"hypothesisId":  "H12",
-		"location":      "job/resource.go:Create",
-		"message":       "Post-create state fields",
-		"timestamp":     time.Now().UnixMilli(),
-		"data": map[string]any{
-			"jobName":                      name,
-			"jobId":                        func() any { if createdJob.ID != nil { return *createdJob.ID }; return nil }(),
-			"apiRunCompareChangesIsNil":    createdJob.RunCompareChanges == nil,
-			"apiCompareChangesFlagsIsNil":  createdJob.CompareChangesFlags == nil,
-			"planRunCompareChangesIsNull":  plan.RunCompareChanges.IsNull(),
-			"planCompareChangesFlagsKnown": !(plan.CompareChangesFlags.IsUnknown()),
-			"planCompareChangesFlagsIsNull": plan.CompareChangesFlags.IsNull(),
-		},
-	}); len(b) > 0 {
-		if f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-			_, _ = f.Write(append(b, '\n'))
-			_ = f.Close()
-		}
-	}
-	// #endregion agent log
 
 	// Populate force_node_selection from API response
 	if createdJob.ForceNodeSelection != nil {
@@ -799,11 +771,18 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	job.RunLint = plan.RunLint.ValueBool()
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
-	// Only set RunCompareChanges and CompareChangesFlags when SAO is explicitly enabled
-	if plan.RunCompareChanges.ValueBool() {
+	// IMPORTANT:
+	// We start from the remote job object (GetJob), so we MUST clear SAO fields first.
+	// Otherwise, disabling SAO in Terraform would keep sending old SAO pointers back to the API.
+	job.RunCompareChanges = nil
+	job.CompareChangesFlags = nil
+
+	// Only set RunCompareChanges / CompareChangesFlags when SAO is explicitly enabled in config.
+	// Note: compare_changes_flags can be Unknown/Computed in the plan; never read ValueString() unless Known+NonNull.
+	if !plan.RunCompareChanges.IsUnknown() && plan.RunCompareChanges.ValueBool() {
 		runCompareChanges := true
 		job.RunCompareChanges = &runCompareChanges
-		if !plan.CompareChangesFlags.IsNull() {
+		if !plan.CompareChangesFlags.IsUnknown() && !plan.CompareChangesFlags.IsNull() {
 			ccf := plan.CompareChangesFlags.ValueString()
 			job.CompareChangesFlags = &ccf
 		}
@@ -877,6 +856,19 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.JobType = types.StringValue(updatedJob.JobType)
 	} else {
 		plan.JobType = types.StringNull()
+	}
+
+	// Ensure run_compare_changes / compare_changes_flags are ALWAYS known after Update.
+	// If the API does not return values, explicitly set to false/null (not unknown).
+	if updatedJob.RunCompareChanges != nil {
+		plan.RunCompareChanges = types.BoolValue(*updatedJob.RunCompareChanges)
+	} else {
+		plan.RunCompareChanges = types.BoolValue(false)
+	}
+	if updatedJob.CompareChangesFlags != nil {
+		plan.CompareChangesFlags = types.StringValue(*updatedJob.CompareChangesFlags)
+	} else {
+		plan.CompareChangesFlags = types.StringNull()
 	}
 
 	// Populate force_node_selection from API response

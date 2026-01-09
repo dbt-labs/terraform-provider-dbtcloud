@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
-	stdtime "time"
 )
 
 type JobTrigger struct {
@@ -301,50 +299,10 @@ func (c *Client) CreateJob(
 	} else {
 		newJob.DeferringEnvironmentId = nil
 	}
-	// #region agent log
-	debugLog := map[string]any{
-		"location":              "job.go:CreateJob",
-		"message":               "CreateJob payload",
-		"hypothesisId":          "H5",
-		"runCompareChanges":     runCompareChanges,
-		"compareChangesFlags":   compareChangesFlags,
-		"jobRunCompareChanges":  newJob.RunCompareChanges,
-		"jobCompareChangesFlags": newJob.CompareChangesFlags,
-		"deferringEnvironmentID": deferringEnvironmentID,
-		"jobDeferringEnvironmentId": newJob.DeferringEnvironmentId,
-		"isGithubWebhook":       isGithubWebhook,
-		"isOnMerge":             isOnMerge,
-		"jobName":               name,
-		"timestamp":             fmt.Sprintf("%d", stdtime.Now().UnixMilli()),
-	}
-	if debugBytes, _ := json.Marshal(debugLog); len(debugBytes) > 0 {
-		if f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-			f.Write(append(debugBytes, '\n'))
-			f.Close()
-		}
-	}
-	// #endregion
-
 	newJobData, err := json.Marshal(newJob)
 	if err != nil {
 		return nil, err
 	}
-
-	// #region agent log
-	debugLog2 := map[string]any{
-		"location":           "job.go:CreateJob:payload",
-		"message":            "Actual JSON payload",
-		"hypothesisId":       "H1-H4",
-		"payload":            string(newJobData),
-		"timestamp":          fmt.Sprintf("%d", stdtime.Now().UnixMilli()),
-	}
-	if debugBytes2, _ := json.Marshal(debugLog2); len(debugBytes2) > 0 {
-		if f2, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-			f2.Write(append(debugBytes2, '\n'))
-			f2.Close()
-		}
-	}
-	// #endregion
 
 	req, err := http.NewRequest(
 		"POST",
