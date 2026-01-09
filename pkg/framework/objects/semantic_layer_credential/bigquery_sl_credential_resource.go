@@ -53,8 +53,6 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting the Semantic Layer configuration", err.Error())
-
 		resp.Diagnostics.AddError(
 			"Issue getting Semantic Layer credential",
 			"Error: "+err.Error(),
@@ -69,7 +67,6 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.Configuration.ProjectID = types.Int64Value(int64(credential.ProjectID))
 	state.Configuration.Name = types.StringValue(credential.Name)
 	state.Configuration.AdapterVersion = types.StringValue(credential.AdapterVersion)
-
 
 	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
