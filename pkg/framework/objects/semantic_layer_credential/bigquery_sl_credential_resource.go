@@ -53,8 +53,6 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting the Semantic Layer configuration", err.Error())
-
 		resp.Diagnostics.AddError(
 			"Issue getting Semantic Layer credential",
 			"Error: "+err.Error(),
