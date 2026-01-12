@@ -52,6 +52,13 @@ var BigQueryResourceSchema = resource_schema.Schema{
 			Required:    true,
 			Description: "Number of threads to use",
 		},
+		"connection_id": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "The ID of the global connection to use for this credential. When provided, the credential will automatically use the correct adapter version based on the connection's configuration (e.g., bigquery_v1 for connections with use_latest_adapter=true).",
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.RequiresReplace(),
+			},
+		},
 	},
 }
 
