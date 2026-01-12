@@ -13,6 +13,7 @@ type BigqueryCredentialResourceModel struct {
 	Dataset          types.String  `tfsdk:"dataset"`
 	NumThreads       types.Int64   `tfsdk:"num_threads"`
 	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
+	ConnectionID     types.Int64   `tfsdk:"connection_id"`
 }
 
 // BigqueryCredentialDataSourceModel is the model for the data source

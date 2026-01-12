@@ -95,8 +95,9 @@ func (d *bigqueryCredentialDataSource) Read(
 
 	// Map response body to model
 	state.ID = types.StringValue(fmt.Sprintf("%d%s%d", credential.Project_Id, dbt_cloud.ID_DELIMITER, *credential.ID))
-	state.Dataset = types.StringValue(credential.Dataset)
-	state.NumThreads = types.Int64Value(int64(credential.Threads))
+	// Use helper methods to get dataset and threads from the correct location (v0 vs v1)
+	state.Dataset = types.StringValue(credential.GetDataset())
+	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
 	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
 

@@ -78,6 +78,7 @@ Required:
 
 Optional:
 
+- `connection_id` (Number) The ID of the global connection to use for this credential. When provided, the credential will automatically use the correct adapter version based on the connection's configuration (e.g., bigquery_v1 for connections with use_latest_adapter=true).
 - `is_active` (Boolean) Whether the BigQuery credential is active
 
 Read-Only:
