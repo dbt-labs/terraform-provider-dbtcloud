@@ -91,6 +91,21 @@ func (r *bigqueryCredentialResource) Create(
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
+	// Auto-detect adapter version from the connection if connection_id is provided
+	var adapterVersion string
+	if !plan.ConnectionID.IsNull() && !plan.ConnectionID.IsUnknown() {
+		connectionID := plan.ConnectionID.ValueInt64()
+		connection, err := r.client.GetGlobalConnectionAdapter(connectionID)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error fetching global connection",
+				fmt.Sprintf("Could not fetch global connection %d to determine adapter version: %s", connectionID, err.Error()),
+			)
+			return
+		}
+		adapterVersion = connection.Data.AdapterVersion
+	}
+
 	// Create new credential
 	credential, err := r.client.CreateBigQueryCredential(
 		projectID,
@@ -98,6 +113,7 @@ func (r *bigqueryCredentialResource) Create(
 		isActive,
 		dataset,
 		numThreads,
+		adapterVersion,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -155,8 +171,9 @@ func (r *bigqueryCredentialResource) Read(
 	state.CredentialID = types.Int64Value(int64(*credential.ID))
 	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-	state.Dataset = types.StringValue(credential.Dataset)
-	state.NumThreads = types.Int64Value(int64(credential.Threads))
+	// Use helper methods to get dataset and threads from the correct location (v0 vs v1)
+	state.Dataset = types.StringValue(credential.GetDataset())
+	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
