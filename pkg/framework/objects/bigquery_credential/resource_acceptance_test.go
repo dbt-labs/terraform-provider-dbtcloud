@@ -126,3 +126,124 @@ func testAccCheckDbtCloudBigQueryCredentialDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+// TestAccDbtCloudBigQueryCredentialResourceWithConnectionID tests that
+// creating a BigQuery credential with connection_id pointing to a global connection
+// with use_latest_adapter=true works correctly and auto-detects the adapter version.
+func TestAccDbtCloudBigQueryCredentialResourceWithConnectionID(t *testing.T) {
+	projectNameV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	datasetV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionNameV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudBigQueryCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudBigQueryCredentialResourceWithConnectionIDConfig(
+					projectNameV1,
+					datasetV1,
+					connectionNameV1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudBigQueryCredentialExists(
+						"dbtcloud_bigquery_credential.test_credential_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_credential.test_credential_v1",
+						"dataset",
+						datasetV1,
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_bigquery_credential.test_credential_v1",
+						"connection_id",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudBigQueryCredentialResourceWithConnectionIDConfig(
+	projectName, dataset, connectionName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "test_connection" {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id              = "test-gcp-project"
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "test@test-gcp-project.iam.gserviceaccount.com"
+    client_id                   = "123456789"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/test"
+    use_latest_adapter          = true
+  }
+}
+
+resource "dbtcloud_bigquery_credential" "test_credential_v1" {
+  is_active     = true
+  project_id    = dbtcloud_project.test_project.id
+  dataset       = "%s"
+  num_threads   = 4
+  connection_id = dbtcloud_global_connection.test_connection.id
+}
+`, projectName, connectionName, dataset)
+}
+
+// TestAccDbtCloudBigQueryCredentialResourceWithoutConnectionID tests that
+// creating a BigQuery credential without connection_id (legacy behavior) still works.
+func TestAccDbtCloudBigQueryCredentialResourceWithoutConnectionID(t *testing.T) {
+	projectNameLegacy := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	datasetLegacy := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudBigQueryCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudBigQueryCredentialResourceWithoutConnectionIDConfig(
+					projectNameLegacy,
+					datasetLegacy,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudBigQueryCredentialExists(
+						"dbtcloud_bigquery_credential.test_credential_legacy",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_credential.test_credential_legacy",
+						"dataset",
+						datasetLegacy,
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudBigQueryCredentialResourceWithoutConnectionIDConfig(
+	projectName, dataset string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_bigquery_credential" "test_credential_legacy" {
+  is_active   = true
+  project_id  = dbtcloud_project.test_project.id
+  dataset     = "%s"
+  num_threads = 3
+}
+`, projectName, dataset)
+}

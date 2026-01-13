@@ -12,6 +12,7 @@ type BigqueryCredentialResourceModel struct {
 	IsActive     types.Bool   `tfsdk:"is_active"`
 	Dataset      types.String `tfsdk:"dataset"`
 	NumThreads   types.Int64  `tfsdk:"num_threads"`
+	ConnectionID types.Int64  `tfsdk:"connection_id"`
 }
 
 // BigqueryCredentialDataSourceModel is the model for the data source
