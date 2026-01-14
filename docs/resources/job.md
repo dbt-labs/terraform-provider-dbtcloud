@@ -7,6 +7,21 @@ description: |-
 
 # dbtcloud_job (Resource)
 
+~> **Attribute Conflicts:** Several job attributes are mutually exclusive. See the [Job Attribute Conflicts Guide](../guides/4_job_attribute_conflicts.md) for detailed decision trees and examples.
+
+## Attribute Conflict Quick Reference
+
+| Conflict Group | Attributes (use only ONE) |
+|---------------|---------------------------|
+| **Deferral** | `self_deferring`, `deferring_environment_id`, `deferring_job_id` |
+| **Schedule** | `schedule_cron`, `schedule_interval`, `schedule_hours` |
+| **Triggers** | When `on_merge = true`, all other triggers MUST be `false` |
+
+**Prerequisites:**
+- `run_compare_changes` REQUIRES `deferring_environment_id` to be set
+- `errors_on_lint_failure` REQUIRES `run_lint = true`
+- `compare_changes_flags` REQUIRES `run_compare_changes = true`
+
 ~> In October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
 <br/>
 <br/>
@@ -21,8 +36,8 @@ For now, it is not a mandatory field, but it will be in a future version. Please
 ## Example Usage
 
 ```terraform
-# a job that has github_webhook and git_provider_webhook 
-# set to false will be categorized as a "Deploy Job"
+# DEPLOY JOB: github_webhook and git_provider_webhook set to false
+# Uses schedule_hours - MUST NOT also set schedule_cron or schedule_interval
 resource "dbtcloud_job" "daily_job" {
   environment_id = dbtcloud_environment.prod_environment.environment_id
   execute_steps = [
@@ -35,42 +50,50 @@ resource "dbtcloud_job" "daily_job" {
   project_id           = dbtcloud_project.dbt_project.id
   run_generate_sources = true
   target_name          = "default"
+  
   triggers = {
     "github_webhook" : false
     "git_provider_webhook" : false
     "schedule" : true
     "on_merge" : false
   }
-  # this is the default that gets set up when modifying jobs in the UI
+  
+  # SCHEDULE CONFLICT: Use only ONE of schedule_hours, schedule_interval, or schedule_cron
   schedule_days  = [0, 1, 2, 3, 4, 5, 6]
   schedule_type  = "days_of_week"
   schedule_hours = [0]
+  # Do NOT add schedule_cron or schedule_interval - they conflict with schedule_hours
 }
 
 
-# a job that has github_webhook and git_provider_webhook set 
-# to true will be categorized as a "Continuous Integration Job"
+# CI JOB: github_webhook and git_provider_webhook set to true
+# Uses deferring_environment_id - MUST NOT also set self_deferring or deferring_job_id
 resource "dbtcloud_job" "ci_job" {
   environment_id = dbtcloud_environment.ci_environment.environment_id
   execute_steps = [
     "dbt build -s state:modified+ --fail-fast"
   ]
-  generate_docs            = false
+  generate_docs = false
+  name          = "CI Job"
+  num_threads   = 32
+  project_id    = dbtcloud_project.dbt_project.id
+  
+  # DEFERRAL CONFLICT: Use only ONE of deferring_environment_id, self_deferring, or deferring_job_id
   deferring_environment_id = dbtcloud_environment.prod_environment.environment_id
-  name                     = "CI Job"
-  num_threads              = 32
-  project_id               = dbtcloud_project.dbt_project.id
-  run_generate_sources     = false
-  run_lint                 = true
-  errors_on_lint_failure   = true
+  # Do NOT add self_deferring or deferring_job_id - they conflict with deferring_environment_id
+  
+  # LINT DEPENDENCY: errors_on_lint_failure only applies when run_lint = true
+  run_lint               = true
+  errors_on_lint_failure = true
+  run_generate_sources   = false
+  
   triggers = {
     "github_webhook" : true
     "git_provider_webhook" : true
     "schedule" : false
     "on_merge" : false
   }
-  # this is the default that gets set up when modifying jobs in the UI
-  # this is not going to be used when schedule is set to false
+  
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
 }
@@ -207,27 +230,27 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 
 ### Optional
 
-- `compare_changes_flags` (String) The model selector for checking changes in the compare changes Advanced CI feature
+- `compare_changes_flags` (String) The model selector for checking changes in the compare changes Advanced CI feature. **REQUIRES:** `run_compare_changes = true`
 - `dbt_version` (String) Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions
-- `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
-- `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
+- `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach). **CONFLICTS WITH:** `self_deferring`, `deferring_job_id`. **REQUIRED BY:** `run_compare_changes`
+- `deferring_job_id` (Number, Deprecated) Job identifier that this job defers to. **DEPRECATED:** Use `deferring_environment_id` instead. **CONFLICTS WITH:** `self_deferring`, `deferring_environment_id`
 - `description` (String) Description for the job
-- `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
+- `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. **REQUIRES:** `run_lint = true`. Defaults to `true`.
 - `force_node_selection` (Boolean) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config. Setting it to false essentially deletes the job. On resource creation, this field is enforced to be true.
 - `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))
 - `job_type` (String) Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured
 - `num_threads` (Number) Number of threads to use in the job
-- `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. Requires `deferring_environment_id` to be set. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
+- `run_compare_changes` (Boolean) Whether the CI job should compare data changes introduced by the code changes. **REQUIRES:** `deferring_environment_id` to be set AND environment `deployment_type` to be `staging` or `production`. (Advanced CI needs to be activated in the dbt Cloud Account Settings first as well)
 - `run_generate_sources` (Boolean) Flag for whether the job should add a `dbt source freshness` step to the job. The difference between manually adding a step with `dbt source freshness` in the job steps or using this flag is that with this flag, a failed freshness will still allow the following steps to run.
 - `run_lint` (Boolean) Whether the CI job should lint SQL changes. Defaults to `false`.
-- `schedule_cron` (String) Custom cron expression for schedule
+- `schedule_cron` (String) Custom cron expression for schedule. **CONFLICTS WITH:** `schedule_interval`, `schedule_hours`
 - `schedule_days` (List of Number) List of days of week as numbers (0 = Sunday, 7 = Saturday) to execute the job at if running on a schedule
-- `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule
-- `schedule_interval` (Number) Number of hours between job executions if running on a schedule
+- `schedule_hours` (List of Number) List of hours to execute the job at if running on a schedule. **CONFLICTS WITH:** `schedule_cron`, `schedule_interval`
+- `schedule_interval` (Number) Number of hours between job executions if running on a schedule. **CONFLICTS WITH:** `schedule_cron`, `schedule_hours`
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron
-- `self_deferring` (Boolean) Whether this job defers on a previous run of itself
+- `self_deferring` (Boolean) Whether this job defers on a previous run of itself. **CONFLICTS WITH:** `deferring_environment_id`, `deferring_job_id`
 - `target_name` (String) Target name for the dbt profile
 - `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
@@ -241,12 +264,14 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 <a id="nestedatt--triggers"></a>
 ### Nested Schema for `triggers`
 
+~> **Trigger Exclusivity:** When `on_merge = true`, ALL other triggers (`github_webhook`, `git_provider_webhook`, `schedule`) MUST be set to `false`.
+
 Optional:
 
-- `git_provider_webhook` (Boolean) Whether the job runs automatically on PR creation
-- `github_webhook` (Boolean) Whether the job runs automatically on PR creation
-- `on_merge` (Boolean) Whether the job runs automatically once a PR is merged
-- `schedule` (Boolean) Whether the job runs on a schedule
+- `git_provider_webhook` (Boolean) Whether the job runs automatically on PR creation. **MUST be `false` when** `on_merge = true`
+- `github_webhook` (Boolean) Whether the job runs automatically on PR creation. **MUST be `false` when** `on_merge = true`
+- `on_merge` (Boolean) Whether the job runs automatically once a PR is merged. **REQUIRES:** All other triggers to be `false`
+- `schedule` (Boolean) Whether the job runs on a schedule. **MUST be `false` when** `on_merge = true`
 
 
 <a id="nestedblock--job_completion_trigger_condition"></a>

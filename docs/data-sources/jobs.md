@@ -10,6 +10,19 @@ description: |-
 
 Retrieve all the jobs for a given dbt Cloud project or environment along with the environment details for the jobs. This will return both the jobs created from Terraform but also the jobs created in the dbt Cloud UI.
 
+-> For information about attribute conflicts and requirements when creating jobs with the `dbtcloud_job` resource, see the [Job Attribute Conflicts Guide](../guides/4_job_attribute_conflicts.md).
+
+## Understanding Deferral Attributes
+
+When reading job data, you may see multiple deferral-related attributes:
+
+| Attribute | Description | Status |
+|-----------|-------------|--------|
+| `deferring_environment_id` | The environment this job defers to | **Current approach** |
+| `deferring_job_definition_id` | The job this job defers to | **DEPRECATED** |
+
+~> **Note:** `deferring_job_definition_id` is deprecated. For new configurations, use environment-based deferral with `deferring_environment_id` in the `dbtcloud_job` resource.
+
 ## Example Usage
 
 ```terraform
@@ -52,8 +65,8 @@ Optional:
 Read-Only:
 
 - `dbt_version` (String) The version of dbt used for the job. If not set, the environment version will be used.
-- `deferring_environment_id` (Number) The ID of the environment this job defers to
-- `deferring_job_definition_id` (Number, Deprecated) [Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to
+- `deferring_environment_id` (Number) The ID of the environment this job defers to. **Mutually exclusive with:** `deferring_job_definition_id`
+- `deferring_job_definition_id` (Number, Deprecated) **DEPRECATED:** Use `deferring_environment_id` instead. The ID of the job definition this job defers to. **Mutually exclusive with:** `deferring_environment_id`
 - `description` (String) The description of the job
 - `environment` (Attributes) Details of the environment the job is running in (see [below for nested schema](#nestedatt--jobs--environment))
 - `environment_id` (Number) The ID of environment
@@ -66,7 +79,7 @@ Read-Only:
 - `job_type` (String) The type of job (e.g. CI, scheduled)
 - `name` (String) The name of the job
 - `project_id` (Number) The ID of the project
-- `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR
+- `run_compare_changes` (Boolean) Whether the job should compare data changes introduced by the code change in the PR. **Requires:** `deferring_environment_id` to be set
 - `run_generate_sources` (Boolean) Whether the job test source freshness
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--jobs--schedule))
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--jobs--settings))
