@@ -154,6 +154,50 @@ func TestAccDbtCloudJobResourceExecuteStepsMultipleFlags(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudJobResourceExecuteStepsMultiLine(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	// Multi-line command as shown in issue #600
+	multiLineCommand := `dbt run --select
+		my_project,config.materialized:view,state:modified,tag:my_tag
+		my_project,config.materialized:table,tag:my_tag
+		my_project,config.materialized:incremental,tag:my_tag`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// Test: Multi-line commands should succeed (issue #600)
+			{
+				Config: testAccDbtCloudJobResourceExecuteStepsMultiLineConfig(
+					jobName,
+					projectName,
+					environmentName,
+					multiLineCommand,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobName),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"triggers.%",
+					"triggers.custom_branch_only",
+					"validate_execute_steps",
+				},
+			},
+		},
+	})
+}
+
 func testAccDbtCloudJobResourceExecuteStepsConfig(
 	jobName, projectName, environmentName string,
 	executeSteps []string,
@@ -185,6 +229,40 @@ resource "dbtcloud_job" "test_job" {
     project_id = dbtcloud_project.test_job_project.id
     environment_id = dbtcloud_environment.test_job_environment.environment_id
     execute_steps = ` + stepsStr + `
+    validate_execute_steps = true
+    triggers = {
+        "github_webhook": false,
+        "git_provider_webhook": false,
+        "schedule": false
+    }
+}
+`
+}
+
+func testAccDbtCloudJobResourceExecuteStepsMultiLineConfig(
+	jobName, projectName, environmentName string,
+	multiLineStep string,
+) string {
+	return `
+resource "dbtcloud_project" "test_job_project" {
+    name = "` + projectName + `"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "` + environmentName + `"
+    dbt_version = "` + acctest_config.DBT_CLOUD_VERSION + `"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+    name = "` + jobName + `"
+    project_id = dbtcloud_project.test_job_project.id
+    environment_id = dbtcloud_environment.test_job_environment.environment_id
+    execute_steps = [<<-EOT
+` + multiLineStep + `
+EOT
+    ]
     validate_execute_steps = true
     triggers = {
         "github_webhook": false,
