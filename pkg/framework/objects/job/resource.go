@@ -877,8 +877,13 @@ func (j *jobResource) validateExecuteSteps(executeSteps []string) error {
 
 	// Validate each execute step individually
 	for _, step := range executeSteps {
+		// Normalize the step by replacing newlines with spaces to support multi-line commands
+		// This matches how dbt Cloud UI handles commands that span multiple lines
+		normalizedStep := strings.ReplaceAll(step, "\n", " ")
+		normalizedStep = strings.ReplaceAll(normalizedStep, "\r", " ")
+
 		// Check if step matches valid dbt command pattern
-		if !validCommandsRegex.MatchString(step) {
+		if !validCommandsRegex.MatchString(normalizedStep) {
 			return fmt.Errorf("invalid command: %s. Allowed commands are: %s", step, strings.Join(dbt_commands, ", "))
 		}
 
