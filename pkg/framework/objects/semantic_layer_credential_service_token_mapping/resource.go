@@ -3,6 +3,7 @@ package semantic_layer_credential_service_token_mapping
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 
@@ -146,6 +147,14 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Read(ctx context.Co
 	// Read the semantic layer credential service token mapping
 	mapping, err := r.client.GetSemanticLayerCredentialServiceTokenMapping(sm)
 	if err != nil {
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			resp.Diagnostics.AddWarning(
+				"Resource not found",
+				"The Semantic Layer credential service token mapping was not found and has been removed from the state.",
+			)
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading Semantic Layer Credential Service Token Mapping",
 			err.Error(),
