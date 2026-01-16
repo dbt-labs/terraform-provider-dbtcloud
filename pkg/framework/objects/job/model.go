@@ -62,6 +62,7 @@ type JobDataSourceModel struct {
 	DeferringJobDefinitionID      types.Int64           `tfsdk:"deferring_job_definition_id"`
 	DeferringEnvironmentID        types.Int64           `tfsdk:"deferring_environment_id"`
 	ForceNodeSelection            types.Bool            `tfsdk:"force_node_selection"`
+	CostOptimizationFeatures      types.Set             `tfsdk:"cost_optimization_features"`
 	Triggers                      *JobTriggers          `tfsdk:"triggers"`
 	Settings                      *JobSettings          `tfsdk:"settings"`
 	Schedule                      *JobSchedule          `tfsdk:"schedule"`
@@ -89,6 +90,7 @@ type SingleJobDataSourceModel struct {
 	DeferringJobId                types.Int64                      `tfsdk:"deferring_job_id"`
 	DeferringEnvironmentID        types.Int64                      `tfsdk:"deferring_environment_id"`
 	ForceNodeSelection            types.Bool                       `tfsdk:"force_node_selection"`
+	CostOptimizationFeatures      types.Set                        `tfsdk:"cost_optimization_features"`
 	SelfDeferring                 types.Bool                       `tfsdk:"self_deferring"`
 	Triggers                      *JobTriggers                     `tfsdk:"triggers"`
 	Settings                      *JobSettings                     `tfsdk:"settings"`
@@ -114,9 +116,10 @@ type JobResourceModel struct {
 	DbtVersion             types.String   `tfsdk:"dbt_version"`              // exists
 	ExecuteSteps           []types.String `tfsdk:"execute_steps"`            // exists
 	ValidateExecuteSteps   types.Bool     `tfsdk:"validate_execute_steps"`   // opt-in validation
-	DeferringEnvironmentID types.Int64    `tfsdk:"deferring_environment_id"` // exists
-	ForceNodeSelection     types.Bool     `tfsdk:"force_node_selection"`     // exists
-	Triggers               *JobTriggers   `tfsdk:"triggers"`                 // exists
+	DeferringEnvironmentID   types.Int64    `tfsdk:"deferring_environment_id"`   // exists
+	ForceNodeSelection       types.Bool     `tfsdk:"force_node_selection"`       // exists - deprecated
+	CostOptimizationFeatures types.Set      `tfsdk:"cost_optimization_features"` // new SAO control
+	Triggers                 *JobTriggers   `tfsdk:"triggers"`                   // exists
 	// Settings                      *JobSettings          `tfsdk:"settings"`                 // has no of threads and target name
 	// Schedule                      *JobSchedule          `tfsdk:"schedule"`                 // has cron expression
 	JobType           types.String `tfsdk:"job_type"`             // exists

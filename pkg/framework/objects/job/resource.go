@@ -11,6 +11,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -263,8 +264,12 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
+	// ForceNodeSelection: Only set if explicitly provided in config (not null AND not unknown)
+	// When Computed: true and user passes null, Terraform marks it as unknown, not null.
+	// IsUnknown() is true for new resources where the value will be computed.
+	// We must skip setting this to avoid sending false to the API for CI/Merge jobs.
 	var forceNodeSelection *bool
-	if !plan.ForceNodeSelection.IsNull() {
+	if !plan.ForceNodeSelection.IsNull() && !plan.ForceNodeSelection.IsUnknown() {
 		fns := plan.ForceNodeSelection.ValueBool()
 		forceNodeSelection = &fns
 	}
@@ -297,6 +302,16 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		createDeferringEnvironmentID = *deferringEnvironmentID
 	}
 
+	// Extract cost_optimization_features from plan
+	var costOptimizationFeatures []string
+	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+		for _, elem := range plan.CostOptimizationFeatures.Elements() {
+			if strVal, ok := elem.(types.String); ok && !strVal.IsNull() {
+				costOptimizationFeatures = append(costOptimizationFeatures, strVal.ValueString())
+			}
+		}
+	}
+
 	createdJob, err := j.client.CreateJob(int(projectId.ValueInt64()),
 		int(environmentId.ValueInt64()),
 		name,
@@ -326,6 +341,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		jobType,
 		compareChangesFlags,
 		forceNodeSelection,
+		costOptimizationFeatures,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -382,6 +398,17 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		if plan.ForceNodeSelection.IsNull() {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
+	}
+
+	// Populate cost_optimization_features from API response
+	if len(createdJob.CostOptimizationFeatures) > 0 {
+		features := make([]attr.Value, len(createdJob.CostOptimizationFeatures))
+		for i, f := range createdJob.CostOptimizationFeatures {
+			features[i] = types.StringValue(f)
+		}
+		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
+	} else {
+		plan.CostOptimizationFeatures = types.SetNull(types.StringType)
 	}
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
@@ -605,6 +632,17 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ForceNodeSelection = types.BoolNull()
 	}
 
+	// Populate cost_optimization_features from API response
+	if len(retrievedJob.CostOptimizationFeatures) > 0 {
+		features := make([]attr.Value, len(retrievedJob.CostOptimizationFeatures))
+		for i, f := range retrievedJob.CostOptimizationFeatures {
+			features[i] = types.StringValue(f)
+		}
+		state.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
+	} else {
+		state.CostOptimizationFeatures = types.SetNull(types.StringType)
+	}
+
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
 	} else {
@@ -788,11 +826,26 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 	}
 
-	if plan.ForceNodeSelection.IsNull() {
+	// ForceNodeSelection: Only set if explicitly provided (not null AND not unknown)
+	// When unknown, let the API determine the value (important for CI/Merge jobs)
+	if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 		job.ForceNodeSelection = nil
 	} else {
 		fns := plan.ForceNodeSelection.ValueBool()
 		job.ForceNodeSelection = &fns
+	}
+
+	// Handle cost_optimization_features updates
+	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+		var features []string
+		for _, elem := range plan.CostOptimizationFeatures.Elements() {
+			if strVal, ok := elem.(types.String); ok && !strVal.IsNull() {
+				features = append(features, strVal.ValueString())
+			}
+		}
+		job.CostOptimizationFeatures = features
+	} else {
+		job.CostOptimizationFeatures = nil
 	}
 
 	// Handle job_type updates with validation
@@ -876,6 +929,17 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
 	} else {
 		plan.ForceNodeSelection = types.BoolNull()
+	}
+
+	// Populate cost_optimization_features from API response
+	if len(updatedJob.CostOptimizationFeatures) > 0 {
+		features := make([]attr.Value, len(updatedJob.CostOptimizationFeatures))
+		for i, f := range updatedJob.CostOptimizationFeatures {
+			features[i] = types.StringValue(f)
+		}
+		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
+	} else {
+		plan.CostOptimizationFeatures = types.SetNull(types.StringType)
 	}
 
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)

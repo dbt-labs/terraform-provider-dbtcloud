@@ -1,178 +1,164 @@
-# Fix Service Token Permission Inconsistency Bug
+# PR: Fix CI/Merge Job Deferral & Add cost_optimization_features Support
 
 ## Summary
 
-Fixes two bugs in the Terraform provider:
+This PR addresses critical bugs affecting CI and Merge jobs, and introduces the new `cost_optimization_features` attribute for better State-Aware Orchestration (SAO) control.
 
-1. **Service Token Permission Inconsistency**: "Provider produced inconsistent result after apply" errors when creating service tokens with empty `writable_environment_categories`.
+## Bug Fixes
 
-2. **Service Token Permission Assignment 404s**: Service token permissions cannot be changed after creation, but the provider was attempting to update them after creation, causing 404 errors. Permissions must be set during token creation.
+### 1. CI/Merge Jobs Can Now Use `deferring_environment_id`
 
-## Problems
+**Problem:** The provider was incorrectly dropping `deferring_environment_id` for CI and Merge jobs, preventing users from configuring artifact deferral on these job types.
 
-### Problem 1: Permission Inconsistency
+**Root Cause:** The `CreateJob` function in `pkg/dbt_cloud/job.go` contained logic that explicitly zeroed out deferral settings for jobs with `github_webhook`, `git_provider_webhook`, or `on_merge` triggers:
 
-When creating service tokens with `writable_environment_categories = []` (empty set), Terraform reports an inconsistency error:
-
-```
-Error: Provider produced inconsistent result after apply
-.service_token_permissions: planned set element does not correlate with any element in actual.
-```
-
-### Root Cause
-
-The bug is in `pkg/framework/objects/service_token/model.go` in the `ConvertServiceTokenPermissionDataToModel` function:
-
-1. **Plan**: User specifies `writable_environment_categories = []` (empty set)
-2. **API Request**: Empty array `[]` is sent to the API (correct)
-3. **API Response**: API returns empty array `[]` or omits the field
-4. **Model Conversion** (lines 93-95): Code automatically converts empty to `["all"]`:
-   ```go
-   if len(permission.WritableEnvs) == 0 {
-       permission.WritableEnvs = []dbt_cloud.EnvironmentCategory{dbt_cloud.EnvironmentCategory_All}
-   }
-   ```
-5. **Result**: Plan has `[]`, actual state has `["all"]` → **Mismatch Error**
-
-### Problem 2: Permission Assignment 404s
-
-When creating service tokens with permissions, the provider:
-1. Creates the token without permissions
-2. Attempts to update permissions via `UpdateServiceTokenPermissions` endpoint
-3. Receives 404 errors because **service token permissions cannot be changed after creation**
-
-The dbt Cloud API requires permissions to be set **during token creation**, not afterward.
-
-## Solutions
-
-### Solution 1: Remove Automatic Normalization
-
-Removed the automatic normalization that converts empty `WritableEnvs` to `["all"]`. This preserves the plan value when the API returns empty, ensuring consistency between plan and actual state.
-
-### Solution 2: Set Permissions During Creation
-
-Modified the provider to include permissions in the service token creation request instead of attempting to update them afterward.
-
-**Changes:**
-
-**File**: `pkg/dbt_cloud/service_token.go`
-- Modified `CreateServiceToken()` to accept `permissions []ServiceTokenPermission` parameter
-- Permissions are now included in the creation request payload
-
-**File**: `pkg/framework/objects/service_token/model.go`
-- Added `ConvertServiceTokenPermissionModelToDataForCreation()` function
-- This function converts permissions for creation (without `ServiceTokenID` - API assigns it)
-- Original `ConvertServiceTokenPermissionModelToData()` remains for update operations
-
-**File**: `pkg/framework/objects/service_token/resource.go`
-- Modified `Create()` function to:
-  1. Convert permissions for creation (without ServiceTokenID)
-  2. Pass permissions to `CreateServiceToken()` during creation
-  3. Read back permissions from the created token (or fetch if not in response)
-  4. Removed `UpdateServiceTokenPermissions()` call (permissions are immutable after creation)
-
-### Changes Summary
-
-**File**: `pkg/framework/objects/service_token/model.go`
-
-**Removed lines 93-95** (automatic normalization):
 ```go
-// REMOVED: Automatic normalization that caused inconsistency
-if len(permission.WritableEnvs) == 0 {
-    permission.WritableEnvs = []dbt_cloud.EnvironmentCategory{dbt_cloud.EnvironmentCategory_All}
+// REMOVED: This was incorrectly dropping deferral for CI/Merge jobs
+if isGithubWebhook || isOnMerge {
+    deferringJobId = 0
+    deferringEnvironmentID = 0
 }
 ```
 
-**Added** `ConvertServiceTokenPermissionModelToDataForCreation()` function for creation-time permission conversion.
+**Fix:** Removed this incorrect logic. CI/Merge jobs CAN have `deferring_environment_id` for artifact deferral - this is separate from SAO.
 
-## Impact
+### 2. CI/Merge Jobs No Longer Fail with SAO Errors
 
-### Before Fix
-- Users setting `writable_environment_categories = []` get inconsistency errors
-- Terraform state becomes inconsistent
-- Subsequent applies may fail or attempt to recreate permissions
+**Problem:** CI and Merge jobs would fail with API error `405: State aware orchestration is not available for CI or Merge jobs` when creating jobs, even without explicitly setting `force_node_selection`.
 
-### After Fix
-- Empty `writable_environment_categories` are preserved as empty (matching plan)
-- Schema default `["all"]` still applies when users don't specify the attribute
-- Users who explicitly set `[]` get `[]` back (matching their plan)
-- No more inconsistency errors
-- Service token permissions are set during creation (not updated afterward)
-- No more 404 errors when creating service tokens with permissions
+**Root Cause:** The API rejects `force_node_selection=false` (or any explicit value) for CI/Merge jobs. The provider needed to completely omit this field for these job types.
 
-## Backward Compatibility
+**Fix:** The provider now correctly handles `force_node_selection` for different job types:
+- CI/Merge jobs: Field is omitted entirely
+- Non-Fusion jobs: Field is set to `true` (SAO requires Fusion)
+- Fusion jobs: Uses the configured value or omits if null
 
-✅ **Fully backward compatible**
+## New Feature: `cost_optimization_features`
 
-- Users who don't set `writable_environment_categories` will still get the schema default `["all"]` (via schema default, not normalization)
-- Users who explicitly set `["all"]` will get `["all"]` back
-- Users who set `[]` will now get `[]` back (this was broken before, now fixed)
+Added the `cost_optimization_features` attribute as the preferred way to control SAO features.
 
-## Testing
+### Usage
 
-### Manual Testing
+```hcl
+resource "dbtcloud_job" "production_job" {
+  name           = "Production Daily Run"
+  project_id     = dbtcloud_project.example.id
+  environment_id = dbtcloud_environment.production.environment_id
+  dbt_version    = "latest-fusion"  # Required for SAO
+  
+  execute_steps = ["dbt build"]
+  
+  # Enable SAO using the new attribute
+  cost_optimization_features = ["state_aware_orchestration"]
+  
+  triggers = {
+    schedule = true
+  }
+}
+```
 
-1. **Build the provider**:
-   ```bash
-   go build -o terraform-provider-dbtcloud
-   ```
+### Valid Values
 
-2. **Configure Terraform dev_overrides** in `~/.terraformrc`:
-   ```hcl
-   provider_installation {
-     dev_overrides {
-       "dbt-labs/dbtcloud" = "/path/to/terraform-provider-dbtcloud"
-     }
-     direct {}
-   }
-   ```
+| Value | Description |
+|-------|-------------|
+| `state_aware_orchestration` | Enables SAO for optimized job execution |
 
-3. **Test with empty writable_environment_categories**:
-   ```terraform
-   resource "dbtcloud_service_token" "test" {
-     name = "test-token"
-     
-     service_token_permissions {
-       permission_set = "account_admin"
-       all_projects   = true
-       writable_environment_categories = []  # Empty set
-     }
-   }
-   ```
+### Relationship with `force_node_selection`
 
-4. **Verify**:
-   - `terraform plan` should succeed
-   - `terraform apply` should succeed without inconsistency errors
-   - `terraform show` should show `writable_environment_categories = []`
+| `cost_optimization_features` | Equivalent `force_node_selection` | SAO Status |
+|------------------------------|-----------------------------------|------------|
+| `["state_aware_orchestration"]` | `false` | Enabled |
+| `[]` or not set | `true` | Disabled |
 
-### Automated Testing
+### Deprecation Notice
 
-The fix has been tested with the terraform-dbtcloud-yaml E2E test suite:
-- Service tokens with empty `writable_environment_categories` create successfully
-- No "inconsistent result" errors observed
-- State matches plan correctly
-- Service tokens with permissions create successfully (permissions set during creation)
-- No 404 errors when assigning permissions (permissions included in creation request)
+`force_node_selection` is now deprecated and will be removed in a future major version. Users should migrate to `cost_optimization_features`.
+
+## Files Changed
+
+### Core API Client
+- `pkg/dbt_cloud/job.go`
+  - Added `CostOptimizationFeatures` field to `Job` struct
+  - Added `costOptimizationFeatures` parameter to `CreateJob` function
+  - **Removed** incorrect deferral-dropping logic for CI/Merge jobs
+
+### Resource Implementation
+- `pkg/framework/objects/job/resource.go`
+  - Added handling for `cost_optimization_features` in Create, Read, and Update
+  - Properly populates the field from API responses
+
+### Schema
+- `pkg/framework/objects/job/schema.go`
+  - Added `cost_optimization_features` as a Set attribute with validation
+  - Added deprecation message to `force_node_selection`
+
+### Model
+- `pkg/framework/objects/job/model.go`
+  - Added `CostOptimizationFeatures types.Set` to all job models
+
+### Tests
+- `pkg/framework/objects/job/resource_acceptance_cost_optimization_test.go` (NEW)
+  - `TestAccDbtCloudJobResourceCIWithDeferral` - Validates CI jobs with deferral
+  - `TestAccDbtCloudJobResourceMergeWithDeferral` - Validates Merge jobs with deferral
+  - `TestAccDbtCloudJobResourceCINoForceNodeSelection` - Validates CI jobs work without force_node_selection
+  - `TestAccDbtCloudJobResourceMergeNoForceNodeSelection` - Validates Merge jobs work without force_node_selection
+  - `TestAccDbtCloudJobResourceCostOptimizationFeatures` - Validates new feature
+
+### Documentation
+- `docs/resources/job.md`
+  - Added SAO section with comprehensive guidance
+  - Added migration guide from `force_node_selection` to `cost_optimization_features`
+  - Clarified deferral vs SAO distinction
+
+## Test Results
+
+All new acceptance tests pass:
+
+```
+--- PASS: TestAccDbtCloudJobResourceMergeWithDeferral (4.30s)
+--- PASS: TestAccDbtCloudJobResourceCostOptimizationFeatures (4.53s)
+--- PASS: TestAccDbtCloudJobResourceMergeNoForceNodeSelection (4.65s)
+--- PASS: TestAccDbtCloudJobResourceCINoForceNodeSelection (5.26s)
+--- PASS: TestAccDbtCloudJobResourceCIWithDeferral (5.66s)
+PASS
+```
+
+## Migration Guide
+
+### From `force_node_selection` to `cost_optimization_features`
+
+**Before (deprecated):**
+```hcl
+resource "dbtcloud_job" "example" {
+  # ... other config ...
+  force_node_selection = false  # Enable SAO
+}
+```
+
+**After (recommended):**
+```hcl
+resource "dbtcloud_job" "example" {
+  # ... other config ...
+  cost_optimization_features = ["state_aware_orchestration"]  # Enable SAO
+}
+```
+
+## Breaking Changes
+
+None. All changes are backward compatible:
+- `force_node_selection` continues to work (with deprecation warning)
+- Existing CI/Merge jobs will now correctly preserve `deferring_environment_id`
 
 ## Related Issues
 
-This fixes the issues described in:
-- terraform-dbtcloud-yaml: `dev_support/KNOWN_ISSUES.md` - Service Token Permission Inconsistency
-- terraform-dbtcloud-yaml: `dev_support/APPLY_ERRORS_ANALYSIS.md` - Error Category 1 (Inconsistency) and Category 4 (Permission Assignment 404s)
+- Fixes deferral being dropped for CI/Merge jobs
+- Fixes SAO validation errors for CI/Merge jobs
+- Implements `cost_optimization_features` for better SAO control
 
 ## Checklist
 
-- [x] Code changes implemented
-- [x] Backward compatibility verified
-- [x] Manual testing completed
-- [x] E2E testing completed
-- [x] Documentation updated (KNOWN_ISSUES.md)
-- [ ] Unit tests added (if applicable)
-- [ ] Integration tests updated (if applicable)
-
-## Notes
-
-- The schema default (`["all"]`) is still applied via Terraform's schema default mechanism, not via normalization
-- This change only affects the conversion from API response to Terraform model
-- The "hack" in `ConvertServiceTokenPermissionModelToData` (lines 63-66) remains unchanged as it correctly handles the API request side
-
+- [x] Code changes
+- [x] Tests added/updated
+- [x] Documentation updated
+- [x] Changelog updated
+- [x] Backward compatible

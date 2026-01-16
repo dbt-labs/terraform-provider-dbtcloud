@@ -18,9 +18,48 @@ description: |-
 | **Triggers** | When `on_merge = true`, all other triggers MUST be `false` |
 
 **Prerequisites:**
-- `run_compare_changes` REQUIRES `deferring_environment_id` to be set
+- `run_compare_changes` REQUIRES `deferring_environment_id` to be set AND environment with `deployment_type = "staging"` or `"production"`
 - `errors_on_lint_failure` REQUIRES `run_lint = true`
 - `compare_changes_flags` REQUIRES `run_compare_changes = true`
+
+## State-Aware Orchestration (SAO)
+
+SAO optimizes job execution by intelligently selecting which nodes to run based on state. **Note: SAO is different from Advanced CI (`run_compare_changes`).**
+
+| Feature | Purpose | Requirements |
+|---------|---------|--------------|
+| **SAO** (`cost_optimization_features`) | Optimizes node selection for faster runs | `dbt_version = "latest-fusion"`, staging/production environment |
+| **Advanced CI** (`run_compare_changes`) | Compares data changes in PRs | `deferring_environment_id` set, staging/production environment |
+
+### Controlling SAO
+
+**Recommended:** Use `cost_optimization_features` (new):
+
+```hcl
+resource "dbtcloud_job" "with_sao" {
+  # ... other config ...
+  dbt_version = "latest-fusion"  # Required for SAO
+  cost_optimization_features = ["state_aware_orchestration"]  # Enable SAO
+}
+```
+
+**Deprecated:** `force_node_selection` (will be removed in future version):
+
+| `force_node_selection` | SAO Status |
+|------------------------|------------|
+| `true` | Disabled |
+| `false` or `null` | Enabled (requires `latest-fusion`) |
+
+### SAO Rules by Job Type
+
+| Job Type | `force_node_selection` Behavior |
+|----------|--------------------------------|
+| **CI Jobs** (webhook triggers) | Must be OMITTED - provider handles automatically |
+| **Merge Jobs** (`on_merge = true`) | Must be OMITTED - provider handles automatically |
+| **Scheduled Jobs** (non-Fusion) | Must be `true` or omitted (SAO requires Fusion) |
+| **Scheduled Jobs** (Fusion) | Can be `false`/`null` to enable SAO |
+
+~> **Important:** CI and Merge jobs CAN have `deferring_environment_id` for artifact deferral. Deferral is separate from SAO.
 
 ~> In October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
 <br/>
@@ -236,7 +275,8 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `deferring_job_id` (Number, Deprecated) Job identifier that this job defers to. **DEPRECATED:** Use `deferring_environment_id` instead. **CONFLICTS WITH:** `self_deferring`, `deferring_environment_id`
 - `description` (String) Description for the job
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. **REQUIRES:** `run_lint = true`. Defaults to `true`.
-- `force_node_selection` (Boolean) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified.
+- `force_node_selection` (Boolean, **Deprecated**) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified. **DEPRECATED:** Use `cost_optimization_features` instead.
+- `cost_optimization_features` (Set of String) List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled. When empty or not set, SAO is disabled. This is the preferred way to control SAO.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config. Setting it to false essentially deletes the job. On resource creation, this field is enforced to be true.
 - `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))

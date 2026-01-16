@@ -71,8 +71,9 @@ type Job struct {
 	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
 	ExecuteSteps           []string              `json:"execute_steps"`
 	Execution              JobExecution          `json:"execution"`
-	ForceNodeSelection     *bool                 `json:"force_node_selection,omitempty"`
-	GenerateDocs           bool                  `json:"generate_docs"`
+	ForceNodeSelection       *bool                 `json:"force_node_selection,omitempty"`
+	CostOptimizationFeatures []string              `json:"cost_optimization_features,omitempty"`
+	GenerateDocs             bool                  `json:"generate_docs"`
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
 	JobType                string                `json:"job_type,omitempty"`
 	RunCompareChanges      *bool                 `json:"run_compare_changes,omitempty"`
@@ -144,6 +145,7 @@ func (c *Client) CreateJob(
 	jobType string,
 	compareChangesFlags string,
 	forceNodeSelection *bool,
+	costOptimizationFeatures []string,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -240,14 +242,6 @@ func (c *Client) CreateJob(
 	}
 
 	// Detect CI / Merge triggers to decide whether to drop deferral (SAO-incompatible)
-	isGithubWebhook := false
-	if v, ok := triggers["github_webhook"].(bool); ok {
-		isGithubWebhook = v
-	}
-	isOnMerge := false
-	if v, ok := triggers["on_merge"].(bool); ok {
-		isOnMerge = v
-	}
 
 	newJob := Job{
 		AccountId:            c.AccountID,
@@ -266,9 +260,10 @@ func (c *Client) CreateJob(
 		ForceNodeSelection:   forceNodeSelection,
 		TriggersOnDraftPR:    triggersOnDraftPR,
 		JobCompletionTrigger: jobCompletionTrigger,
-		JobType:              finalJobType,
-		RunLint:              runLint,
-		ErrorsOnLintFailure:  errorsOnLintFailure,
+		JobType:                  finalJobType,
+		RunLint:                  runLint,
+		ErrorsOnLintFailure:      errorsOnLintFailure,
+		CostOptimizationFeatures: costOptimizationFeatures,
 	}
 	// SAO control: explicitly send run_compare_changes=false to suppress server defaults.
 	// Only send compare_changes_flags when SAO is enabled.
@@ -283,11 +278,6 @@ func (c *Client) CreateJob(
 	}
 	if dbtVersion != "" {
 		newJob.DbtVersion = &dbtVersion
-	}
-	// For CI / Merge jobs, drop deferral to avoid SAO validation
-	if isGithubWebhook || isOnMerge {
-		deferringJobId = 0
-		deferringEnvironmentID = 0
 	}
 	if deferringJobId != 0 {
 		newJob.DeferringJobId = &deferringJobId
