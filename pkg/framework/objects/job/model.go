@@ -101,8 +101,8 @@ type SingleJobDataSourceModel struct {
 }
 
 type JobResourceModel struct {
-	// Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
-	TimeoutSeconds         types.Int64    `tfsdk:"timeout_seconds"`          // moved under execution , add deprecation message
+	Execution              *JobExecution  `tfsdk:"execution"`
+	TimeoutSeconds         types.Int64    `tfsdk:"timeout_seconds"`          // deprecated, use Execution.TimeoutSeconds
 	GenerateDocs           types.Bool     `tfsdk:"generate_docs"`            // exists
 	RunGenerateSources     types.Bool     `tfsdk:"run_generate_sources"`     // exists
 	ID                     types.Int64    `tfsdk:"id"`                       // will hold job id?
