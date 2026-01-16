@@ -8,6 +8,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -105,6 +106,17 @@ func (j *jobDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		state.ForceNodeSelection = types.BoolValue(*job.ForceNodeSelection)
 	} else {
 		state.ForceNodeSelection = types.BoolNull()
+	}
+
+	// Populate cost_optimization_features from API response
+	if len(job.CostOptimizationFeatures) > 0 {
+		features := make([]attr.Value, len(job.CostOptimizationFeatures))
+		for i, f := range job.CostOptimizationFeatures {
+			features[i] = types.StringValue(f)
+		}
+		state.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
+	} else {
+		state.CostOptimizationFeatures = types.SetNull(types.StringType)
 	}
 
 	state.Triggers = &JobTriggers{

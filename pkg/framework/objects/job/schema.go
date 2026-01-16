@@ -88,6 +88,11 @@ func getJobAttributes() map[string]schema.Attribute {
 			Computed:    true,
 			Description: "Whether force node selection (SAO) is enabled for this job",
 		},
+		"cost_optimization_features": schema.SetAttribute{
+			Computed:    true,
+			ElementType: types.StringType,
+			Description: "List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`.",
+		},
 		"triggers": schema.SingleNestedAttribute{
 			Computed: true,
 			Attributes: map[string]schema.Attribute{

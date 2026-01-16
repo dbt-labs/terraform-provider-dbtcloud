@@ -6,6 +6,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/samber/lo"
@@ -93,6 +94,18 @@ func (d *jobsDataSource) Read(
 			forceNodeSelection = types.BoolValue(*job.ForceNodeSelection)
 		}
 
+		// Populate cost_optimization_features from API response
+		var costOptimizationFeatures types.Set
+		if len(job.CostOptimizationFeatures) > 0 {
+			features := make([]attr.Value, len(job.CostOptimizationFeatures))
+			for i, f := range job.CostOptimizationFeatures {
+				features[i] = types.StringValue(f)
+			}
+			costOptimizationFeatures, _ = types.SetValue(types.StringType, features)
+		} else {
+			costOptimizationFeatures = types.SetNull(types.StringType)
+		}
+
 		currentJob := JobDataSourceModel{
 			Execution: &JobExecution{
 				TimeoutSeconds: types.Int64Value(int64(job.Execution.TimeoutSeconds)),
@@ -116,7 +129,8 @@ func (d *jobsDataSource) Read(
 			DeferringEnvironmentID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
 				job.DeferringEnvironmentId),
 			),
-			ForceNodeSelection: forceNodeSelection,
+			ForceNodeSelection:       forceNodeSelection,
+			CostOptimizationFeatures: costOptimizationFeatures,
 			Triggers: &JobTriggers{
 				GithubWebhook:      types.BoolValue(job.Triggers.GithubWebhook),
 				GitProviderWebhook: types.BoolValue(job.Triggers.GitProviderWebhook),

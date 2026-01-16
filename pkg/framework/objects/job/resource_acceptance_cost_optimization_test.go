@@ -579,3 +579,112 @@ resource "dbtcloud_job" "merge_job" {
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
 }
+
+// TestAccDbtCloudJobResourceMergeTriggerDisable tests that merge jobs can have
+// their on_merge trigger disabled without forcing resource replacement.
+// This validates the fix where disabling triggers should update in-place.
+func TestAccDbtCloudJobResourceMergeTriggerDisable(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create merge job with on_merge enabled
+			{
+				Config: testAccDbtCloudJobResourceMergeTriggerConfig(
+					jobName,
+					projectName,
+					environmentName,
+					true, // on_merge enabled
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.merge_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "triggers.on_merge", "true"),
+				),
+			},
+			// Step 2: Disable on_merge trigger - should update in-place, not replace
+			{
+				Config: testAccDbtCloudJobResourceMergeTriggerConfig(
+					jobName,
+					projectName,
+					environmentName,
+					false, // on_merge disabled
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.merge_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "triggers.on_merge", "false"),
+					// The job should still exist with the same ID (not replaced)
+				),
+			},
+			// Step 3: Re-enable on_merge trigger - should also update in-place
+			{
+				Config: testAccDbtCloudJobResourceMergeTriggerConfig(
+					jobName,
+					projectName,
+					environmentName,
+					true, // on_merge re-enabled
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.merge_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "name", jobName),
+					resource.TestCheckResourceAttr("dbtcloud_job.merge_job", "triggers.on_merge", "true"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.merge_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobResourceMergeTriggerConfig(
+	jobName, projectName, environmentName string,
+	onMergeEnabled bool,
+) string {
+	onMerge := "false"
+	if onMergeEnabled {
+		onMerge = "true"
+	}
+
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "prod_env" {
+    project_id = dbtcloud_project.project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+    deployment_type = "production"
+}
+
+resource "dbtcloud_job" "merge_job" {
+    name = "%s"
+    project_id = dbtcloud_project.project.id
+    environment_id = dbtcloud_environment.prod_env.environment_id
+    execute_steps = ["dbt build"]
+    deferring_environment_id = dbtcloud_environment.prod_env.environment_id
+    force_node_selection = null
+    
+    triggers = {
+        "github_webhook" : false
+        "git_provider_webhook" : false
+        "schedule" : false
+        "on_merge" : %s
+    }
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, onMerge)
+}

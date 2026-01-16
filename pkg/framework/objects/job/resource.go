@@ -109,39 +109,6 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		return
 	}
 
-	// Skip checks if necessary fields are null
-	if plan.Triggers == nil || state.Triggers == nil {
-		return
-	}
-
-	// if we change the job type (CI, merge or "empty"), we need to recreate the job as dbt Cloud doesn't allow updating them
-	// the job type is determined by the triggers
-	if plan.Triggers != nil && state.Triggers != nil {
-		oldCI := state.Triggers.GithubWebhook.ValueBool() || state.Triggers.GitProviderWebhook.ValueBool()
-		oldOnMerge := state.Triggers.OnMerge.ValueBool()
-
-		oldType := ""
-		if oldCI {
-			oldType = "ci"
-		} else if oldOnMerge {
-			oldType = "merge"
-		}
-
-		newCI := plan.Triggers.GithubWebhook.ValueBool() || plan.Triggers.GitProviderWebhook.ValueBool()
-		newOnMerge := plan.Triggers.OnMerge.ValueBool()
-
-		newType := ""
-		if newCI {
-			newType = "ci"
-		} else if newOnMerge {
-			newType = "merge"
-		}
-
-		if oldType != newType {
-			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
-		}
-	}
-
 	// Validate job_type field changes if the field is being explicitly set
 	// Note: If plan.JobType is set but state.JobType is null (first time setting it),
 	// the validation will happen in Update against the actual server value
@@ -158,6 +125,20 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 					fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
 				)
 				return
+			}
+
+			// Force replacement only for CI and Adaptive type changes (API restrictions)
+			// CI jobs cannot change to any other type
+			// Adaptive jobs cannot change to any other type
+			// Note: Merge jobs CAN have their on_merge trigger disabled without changing type
+			// Scheduled/Other jobs can change between each other and to merge
+			ciToNonCI := prevJobType == JobTypeCI && newJobType != JobTypeCI
+			nonCIToCI := prevJobType != JobTypeCI && newJobType == JobTypeCI
+			adaptiveToNonAdaptive := prevJobType == JobTypeAdaptive && newJobType != JobTypeAdaptive
+			nonAdaptiveToAdaptive := prevJobType != JobTypeAdaptive && newJobType == JobTypeAdaptive
+
+			if ciToNonCI || nonCIToCI || adaptiveToNonAdaptive || nonAdaptiveToAdaptive {
+				resp.RequiresReplace = append(resp.RequiresReplace, path.Root("job_type"))
 			}
 		}
 	}

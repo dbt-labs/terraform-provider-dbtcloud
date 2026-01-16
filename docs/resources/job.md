@@ -61,6 +61,42 @@ resource "dbtcloud_job" "with_sao" {
 
 ~> **Important:** CI and Merge jobs CAN have `deferring_environment_id` for artifact deferral. Deferral is separate from SAO.
 
+## Job Type and Trigger Behavior
+
+Jobs in dbt Cloud have a `job_type` that determines their behavior. The job type is set based on triggers when the job is created.
+
+### Deactivating Jobs (Disabling Triggers)
+
+To temporarily disable a job without destroying it, set all triggers to `false`. The job type remains unchanged - this is an **in-place update**, not a replacement.
+
+```hcl
+# Deactivated merge job - still type "merge", just disabled
+resource "dbtcloud_job" "merge_job" {
+  # ... other config ...
+  triggers = {
+    "github_webhook" : false
+    "git_provider_webhook" : false
+    "schedule" : false
+    "on_merge" : false  # Disabled, but job_type stays "merge"
+  }
+}
+```
+
+### Job Type Change Restrictions
+
+| Job Type | Can Disable Triggers In-Place | Can Change To Other Type |
+|----------|------------------------------|--------------------------|
+| `scheduled` | Yes (`schedule: false`) | Yes (to `other`, `merge`) |
+| `merge` | Yes (`on_merge: false`) | No |
+| `ci` | Yes (webhook triggers: `false`) | No |
+| `adaptive` | N/A (system-managed) | No |
+| `other` | Yes | Yes (to `scheduled`, `merge`) |
+
+**Key Points:**
+- **Merge Jobs**: Setting `on_merge: false` creates a "deactivated" merge job. It will NOT run automatically but can still be triggered manually. The job remains type `merge`.
+- **CI Jobs**: Setting `github_webhook: false` and `git_provider_webhook: false` deactivates CI triggering. The job remains type `ci`.
+- **Replacement Triggers**: The provider will force resource replacement only when attempting to change job types that the dbt Cloud API prohibits (e.g., CI to scheduled, merge to CI).
+
 ~> In October 2023, CI improvements have been rolled out to dbt Cloud with minor impacts to some jobs:  [more info](https://docs.getdbt.com/docs/dbt-versions/release-notes/june-2023/ci-updates-phase1-rn). 
 <br/>
 <br/>
