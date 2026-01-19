@@ -138,6 +138,11 @@ resource "dbtcloud_job" "daily_job" {
   schedule_type  = "days_of_week"
   schedule_hours = [0]
   # Do NOT add schedule_cron or schedule_interval - they conflict with schedule_hours
+
+  # set job timeout using the execution block (recommended)
+  execution = {
+    timeout_seconds = 1800
+  }
 }
 
 
@@ -171,6 +176,11 @@ resource "dbtcloud_job" "ci_job" {
   
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
+
+  # set job timeout - use execution block (recommended) instead of the deprecated timeout_seconds
+  execution = {
+    timeout_seconds = 3600
+  }
 }
 
 # a job that is set to be triggered after another job finishes
@@ -311,6 +321,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `deferring_job_id` (Number, Deprecated) Job identifier that this job defers to. **DEPRECATED:** Use `deferring_environment_id` instead. **CONFLICTS WITH:** `self_deferring`, `deferring_environment_id`
 - `description` (String) Description for the job
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. **REQUIRES:** `run_lint = true`. Defaults to `true`.
+- `execution` (Attributes) Execution settings for the job (see [below for nested schema](#nestedatt--execution))
 - `force_node_selection` (Boolean, **Deprecated**) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified. **DEPRECATED:** Use `cost_optimization_features` instead.
 - `cost_optimization_features` (Set of String) List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled. When empty or not set, SAO is disabled. This is the preferred way to control SAO.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
@@ -328,7 +339,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself. **CONFLICTS WITH:** `deferring_environment_id`, `deferring_job_id`
 - `target_name` (String) Target name for the dbt profile
-- `timeout_seconds` (Number, Deprecated) [Deprectated - Moved to execution.timeout_seconds] Number of seconds to allow the job to run before timing out
+- `timeout_seconds` (Number, Deprecated) Number of seconds to allow the job to run before timing out. Use execution.timeout_seconds instead.
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 - `validate_execute_steps` (Boolean) When set to `true`, the provider will validate the `execute_steps` during plan time to ensure they contain valid dbt commands. If a command is not recognized (e.g., a new dbt command not yet supported by the provider), the validation will fail. Defaults to `false` to allow flexibility with newer dbt commands.
 
@@ -348,6 +359,14 @@ Optional:
 - `github_webhook` (Boolean) Whether the job runs automatically on PR creation. **MUST be `false` when** `on_merge = true`
 - `on_merge` (Boolean) Whether the job runs automatically once a PR is merged. **REQUIRES:** All other triggers to be `false`
 - `schedule` (Boolean) Whether the job runs on a schedule. **MUST be `false` when** `on_merge = true`
+
+
+<a id="nestedatt--execution"></a>
+### Nested Schema for `execution`
+
+Optional:
+
+- `timeout_seconds` (Number) The number of seconds before the job times out
 
 
 <a id="nestedblock--job_completion_trigger_condition"></a>

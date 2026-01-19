@@ -22,6 +22,11 @@ resource "dbtcloud_job" "daily_job" {
   schedule_days  = [0, 1, 2, 3, 4, 5, 6]
   schedule_type  = "days_of_week"
   schedule_hours = [0]
+
+  # set job timeout using the execution block (recommended)
+  execution = {
+    timeout_seconds = 1800
+  }
 }
 
 
@@ -50,6 +55,11 @@ resource "dbtcloud_job" "ci_job" {
   # this is not going to be used when schedule is set to false
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
+
+  # set job timeout - use execution block (recommended) instead of the deprecated timeout_seconds
+  execution = {
+    timeout_seconds = 3600
+  }
 }
 
 # a job that is set to be triggered after another job finishes

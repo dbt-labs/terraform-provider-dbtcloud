@@ -103,23 +103,23 @@ type SingleJobDataSourceModel struct {
 }
 
 type JobResourceModel struct {
-	// Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
-	TimeoutSeconds           types.Int64    `tfsdk:"timeout_seconds"`            // moved under execution , add deprecation message
-	GenerateDocs             types.Bool     `tfsdk:"generate_docs"`              // exists
-	RunGenerateSources       types.Bool     `tfsdk:"run_generate_sources"`       // exists
-	ID                       types.Int64    `tfsdk:"id"`                         // will hold job id?
-	JobId                    types.Int64    `tfsdk:"job_id"`                     // for framework
-	ProjectID                types.Int64    `tfsdk:"project_id"`                 // exists
-	EnvironmentID            types.Int64    `tfsdk:"environment_id"`             // exists
-	Name                     types.String   `tfsdk:"name"`                       // exists
-	Description              types.String   `tfsdk:"description"`                // exists
-	DbtVersion               types.String   `tfsdk:"dbt_version"`                // exists
-	ExecuteSteps             []types.String `tfsdk:"execute_steps"`              // exists
-	ValidateExecuteSteps     types.Bool     `tfsdk:"validate_execute_steps"`     // opt-in validation
-	DeferringEnvironmentID   types.Int64    `tfsdk:"deferring_environment_id"`   // exists
-	ForceNodeSelection       types.Bool     `tfsdk:"force_node_selection"`       // exists - deprecated
-	CostOptimizationFeatures types.Set      `tfsdk:"cost_optimization_features"` // new SAO control
-	Triggers                 *JobTriggers   `tfsdk:"triggers"`                   // exists
+	Execution                *JobExecution  `tfsdk:"execution"`
+	TimeoutSeconds           types.Int64    `tfsdk:"timeout_seconds"`
+	GenerateDocs             types.Bool     `tfsdk:"generate_docs"`
+	RunGenerateSources       types.Bool     `tfsdk:"run_generate_sources"`
+	ID                       types.Int64    `tfsdk:"id"`
+	JobId                    types.Int64    `tfsdk:"job_id"`
+	ProjectID                types.Int64    `tfsdk:"project_id"`
+	EnvironmentID            types.Int64    `tfsdk:"environment_id"`
+	Name                     types.String   `tfsdk:"name"`
+	Description              types.String   `tfsdk:"description"`
+	DbtVersion               types.String   `tfsdk:"dbt_version"`
+	ExecuteSteps             []types.String `tfsdk:"execute_steps"`
+	ValidateExecuteSteps     types.Bool     `tfsdk:"validate_execute_steps"`
+	DeferringEnvironmentID   types.Int64    `tfsdk:"deferring_environment_id"`
+	ForceNodeSelection       types.Bool     `tfsdk:"force_node_selection"`
+	CostOptimizationFeatures types.Set      `tfsdk:"cost_optimization_features"`
+	Triggers                 *JobTriggers   `tfsdk:"triggers"`
 	// Settings                      *JobSettings          `tfsdk:"settings"`                 // has no of threads and target name
 	// Schedule                      *JobSchedule          `tfsdk:"schedule"`                 // has cron expression
 	JobType           types.String `tfsdk:"job_type"`             // exists
