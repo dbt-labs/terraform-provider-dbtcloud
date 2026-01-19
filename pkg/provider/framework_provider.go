@@ -27,6 +27,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/connection_catalog_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/fabric_credential"
@@ -339,6 +340,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		account_features.AccountFeaturesResource,
 		athena_credential.NewAthenaCredentialResource,
+		connection_catalog_config.ConnectionCatalogConfigResource,
 		global_connection.GlobalConnectionResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
 		group.GroupResource,
