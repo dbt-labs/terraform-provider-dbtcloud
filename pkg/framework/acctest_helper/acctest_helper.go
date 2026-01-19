@@ -143,3 +143,47 @@ func GetSemanticLayerConfigTestingConfigurations() (int, int, int) {
 
 	return envId, envId2, projectIdInt
 }
+
+// PlatformMetadataCredentialConfig holds the configuration for platform metadata credential tests
+type PlatformMetadataCredentialConfig struct {
+	// Snowflake connection details (for creating the global connection)
+	SnowflakeAccount   string
+	SnowflakeDatabase  string
+	SnowflakeWarehouse string
+
+	// Snowflake auth credentials (for the platform metadata credential)
+	User     string
+	Password string
+	Role     string
+}
+
+// GetPlatformMetadataCredentialTestingConfigurations returns the configuration needed to test
+// platform metadata credentials. Returns nil if required environment variables are not set.
+// Required env vars:
+//   - ACC_TEST_SNOWFLAKE_ACCOUNT: Snowflake account identifier
+//   - ACC_TEST_SNOWFLAKE_DATABASE: Database name
+//   - ACC_TEST_SNOWFLAKE_WAREHOUSE: Warehouse name
+//   - ACC_TEST_SNOWFLAKE_USER: User for metadata credential auth
+//   - ACC_TEST_SNOWFLAKE_PASSWORD: Password for metadata credential auth
+//   - ACC_TEST_SNOWFLAKE_ROLE: Role for metadata credential auth
+func GetPlatformMetadataCredentialTestingConfigurations() *PlatformMetadataCredentialConfig {
+	account := os.Getenv("ACC_TEST_SNOWFLAKE_ACCOUNT")
+	database := os.Getenv("ACC_TEST_SNOWFLAKE_DATABASE")
+	warehouse := os.Getenv("ACC_TEST_SNOWFLAKE_WAREHOUSE")
+	user := os.Getenv("ACC_TEST_SNOWFLAKE_USER")
+	password := os.Getenv("ACC_TEST_SNOWFLAKE_PASSWORD")
+	role := os.Getenv("ACC_TEST_SNOWFLAKE_ROLE")
+
+	if account == "" || database == "" || warehouse == "" || user == "" || password == "" || role == "" {
+		return nil
+	}
+
+	return &PlatformMetadataCredentialConfig{
+		SnowflakeAccount:   account,
+		SnowflakeDatabase:  database,
+		SnowflakeWarehouse: warehouse,
+		User:               user,
+		Password:           password,
+		Role:               role,
+	}
+}
