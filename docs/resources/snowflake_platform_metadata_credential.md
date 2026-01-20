@@ -81,9 +81,9 @@ resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth" {
 - `catalog_ingestion_enabled` (Boolean) Whether catalog ingestion is enabled for this credential. When enabled, dbt Cloud will ingest metadata about tables, views, and other objects from your data warehouse.
 - `cost_insights_enabled` (Boolean) Whether cost insights is enabled for this credential.
 - `cost_optimization_enabled` (Boolean) Whether cost optimization data collection is enabled for this credential.
-- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'.
-- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'.
-- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'.
+- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase.
+- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password.
+- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password.
 
 ### Read-Only
 
