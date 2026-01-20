@@ -1,6 +1,7 @@
 package platform_metadata_credentials
 
 import (
+	snowflake_credential_validators "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential/validators"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -94,19 +95,34 @@ you must destroy and recreate the resource.`,
 			Required:    true,
 		},
 		"password": schema.StringAttribute{
-			Description: "The password for password authentication. Required when auth_type is 'password'.",
+			Description: "The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase.",
 			Optional:    true,
 			Sensitive:   true,
+			Validators: []validator.String{
+				snowflake_credential_validators.ConflictValidator{
+					ConflictingFields: []string{"private_key", "private_key_passphrase"},
+				},
+			},
 		},
 		"private_key": schema.StringAttribute{
-			Description: "The private key for keypair authentication. Required when auth_type is 'keypair'.",
+			Description: "The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password.",
 			Optional:    true,
 			Sensitive:   true,
+			Validators: []validator.String{
+				snowflake_credential_validators.ConflictValidator{
+					ConflictingFields: []string{"password"},
+				},
+			},
 		},
 		"private_key_passphrase": schema.StringAttribute{
-			Description: "The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'.",
+			Description: "The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password.",
 			Optional:    true,
 			Sensitive:   true,
+			Validators: []validator.String{
+				snowflake_credential_validators.ConflictValidator{
+					ConflictingFields: []string{"password"},
+				},
+			},
 		},
 		"role": schema.StringAttribute{
 			Description: "The Snowflake role to use.",

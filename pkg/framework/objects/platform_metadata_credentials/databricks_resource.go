@@ -102,6 +102,14 @@ func (r *databricksPlatformMetadataCredentialResource) Create(
 	}
 
 	// Update plan with computed values
+	if created.ID == nil {
+		resp.Diagnostics.AddError(
+			"Error creating Databricks platform metadata credential",
+			"API returned nil ID for created credential",
+		)
+		return
+	}
+
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", r.client.AccountID, *created.ID))
 	plan.CredentialID = types.Int64Value(*created.ID)
 	plan.AdapterVersion = types.StringValue(created.AdapterVersion)
