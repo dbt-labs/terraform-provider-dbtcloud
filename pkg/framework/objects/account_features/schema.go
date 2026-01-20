@@ -54,6 +54,26 @@ func (r *accountFeaturesResource) Schema(
 				Computed:    true,
 				Description: "Whether warehouse cost visibility is enabled.",
 			},
+			"catalog_ingestion": schema.BoolAttribute{
+				Description: "Whether catalog ingestion (external metadata ingestion into Catalog/Explorer Enterprise) is enabled.",
+				Optional:    true,
+				Computed:    true,
+			},
+			"explorer_account_ui": schema.BoolAttribute{
+				Description: "Whether the new Catalog navigation UI is enabled (default true for new accounts).",
+				Optional:    true,
+				Computed:    true,
+			},
+			"fusion_migration_permissions": schema.BoolAttribute{
+				Description: "Whether permissions for accounts migrating to Fusion are enabled.",
+				Optional:    true,
+				Computed:    true,
+			},
+			"cost_insights": schema.BoolAttribute{
+				Description: "Whether cost insights features are enabled.",
+				Optional:    true,
+				Computed:    true,
+			},
 		},
 	}
 }

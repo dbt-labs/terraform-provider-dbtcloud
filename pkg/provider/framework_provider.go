@@ -27,6 +27,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/connection_catalog_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/fabric_credential"
@@ -42,6 +43,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/platform_metadata_credentials"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
@@ -338,6 +340,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		account_features.AccountFeaturesResource,
 		athena_credential.NewAthenaCredentialResource,
+		connection_catalog_config.ConnectionCatalogConfigResource,
 		global_connection.GlobalConnectionResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
 		group.GroupResource,
@@ -350,6 +353,8 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
+		platform_metadata_credentials.SnowflakePlatformMetadataCredentialResource,
+		platform_metadata_credentials.DatabricksPlatformMetadataCredentialResource,
 		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
 		scim_group_permissions.ScimGroupPermissionsResource,

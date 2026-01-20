@@ -143,3 +143,83 @@ func GetSemanticLayerConfigTestingConfigurations() (int, int, int) {
 
 	return envId, envId2, projectIdInt
 }
+
+// PlatformMetadataCredentialConfig holds the configuration for platform metadata credential tests
+type PlatformMetadataCredentialConfig struct {
+	// Snowflake connection details (for creating the global connection)
+	SnowflakeAccount   string
+	SnowflakeDatabase  string
+	SnowflakeWarehouse string
+
+	// Snowflake auth credentials (for the platform metadata credential)
+	User     string
+	Password string
+	Role     string
+}
+
+// GetPlatformMetadataCredentialTestingConfigurations returns the configuration needed to test
+// platform metadata credentials. Returns nil if required environment variables are not set.
+// Required env vars:
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT: Snowflake account identifier
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE: Database name
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_WAREHOUSE: Warehouse name
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_USER: User for metadata credential auth
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_PASSWORD: Password for metadata credential auth
+//   - DBT_ACCEPTANCE_TEST_SNOWFLAKE_ROLE: Role for metadata credential auth
+func GetPlatformMetadataCredentialTestingConfigurations() *PlatformMetadataCredentialConfig {
+	account := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT")
+	database := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE")
+	warehouse := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_WAREHOUSE")
+	user := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_USER")
+	password := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_PASSWORD")
+	role := os.Getenv("DBT_ACCEPTANCE_TEST_SNOWFLAKE_ROLE")
+
+	if account == "" || database == "" || warehouse == "" || user == "" || password == "" || role == "" {
+		return nil
+	}
+
+	return &PlatformMetadataCredentialConfig{
+		SnowflakeAccount:   account,
+		SnowflakeDatabase:  database,
+		SnowflakeWarehouse: warehouse,
+		User:               user,
+		Password:           password,
+		Role:               role,
+	}
+}
+
+// DatabricksPlatformMetadataCredentialConfig holds the configuration for Databricks platform metadata credential tests
+type DatabricksPlatformMetadataCredentialConfig struct {
+	// Databricks connection details (for creating the global connection)
+	Host     string
+	HTTPPath string
+
+	// Databricks auth credentials (for the platform metadata credential)
+	Token   string
+	Catalog string
+}
+
+// GetDatabricksPlatformMetadataCredentialTestingConfigurations returns the configuration needed to test
+// Databricks platform metadata credentials. Returns nil if required environment variables are not set.
+// Required env vars:
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_HOST: Databricks workspace host
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_HTTP_PATH: SQL warehouse HTTP path
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_TOKEN: Personal access token
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_CATALOG: Unity Catalog name
+func GetDatabricksPlatformMetadataCredentialTestingConfigurations() *DatabricksPlatformMetadataCredentialConfig {
+	host := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_HOST")
+	httpPath := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_HTTP_PATH")
+	token := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_TOKEN")
+	catalog := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_CATALOG")
+
+	if host == "" || httpPath == "" || token == "" || catalog == "" {
+		return nil
+	}
+
+	return &DatabricksPlatformMetadataCredentialConfig{
+		Host:     host,
+		HTTPPath: httpPath,
+		Token:    token,
+		Catalog:  catalog,
+	}
+}

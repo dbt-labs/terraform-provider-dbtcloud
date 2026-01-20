@@ -29,12 +29,16 @@ func readFeatures(client *dbt_cloud.Client) (AccountFeaturesResourceModel, error
 	}
 
 	return AccountFeaturesResourceModel{
-		ID:                      types.StringValue(fmt.Sprintf("%d", client.AccountID)),
-		AdvancedCI:              types.BoolValue(features.AdvancedCI),
-		PartialParsing:          types.BoolValue(features.PartialParsing),
-		RepoCaching:             types.BoolValue(features.RepoCaching),
-		AIFeatures:              types.BoolValue(features.AIFeatures),
-		WarehouseCostVisibility: types.BoolValue(features.WarehouseCostVisibility),
+		ID:                         types.StringValue(fmt.Sprintf("%d", client.AccountID)),
+		AdvancedCI:                 types.BoolValue(features.AdvancedCI),
+		PartialParsing:             types.BoolValue(features.PartialParsing),
+		RepoCaching:                types.BoolValue(features.RepoCaching),
+		AIFeatures:                 types.BoolValue(features.AIFeatures),
+		WarehouseCostVisibility:    types.BoolValue(features.WarehouseCostVisibility),
+		CatalogIngestion:           types.BoolValue(features.CatalogIngestion),
+		ExplorerAccountUI:          types.BoolValue(features.ExplorerAccountUI),
+		FusionMigrationPermissions: types.BoolValue(features.FusionMigrationPermissions),
+		CostInsights:               types.BoolValue(features.CostInsights),
 	}, nil
 }
 
@@ -96,6 +100,38 @@ func (r *accountFeaturesResource) Create(
 		err := r.client.UpdateAccountFeature("warehouse_cost_visibility", plan.WarehouseCostVisibility.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating warehouse_cost_visibility feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.CatalogIngestion.IsUnknown() {
+		err := r.client.UpdateAccountFeature("catalog-ingestion", plan.CatalogIngestion.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating catalog-ingestion feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.ExplorerAccountUI.IsUnknown() {
+		err := r.client.UpdateAccountFeature("explorer-account-ui", plan.ExplorerAccountUI.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating explorer-account-ui feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.FusionMigrationPermissions.IsUnknown() {
+		err := r.client.UpdateAccountFeature("fusion-migration-permissions", plan.FusionMigrationPermissions.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating fusion-migration-permissions feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.CostInsights.IsUnknown() {
+		err := r.client.UpdateAccountFeature("cost-insights", plan.CostInsights.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating cost-insights feature", err.Error())
 			return
 		}
 	}
@@ -182,6 +218,38 @@ func (r *accountFeaturesResource) Update(
 		err := r.client.UpdateAccountFeature("warehouse_cost_visibility", plan.WarehouseCostVisibility.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating warehouse_cost_visibility feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.CatalogIngestion.IsUnknown() && !plan.CatalogIngestion.Equal(state.CatalogIngestion) {
+		err := r.client.UpdateAccountFeature("catalog-ingestion", plan.CatalogIngestion.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating catalog-ingestion feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.ExplorerAccountUI.IsUnknown() && !plan.ExplorerAccountUI.Equal(state.ExplorerAccountUI) {
+		err := r.client.UpdateAccountFeature("explorer-account-ui", plan.ExplorerAccountUI.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating explorer-account-ui feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.FusionMigrationPermissions.IsUnknown() && !plan.FusionMigrationPermissions.Equal(state.FusionMigrationPermissions) {
+		err := r.client.UpdateAccountFeature("fusion-migration-permissions", plan.FusionMigrationPermissions.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating fusion-migration-permissions feature", err.Error())
+			return
+		}
+	}
+
+	if !plan.CostInsights.IsUnknown() && !plan.CostInsights.Equal(state.CostInsights) {
+		err := r.client.UpdateAccountFeature("cost-insights", plan.CostInsights.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating cost-insights feature", err.Error())
 			return
 		}
 	}
