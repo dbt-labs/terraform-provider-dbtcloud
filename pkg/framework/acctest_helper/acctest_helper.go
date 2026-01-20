@@ -187,3 +187,39 @@ func GetPlatformMetadataCredentialTestingConfigurations() *PlatformMetadataCrede
 		Role:               role,
 	}
 }
+
+// DatabricksPlatformMetadataCredentialConfig holds the configuration for Databricks platform metadata credential tests
+type DatabricksPlatformMetadataCredentialConfig struct {
+	// Databricks connection details (for creating the global connection)
+	Host     string
+	HTTPPath string
+
+	// Databricks auth credentials (for the platform metadata credential)
+	Token   string
+	Catalog string
+}
+
+// GetDatabricksPlatformMetadataCredentialTestingConfigurations returns the configuration needed to test
+// Databricks platform metadata credentials. Returns nil if required environment variables are not set.
+// Required env vars:
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_HOST: Databricks workspace host
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_HTTP_PATH: SQL warehouse HTTP path
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_TOKEN: Personal access token
+//   - DBT_ACCEPTANCE_TEST_DATABRICKS_CATALOG: Unity Catalog name
+func GetDatabricksPlatformMetadataCredentialTestingConfigurations() *DatabricksPlatformMetadataCredentialConfig {
+	host := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_HOST")
+	httpPath := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_HTTP_PATH")
+	token := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_TOKEN")
+	catalog := os.Getenv("DBT_ACCEPTANCE_TEST_DATABRICKS_CATALOG")
+
+	if host == "" || httpPath == "" || token == "" || catalog == "" {
+		return nil
+	}
+
+	return &DatabricksPlatformMetadataCredentialConfig{
+		Host:     host,
+		HTTPPath: httpPath,
+		Token:    token,
+		Catalog:  catalog,
+	}
+}

@@ -188,10 +188,10 @@ func testAccCheckDbtCloudSnowflakePlatformMetadataCredentialDestroy(s *terraform
 }
 
 func TestAccDbtCloudDatabricksPlatformMetadataCredentialResource(t *testing.T) {
-	config := acctest_helper.GetPlatformMetadataCredentialTestingConfigurations()
+	config := acctest_helper.GetDatabricksPlatformMetadataCredentialTestingConfigurations()
 	if config == nil {
 		t.Skip("Skipping test because required environment variables are not set. " +
-			"Set ACC_TEST_DATABRICKS_HOST, ACC_TEST_DATABRICKS_HTTP_PATH, ACC_TEST_DATABRICKS_TOKEN, and ACC_TEST_DATABRICKS_CATALOG to run this test.")
+			"Set DBT_ACCEPTANCE_TEST_DATABRICKS_HOST, DBT_ACCEPTANCE_TEST_DATABRICKS_HTTP_PATH, DBT_ACCEPTANCE_TEST_DATABRICKS_TOKEN, and DBT_ACCEPTANCE_TEST_DATABRICKS_CATALOG to run this test.")
 	}
 
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -205,8 +205,10 @@ func TestAccDbtCloudDatabricksPlatformMetadataCredentialResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudDatabricksPlatformMetadataCredentialResourceConfig(
 					connectionName,
-					"test_token",
-					"main",
+					config.Host,
+					config.HTTPPath,
+					config.Token,
+					config.Catalog,
 					true,  // catalog_ingestion_enabled
 					false, // cost_optimization_enabled
 					false, // cost_insights_enabled
@@ -215,7 +217,25 @@ func TestAccDbtCloudDatabricksPlatformMetadataCredentialResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("dbtcloud_databricks_platform_metadata_credential.test", "id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_databricks_platform_metadata_credential.test", "credential_id"),
 					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "catalog_ingestion_enabled", "true"),
-					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "catalog", "main"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "catalog", config.Catalog),
+				),
+			},
+			// Update
+			{
+				Config: testAccDbtCloudDatabricksPlatformMetadataCredentialResourceConfig(
+					connectionName,
+					config.Host,
+					config.HTTPPath,
+					config.Token,
+					config.Catalog,
+					true, // catalog_ingestion_enabled
+					true, // cost_optimization_enabled - changed
+					true, // cost_insights_enabled - changed
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "catalog_ingestion_enabled", "true"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "cost_optimization_enabled", "true"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test", "cost_insights_enabled", "true"),
 				),
 			},
 			// Import test
@@ -233,6 +253,8 @@ func TestAccDbtCloudDatabricksPlatformMetadataCredentialResource(t *testing.T) {
 
 func testAccDbtCloudDatabricksPlatformMetadataCredentialResourceConfig(
 	connectionName string,
+	host string,
+	httpPath string,
 	token string,
 	catalog string,
 	catalogIngestionEnabled bool,
@@ -244,8 +266,9 @@ resource "dbtcloud_global_connection" "test_databricks" {
   name = "%s"
 
   databricks = {
-    host      = "test.cloud.databricks.com"
-    http_path = "/sql/1.0/warehouses/abc123"
+    host      = "%s"
+    http_path = "%s"
+    catalog   = "%s"
   }
 }
 
@@ -259,7 +282,7 @@ resource "dbtcloud_databricks_platform_metadata_credential" "test" {
   token   = "%s"
   catalog = "%s"
 }
-`, connectionName, catalogIngestionEnabled, costOptimizationEnabled, costInsightsEnabled, token, catalog)
+`, connectionName, host, httpPath, catalog, catalogIngestionEnabled, costOptimizationEnabled, costInsightsEnabled, token, catalog)
 }
 
 func testAccCheckDbtCloudDatabricksPlatformMetadataCredentialDestroy(s *terraform.State) error {
