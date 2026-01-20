@@ -15,8 +15,9 @@ func TestAccDbtCloudConnectionCatalogConfigResource(t *testing.T) {
 	config := acctest_helper.GetPlatformMetadataCredentialTestingConfigurations()
 	if config == nil {
 		t.Skip("Skipping test because required environment variables are not set. " +
-			"Set ACC_TEST_SNOWFLAKE_ACCOUNT, ACC_TEST_SNOWFLAKE_DATABASE, ACC_TEST_SNOWFLAKE_WAREHOUSE, " +
-			"ACC_TEST_SNOWFLAKE_USER, ACC_TEST_SNOWFLAKE_PASSWORD, and ACC_TEST_SNOWFLAKE_ROLE to run this test.")
+			"Set DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT, DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE, DBT_ACCEPTANCE_TEST_SNOWFLAKE_WAREHOUSE, " +
+			"DBT_ACCEPTANCE_TEST_SNOWFLAKE_USER, DBT_ACCEPTANCE_TEST_SNOWFLAKE_PASSWORD, and DBT_ACCEPTANCE_TEST_SNOWFLAKE_ROLE to run this test.")
+		acctest_helper.GetPlatformMetadataCredentialTestingConfigurations()
 	}
 
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
