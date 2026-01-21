@@ -43,15 +43,10 @@ func cleanupExistingNotifications(userID int) error {
 }
 
 func TestAccDbtCloudNotificationResource(t *testing.T) {
-
-	if acctest_config.IsDbtCloudPR() {
-		t.Skip("Skipping notifications in dbt Cloud CI for now")
-	}
-
 	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
 
 	currentTime := time.Now().Unix()
-	notificationEmail := fmt.Sprintf("%d-resource@nomail.com", currentTime)
+	notificationEmail := fmt.Sprintf("%d-resource@dbtlabs.com", currentTime)
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 

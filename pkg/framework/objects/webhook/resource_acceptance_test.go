@@ -93,10 +93,6 @@ var modifyConfigTestStep = resource.TestStep{
 }
 
 func TestAccDbtCloudWebhookResource(t *testing.T) {
-	if acctest_config.IsDbtCloudPR() {
-		t.Skip("Skipping webhooks acceptance in dbt Cloud CI for now")
-	}
-
 	importStateTestStep := resource.TestStep{
 		ResourceName:      "dbtcloud_webhook.test_webhook",
 		ImportState:       true,
