@@ -23,9 +23,8 @@ resource "dbtcloud_account_features" "my_features" {
   partial_parsing = true
   repo_caching    = true
 
-  # AI and insights features
-  ai_features   = true
-  cost_insights = true
+  # AI features
+  ai_features = true
 
   # Catalog/Explorer features
   catalog_ingestion   = true
@@ -33,9 +32,6 @@ resource "dbtcloud_account_features" "my_features" {
 
   # Migration features
   fusion_migration_permissions = false
-
-  # Warehouse features
-  warehouse_cost_visibility = true
 }
 ```
 
@@ -47,12 +43,10 @@ resource "dbtcloud_account_features" "my_features" {
 - `advanced_ci` (Boolean) Whether advanced CI is enabled.
 - `ai_features` (Boolean) Whether AI features are enabled.
 - `catalog_ingestion` (Boolean) Whether catalog ingestion (external metadata ingestion into Catalog/Explorer Enterprise) is enabled.
-- `cost_insights` (Boolean) Whether cost insights features are enabled.
 - `explorer_account_ui` (Boolean) Whether the new Catalog navigation UI is enabled (default true for new accounts).
 - `fusion_migration_permissions` (Boolean) Whether permissions for accounts migrating to Fusion are enabled.
 - `partial_parsing` (Boolean) Whether partial parsing is enabled.
 - `repo_caching` (Boolean) Whether repository caching is enabled.
-- `warehouse_cost_visibility` (Boolean) Whether warehouse cost visibility is enabled.
 
 ### Read-Only
 

@@ -18,11 +18,9 @@ type AccountFeatures struct {
 	PartialParsing             bool `json:"partial-parsing"`
 	RepoCaching                bool `json:"repo-caching"`
 	AIFeatures                 bool `json:"ai_features"`
-	WarehouseCostVisibility    bool `json:"warehouse_cost_visibility"`
 	CatalogIngestion           bool `json:"catalog-ingestion"`
 	ExplorerAccountUI          bool `json:"explorer-account-ui"`
 	FusionMigrationPermissions bool `json:"fusion-migration-permissions"`
-	CostInsights               bool `json:"cost-insights"`
 }
 
 type AccountFeatureUpdateRequest struct {

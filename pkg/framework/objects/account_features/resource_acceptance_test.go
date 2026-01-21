@@ -9,10 +9,9 @@ import (
 
 func TestAccDbtCloudAccountFeaturesResource(t *testing.T) {
 	// Skip this test until the following features are fully ready:
-	// - cost_insights
 	// - explorer_account_ui
 	// - fusion_migration_permissions
-	t.Skip("Skipping test - cost_insights, explorer_account_ui, and fusion_migration_permissions features are not fully ready yet")
+	t.Skip("Skipping test - explorer_account_ui and fusion_migration_permissions features are not fully ready yet")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -73,11 +72,6 @@ func TestAccDbtCloudAccountFeaturesResource(t *testing.T) {
 						"fusion_migration_permissions",
 						"false",
 					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_account_features.test",
-						"cost_insights",
-						"true",
-					),
 				),
 			},
 		},
@@ -103,7 +97,6 @@ resource "dbtcloud_account_features" "test" {
     catalog_ingestion            = true
     explorer_account_ui          = true
     fusion_migration_permissions = false
-    cost_insights                = true
 }
 `
 }
