@@ -686,6 +686,133 @@ resource dbtcloud_global_connection test {
 `, connectionName)
 }
 
+// TestAccDbtCloudGlobalConnectionBigQueryV0Issue612 reproduces the exact scenario from
+// GitHub Issue #612: A BigQuery v0 connection created without deployment_env_auth_type
+// fails when updated after upgrading to provider v1.5.2+.
+//
+// The user's scenario:
+//  1. Connection created with v0 adapter (no use_latest_adapter)
+//  2. Config includes location, maximum_bytes_billed, and service account fields
+//  3. deployment_env_auth_type was NOT set (empty before v1.5.2)
+//  4. After upgrade, terraform apply fails with:
+//     "BigqueryConnection" object has no field "deployment_env_auth_type"
+//
+// The fix: Only send deployment_env_auth_type when use_latest_adapter = true (v1 adapter).
+func TestAccDbtCloudGlobalConnectionBigQueryV0Issue612(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create a BigQuery v0 connection matching the user's config from issue #612
+			// This simulates a connection that existed before v1.5.2
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryV0Issue612Config(
+					connectionName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"name",
+						connectionName,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.location",
+						"US",
+					),
+				),
+			},
+			// Step 2: Update the connection name (simulating any change after provider upgrade)
+			// Before the fix: This would fail with "BigqueryConnection" object has no field "deployment_env_auth_type"
+			// After the fix: This should succeed because we don't send deployment_env_auth_type for v0
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryV0Issue612Config(
+					connectionName2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"name",
+						connectionName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v0",
+					),
+				),
+			},
+			// Step 3: Import to verify the state is consistent
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.deployment_env_auth_type",
+				},
+			},
+		},
+	})
+}
+
+// testAccDbtCloudGlobalConnectionBigQueryV0Issue612Config creates a BigQuery v0 connection
+// matching the user's config from GitHub Issue #612.
+// Key characteristics:
+// - Uses v0 adapter (no use_latest_adapter)
+// - Includes location and maximum_bytes_billed
+// - Does NOT set deployment_env_auth_type (this was empty before v1.5.2)
+func testAccDbtCloudGlobalConnectionBigQueryV0Issue612Config(connectionName string) string {
+	return fmt.Sprintf(`
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id       = "my-gcp-project-id"
+    timeout_seconds      = 300
+    location             = "US"
+    maximum_bytes_billed = 1000000
+
+    # Service account authentication (matching user's config from #612)
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email@example.com"
+    client_id                   = "my_client_id"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+
+    # OAuth credentials (optional in user's config)
+    application_id     = "oauth_application_id"
+    application_secret = "oauth_secret_id"
+
+    # NOTE: deployment_env_auth_type is intentionally NOT set here
+    # This reproduces the exact scenario from issue #612 where this field
+    # was empty before v1.5.2 and the connection worked fine
+  }
+}
+`, connectionName)
+}
+
 func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))

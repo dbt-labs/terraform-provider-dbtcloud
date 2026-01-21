@@ -1,0 +1,3 @@
+kind: Fixes
+body: Only check deployment_env_auth_type when latest adapter is used
+time: 2026-01-21T10:56:34.48595+02:00
