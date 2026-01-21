@@ -68,6 +68,10 @@ func (r *scimGroupPartialPermissionsResource) Create(
 
 	// Get current permissions from the group
 	remotePermissions := ConvertScimGroupPartialPermissionDataToModel(existingGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	// This makes the fix self-healing and cleans up existing duplicates
+	remotePermissions = helper.UniqBy(remotePermissions, CompareScimGroupPartialPermissions)
 
 	// Get the permissions from our plan
 	configPermissions := plan.GroupPermissions
@@ -96,8 +100,13 @@ func (r *scimGroupPartialPermissionsResource) Create(
 		return
 	}
 
-	// Combine remote permissions with the missing ones
-	allPermissions := append(remotePermissions, missingPermissions...)
+	// Combine remote permissions with the missing ones using UnionBy to prevent duplicates
+	// This is especially important when multiple resources manage the same group concurrently
+	allPermissions := helper.UnionBy(
+		remotePermissions,
+		missingPermissions,
+		CompareScimGroupPartialPermissions,
+	)
 	allPermissionsRequest := ConvertScimGroupPartialPermissionModelToData(
 		allPermissions,
 		groupID,
@@ -200,6 +209,9 @@ func (r *scimGroupPartialPermissionsResource) Update(
 	statePermissions := state.GroupPermissions
 	planPermissions := plan.GroupPermissions
 	remotePermissions := ConvertScimGroupPartialPermissionDataToModel(retrievedGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	remotePermissions = helper.UniqBy(remotePermissions, CompareScimGroupPartialPermissions)
 
 	// Calculate what permissions were deleted and what were added
 	deletedPermissions, newPermissions := helper.DifferenceBy(
@@ -282,6 +294,9 @@ func (r *scimGroupPartialPermissionsResource) Delete(
 
 	// Get current remote permissions
 	remotePermissions := ConvertScimGroupPartialPermissionDataToModel(retrievedGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	remotePermissions = helper.UniqBy(remotePermissions, CompareScimGroupPartialPermissions)
 
 	// Calculate what permissions should remain (remote minus our state permissions)
 	remainingPermissions, _ := helper.DifferenceBy(

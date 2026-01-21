@@ -86,3 +86,27 @@ func UnionBy[T any](
 
 	return response
 }
+
+// UniqBy removes duplicates from a slice based on a predicate function.
+// This is useful for deduplicating slices where simple equality doesn't work.
+func UniqBy[T any](
+	list []T,
+	predicate func(T, T) bool,
+) []T {
+	result := []T{}
+
+	for _, item := range list {
+		found := false
+		for _, uniqueItem := range result {
+			if predicate(item, uniqueItem) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}

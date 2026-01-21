@@ -106,6 +106,9 @@ func (r *groupPartialPermissionsResource) Read(
 
 	// we set the "partial" values
 	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	remotePermissions = helper.UniqBy(remotePermissions, group.CompareGroupPermissions)
 
 	relevantPermissions := helper.IntersectBy(
 		state.GroupPermissions,
@@ -189,6 +192,9 @@ func (r *groupPartialPermissionsResource) Create(
 		// B. add the permissions that are missing
 		configPermissions := plan.GroupPermissions
 		remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
+		
+		// Deduplicate remote permissions in case they were created by a buggy version
+		remotePermissions = helper.UniqBy(remotePermissions, group.CompareGroupPermissions)
 
 		missingPermissions, _ := helper.DifferenceBy(
 			configPermissions,
@@ -202,7 +208,13 @@ func (r *groupPartialPermissionsResource) Create(
 			return
 		}
 
-		allPermissions := append(remotePermissions, missingPermissions...)
+		// Combine remote permissions with the missing ones using UnionBy to prevent duplicates
+		// This is especially important when multiple resources manage the same group concurrently
+		allPermissions := helper.UnionBy(
+			remotePermissions,
+			missingPermissions,
+			group.CompareGroupPermissions,
+		)
 		allPermissionsRequest := group.ConvertGroupPermissionModelToData(
 			allPermissions,
 			groupID,
@@ -269,6 +281,10 @@ func (r *groupPartialPermissionsResource) Delete(
 	}
 
 	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	remotePermissions = helper.UniqBy(remotePermissions, group.CompareGroupPermissions)
+	
 	requiredAllPermissions, _ := helper.DifferenceBy(
 		remotePermissions,
 		state.GroupPermissions,
@@ -371,6 +387,9 @@ func (r *groupPartialPermissionsResource) Update(
 	planPermissions := plan.GroupPermissions
 
 	remotePermissions := group.ConvertGroupPermissionDataToModel(retrievedGroup.Permissions)
+	
+	// Deduplicate remote permissions in case they were created by a buggy version
+	remotePermissions = helper.UniqBy(remotePermissions, group.CompareGroupPermissions)
 
 	deletedPermissions, newPermissions := helper.DifferenceBy(
 		statePermissions,
