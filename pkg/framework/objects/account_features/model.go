@@ -10,9 +10,7 @@ type AccountFeaturesResourceModel struct {
 	PartialParsing             types.Bool   `tfsdk:"partial_parsing"`
 	RepoCaching                types.Bool   `tfsdk:"repo_caching"`
 	AIFeatures                 types.Bool   `tfsdk:"ai_features"`
-	WarehouseCostVisibility    types.Bool   `tfsdk:"warehouse_cost_visibility"`
 	CatalogIngestion           types.Bool   `tfsdk:"catalog_ingestion"`
 	ExplorerAccountUI          types.Bool   `tfsdk:"explorer_account_ui"`
 	FusionMigrationPermissions types.Bool   `tfsdk:"fusion_migration_permissions"`
-	CostInsights               types.Bool   `tfsdk:"cost_insights"`
 }
