@@ -16,12 +16,6 @@ import (
 )
 
 func TestAccDbtCloudPartialNotificationResource(t *testing.T) {
-	t.Skip("Temporarily skipping - test is flaky and unrelated to current work")
-
-	if acctest_config.IsDbtCloudPR() {
-		t.Skip("Skipping notifications in dbt Cloud CI for now")
-	}
-
 	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
 
 	currentTime := time.Now().Unix()
