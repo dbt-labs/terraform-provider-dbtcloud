@@ -251,7 +251,9 @@ func (r *globalConnectionResource) Create(
 				plan.BigQueryConfig.DataprocClusterName.ValueString(),
 			)
 		}
-		if !plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
+		// Only send deployment_env_auth_type for v1 adapter (use_latest_adapter = true)
+		// The v0 (legacy) adapter does not support this field
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() && !plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
 			bigqueryCfg.DeploymentEnvAuthType.Set(
 				plan.BigQueryConfig.DeploymentEnvAuthType.ValueString(),
 			)
@@ -976,13 +978,17 @@ func (r *globalConnectionResource) Update(
 				)
 			}
 		}
-		if plan.BigQueryConfig.DeploymentEnvAuthType != state.BigQueryConfig.DeploymentEnvAuthType {
-			if plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
-				warehouseConfigChanges.DeploymentEnvAuthType.SetNull()
-			} else {
-				warehouseConfigChanges.DeploymentEnvAuthType.Set(
-					plan.BigQueryConfig.DeploymentEnvAuthType.ValueString(),
-				)
+		// Only send deployment_env_auth_type for v1 adapter (use_latest_adapter = true)
+		// The v0 (legacy) adapter does not support this field
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
+			if plan.BigQueryConfig.DeploymentEnvAuthType != state.BigQueryConfig.DeploymentEnvAuthType {
+				if plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
+					warehouseConfigChanges.DeploymentEnvAuthType.SetNull()
+				} else {
+					warehouseConfigChanges.DeploymentEnvAuthType.Set(
+						plan.BigQueryConfig.DeploymentEnvAuthType.ValueString(),
+					)
+				}
 			}
 		}
 
