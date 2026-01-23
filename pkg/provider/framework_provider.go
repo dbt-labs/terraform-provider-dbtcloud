@@ -13,6 +13,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_environment_variable"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/privatelink_endpoint"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/runs"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/salesforce_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
@@ -333,6 +334,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		group_users.GroupUsersDataSource,
 		runs.RunsDataSource,
 		synapse_credential.SynapseCredentialDataSource,
+		salesforce_credential.SalesforceCredentialDataSource,
 	}
 }
 
@@ -386,5 +388,6 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		semantic_layer_credential.DatabricksSemanticLayerCredentialResource,
 		semantic_layer_credential.PostgresSemanticLayerCredentialResource,
 		synapse_credential.SynapseCredentialResource,
+		salesforce_credential.SalesforceCredentialResource,
 	}
 }

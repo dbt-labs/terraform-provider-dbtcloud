@@ -39,6 +39,7 @@ data dbtcloud_global_connection my_connection {
 - `postgres` (Attributes) PostgreSQL connection configuration. (see [below for nested schema](#nestedatt--postgres))
 - `private_link_endpoint_id` (String) Private Link Endpoint ID. This ID can be found using the `privatelink_endpoint` data source
 - `redshift` (Attributes) Redshift connection configuration (see [below for nested schema](#nestedatt--redshift))
+- `salesforce` (Attributes) Salesforce connection configuration. (see [below for nested schema](#nestedatt--salesforce))
 - `snowflake` (Attributes) Snowflake connection configuration (see [below for nested schema](#nestedatt--snowflake))
 - `starburst` (Attributes) Starburst/Trino connection configuration. (see [below for nested schema](#nestedatt--starburst))
 - `synapse` (Attributes) Azure Synapse Analytics connection configuration. (see [below for nested schema](#nestedatt--synapse))
@@ -186,6 +187,16 @@ Read-Only:
 - `public_key` (String) The SSH public key generated to allow connecting via SSH tunnel.
 - `username` (String) The username to use for the SSH tunnel.
 
+
+
+<a id="nestedatt--salesforce"></a>
+### Nested Schema for `salesforce`
+
+Read-Only:
+
+- `data_transform_run_timeout` (Number) Timeout in seconds for data transformation runs.
+- `database` (String) The target database name.
+- `login_url` (String) The Salesforce instance URL (e.g., https://login.salesforce.com)
 
 
 <a id="nestedatt--snowflake"></a>

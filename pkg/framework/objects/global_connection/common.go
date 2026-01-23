@@ -717,6 +717,43 @@ func readGeneric(
 		state.TeradataConfig.RequestTimeout = types.Int64PointerValue(teradataCfg.RequestTimeout)
 		state.TeradataConfig.Retries = types.Int64PointerValue(teradataCfg.Retries)
 
+	case state.SalesforceConfig != nil || strings.HasPrefix(adapter, "salesforce_"):
+		if state.SalesforceConfig == nil {
+			state.SalesforceConfig = &SalesforceConfig{}
+		}
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SalesforceConfig](client)
+		common, salesforceCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				return nil, "removeFromState", nil
+			}
+			return nil, "", err
+		}
+
+		// global settings
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(salesforceCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
+		}
+
+		// Salesforce settings
+		state.SalesforceConfig.LoginURL = types.StringPointerValue(salesforceCfg.LoginURL)
+		state.SalesforceConfig.Database = types.StringPointerValue(salesforceCfg.Database)
+		state.SalesforceConfig.DataTransformRunTimeout = types.Int64PointerValue(salesforceCfg.DataTransformRunTimeout)
+
 	default:
 		panic("Unknown connection type")
 	}
