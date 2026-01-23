@@ -665,6 +665,28 @@ func (r *globalConnectionResource) Create(
 		plan.AdapterVersion = types.StringValue(teradaCfg.AdapterVersion())
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
+	case plan.SalesforceConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SalesforceConfig](r.client)
+
+		salesforceCfg := dbt_cloud.SalesforceConfig{
+			LoginURL:                plan.SalesforceConfig.LoginURL.ValueStringPointer(),
+			Database:                plan.SalesforceConfig.Database.ValueStringPointer(),
+			DataTransformRunTimeout: plan.SalesforceConfig.DataTransformRunTimeout.ValueInt64Pointer(),
+		}
+
+		commonResp, _, err := c.Create(commonCfg, salesforceCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		// we set the computed values that don't have any default
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(salesforceCfg.AdapterVersion())
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -1506,6 +1528,46 @@ func (r *globalConnectionResource) Update(
 
 		if plan.TeradataConfig.TMode != state.TeradataConfig.TMode {
 			warehouseConfigChanges.TMode = plan.TeradataConfig.TMode.ValueStringPointer()
+		}
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.SalesforceConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.SalesforceConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.SalesforceConfig{}
+
+		// Salesforce specific ones
+		// Check if state.SalesforceConfig is nil (e.g., when changing connection types)
+		if state.SalesforceConfig == nil {
+			warehouseConfigChanges.LoginURL = plan.SalesforceConfig.LoginURL.ValueStringPointer()
+			warehouseConfigChanges.Database = plan.SalesforceConfig.Database.ValueStringPointer()
+			warehouseConfigChanges.DataTransformRunTimeout = plan.SalesforceConfig.DataTransformRunTimeout.ValueInt64Pointer()
+		} else {
+			if plan.SalesforceConfig.LoginURL != state.SalesforceConfig.LoginURL {
+				warehouseConfigChanges.LoginURL = plan.SalesforceConfig.LoginURL.ValueStringPointer()
+			}
+
+			if plan.SalesforceConfig.Database != state.SalesforceConfig.Database {
+				warehouseConfigChanges.Database = plan.SalesforceConfig.Database.ValueStringPointer()
+			}
+
+			if plan.SalesforceConfig.DataTransformRunTimeout != state.SalesforceConfig.DataTransformRunTimeout {
+				warehouseConfigChanges.DataTransformRunTimeout = plan.SalesforceConfig.DataTransformRunTimeout.ValueInt64Pointer()
+			}
 		}
 
 		updateCommon, _, err := c.Update(
