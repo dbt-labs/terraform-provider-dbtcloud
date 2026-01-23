@@ -119,6 +119,15 @@ var mappingAdapterDetails = map[string]ConfigDetails{
 			return nil
 		},
 	},
+	"salesforce": {
+		EmptyConfigName: SalesforceConfig{},
+		IsEmptyConfig: func(model *GlobalConnectionResourceModel) bool {
+			return model.SalesforceConfig == nil
+		},
+		GetSSHTunnelConfig: func(model *GlobalConnectionResourceModel) *SSHTunnelConfig {
+			return nil
+		},
+	},
 }
 
 var supportedGlobalConfigTypes = lo.Keys(mappingAdapterDetails)
@@ -141,6 +150,7 @@ type GlobalConnectionResourceModel struct {
 	AthenaConfig          *AthenaConfig      `tfsdk:"athena"`
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
 	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
+	SalesforceConfig      *SalesforceConfig  `tfsdk:"salesforce"`
 }
 
 type SSHTunnelConfig struct {
@@ -279,6 +289,12 @@ type TeradataConfig struct {
 	Host           types.String `tfsdk:"host"`
 	Retries        types.Int64  `tfsdk:"retries"`
 	RequestTimeout types.Int64  `tfsdk:"request_timeout"`
+}
+
+type SalesforceConfig struct {
+	LoginURL                types.String `tfsdk:"login_url"`
+	Database                types.String `tfsdk:"database"`
+	DataTransformRunTimeout types.Int64  `tfsdk:"data_transform_run_timeout"`
 }
 
 type GlobalConnectionsDatasourceModel struct {
