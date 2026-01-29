@@ -591,3 +591,13 @@ type TeradataConfig struct {
 func (TeradataConfig) AdapterVersion() string {
 	return "teradata_v0"
 }
+
+type SalesforceConfig struct {
+	LoginURL                *string `json:"login_url,omitempty"`
+	Database                *string `json:"database,omitempty"`
+	DataTransformRunTimeout *int64  `json:"data_transform_run_timeout,omitempty"`
+}
+
+func (SalesforceConfig) AdapterVersion() string {
+	return "salesforce_v0"
+}
