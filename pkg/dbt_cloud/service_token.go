@@ -10,7 +10,7 @@ import (
 
 type ServiceTokenPermission struct {
 	ID             *int                  `json:"id,omitempty"`
-	AccountID      int                   `json:"account_id"`
+	AccountID      int64                 `json:"account_id"`
 	ServiceTokenID int                   `json:"service_token_id"`
 	ProjectID      int                   `json:"project_id,omitempty"`
 	AllProjects    bool                  `json:"all_projects"`
@@ -21,7 +21,7 @@ type ServiceTokenPermission struct {
 
 type ServiceToken struct {
 	ID          *int                     `json:"id"`
-	AccountID   int                      `json:"account_id"`
+	AccountID   int64                    `json:"account_id"`
 	UID         string                   `json:"uid"`
 	Name        string                   `json:"name"`
 	TokenString *string                  `json:"token_string,omitempty"`
@@ -46,7 +46,7 @@ type ServiceTokenPermissionListResponse struct {
 
 func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceTokenPermission, error) {
 
-	allServiceTokenPermissionsRaw, err := c.GetRawData(fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/permissions/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)))
+	allServiceTokenPermissionsRaw, err := c.GetRawData(fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/permissions/", c.HostURL, strconv.FormatInt(c.AccountID, 10), strconv.Itoa(serviceTokenID)))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *Client) GetServiceTokenPermissions(serviceTokenID int) (*[]ServiceToken
 }
 
 func (c *Client) GetServiceToken(serviceTokenID int) (*ServiceToken, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(serviceTokenID)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%s/", c.HostURL, strconv.FormatInt(c.AccountID, 10), strconv.Itoa(serviceTokenID)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *Client) UpdateServiceToken(serviceTokenID int, serviceToken ServiceToke
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/", c.HostURL, strconv.Itoa(c.AccountID), serviceTokenID), strings.NewReader(string(serviceTokenData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/", c.HostURL, strconv.FormatInt(c.AccountID, 10), serviceTokenID), strings.NewReader(string(serviceTokenData)))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (c *Client) UpdateServiceTokenPermissions(serviceTokenID int, serviceTokenP
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/permissions/", c.HostURL, strconv.Itoa(c.AccountID), serviceTokenID), strings.NewReader(string(serviceTokenPermissionData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/service-tokens/%d/permissions/", c.HostURL, strconv.FormatInt(c.AccountID, 10), serviceTokenID), strings.NewReader(string(serviceTokenPermissionData)))
 	if err != nil {
 		return nil, err
 	}

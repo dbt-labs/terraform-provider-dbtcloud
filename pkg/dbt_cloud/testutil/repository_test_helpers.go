@@ -86,7 +86,7 @@ func (m *MockRepositoryServer) URL() string {
 	return m.server.URL
 }
 
-func CreateTestClient(serverURL string, accountID int) *dbt_cloud.Client {
+func CreateTestClient(serverURL string, accountID int64) *dbt_cloud.Client {
 	parsedURL, err := url.Parse(serverURL)
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse serverURL: %s, error: %v", serverURL, err))

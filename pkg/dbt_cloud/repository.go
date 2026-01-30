@@ -10,7 +10,7 @@ import (
 
 type Repository struct {
 	ID                                    *int       `json:"id,omitempty"`
-	AccountID                             int        `json:"account_id"`
+	AccountID                             int64      `json:"account_id"`
 	ProjectID                             int        `json:"project_id"`
 	RemoteUrl                             string     `json:"remote_url"`
 	State                                 int        `json:"state"`
@@ -53,7 +53,7 @@ func (c *Client) GetRepository(
 	repositoryUrl := fmt.Sprintf(
 		"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 		c.HostURL,
-		strconv.Itoa(c.AccountID),
+		strconv.FormatInt(c.AccountID, 10),
 		projectID,
 		repositoryID,
 	)
@@ -127,7 +127,7 @@ func (c *Client) CreateRepository(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(projectID),
 		),
 		strings.NewReader(string(newRepositoryData)),
@@ -200,7 +200,7 @@ func (c *Client) UpdateRepository(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			projectID,
 			repositoryID,
 		),
@@ -230,7 +230,7 @@ func (c *Client) DeleteRepository(repositoryID, projectID string) (string, error
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/repositories/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			projectID,
 			repositoryID,
 		),
