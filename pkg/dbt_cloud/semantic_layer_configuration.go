@@ -29,7 +29,7 @@ func (c *Client) GetSemanticLayerConfiguration(projectId int64, semanticLayerCon
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/semantic-layer-configurations/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(int(projectId)),
 			strconv.Itoa(int(semanticLayerConfigId)),
 		),
@@ -75,7 +75,7 @@ func (c *Client) CreateSemanticLayerConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/semantic-layer-configurations/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(int(projectId)),
 		),
 		strings.NewReader(string(newConfigData)),
@@ -113,7 +113,7 @@ func (c *Client) UpdateSemanticLayerConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/semantic-layer-configurations/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(int(projectId)),
 			strconv.Itoa(int(semanticLayerConfigId)),
 		),
@@ -146,7 +146,7 @@ func (c *Client) DeleteSemanticLayerConfiguration(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/semantic-layer-configurations/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(int(projectId)),
 			strconv.Itoa(int(semanticLayerConfigurationID)),
 		),

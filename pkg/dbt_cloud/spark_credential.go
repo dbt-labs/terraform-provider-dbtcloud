@@ -39,7 +39,7 @@ type SparkCredential struct {
 
 type SparkCredentialGlobConn struct {
 	ID                *int                     `json:"id"`
-	AccountID         int                      `json:"account_id"`
+	AccountID         int64                    `json:"account_id"`
 	ProjectID         int                      `json:"project_id"`
 	Type              string                   `json:"type"`
 	State             int                      `json:"state"`

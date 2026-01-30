@@ -35,7 +35,7 @@ type Client struct {
 	HTTPClient           *http.Client
 	Token                string
 	AccountURL           string
-	AccountID            int
+	AccountID            int64
 	RetryIntervalSeconds int
 	MaxRetries           int
 	RetriableStatusCodes []string
@@ -71,7 +71,7 @@ type AuthResponseData struct {
 	LockReason                     string `json:"lock_reason"`
 	UnlockIfSubscriptionRenewed    bool   `json:"unlock_if_subscription_renewed"`
 	ReadOnlySeats                  int    `json:"read_only_seats"`
-	Id                             int    `json:"id"`
+	Id                             int64  `json:"id"`
 	Name                           string `json:"name"`
 	State                          int    `json:"state"`
 	Plan                           string `json:"plan"`
@@ -116,7 +116,7 @@ type APIError struct {
 }
 
 // NewClient -
-func NewClient(account_id *int, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool, timeoutSeconds *int) (*Client, error) {
+func NewClient(account_id *int64, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool, timeoutSeconds *int) (*Client, error) {
 
 	if (token == nil) || (*token == "") {
 		return nil, fmt.Errorf("token is set but it is empty")
