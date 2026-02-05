@@ -621,6 +621,28 @@ func (r *globalConnectionResource) Schema(
 					},
 				},
 			},
+			"salesforce": resource_schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Salesforce connection configuration.",
+				Attributes: map[string]resource_schema.Attribute{
+					"login_url": resource_schema.StringAttribute{
+						Required:    true,
+						Description: "The Salesforce instance URL (e.g., https://login.salesforce.com)",
+					},
+					"database": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("default"),
+						Description: "The target database name. Default=default",
+					},
+					"data_transform_run_timeout": resource_schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     int64default.StaticInt64(300),
+						Description: "Timeout in seconds for data transformation runs. Default=300",
+					},
+				},
+			},
 		},
 	}
 }
@@ -1125,6 +1147,24 @@ func (r *globalConnectionDataSource) Schema(
 					"request_timeout": resource_schema.Int64Attribute{
 						Computed:    true,
 						Description: "The number of seconds used to establish a connection before failing. Defaults to 0, which means that the timeout is disabled or uses the default system settings.",
+					},
+				},
+			},
+			"salesforce": datasource_schema.SingleNestedAttribute{
+				Computed:    true,
+				Description: "Salesforce connection configuration.",
+				Attributes: map[string]datasource_schema.Attribute{
+					"login_url": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The Salesforce instance URL (e.g., https://login.salesforce.com)",
+					},
+					"database": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The target database name.",
+					},
+					"data_transform_run_timeout": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "Timeout in seconds for data transformation runs.",
 					},
 				},
 			},

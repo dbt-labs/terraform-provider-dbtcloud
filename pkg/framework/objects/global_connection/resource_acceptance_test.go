@@ -1920,3 +1920,114 @@ resource "dbtcloud_global_connection" test {
 
 `, connectionName)
 }
+
+// Salesforce tests
+func TestAccDbtCloudGlobalConnectionSalesforceResource(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create
+			{
+				Config: testAccDbtCloudGlobalConnectionSalesforceResourceConfig(
+					connectionName,
+					"https://login.salesforce.com",
+					"default",
+					300,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"salesforce_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.login_url",
+						"https://login.salesforce.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.database",
+						"default",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.data_transform_run_timeout",
+						"300",
+					),
+				),
+			},
+			// modify
+			{
+				Config: testAccDbtCloudGlobalConnectionSalesforceResourceConfig(
+					connectionName2,
+					"https://test.salesforce.com",
+					"my_database",
+					600,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"salesforce_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.login_url",
+						"https://test.salesforce.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.database",
+						"my_database",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"salesforce.data_transform_run_timeout",
+						"600",
+					),
+				),
+			},
+			// import
+			{
+				ResourceName:            "dbtcloud_global_connection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionSalesforceResourceConfig(
+	connectionName string,
+	loginURL string,
+	database string,
+	dataTransformRunTimeout int,
+) string {
+	return fmt.Sprintf(`
+
+resource "dbtcloud_global_connection" test {
+  name = "%s"
+
+  salesforce = {
+    login_url                  = "%s"
+    database                   = "%s"
+    data_transform_run_timeout = %d
+  }
+}
+
+`, connectionName, loginURL, database, dataTransformRunTimeout)
+}
