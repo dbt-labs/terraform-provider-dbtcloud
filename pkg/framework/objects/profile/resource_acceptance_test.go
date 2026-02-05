@@ -3,12 +3,10 @@ package profile_test
 import (
 	"fmt"
 	"regexp"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -131,17 +129,12 @@ func testAccCheckDbtCloudProfileExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Issue getting the client")
 		}
 
-		projectID, err := strconv.Atoi(
-			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0],
+		projectID, profileID, err := helper.SplitIDToInts(
+			rs.Primary.ID,
+			"dbtcloud_profile",
 		)
 		if err != nil {
-			return fmt.Errorf("Can't get projectID")
-		}
-		profileID, err := strconv.Atoi(
-			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1],
-		)
-		if err != nil {
-			return fmt.Errorf("Can't get profileID")
+			return err
 		}
 
 		_, err = apiClient.GetProfile(projectID, profileID)
@@ -167,17 +160,12 @@ func testAccCheckDbtCloudProfileDestroy(s *terraform.State) error {
 			continue
 		}
 
-		projectID, err := strconv.Atoi(
-			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[0],
+		projectID, profileID, err := helper.SplitIDToInts(
+			rs.Primary.ID,
+			"dbtcloud_profile",
 		)
 		if err != nil {
-			return fmt.Errorf("Can't get projectID")
-		}
-		profileID, err := strconv.Atoi(
-			strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)[1],
-		)
-		if err != nil {
-			return fmt.Errorf("Can't get profileID")
+			return err
 		}
 
 		_, err = apiClient.GetProfile(projectID, profileID)
