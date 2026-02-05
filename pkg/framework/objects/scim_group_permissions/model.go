@@ -8,9 +8,9 @@ import (
 )
 
 type ScimGroupPermissionsResourceModel struct {
-	ID               types.Int64                   `tfsdk:"id"`
-	GroupID          types.Int64                   `tfsdk:"group_id"`
-	GroupPermissions []ScimGroupPermissionModel    `tfsdk:"permissions"`
+	ID               types.Int64                `tfsdk:"id"`
+	GroupID          types.Int64                `tfsdk:"group_id"`
+	GroupPermissions []ScimGroupPermissionModel `tfsdk:"permissions"`
 }
 
 type ScimGroupPermissionModel struct {
@@ -23,7 +23,7 @@ type ScimGroupPermissionModel struct {
 func ConvertScimGroupPermissionModelToData(
 	requiredAllPermissions []ScimGroupPermissionModel,
 	groupID int,
-	accountID int,
+	accountID int64,
 ) []dbt_cloud.GroupPermission {
 	allPermissions := []dbt_cloud.GroupPermission{}
 

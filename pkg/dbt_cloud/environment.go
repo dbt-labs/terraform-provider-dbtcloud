@@ -15,7 +15,7 @@ type EnvironmentResponse struct {
 type Environment struct {
 	ID                           *int                 `json:"id,omitempty"`
 	State                        int                  `json:"state,omitempty"`
-	Account_Id                   int                  `json:"account_id"`
+	Account_Id                   int64                `json:"account_id"`
 	Project_Id                   int                  `json:"project_id"`
 	Credential_Id                *int                 `json:"credentials_id,omitempty"`
 	Name                         string               `json:"name"`

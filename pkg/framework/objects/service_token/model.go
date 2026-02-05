@@ -39,7 +39,7 @@ func ConvertServiceTokenPermissionModelToData(
 	ctx context.Context,
 	requiredAllPermissions []ServiceTokenPermission,
 	serviceTokenID int,
-	accountID int,
+	accountID int64,
 ) ([]dbt_cloud.ServiceTokenPermission, diag.Diagnostics) {
 	allPermissionsRequest := make([]dbt_cloud.ServiceTokenPermission, len(requiredAllPermissions))
 	allDiags := diag.Diagnostics{}

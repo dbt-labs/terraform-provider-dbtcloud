@@ -213,7 +213,7 @@ func (r *environmentVariableJobOverrideResource) Update(
 
 	envVarJobOverride := dbt_cloud.EnvironmentVariableJobOverride{
 		ProjectID:       projectID,
-		AccountID:       int(state.AccountID.ValueInt64()),
+		AccountID:       int64(state.AccountID.ValueInt64()),
 		Name:            plan.Name.ValueString(),
 		ID:              helper.Int64ToIntPointer(id),
 		JobDefinitionID: int(plan.JobDefinitionID.ValueInt64()),
