@@ -91,6 +91,11 @@ func (r *environmentResource) Read(
 	} else {
 		state.CredentialID = types.Int64Null()
 	}
+	if environment.PrimaryProfileID != nil {
+		state.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+	} else {
+		state.PrimaryProfileID = types.Int64Null()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -132,6 +137,7 @@ func (r *environmentResource) Create(
 		int(plan.ExtendedAttributesID.ValueInt64()),
 		int(plan.ConnectionID.ValueInt64()),
 		plan.EnableModelQueryHistory.ValueBool(),
+		int(plan.PrimaryProfileID.ValueInt64()),
 	)
 
 	if err != nil {
@@ -182,6 +188,11 @@ func (r *environmentResource) Create(
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
+	if environment.PrimaryProfileID != nil {
+		plan.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+	} else {
+		plan.PrimaryProfileID = types.Int64Null()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -268,6 +279,18 @@ func (r *environmentResource) Update(
 		envToUpdate.EnableModelQueryHistory = plan.EnableModelQueryHistory.ValueBool()
 	}
 
+	// Handle primary_profile_id - need to properly handle null and unknown values
+	if !plan.PrimaryProfileID.Equal(state.PrimaryProfileID) {
+		if plan.PrimaryProfileID.IsNull() || plan.PrimaryProfileID.IsUnknown() {
+			if !state.PrimaryProfileID.IsNull() && plan.PrimaryProfileID.IsNull() {
+				envToUpdate.PrimaryProfileID = nil
+			}
+		} else {
+			profileID := int(plan.PrimaryProfileID.ValueInt64())
+			envToUpdate.PrimaryProfileID = &profileID
+		}
+	}
+
 	_, err = r.client.UpdateEnvironment(
 		projectID,
 		environmentID,
@@ -284,6 +307,11 @@ func (r *environmentResource) Update(
 		plan.ExtendedAttributesID = types.Int64Value(int64(*envToUpdate.ExtendedAttributesID))
 	} else {
 		plan.ExtendedAttributesID = types.Int64Null()
+	}
+	if envToUpdate.PrimaryProfileID != nil {
+		plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
+	} else {
+		plan.PrimaryProfileID = types.Int64Null()
 	}
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
 
