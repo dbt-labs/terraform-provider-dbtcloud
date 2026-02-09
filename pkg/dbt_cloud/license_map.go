@@ -11,7 +11,7 @@ import (
 type LicenseMap struct {
 	ID                      *int     `json:"id"`
 	LicenseType             string   `json:"license_type"`
-	AccountID               int      `json:"account_id"`
+	AccountID               int64    `json:"account_id"`
 	State                   int      `json:"state"`
 	SSOLicenseMappingGroups []string `json:"sso_license_mapping_groups"`
 }
@@ -22,7 +22,7 @@ type LicenseMapResponse struct {
 }
 
 func (c *Client) GetLicenseMap(licenseMapId int) (*LicenseMap, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.Itoa(c.AccountID), licenseMapId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.FormatInt(c.AccountID, 10), licenseMapId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *Client) UpdateLicenseMap(licenseMapID int, licenseMap LicenseMap) (*Lic
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.Itoa(c.AccountID), licenseMapID), strings.NewReader(string(licenseMapData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.FormatInt(c.AccountID, 10), licenseMapID), strings.NewReader(string(licenseMapData)))
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *Client) UpdateLicenseMap(licenseMapID int, licenseMap LicenseMap) (*Lic
 }
 
 func (c *Client) DestroyLicenseMap(licenseMapID int) error {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.Itoa(c.AccountID), licenseMapID), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v3/accounts/%s/license-maps/%d/", c.HostURL, strconv.FormatInt(c.AccountID, 10), licenseMapID), nil)
 	if err != nil {
 		return err
 	}

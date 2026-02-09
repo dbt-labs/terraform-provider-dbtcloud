@@ -10,7 +10,7 @@ import (
 
 type Adapter struct {
 	ID                      *int            `json:"id,omitempty"`
-	AccountID               int             `json:"account_id"`
+	AccountID               int64           `json:"account_id"`
 	ProjectID               int             `json:"project_id"`
 	CreatedByID             *int            `json:"created_by_id,omitempty"`
 	CreatedByServiceTokenID *int            `json:"created_by_service_token_id,omitempty"`
@@ -95,7 +95,7 @@ func createGenericAdapter(c *Client, newAdapter Adapter, projectID int) (*int, e
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/adapters/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(projectID),
 		),
 		strings.NewReader(string(newAdapterData)),

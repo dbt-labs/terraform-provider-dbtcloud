@@ -268,7 +268,7 @@ func SetupMockServer(t *testing.T, handlers map[string]MockEndpointHandler) *Moc
 // ResourceTestConfig holds configuration for testing a dbt Cloud resource
 type ResourceTestConfig struct {
 	ResourceType string
-	AccountID    int
+	AccountID    int64
 	ProjectID    int
 	ResourceID   int
 	APIPath      string
@@ -349,7 +349,7 @@ func TestPostgresCredential_UpdateBugRegression(t *testing.T) {
 		}
 	}()
 
-	accountID, projectID, credentialID := 12345, 67890, 111
+	accountID, projectID, credentialID := int64(12345), 67890, 111
 	tracker := &APICallTracker{}
 
 	config := ResourceTestConfig{
@@ -427,7 +427,7 @@ func verifyBugIsFixed(t *testing.T, tracker *APICallTracker) resource.TestCheckF
 	}
 }
 
-func updatePostgresCredentialHandlers(handlers map[string]MockEndpointHandler, accountID, projectID, credentialID int, tracker *APICallTracker) {
+func updatePostgresCredentialHandlers(handlers map[string]MockEndpointHandler, accountID int64, projectID, credentialID int, tracker *APICallTracker) {
 	currentSchema := "test_schema"
 
 	createResponse := func() dbt_cloud.PostgresCredentialResponse {

@@ -6,7 +6,7 @@ import (
 )
 
 type PrivatelinkEndpoint struct {
-	Account_Id             int    `json:"account_id"`
+	Account_Id             int64  `json:"account_id"`
 	Name                   string `json:"name"`
 	Type                   string `json:"type"`
 	PrivatelinkEndpointURL string `json:"private_link_endpoint"`

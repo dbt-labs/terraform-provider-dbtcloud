@@ -24,7 +24,7 @@ type TeradataUnencryptedCredentialDetails struct {
 // TeradataCredentialData represents the data returned by the API for an Teradata credential
 type TeradataCredentialData struct {
 	ID                           *int                                 `json:"id"`
-	AccountID                    int                                  `json:"account_id"`
+	AccountID                    int64                                 `json:"account_id"`
 	Threads                      int                                  `json:"threads"`
 	TargetName                   string                               `json:"target_name"`
 	AdapterVersion               string                               `json:"adapter_version,omitempty"`
@@ -35,7 +35,7 @@ type TeradataCredentialData struct {
 // It doesn't include the UnencryptedCredentialDetails field which is only returned by the API
 type TeradataCredentialRequest struct {
 	ID                *int                     `json:"id,omitempty"`
-	AccountID         int                      `json:"account_id"`
+	AccountID         int64                    `json:"account_id"`
 	ProjectID         int                      `json:"project_id"`
 	Type              string                   `json:"type"`
 	State             int                      `json:"state"`

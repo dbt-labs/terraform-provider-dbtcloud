@@ -27,7 +27,7 @@ type DatabricksUnencryptedCredentialDetails struct {
 
 type DatabricksCredential struct {
 	ID                           *int                                   `json:"id"`
-	Account_Id                   int                                    `json:"account_id"`
+	Account_Id                   int64                                 `json:"account_id"`
 	Project_Id                   int                                    `json:"project_id"`
 	Type                         string                                 `json:"type"`
 	State                        int                                    `json:"state"`
@@ -40,7 +40,7 @@ type DatabricksCredential struct {
 
 type DatabricksCredentialGlobConn struct {
 	ID                *int                     `json:"id"`
-	AccountID         int                      `json:"account_id"`
+	AccountID         int64                    `json:"account_id"`
 	ProjectID         int                      `json:"project_id"`
 	Type              string                   `json:"type"`
 	State             int                      `json:"state"`

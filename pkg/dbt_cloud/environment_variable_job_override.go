@@ -9,7 +9,7 @@ import (
 
 type EnvironmentVariableJobOverride struct {
 	ID              *int   `json:"id"`
-	AccountID       int    `json:"account_id"`
+	AccountID       int64  `json:"account_id"`
 	JobDefinitionID int    `json:"job_definition_id"`
 	Name            string `json:"name"`
 	ProjectID       int    `json:"project_id"`

@@ -123,7 +123,7 @@ func (m *MockServer) GetCapturedCalls(path string) []*CapturedCall {
 // ResourceTestConfig holds configuration for testing a dbt Cloud resource
 type ResourceTestConfig struct {
 	ResourceType string
-	AccountID    int
+	AccountID    int64
 	ProjectID    int
 	ResourceID   int
 	APIPath      string

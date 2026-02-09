@@ -59,7 +59,7 @@ type JobCompletionTriggerCondition struct {
 
 type Job struct {
 	ID                     *int                  `json:"id"`
-	AccountId              int                   `json:"account_id"`
+	AccountId              int64                 `json:"account_id"`
 	ProjectId              int                   `json:"project_id"`
 	EnvironmentId          int                   `json:"environment_id"`
 	Name                   string                `json:"name"`
@@ -93,7 +93,7 @@ type JobWithEnvironment struct {
 func (c *Client) GetJob(jobID string) (*Job, error) {
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobID),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.FormatInt(c.AccountID, 10), jobID),
 		nil,
 	)
 	if err != nil {
@@ -282,7 +282,7 @@ func (c *Client) CreateJob(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/", c.HostURL, strconv.FormatInt(c.AccountID, 10)),
 		strings.NewReader(string(newJobData)),
 	)
 	if err != nil {
@@ -321,7 +321,7 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.Itoa(c.AccountID), jobId),
+		fmt.Sprintf("%s/v2/accounts/%s/jobs/%s/", c.HostURL, strconv.FormatInt(c.AccountID, 10), jobId),
 		strings.NewReader(string(jobData)),
 	)
 	if err != nil {

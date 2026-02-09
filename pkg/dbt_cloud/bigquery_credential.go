@@ -20,7 +20,7 @@ type BigQueryUnencryptedCredentialDetails struct {
 
 type BigQueryCredential struct {
 	ID                           *int                                  `json:"id"`
-	Account_Id                   int                                   `json:"account_id"`
+	Account_Id                   int64                                 `json:"account_id"`
 	Project_Id                   int                                   `json:"project_id"`
 	Type                         string                                `json:"type"`
 	State                        int                                   `json:"state"`
@@ -54,7 +54,7 @@ func (c *BigQueryCredential) GetThreads() int {
 // BigQueryCredentialGlobConn is used for creating credentials with the new adapter format (bigquery_v1)
 type BigQueryCredentialGlobConn struct {
 	ID                *int                     `json:"id,omitempty"`
-	AccountID         int                      `json:"account_id"`
+	AccountID         int64                    `json:"account_id"`
 	ProjectID         int                      `json:"project_id"`
 	Type              string                   `json:"type"`
 	State             int                      `json:"state"`
