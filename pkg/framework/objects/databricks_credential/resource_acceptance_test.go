@@ -269,7 +269,7 @@ func TestDatabricksCredential_UpdateBugRegression(t *testing.T) {
 		}
 	}()
 
-	accountID, projectID, credentialID := 12345, 67890, 222
+	accountID, projectID, credentialID := int64(12345), 67890, 222
 	tracker := &testhelpers.APICallTracker{}
 
 	config := testhelpers.ResourceTestConfig{
@@ -343,7 +343,7 @@ func verifyDatabricksBugIsFixed(t *testing.T, tracker *testhelpers.APICallTracke
 	}
 }
 
-func updateDatabricksCredentialHandlers(handlers map[string]testhelpers.MockEndpointHandler, accountID, projectID, credentialID int, tracker *testhelpers.APICallTracker) {
+func updateDatabricksCredentialHandlers(handlers map[string]testhelpers.MockEndpointHandler, accountID int64, projectID, credentialID int, tracker *testhelpers.APICallTracker) {
 	currentSchema := "test_schema"
 
 	createResponse := func() dbt_cloud.DatabricksCredentialResponse {

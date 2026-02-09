@@ -8,12 +8,12 @@ import (
 )
 
 type SemanticLayerCredentialServiceTokenMapping struct {
-	ID                        *int `json:"id"`
-	AccountID                 int  `json:"account_id"`
-	ProjectID                 int  `json:"project_id"`
-	SemanticLayerCredentialID int  `json:"semantic_layer_credentials_id"`
-	ServiceTokenID            int  `json:"service_token_id"`
-	State                     int  `json:"state,omitempty"`
+	ID                        *int  `json:"id"`
+	AccountID                 int64 `json:"account_id"`
+	ProjectID                 int   `json:"project_id"`
+	SemanticLayerCredentialID int   `json:"semantic_layer_credentials_id"`
+	ServiceTokenID            int   `json:"service_token_id"`
+	State                     int   `json:"state,omitempty"`
 }
 
 // response type for single semantic layer credential service token mapping

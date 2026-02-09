@@ -57,7 +57,7 @@ func CompareScimGroupPartialPermissions(
 func ConvertScimGroupPartialPermissionModelToData(
 	requiredAllPermissions []ScimGroupPartialPermissionModel,
 	groupID int,
-	accountID int,
+	accountID int64,
 ) []dbt_cloud.GroupPermission {
 	allPermissions := []dbt_cloud.GroupPermission{}
 

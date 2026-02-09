@@ -73,14 +73,14 @@ func TestUpdateEnvironmentRemoveExtendedAttributesID(t *testing.T) {
 
 	// Create the client pointing to our mock server
 	hostURL := server.URL + "/api"
-	accountID := 1
+	accountID := int64(1)
 	token := "test-token"
 	maxRetries := 0
 	retryIntervalSeconds := 1
 	timeoutSeconds := 30
 
 	client, err := dbt_cloud.NewClient(
-		intPtr(accountID),
+		&accountID,
 		strPtr(token),
 		strPtr(hostURL),
 		intPtr(maxRetries),
@@ -175,14 +175,14 @@ func TestUpdateEnvironmentWithExtendedAttributesID(t *testing.T) {
 
 	// Create the client pointing to our mock server
 	hostURL := server.URL + "/api"
-	accountID := 1
+	accountID := int64(1)
 	token := "test-token"
 	maxRetries := 0
 	retryIntervalSeconds := 1
 	timeoutSeconds := 30
 
 	client, err := dbt_cloud.NewClient(
-		intPtr(accountID),
+		&accountID,
 		strPtr(token),
 		strPtr(hostURL),
 		intPtr(maxRetries),

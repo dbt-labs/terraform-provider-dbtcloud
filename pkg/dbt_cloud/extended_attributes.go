@@ -15,7 +15,7 @@ type ExtendedAttributesResponse struct {
 type ExtendedAttributes struct {
 	ID                 *int            `json:"id,omitempty"`
 	State              int             `json:"state,omitempty"`
-	AccountID          int             `json:"account_id"`
+	AccountID          int64           `json:"account_id"`
 	ProjectID          int             `json:"project_id"`
 	ExtendedAttributes json.RawMessage `json:"extended_attributes"`
 }

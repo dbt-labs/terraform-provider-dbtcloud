@@ -27,7 +27,7 @@ type AthenaUnencryptedCredentialDetails struct {
 // AthenaCredentialData represents the data returned by the API for an Athena credential
 type AthenaCredentialData struct {
 	ID                           *int                               `json:"id"`
-	AccountID                    int                                `json:"account_id"`
+	AccountID                    int64                               `json:"account_id"`
 	ProjectID                    int                                `json:"project_id"`
 	Type                         string                             `json:"type"`
 	State                        int                                `json:"state"`
@@ -41,7 +41,7 @@ type AthenaCredentialData struct {
 // It doesn't include the UnencryptedCredentialDetails field which is only returned by the API
 type AthenaCredentialRequest struct {
 	ID                *int                     `json:"id,omitempty"`
-	AccountID         int                      `json:"account_id"`
+	AccountID         int64                    `json:"account_id"`
 	ProjectID         int                      `json:"project_id"`
 	Type              string                   `json:"type"`
 	State             int                      `json:"state"`

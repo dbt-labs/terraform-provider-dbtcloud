@@ -12,7 +12,7 @@ type SemanticLayerCredentials struct {
 	ID             *int                   `json:"id"`
 	Name           string                 `json:"name"`
 	ProjectID      int                    `json:"project_id"`
-	AccountID      int                    `json:"account_id"`
+	AccountID      int64                  `json:"account_id"`
 	Values         map[string]interface{} `json:"values"`
 	AdapterVersion string                 `json:"adapter_version"`
 	SchemaType     string                 `json:"schema_type"`
@@ -39,7 +39,7 @@ func (c *Client) GetSemanticLayerCredential(id int64) (*SemanticLayerCredentials
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/semantic-layer-credentials/%d",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			id,
 		),
 		nil,

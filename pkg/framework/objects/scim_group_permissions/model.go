@@ -24,7 +24,7 @@ type ScimGroupPermissionModel struct {
 func ConvertScimGroupPermissionModelToData(
 	requiredAllPermissions []ScimGroupPermissionModel,
 	groupID int,
-	accountID int,
+	accountID int64,
 ) []dbt_cloud.GroupPermission {
 	allPermissions := []dbt_cloud.GroupPermission{}
 

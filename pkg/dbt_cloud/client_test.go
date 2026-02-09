@@ -294,7 +294,7 @@ func TestNewClientTimeout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test parameters
-			accountID := 123456
+			accountID := int64(123456)
 			token := "test_token_12345"
 			hostURL := "https://cloud.getdbt.com/api"
 			maxRetries := 3
@@ -365,7 +365,7 @@ func TestNewClientValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			accountID := 123456
+			accountID := int64(123456)
 			maxRetries := 3
 			retryIntervalSeconds := 10
 			timeoutSeconds := 30
