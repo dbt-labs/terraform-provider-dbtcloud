@@ -12,7 +12,7 @@ var AcceptanceTestConfig = buildAcctestConfig()
 
 func buildAcctestConfig() AcctestConfig {
 	return AcctestConfig{
-		DbtCloudAccountId:           determineIntValue("DBT_CLOUD_ACCOUNT_ID", 1, 1),
+		DbtCloudAccountId:           determineInt64Value("DBT_CLOUD_ACCOUNT_ID", 1, 1),
 		DbtCloudServiceToken:        os.Getenv("DBT_CLOUD_TOKEN"),
 		DbtCloudPersonalAccessToken: os.Getenv("DBT_CLOUD_PERSONAL_ACCESS_TOKEN"),
 		DbtCloudHostUrl:             determineStringValue("DBT_CLOUD_HOST_URL", "", ""),
@@ -52,7 +52,7 @@ func buildAcctestConfig() AcctestConfig {
 }
 
 type AcctestConfig struct {
-	DbtCloudAccountId           int
+	DbtCloudAccountId           int64
 	DbtCloudServiceToken        string
 	DbtCloudPersonalAccessToken string
 	DbtCloudHostUrl             string
@@ -92,6 +92,24 @@ func determineIntValue(envVarKey string, dbtCloudPRValue int, ciValue int) int {
 	val := os.Getenv(envVarKey)
 	if val != "" {
 		intVal, err := strconv.Atoi(val)
+		if err != nil {
+			log.Fatalf("Unable to determine %s value for test: %v", envVarKey, err)
+		}
+		return intVal
+	} else if IsDbtCloudPR() {
+		return dbtCloudPRValue
+	} else if IsCI() {
+		return ciValue
+	} else {
+		log.Printf("Unable to determine %s value, tests may fail", envVarKey)
+		return -1
+	}
+}
+
+func determineInt64Value(envVarKey string, dbtCloudPRValue int64, ciValue int64) int64 {
+	val := os.Getenv(envVarKey)
+	if val != "" {
+		intVal, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			log.Fatalf("Unable to determine %s value for test: %v", envVarKey, err)
 		}

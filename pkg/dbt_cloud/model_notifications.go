@@ -17,7 +17,7 @@ type ModelNotifications struct {
 	ID            *int   `json:"id,omitempty" validate:"required,ne=0"`
 	CreatedAt     string `json:"created_at,omitempty"`
 	UpdatedAt     string `json:"updated_at,omitempty"`
-	AccountID     int    `json:"account_id,omitempty"`
+	AccountID     int64  `json:"account_id,omitempty"`
 	EnvironmentID int    `json:"environment_id"`
 	Enabled       bool   `json:"enabled"`
 	OnSuccess     bool   `json:"on_success"`

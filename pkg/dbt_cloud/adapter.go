@@ -10,7 +10,7 @@ import (
 
 type Adapter struct {
 	ID                      *int            `json:"id,omitempty"`
-	AccountID               int             `json:"account_id"`
+	AccountID               int64           `json:"account_id"`
 	ProjectID               int             `json:"project_id"`
 	CreatedByID             *int            `json:"created_by_id,omitempty"`
 	CreatedByServiceTokenID *int            `json:"created_by_service_token_id,omitempty"`

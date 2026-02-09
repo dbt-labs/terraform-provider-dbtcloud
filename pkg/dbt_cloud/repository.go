@@ -31,7 +31,7 @@ type Repository struct {
 
 type DeployKey struct {
 	ID        int    `json:"id"`
-	AccountID int    `json:"account_id"`
+	AccountID int64  `json:"account_id"`
 	State     int    `json:"state"`
 	PublicKey string `json:"public_key"`
 }
