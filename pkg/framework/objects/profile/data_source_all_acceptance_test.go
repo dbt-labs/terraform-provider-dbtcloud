@@ -54,7 +54,7 @@ resource "dbtcloud_snowflake_credential" "test_credential" {
   database   = "test-database"
   role       = "test-role"
   warehouse  = "test-warehouse"
-  schema     = "test-schema"
+  schema     = "test_schema"
   user       = "test-user"
   password   = "test-password"
   num_threads = 3
