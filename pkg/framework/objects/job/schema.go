@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -490,6 +492,9 @@ func (j *jobResource) Schema(
 			Computed:    true,
 			ElementType: types.StringType,
 			Description: "List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to force_node_selection=false). When empty or not set, SAO is disabled (equivalent to force_node_selection=true). This is the preferred way to control SAO; use this instead of force_node_selection.",
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
 		},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
@@ -617,11 +622,17 @@ func (j *jobResource) Schema(
 				// No default - only set when run_compare_changes is true
 				// Setting a default causes SAO validation errors for CI/Merge jobs
 				Description: "The model selector for checking changes in the compare changes Advanced CI feature",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"job_type": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			// todo add these after

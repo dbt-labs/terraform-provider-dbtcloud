@@ -381,7 +381,8 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 	}
 
-	// Populate cost_optimization_features from API response
+	// Populate cost_optimization_features from API response.
+	// Use empty set (not null) so UseStateForUnknown() works on subsequent plans.
 	if len(createdJob.CostOptimizationFeatures) > 0 {
 		features := make([]attr.Value, len(createdJob.CostOptimizationFeatures))
 		for i, f := range createdJob.CostOptimizationFeatures {
@@ -389,7 +390,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
 	} else {
-		plan.CostOptimizationFeatures = types.SetNull(types.StringType)
+		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
@@ -613,7 +614,10 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ForceNodeSelection = types.BoolNull()
 	}
 
-	// Populate cost_optimization_features from API response
+	// Populate cost_optimization_features from API response.
+	// Always use an empty set (not null) when no features are returned, so that
+	// UseStateForUnknown() has a known value to preserve during plan and avoids
+	// perpetual "+ cost_optimization_features = (known after apply)" diffs.
 	if len(retrievedJob.CostOptimizationFeatures) > 0 {
 		features := make([]attr.Value, len(retrievedJob.CostOptimizationFeatures))
 		for i, f := range retrievedJob.CostOptimizationFeatures {
@@ -621,7 +625,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		}
 		state.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
 	} else {
-		state.CostOptimizationFeatures = types.SetNull(types.StringType)
+		state.CostOptimizationFeatures, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 
 	if retrievedJob.JobType != "" {
@@ -912,7 +916,8 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.ForceNodeSelection = types.BoolNull()
 	}
 
-	// Populate cost_optimization_features from API response
+	// Populate cost_optimization_features from API response.
+	// Use empty set (not null) so UseStateForUnknown() works on subsequent plans.
 	if len(updatedJob.CostOptimizationFeatures) > 0 {
 		features := make([]attr.Value, len(updatedJob.CostOptimizationFeatures))
 		for i, f := range updatedJob.CostOptimizationFeatures {
@@ -920,7 +925,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, features)
 	} else {
-		plan.CostOptimizationFeatures = types.SetNull(types.StringType)
+		plan.CostOptimizationFeatures, _ = types.SetValue(types.StringType, []attr.Value{})
 	}
 
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
