@@ -203,6 +203,10 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Default:     nil,
 				Description: "The Credential ID for this environment. A credential is not actionable for development environments, as users have to set their own development credentials in dbt Cloud.",
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+					validators.UseUnknownWhenProfileSet{},
+				},
 			},
 			"name": resource_schema.StringAttribute{
 				Required:    true,
@@ -253,6 +257,7 @@ func (r *environmentResource) Schema(
 				Description: "The ID of the extended attributes applied",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
+					validators.UseUnknownWhenProfileSet{},
 				},
 			},
 			"connection_id": resource_schema.Int64Attribute{
@@ -262,6 +267,7 @@ func (r *environmentResource) Schema(
 				Description: "A connection ID (used with Global Connections)",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
+					validators.UseUnknownWhenProfileSet{},
 				},
 			},
 			"enable_model_query_history": resource_schema.BoolAttribute{
@@ -274,9 +280,9 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Description: "The ID of the primary profile for this environment. A profile ties together a connection and credentials. Only applicable to deployment environments. " +
-					"~> When `primary_profile_id` is set alongside `connection_id`, `credential_id`, or `extended_attributes_id`, " +
-					"dbt Cloud may propagate the environment's values onto the profile, overwriting the profile's own settings " +
-					"and potentially affecting other environments that share the same profile.",
+					"~> Setting `primary_profile_id` alongside `connection_id`, `credential_id`, or `extended_attributes_id` " +
+					"will produce an error. When a profile is assigned, the API determines those values from the profile. " +
+					"Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},

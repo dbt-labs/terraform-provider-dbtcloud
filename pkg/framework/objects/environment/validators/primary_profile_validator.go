@@ -8,20 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// PrimaryProfileValidator warns when primary_profile_id is set alongside
-// connection_id, credential_id, or extended_attributes_id. When both are
-// configured, dbt Cloud's profile mirroring service may propagate the
-// environment's direct connection, credentials, and extended attributes
-// onto the assigned profile, overwriting the profile's own values. This
-// can cause failures in other environments that share the same profile.
+// PrimaryProfileValidator returns an error when primary_profile_id is set
+// alongside connection_id, credential_id, or extended_attributes_id. When
+// a profile is assigned, the API mirrors the profile's values onto the
+// environment, so direct field values would conflict with the API-determined
+// values and cause inconsistent Terraform state.
 type PrimaryProfileValidator struct{}
 
 func (v PrimaryProfileValidator) Description(ctx context.Context) string {
-	return "Warns when primary_profile_id is set alongside connection_id, credential_id, or extended_attributes_id."
+	return "Errors when primary_profile_id is set alongside connection_id, credential_id, or extended_attributes_id."
 }
 
 func (v PrimaryProfileValidator) MarkdownDescription(ctx context.Context) string {
-	return "Warns when `primary_profile_id` is set alongside `connection_id`, `credential_id`, or `extended_attributes_id`."
+	return "Errors when `primary_profile_id` is set alongside `connection_id`, `credential_id`, or `extended_attributes_id`."
 }
 
 func (v PrimaryProfileValidator) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
@@ -51,15 +50,12 @@ func (v PrimaryProfileValidator) ValidateInt64(ctx context.Context, req validato
 	}
 
 	if len(setFields) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
+		resp.Diagnostics.AddAttributeError(
 			req.Path,
-			"Profile mirroring may overwrite profile attributes",
-			"Setting primary_profile_id alongside connection_id, credential_id, or extended_attributes_id "+
-				"may cause unexpected behavior. When both are configured, dbt Cloud may propagate the "+
-				"environment's direct connection, credentials, and extended attributes onto the assigned "+
-				"profile, overwriting the profile's own values. This can cause failures in other "+
-				"environments that share the same profile. "+
-				"Consider managing connection, credentials, and extended attributes through the profile resource instead.",
+			"Conflicting profile and direct field configuration",
+			"When primary_profile_id is set, the API determines connection_id, credential_id, and "+
+				"extended_attributes_id from the profile. Remove the direct field(s) and manage them "+
+				"through the dbtcloud_profile resource instead.",
 		)
 	}
 }

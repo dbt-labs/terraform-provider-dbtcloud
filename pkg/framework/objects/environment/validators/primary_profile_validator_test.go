@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestPrimaryProfileValidator_WarnsWhenConflictingFieldsSet(t *testing.T) {
+func TestPrimaryProfileValidator_ErrorsWhenConflictingFieldsSet(t *testing.T) {
 	t.Parallel()
 
 	testSchema := schema.Schema{
@@ -30,42 +30,42 @@ func TestPrimaryProfileValidator_WarnsWhenConflictingFieldsSet(t *testing.T) {
 		connectionID     int64
 		credentialID     int64
 		extendedAttrID   int64
-		expectWarning    bool
+		expectError      bool
 	}{
-		"profile with connection_id warns": {
+		"profile with connection_id errors": {
 			primaryProfileID: 123,
 			connectionID:     456,
 			credentialID:     0,
 			extendedAttrID:   0,
-			expectWarning:    true,
+			expectError:      true,
 		},
-		"profile with credential_id warns": {
+		"profile with credential_id errors": {
 			primaryProfileID: 123,
 			connectionID:     0,
 			credentialID:     789,
 			extendedAttrID:   0,
-			expectWarning:    true,
+			expectError:      true,
 		},
-		"profile with extended_attributes_id warns": {
+		"profile with extended_attributes_id errors": {
 			primaryProfileID: 123,
 			connectionID:     0,
 			credentialID:     0,
 			extendedAttrID:   101,
-			expectWarning:    true,
+			expectError:      true,
 		},
-		"profile with all conflicting fields warns": {
+		"profile with all conflicting fields errors": {
 			primaryProfileID: 123,
 			connectionID:     456,
 			credentialID:     789,
 			extendedAttrID:   101,
-			expectWarning:    true,
+			expectError:      true,
 		},
-		"profile alone does not warn": {
+		"profile alone does not error": {
 			primaryProfileID: 123,
 			connectionID:     0,
 			credentialID:     0,
 			extendedAttrID:   0,
-			expectWarning:    false,
+			expectError:      false,
 		},
 	}
 
@@ -104,13 +104,13 @@ func TestPrimaryProfileValidator_WarnsWhenConflictingFieldsSet(t *testing.T) {
 			v := validators.PrimaryProfileValidator{}
 			v.ValidateInt64(context.Background(), req, resp)
 
-			hasWarning := resp.Diagnostics.WarningsCount() > 0
+			hasError := resp.Diagnostics.HasError()
 
-			if tc.expectWarning && !hasWarning {
-				t.Errorf("expected warning but got none")
+			if tc.expectError && !hasError {
+				t.Errorf("expected error but got none")
 			}
-			if !tc.expectWarning && hasWarning {
-				t.Errorf("expected no warning but got: %v", resp.Diagnostics.Warnings())
+			if !tc.expectError && hasError {
+				t.Errorf("expected no error but got: %v", resp.Diagnostics.Errors())
 			}
 		})
 	}
@@ -132,9 +132,6 @@ func TestPrimaryProfileValidator_SkipsWhenNull(t *testing.T) {
 	if resp.Diagnostics.HasError() {
 		t.Errorf("expected no errors but got: %v", resp.Diagnostics.Errors())
 	}
-	if resp.Diagnostics.WarningsCount() > 0 {
-		t.Errorf("expected no warnings but got: %v", resp.Diagnostics.Warnings())
-	}
 }
 
 func TestPrimaryProfileValidator_SkipsWhenUnknown(t *testing.T) {
@@ -152,8 +149,5 @@ func TestPrimaryProfileValidator_SkipsWhenUnknown(t *testing.T) {
 
 	if resp.Diagnostics.HasError() {
 		t.Errorf("expected no errors but got: %v", resp.Diagnostics.Errors())
-	}
-	if resp.Diagnostics.WarningsCount() > 0 {
-		t.Errorf("expected no warnings but got: %v", resp.Diagnostics.Warnings())
 	}
 }
