@@ -28,6 +28,9 @@ var resourceSchema = resource_schema.Schema{
 		"project_id": resource_schema.Int64Attribute{
 			Description: "The ID of the project in which to create the profile",
 			Required:    true,
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.RequiresReplace(),
+			},
 		},
 		"key": resource_schema.StringAttribute{
 			Description: "Unique identifier for the profile",
