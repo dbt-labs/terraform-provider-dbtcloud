@@ -8,18 +8,30 @@ terraform {
 
 provider "dbtcloud" {}
 
+# =============================================================================
+# NOTE: This example uses placeholder credentials for demonstration purposes.
+# Never hardcode real Snowflake credentials (or any secrets) in Terraform files.
+# Instead, use environment variables (TF_VAR_*) or a terraform.tfvars file that
+# is excluded from version control via .gitignore.
+#
+# This configuration creates a minimal project with a profile-based environment
+# binding. It does NOT set up a repository connection or a development
+# environment, so the resulting project will not be fully functional for
+# running dbt jobs without additional configuration.
+# =============================================================================
+
 # -----------------------------------------------------------------------------
 # Project
 # -----------------------------------------------------------------------------
-resource "dbtcloud_project" "eric_tf_profile_test" {
-  name = "ERIC-TF-PROFILE-TEST"
+resource "dbtcloud_project" "example" {
+  name = "Snowflake Profile Example"
 }
 
 # -----------------------------------------------------------------------------
 # Global Connection (Snowflake)
 # -----------------------------------------------------------------------------
-resource "dbtcloud_global_connection" "eric_tf_profile_test_conn" {
-  name = "ERIC-TF-PROFILE-TEST-CONN"
+resource "dbtcloud_global_connection" "example" {
+  name = "Snowflake Example Connection"
 
   snowflake = {
     account   = "test-account"
@@ -31,9 +43,9 @@ resource "dbtcloud_global_connection" "eric_tf_profile_test_conn" {
 # -----------------------------------------------------------------------------
 # Credential (Snowflake)
 # -----------------------------------------------------------------------------
-resource "dbtcloud_snowflake_credential" "eric_tf_profile_test_cred" {
+resource "dbtcloud_snowflake_credential" "example" {
   is_active   = true
-  project_id  = dbtcloud_project.eric_tf_profile_test.id
+  project_id  = dbtcloud_project.example.id
   auth_type   = "password"
   database    = "test-database"
   role        = "test-role"
@@ -45,38 +57,39 @@ resource "dbtcloud_snowflake_credential" "eric_tf_profile_test_cred" {
 }
 
 # -----------------------------------------------------------------------------
-# Profile — ties connection + credential together
+# Profile — ties a connection and credential together under a key.
+# The key acts as a logical name for the warehouse target (e.g. "snowflake_prod").
 # -----------------------------------------------------------------------------
-resource "dbtcloud_profile" "eric_tf_profile_test" {
-  project_id     = dbtcloud_project.eric_tf_profile_test.id
-  key            = "eric-tf-profile-test-key"
-  connection_id  = dbtcloud_global_connection.eric_tf_profile_test_conn.id
-  credentials_id = dbtcloud_snowflake_credential.eric_tf_profile_test_cred.credential_id
+resource "dbtcloud_profile" "example" {
+  project_id     = dbtcloud_project.example.id
+  key            = "snowflake_example"
+  connection_id  = dbtcloud_global_connection.example.id
+  credentials_id = dbtcloud_snowflake_credential.example.credential_id
 }
 
 # -----------------------------------------------------------------------------
 # Deployment Environment — bound to the profile via primary_profile_id
 # -----------------------------------------------------------------------------
-resource "dbtcloud_environment" "eric_tf_profile_test_deploy" {
-  name               = "ERIC-TF-PROFILE-TEST-DEPLOY"
+resource "dbtcloud_environment" "production" {
+  name               = "Production"
   type               = "deployment"
   dbt_version        = "latest"
-  project_id         = dbtcloud_project.eric_tf_profile_test.id
+  project_id         = dbtcloud_project.example.id
   deployment_type    = "production"
-  primary_profile_id = dbtcloud_profile.eric_tf_profile_test.profile_id
+  primary_profile_id = dbtcloud_profile.example.profile_id
 }
 
 # -----------------------------------------------------------------------------
 # Outputs
 # -----------------------------------------------------------------------------
 output "project_id" {
-  value = dbtcloud_project.eric_tf_profile_test.id
+  value = dbtcloud_project.example.id
 }
 
 output "profile_id" {
-  value = dbtcloud_profile.eric_tf_profile_test.profile_id
+  value = dbtcloud_profile.example.profile_id
 }
 
 output "environment_id" {
-  value = dbtcloud_environment.eric_tf_profile_test_deploy.environment_id
+  value = dbtcloud_environment.production.environment_id
 }
