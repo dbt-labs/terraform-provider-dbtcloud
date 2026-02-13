@@ -35,6 +35,7 @@ type Environment struct {
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
 	ConnectionID                 *int                 `json:"connection_id,omitempty"`
 	EnableModelQueryHistory      bool                 `json:"enable_model_query_history,omitempty"`
+	PrimaryProfileID             *int                 `json:"primary_profile_id,omitempty"`
 }
 
 func (c *Client) GetEnvironment(projectId int, environmentId int) (*Environment, error) {
@@ -81,6 +82,7 @@ func (c *Client) CreateEnvironment(
 	extendedAttributesID int,
 	connectionID int,
 	enableModelQueryHistory bool,
+	primaryProfileID int,
 ) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -111,6 +113,9 @@ func (c *Client) CreateEnvironment(
 	}
 	if connectionID != 0 {
 		newEnvironment.ConnectionID = &connectionID
+	}
+	if primaryProfileID != 0 {
+		newEnvironment.PrimaryProfileID = &primaryProfileID
 	}
 	newEnvironmentData, err := json.Marshal(newEnvironment)
 	if err != nil {

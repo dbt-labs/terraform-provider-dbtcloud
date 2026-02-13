@@ -37,6 +37,7 @@ Read-Only:
 - `environment_id` (Number) The ID of the environment
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `name` (String) The name of the environment
+- `primary_profile_id` (Number) The ID of the primary profile for this environment
 - `project_id` (Number) The project ID to which the environment belong
 - `type` (String) The type of environment (must be either development or deployment)
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment

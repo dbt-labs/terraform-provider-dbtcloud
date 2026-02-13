@@ -91,6 +91,11 @@ func (r *environmentResource) Read(
 	} else {
 		state.CredentialID = types.Int64Null()
 	}
+	if environment.PrimaryProfileID != nil {
+		state.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+	} else {
+		state.PrimaryProfileID = types.Int64Null()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -132,6 +137,7 @@ func (r *environmentResource) Create(
 		int(plan.ExtendedAttributesID.ValueInt64()),
 		int(plan.ConnectionID.ValueInt64()),
 		plan.EnableModelQueryHistory.ValueBool(),
+		int(plan.PrimaryProfileID.ValueInt64()),
 	)
 
 	if err != nil {
@@ -182,6 +188,11 @@ func (r *environmentResource) Create(
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
+	if environment.PrimaryProfileID != nil {
+		plan.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+	} else {
+		plan.PrimaryProfileID = types.Int64Null()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -216,8 +227,15 @@ func (r *environmentResource) Update(
 		envToUpdate.Name = plan.Name.ValueString()
 	}
 
-	if plan.CredentialID.ValueInt64() != state.CredentialID.ValueInt64() {
-		envToUpdate.Credential_Id = helper.Int64ToIntPointer(plan.CredentialID.ValueInt64())
+	if !plan.CredentialID.Equal(state.CredentialID) {
+		if plan.CredentialID.IsNull() || plan.CredentialID.IsUnknown() {
+			// Only explicitly clear if the state had a value and plan is null (removal)
+			if !state.CredentialID.IsNull() && plan.CredentialID.IsNull() {
+				envToUpdate.Credential_Id = nil
+			}
+		} else {
+			envToUpdate.Credential_Id = helper.Int64ToIntPointer(plan.CredentialID.ValueInt64())
+		}
 	}
 
 	// Handle versionless to latest conversion
@@ -259,13 +277,29 @@ func (r *environmentResource) Update(
 		}
 	}
 
-	if plan.ConnectionID.ValueInt64() != state.ConnectionID.ValueInt64() {
-		connID := int(plan.ConnectionID.ValueInt64())
-		envToUpdate.ConnectionID = &connID
+	if !plan.ConnectionID.Equal(state.ConnectionID) {
+		if plan.ConnectionID.IsNull() || plan.ConnectionID.IsUnknown() {
+			// Don't change - let API/profile determine value
+		} else {
+			connID := int(plan.ConnectionID.ValueInt64())
+			envToUpdate.ConnectionID = &connID
+		}
 	}
 
 	if plan.EnableModelQueryHistory.ValueBool() != state.EnableModelQueryHistory.ValueBool() {
 		envToUpdate.EnableModelQueryHistory = plan.EnableModelQueryHistory.ValueBool()
+	}
+
+	// Handle primary_profile_id - need to properly handle null and unknown values
+	if !plan.PrimaryProfileID.Equal(state.PrimaryProfileID) {
+		if plan.PrimaryProfileID.IsNull() || plan.PrimaryProfileID.IsUnknown() {
+			if !state.PrimaryProfileID.IsNull() && plan.PrimaryProfileID.IsNull() {
+				envToUpdate.PrimaryProfileID = nil
+			}
+		} else {
+			profileID := int(plan.PrimaryProfileID.ValueInt64())
+			envToUpdate.PrimaryProfileID = &profileID
+		}
 	}
 
 	_, err = r.client.UpdateEnvironment(
@@ -275,6 +309,11 @@ func (r *environmentResource) Update(
 	)
 
 	plan.EnvironmentID = types.Int64Value(int64(*envToUpdate.Environment_Id))
+	if envToUpdate.ConnectionID != nil {
+		plan.ConnectionID = types.Int64Value(int64(*envToUpdate.ConnectionID))
+	} else {
+		plan.ConnectionID = types.Int64Value(0)
+	}
 	if envToUpdate.Credential_Id != nil {
 		plan.CredentialID = types.Int64Value(int64(*envToUpdate.Credential_Id))
 	} else {
@@ -284,6 +323,11 @@ func (r *environmentResource) Update(
 		plan.ExtendedAttributesID = types.Int64Value(int64(*envToUpdate.ExtendedAttributesID))
 	} else {
 		plan.ExtendedAttributesID = types.Int64Null()
+	}
+	if envToUpdate.PrimaryProfileID != nil {
+		plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
+	} else {
+		plan.PrimaryProfileID = types.Int64Null()
 	}
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
 
