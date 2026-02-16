@@ -329,6 +329,8 @@ func readGeneric(
 				Username:  types.StringValue((*sshTunnel)[0].Username),
 				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
 			}
+		} else {
+			state.RedshiftConfig.SSHTunnel = nil
 		}
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
@@ -394,6 +396,8 @@ func readGeneric(
 				Username:  types.StringValue((*sshTunnel)[0].Username),
 				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
 			}
+		} else {
+			state.PostgresConfig.SSHTunnel = nil
 		}
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
