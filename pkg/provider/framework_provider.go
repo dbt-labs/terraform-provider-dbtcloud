@@ -47,6 +47,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/platform_metadata_credentials"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/profile"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_artefacts"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
@@ -332,6 +333,8 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		project.ProjectDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSourceAll,
+		profile.ProfileDataSource,
+		profile.ProfilesDataSource,
 		group_users.GroupUsersDataSource,
 		runs.RunsDataSource,
 		synapse_credential.SynapseCredentialDataSource,
@@ -358,6 +361,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		platform_metadata_credentials.SnowflakePlatformMetadataCredentialResource,
 		platform_metadata_credentials.DatabricksPlatformMetadataCredentialResource,
+		profile.ProfileResource,
 		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
 		scim_group_permissions.ScimGroupPermissionsResource,
