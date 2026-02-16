@@ -17,7 +17,7 @@ type ModelNotifications struct {
 	ID            *int   `json:"id,omitempty" validate:"required,ne=0"`
 	CreatedAt     string `json:"created_at,omitempty"`
 	UpdatedAt     string `json:"updated_at,omitempty"`
-	AccountID     int    `json:"account_id,omitempty"`
+	AccountID     int64  `json:"account_id,omitempty"`
 	EnvironmentID int    `json:"environment_id"`
 	Enabled       bool   `json:"enabled"`
 	OnSuccess     bool   `json:"on_success"`
@@ -32,7 +32,7 @@ func (c *Client) GetModelNotifications(environmentID string) (*ModelNotification
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/environments/%s/model-notifications/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			environmentID,
 		),
 		nil,
@@ -114,7 +114,7 @@ func (c *Client) UpdateModelNotifications(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/environments/%s/model-notifications/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			environmentID,
 		),
 		strings.NewReader(string(modelNotificationsData)),

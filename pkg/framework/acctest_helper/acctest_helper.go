@@ -23,7 +23,7 @@ import (
 func SharedClient() (*dbt_cloud.Client, error) {
 
 	accountIDString := os.Getenv("DBT_CLOUD_ACCOUNT_ID")
-	accountID, _ := strconv.Atoi(accountIDString)
+	accountID, _ := strconv.ParseInt(accountIDString, 10, 64)
 	token := os.Getenv("DBT_CLOUD_TOKEN")
 	hostURL := os.Getenv("DBT_CLOUD_HOST_URL")
 

@@ -8,9 +8,9 @@ import (
 )
 
 type ScimGroupPartialPermissionsResourceModel struct {
-	ID               types.Int64                             `tfsdk:"id"`
-	GroupID          types.Int64                             `tfsdk:"group_id"`
-	GroupPermissions []ScimGroupPartialPermissionModel       `tfsdk:"permissions"`
+	ID               types.Int64                       `tfsdk:"id"`
+	GroupID          types.Int64                       `tfsdk:"group_id"`
+	GroupPermissions []ScimGroupPartialPermissionModel `tfsdk:"permissions"`
 }
 
 type ScimGroupPartialPermissionModel struct {
@@ -34,29 +34,29 @@ func CompareScimGroupPartialPermissions(
 	if a.AllProjects.ValueBool() != b.AllProjects.ValueBool() {
 		return false
 	}
-	
+
 	// Compare writable environment categories
 	// Normalize empty sets and null sets - treat them as equivalent
 	// This is needed because the API returns [] for permissions that don't support
 	// environment restrictions (like job_admin, account_admin, billing_admin)
 	aIsEmpty := a.WritableEnvironmentCategories.IsNull() || len(a.WritableEnvironmentCategories.Elements()) == 0
 	bIsEmpty := b.WritableEnvironmentCategories.IsNull() || len(b.WritableEnvironmentCategories.Elements()) == 0
-	
+
 	if aIsEmpty && bIsEmpty {
 		return true
 	}
-	
+
 	if a.WritableEnvironmentCategories.Equal(b.WritableEnvironmentCategories) {
 		return true
 	}
-	
+
 	return false
 }
 
 func ConvertScimGroupPartialPermissionModelToData(
 	requiredAllPermissions []ScimGroupPartialPermissionModel,
 	groupID int,
-	accountID int,
+	accountID int64,
 ) []dbt_cloud.GroupPermission {
 	allPermissions := []dbt_cloud.GroupPermission{}
 

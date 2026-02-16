@@ -10,7 +10,7 @@ import (
 
 type GroupPermission struct {
 	ID                            *int     `json:"id,omitempty"`
-	AccountID                     int      `json:"account_id"`
+	AccountID                     int64    `json:"account_id"`
 	GroupID                       int      `json:"group_id"`
 	ProjectID                     int      `json:"project_id,omitempty"`
 	AllProjects                   bool     `json:"all_projects"`
@@ -23,7 +23,7 @@ type GroupPermission struct {
 type Group struct {
 	ID               *int              `json:"id"`
 	Name             string            `json:"name"`
-	AccountID        int               `json:"account_id"`
+	AccountID        int64             `json:"account_id"`
 	State            int               `json:"state"`
 	AssignByDefault  bool              `json:"assign_by_default"`
 	SSOMappingGroups []string          `json:"sso_mapping_groups"`
@@ -52,7 +52,7 @@ func (c *Client) GetGroup(groupID int) (*Group, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/groups/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			strconv.Itoa(groupID),
 		),
 		nil,
@@ -123,7 +123,7 @@ func (c *Client) UpdateGroup(groupID int, group Group) (*Group, error) {
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.Itoa(c.AccountID), groupID),
+		fmt.Sprintf("%s/v3/accounts/%s/groups/%d/", c.HostURL, strconv.FormatInt(c.AccountID, 10), groupID),
 		strings.NewReader(string(groupData)),
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *Client) UpdateGroupPermissions(
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/group-permissions/%d/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			groupID,
 		),
 		strings.NewReader(string(groupPermissionData)),
@@ -185,24 +185,24 @@ func (c *Client) GetAllGroups(name, nameContains, state string) ([]Group, error)
 	url := fmt.Sprintf(
 		"%s/v3/accounts/%s/groups/",
 		c.HostURL,
-		strconv.Itoa(c.AccountID),
+		strconv.FormatInt(c.AccountID, 10),
 	)
 
 	// Build query parameters
 	params := []string{}
-	
+
 	if name != "" {
 		params = append(params, fmt.Sprintf("name=%s", name))
 	}
-	
+
 	if nameContains != "" {
 		params = append(params, fmt.Sprintf("name__icontains=%s", nameContains))
 	}
-	
+
 	if state != "" {
 		params = append(params, fmt.Sprintf("state=%s", state))
 	}
-	
+
 	if len(params) > 0 {
 		url += "?" + strings.Join(params, "&")
 	}

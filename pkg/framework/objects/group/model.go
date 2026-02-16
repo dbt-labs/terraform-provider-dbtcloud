@@ -53,7 +53,7 @@ type GroupPermission struct {
 func ConvertGroupPermissionModelToData(
 	requiredAllPermissions []GroupPermission,
 	groupID int,
-	accountID int,
+	accountID int64,
 ) []dbt_cloud.GroupPermission {
 	allPermissionsRequest := make([]dbt_cloud.GroupPermission, len(requiredAllPermissions))
 	for i, permission := range requiredAllPermissions {

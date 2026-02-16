@@ -15,7 +15,7 @@ type NotificationResponse struct {
 
 type Notification struct {
 	Id               *int    `json:"id,omitempty" validate:"required,ne=0"`
-	AccountId        int     `json:"account_id"`
+	AccountId        int64   `json:"account_id"`
 	UserId           int     `json:"user_id"`
 	OnCancel         []int   `json:"on_cancel"`
 	OnFailure        []int   `json:"on_failure"`
@@ -34,7 +34,7 @@ func (c *Client) GetNotification(notificationID string) (*Notification, error) {
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/notifications/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			notificationID,
 		),
 		nil,
@@ -95,7 +95,7 @@ func (c *Client) CreateNotification(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v2/accounts/%s/notifications/", c.HostURL, strconv.FormatInt(c.AccountID, 10)),
 		strings.NewReader(string(newNotificationData)),
 	)
 	if err != nil {
@@ -135,7 +135,7 @@ func (c *Client) UpdateNotification(
 		fmt.Sprintf(
 			"%s/v2/accounts/%s/notifications/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			notificationId,
 		),
 		strings.NewReader(string(notificationData)),

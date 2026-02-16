@@ -17,7 +17,7 @@ type Project struct {
 	ConnectionID           *int    `json:"connection_id,omitempty"`
 	RepositoryID           *int    `json:"repository_id,omitempty"`
 	State                  int     `json:"state"`
-	AccountID              int     `json:"account_id"`
+	AccountID              int64   `json:"account_id"`
 	FreshnessJobId         *int    `json:"freshness_job_id"`
 	DocsJobId              *int    `json:"docs_job_id,"`
 	SemanticLayerConfigID  *int64  `json:"semantic_layer_config_id,omitempty"`
@@ -42,7 +42,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 		),
 		nil,
 	)
@@ -73,7 +73,7 @@ func (c *Client) GetProjectByName(projectName string) (*Project, error) {
 				fmt.Sprintf(
 					"%s/v3/accounts/%s/projects/?include_related=[freshness_job_id,docs_job_id]&offset=%d",
 					c.HostURL,
-					strconv.Itoa(c.AccountID),
+					strconv.FormatInt(c.AccountID, 10),
 					numProjects,
 				),
 				nil,
@@ -129,7 +129,7 @@ func (c *Client) GetProject(projectID string) (*Project, error) {
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/?include_related=[freshness_job_id,docs_job_id]",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			projectID,
 		),
 		nil,
@@ -186,7 +186,7 @@ func (c *Client) CreateProject(
 
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.Itoa(c.AccountID)),
+		fmt.Sprintf("%s/v3/accounts/%s/projects/", c.HostURL, strconv.FormatInt(c.AccountID, 10)),
 		strings.NewReader(string(newProjectData)),
 	)
 	if err != nil {
@@ -230,7 +230,7 @@ func (c *Client) UpdateProject(projectID string, project Project) (*Project, err
 		fmt.Sprintf(
 			"%s/v3/accounts/%s/projects/%s/",
 			c.HostURL,
-			strconv.Itoa(c.AccountID),
+			strconv.FormatInt(c.AccountID, 10),
 			projectID,
 		),
 		strings.NewReader(string(projectData)),

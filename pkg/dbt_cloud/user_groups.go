@@ -18,7 +18,7 @@ type UserGroups struct {
 }
 
 type Permission struct {
-	AccountID int     `json:"account_id"`
+	AccountID int64   `json:"account_id"`
 	Groups    []Group `json:"groups"`
 }
 
@@ -39,7 +39,7 @@ type AssignUserGroupsResponse struct {
 }
 
 func (c *Client) GetUserGroups(userId int) (*UserGroupsCurrentAccount, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/%s/", c.HostURL, strconv.Itoa(c.AccountID), strconv.Itoa(userId)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/accounts/%s/users/%s/", c.HostURL, strconv.FormatInt(c.AccountID, 10), strconv.Itoa(userId)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (c *Client) AssignUserGroups(userId int, groupIDs []int) (*AssignUserGroups
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/assign-groups/", c.HostURL, strconv.Itoa(c.AccountID)), strings.NewReader(string(userGroupsData)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v3/accounts/%s/assign-groups/", c.HostURL, strconv.FormatInt(c.AccountID, 10)), strings.NewReader(string(userGroupsData)))
 	if err != nil {
 		return nil, err
 	}
