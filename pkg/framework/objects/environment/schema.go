@@ -205,7 +205,7 @@ func (r *environmentResource) Schema(
 				Description: "The Credential ID for this environment. A credential is not actionable for development environments, as users have to set their own development credentials in dbt Cloud.",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					validators.UseUnknownWhenProfileSet{},
+					validators.UseUnknownWhenProfileChanges{},
 				},
 			},
 			"name": resource_schema.StringAttribute{
@@ -257,7 +257,7 @@ func (r *environmentResource) Schema(
 				Description: "The ID of the extended attributes applied",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					validators.UseUnknownWhenProfileSet{},
+					validators.UseUnknownWhenProfileChanges{},
 				},
 			},
 			"connection_id": resource_schema.Int64Attribute{
@@ -267,7 +267,7 @@ func (r *environmentResource) Schema(
 				Description: "A connection ID (used with Global Connections)",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
-					validators.UseUnknownWhenProfileSet{},
+					validators.UseUnknownWhenProfileChanges{},
 				},
 			},
 			"enable_model_query_history": resource_schema.BoolAttribute{
