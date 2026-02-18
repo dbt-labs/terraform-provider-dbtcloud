@@ -335,10 +335,8 @@ func (r *environmentResource) Update(
 	} else {
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
-	// Only persist primary_profile_id if the user is still managing it (non-null in plan).
-	// Checking the plan (not state) ensures that when a user removes primary_profile_id
-	// from their config, we stop surfacing the API's auto-created profile ID.
-	if !plan.PrimaryProfileID.IsNull() && !plan.PrimaryProfileID.IsUnknown() {
+	// Only update primary_profile_id if the user is managing it (non-null in state).
+	if !state.PrimaryProfileID.IsNull() {
 		if envToUpdate.PrimaryProfileID != nil {
 			plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
 		} else {

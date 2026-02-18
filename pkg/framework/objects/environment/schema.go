@@ -284,7 +284,7 @@ func (r *environmentResource) Schema(
 					"will produce an error. When a profile is assigned, the API determines those values from the profile. " +
 					"Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.",
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					validators.UseStateWhenConfigSet{},
 				},
 				Validators: []validator.Int64{
 					validators.PrimaryProfileValidator{},
