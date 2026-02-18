@@ -313,32 +313,38 @@ func (r *environmentResource) Update(
 		}
 	}
 
-	_, err = r.client.UpdateEnvironment(
+	updatedEnv, err := r.client.UpdateEnvironment(
 		projectID,
 		environmentID,
 		*envToUpdate,
 	)
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating environment", err.Error())
+		return
+	}
 
-	plan.EnvironmentID = types.Int64Value(int64(*envToUpdate.Environment_Id))
-	if envToUpdate.ConnectionID != nil {
-		plan.ConnectionID = types.Int64Value(int64(*envToUpdate.ConnectionID))
+	plan.EnvironmentID = types.Int64Value(int64(*updatedEnv.Environment_Id))
+	if updatedEnv.ConnectionID != nil {
+		plan.ConnectionID = types.Int64Value(int64(*updatedEnv.ConnectionID))
 	} else {
 		plan.ConnectionID = types.Int64Value(0)
 	}
-	if envToUpdate.Credential_Id != nil {
-		plan.CredentialID = types.Int64Value(int64(*envToUpdate.Credential_Id))
+	if updatedEnv.Credential_Id != nil {
+		plan.CredentialID = types.Int64Value(int64(*updatedEnv.Credential_Id))
 	} else {
 		plan.CredentialID = types.Int64Null()
 	}
-	if envToUpdate.ExtendedAttributesID != nil {
-		plan.ExtendedAttributesID = types.Int64Value(int64(*envToUpdate.ExtendedAttributesID))
+	if updatedEnv.ExtendedAttributesID != nil {
+		plan.ExtendedAttributesID = types.Int64Value(int64(*updatedEnv.ExtendedAttributesID))
 	} else {
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
-	// Only update primary_profile_id if the user is managing it (non-null in state).
-	if !state.PrimaryProfileID.IsNull() {
-		if envToUpdate.PrimaryProfileID != nil {
-			plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
+	// Write back primary_profile_id based on plan intent (not prior state).
+	// The UseStateWhenConfigSet plan modifier ensures the plan is null when
+	// the user removes the attribute, and non-null when they set it.
+	if !plan.PrimaryProfileID.IsNull() && !plan.PrimaryProfileID.IsUnknown() {
+		if updatedEnv.PrimaryProfileID != nil {
+			plan.PrimaryProfileID = types.Int64Value(int64(*updatedEnv.PrimaryProfileID))
 		} else {
 			plan.PrimaryProfileID = types.Int64Null()
 		}
@@ -346,11 +352,6 @@ func (r *environmentResource) Update(
 		plan.PrimaryProfileID = types.Int64Null()
 	}
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
-
-	if err != nil {
-		resp.Diagnostics.AddError("Error updating environment", err.Error())
-		return
-	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

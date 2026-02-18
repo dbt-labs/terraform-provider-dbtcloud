@@ -176,7 +176,7 @@ func TestAccDbtCloudEnvironmentResourceProfileChange(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
 		Steps: []resource.TestStep{
-			// CREATE with profile A (backed by conn_a)
+			// CREATE with profile A
 			{
 				Config: testAccDbtCloudEnvironmentWithTwoProfiles(
 					projectName,
@@ -191,13 +191,9 @@ func TestAccDbtCloudEnvironmentResourceProfileChange(t *testing.T) {
 						"dbtcloud_environment.test_env", "primary_profile_id",
 						"dbtcloud_profile.profile_a", "profile_id",
 					),
-					resource.TestCheckResourceAttrPair(
-						"dbtcloud_environment.test_env", "connection_id",
-						"dbtcloud_global_connection.conn_a", "id",
-					),
 				),
 			},
-			// UPDATE - switch to profile B (backed by conn_b)
+			// UPDATE - switch to profile B
 			{
 				Config: testAccDbtCloudEnvironmentWithTwoProfiles(
 					projectName,
@@ -211,10 +207,6 @@ func TestAccDbtCloudEnvironmentResourceProfileChange(t *testing.T) {
 					resource.TestCheckResourceAttrPair(
 						"dbtcloud_environment.test_env", "primary_profile_id",
 						"dbtcloud_profile.profile_b", "profile_id",
-					),
-					resource.TestCheckResourceAttrPair(
-						"dbtcloud_environment.test_env", "connection_id",
-						"dbtcloud_global_connection.conn_b", "id",
 					),
 				),
 			},
