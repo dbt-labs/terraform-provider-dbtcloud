@@ -319,9 +319,8 @@ func readGeneric(
 			state.RedshiftConfig.DBName = types.StringNull()
 		}
 
-		// SSH tunnel settings
-		if len(*sshTunnel) > 0 {
-
+		// SSH tunnel: clear when disabled or none returned so step 4 (removing tunnel) doesn't leave stale state
+		if len(*sshTunnel) > 0 && common.IsSshTunnelEnabled != nil && *common.IsSshTunnelEnabled {
 			state.RedshiftConfig.SSHTunnel = &SSHTunnelConfig{
 				ID:        types.Int64PointerValue((*sshTunnel)[0].ID),
 				HostName:  types.StringValue((*sshTunnel)[0].HostName),
@@ -329,6 +328,8 @@ func readGeneric(
 				Username:  types.StringValue((*sshTunnel)[0].Username),
 				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
 			}
+		} else {
+			state.RedshiftConfig.SSHTunnel = nil
 		}
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
@@ -384,9 +385,8 @@ func readGeneric(
 			state.PostgresConfig.DBName = types.StringNull()
 		}
 
-		// SSH tunnel settings
-		if len(*sshTunnel) > 0 {
-
+		// SSH tunnel: clear when disabled or none returned so step 4 (removing tunnel) doesn't leave stale state
+		if len(*sshTunnel) > 0 && common.IsSshTunnelEnabled != nil && *common.IsSshTunnelEnabled {
 			state.PostgresConfig.SSHTunnel = &SSHTunnelConfig{
 				ID:        types.Int64PointerValue((*sshTunnel)[0].ID),
 				HostName:  types.StringValue((*sshTunnel)[0].HostName),
@@ -394,6 +394,8 @@ func readGeneric(
 				Username:  types.StringValue((*sshTunnel)[0].Username),
 				PublicKey: types.StringValue((*sshTunnel)[0].PublicKey),
 			}
+		} else {
+			state.PostgresConfig.SSHTunnel = nil
 		}
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API

@@ -19,7 +19,7 @@ type ProfileListResponse struct {
 
 type Profile struct {
 	ID                   *int   `json:"id,omitempty"`
-	AccountID            int    `json:"account_id"`
+	AccountID            int64    `json:"account_id"`
 	ProjectID            int    `json:"project_id"`
 	Key                  string `json:"key"`
 	ConnectionID         int    `json:"connection_id"`

@@ -28,3 +28,16 @@ resource "dbtcloud_environment" "dev_environment" {
   connection_id = dbtcloud_global_connection.my_other_global_connection.id
   // credential_id is not actionable for development environments
 }
+
+// Deployment environment with a primary profile (binds connection + credentials via profile)
+// NOTE: avoid setting connection_id, credential_id, or extended_attributes_id alongside
+// primary_profile_id — dbt Cloud may propagate the environment's values onto the profile,
+// overwriting the profile's own settings and affecting other environments sharing that profile.
+resource "dbtcloud_environment" "profiled_environment" {
+  dbt_version        = "latest"
+  name               = "Staging"
+  project_id         = dbtcloud_project.dbt_project.id
+  type               = "deployment"
+  deployment_type    = "staging"
+  primary_profile_id = dbtcloud_profile.my_profile.profile_id
+}
