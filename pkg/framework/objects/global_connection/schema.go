@@ -1181,9 +1181,9 @@ func (r *globalConnectionsDataSource) Schema(
 	resp.Schema = datasource_schema.Schema{
 		Description: "All the connections created on the account with some summary information, like their name, type, when they were created/updated and the number of environments using them.",
 		Attributes: map[string]datasource_schema.Attribute{
-			"connections": datasource_schema.SetNestedAttribute{
+			"connections": datasource_schema.ListNestedAttribute{
 				Computed:    true,
-				Description: "A set of all the connections",
+				Description: "A list of all the connections",
 				NestedObject: datasource_schema.NestedAttributeObject{
 					Attributes: map[string]datasource_schema.Attribute{
 						"id": datasource_schema.Int64Attribute{
