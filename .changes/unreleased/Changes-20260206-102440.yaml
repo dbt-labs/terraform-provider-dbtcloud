@@ -1,0 +1,3 @@
+kind: Changes
+body: Add primary_profile_id to dbtcloud_environment resource for binding data warehouse profiles to deployment environments
+time: 2026-02-06T10:24:40.793159-05:00
