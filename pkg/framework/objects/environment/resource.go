@@ -91,10 +91,15 @@ func (r *environmentResource) Read(
 	} else {
 		state.CredentialID = types.Int64Null()
 	}
-	if environment.PrimaryProfileID != nil {
-		state.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
-	} else {
-		state.PrimaryProfileID = types.Int64Null()
+	// Only update primary_profile_id if it was already in state (user-configured).
+	// The API always returns a profile (auto-creating one if needed), but the
+	// auto-created ID is an implementation detail that shouldn't leak into state.
+	if !state.PrimaryProfileID.IsNull() {
+		if environment.PrimaryProfileID != nil {
+			state.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+		} else {
+			state.PrimaryProfileID = types.Int64Null()
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -188,8 +193,14 @@ func (r *environmentResource) Create(
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
-	if environment.PrimaryProfileID != nil {
-		plan.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+	// Only store primary_profile_id if the user configured it (known value in plan).
+	// When not configured, plan is null/unknown and we don't surface the auto-created ID.
+	if !plan.PrimaryProfileID.IsNull() && !plan.PrimaryProfileID.IsUnknown() {
+		if environment.PrimaryProfileID != nil {
+			plan.PrimaryProfileID = types.Int64Value(int64(*environment.PrimaryProfileID))
+		} else {
+			plan.PrimaryProfileID = types.Int64Null()
+		}
 	} else {
 		plan.PrimaryProfileID = types.Int64Null()
 	}
@@ -324,8 +335,13 @@ func (r *environmentResource) Update(
 	} else {
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
-	if envToUpdate.PrimaryProfileID != nil {
-		plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
+	// Only update primary_profile_id if the user is managing it (non-null in state).
+	if !state.PrimaryProfileID.IsNull() {
+		if envToUpdate.PrimaryProfileID != nil {
+			plan.PrimaryProfileID = types.Int64Value(int64(*envToUpdate.PrimaryProfileID))
+		} else {
+			plan.PrimaryProfileID = types.Int64Null()
+		}
 	} else {
 		plan.PrimaryProfileID = types.Int64Null()
 	}
