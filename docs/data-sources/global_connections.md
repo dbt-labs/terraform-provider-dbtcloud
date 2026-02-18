@@ -22,7 +22,7 @@ data dbtcloud_global_connections my_connections {
 
 ### Read-Only
 
-- `connections` (Attributes Set) A set of all the connections (see [below for nested schema](#nestedatt--connections))
+- `connections` (Attributes List) A list of all the connections (see [below for nested schema](#nestedatt--connections))
 
 <a id="nestedatt--connections"></a>
 ### Nested Schema for `connections`
