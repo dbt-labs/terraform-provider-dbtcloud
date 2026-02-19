@@ -1,3 +1,0 @@
-kind: Changes
-body: Add dbtcloud_profile resource and data sources for managing data warehouse profiles (connection, credentials, and extended attributes bindings)
-time: 2026-02-05T15:11:00.000000-08:00
