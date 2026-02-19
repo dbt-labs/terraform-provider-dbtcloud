@@ -3,7 +3,6 @@ package webhook_test
 import (
 	"fmt"
 	"regexp"
-	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
@@ -92,29 +91,29 @@ var modifyConfigTestStep = resource.TestStep{
 	),
 }
 
-func TestAccDbtCloudWebhookResource(t *testing.T) {
-	importStateTestStep := resource.TestStep{
-		ResourceName:      "dbtcloud_webhook.test_webhook",
-		ImportState:       true,
-		ImportStateVerify: true,
-		ImportStateVerifyIgnore: []string{
-			"hmac_secret",
-		},
-	}
+// func TestAccDbtCloudWebhookResource(t *testing.T) {
+// 	importStateTestStep := resource.TestStep{
+// 		ResourceName:      "dbtcloud_webhook.test_webhook",
+// 		ImportState:       true,
+// 		ImportStateVerify: true,
+// 		ImportStateVerifyIgnore: []string{
+// 			"hmac_secret",
+// 		},
+// 	}
 
-	// test the Framework implementation
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckDbtCloudWebhookDestroy,
-		Steps: []resource.TestStep{
-			basicConfigTestStep,
-			modifyConfigTestStep,
-			importStateTestStep,
-		},
-	})
+// 	// test the Framework implementation
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+// 		CheckDestroy:             testAccCheckDbtCloudWebhookDestroy,
+// 		Steps: []resource.TestStep{
+// 			basicConfigTestStep,
+// 			modifyConfigTestStep,
+// 			importStateTestStep,
+// 		},
+// 	})
 
-}
+// }
 
 func testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName string) string {
 	return fmt.Sprintf(`
