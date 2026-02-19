@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -35,6 +37,28 @@ const (
 
 type jobResource struct {
 	client *dbt_cloud.Client
+}
+
+func debugJobTypeLog(runID, hypothesisID, location, message string, data map[string]any) {
+	payload := map[string]any{
+		"sessionId":    "cb43da",
+		"runId":        runID,
+		"hypothesisId": hypothesisID,
+		"location":     location,
+		"message":      message,
+		"data":         data,
+		"timestamp":    time.Now().UnixMilli(),
+	}
+	logLine, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug-cb43da.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	_, _ = f.Write(append(logLine, '\n'))
+	_ = f.Close()
 }
 
 // validateJobTypeChange validates if a job type transition is allowed.
@@ -469,6 +493,17 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H4", "pkg/framework/objects/job/resource.go:Read", "Read retrieved job", map[string]any{
+		"job_id":                        jobIDStr,
+		"retrieved_job_type":            retrievedJob.JobType,
+		"retrieved_trigger_schedule":    retrievedJob.Triggers.Schedule,
+		"retrieved_trigger_on_merge":    retrievedJob.Triggers.OnMerge,
+		"retrieved_trigger_git_provider": retrievedJob.Triggers.GitProviderWebhook,
+		"retrieved_trigger_github":      retrievedJob.Triggers.GithubWebhook,
+	})
+	// #endregion
+
 	state.ID = types.Int64Value(int64(*retrievedJob.ID))
 	state.JobId = types.Int64Value(int64(*retrievedJob.ID))
 	state.ProjectID = types.Int64Value(int64(retrievedJob.ProjectId))
@@ -651,6 +686,41 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	planJobType := ""
+	if !plan.JobType.IsNull() && !plan.JobType.IsUnknown() {
+		planJobType = plan.JobType.ValueString()
+	}
+	stateJobType := ""
+	if !state.JobType.IsNull() && !state.JobType.IsUnknown() {
+		stateJobType = state.JobType.ValueString()
+	}
+	planScheduleTrigger := false
+	planOnMergeTrigger := false
+	planGitProviderTrigger := false
+	planGithubTrigger := false
+	if plan.Triggers != nil {
+		planScheduleTrigger = plan.Triggers.Schedule.ValueBool()
+		planOnMergeTrigger = plan.Triggers.OnMerge.ValueBool()
+		planGitProviderTrigger = plan.Triggers.GitProviderWebhook.ValueBool()
+		planGithubTrigger = plan.Triggers.GithubWebhook.ValueBool()
+	}
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H1", "pkg/framework/objects/job/resource.go:Update", "Update plan/state before GetJob", map[string]any{
+		"job_id":                        state.ID.ValueInt64(),
+		"plan_job_type_is_null":         plan.JobType.IsNull(),
+		"plan_job_type_is_unknown":      plan.JobType.IsUnknown(),
+		"plan_job_type":                 planJobType,
+		"state_job_type_is_null":        state.JobType.IsNull(),
+		"state_job_type_is_unknown":     state.JobType.IsUnknown(),
+		"state_job_type":                stateJobType,
+		"plan_trigger_schedule":         planScheduleTrigger,
+		"plan_trigger_on_merge":         planOnMergeTrigger,
+		"plan_trigger_git_provider":     planGitProviderTrigger,
+		"plan_trigger_github_webhook":   planGithubTrigger,
+		"plan_schedule_type":            plan.ScheduleType.ValueString(),
+	})
+	// #endregion
+
 	jobID := state.ID.ValueInt64()
 	jobIDStr := strconv.FormatInt(jobID, 10)
 
@@ -662,6 +732,18 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		)
 		return
 	}
+
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H2", "pkg/framework/objects/job/resource.go:Update", "Remote job from GetJob before mutation", map[string]any{
+		"job_id":                       jobIDStr,
+		"remote_before_job_type":       job.JobType,
+		"remote_trigger_schedule":      job.Triggers.Schedule,
+		"remote_trigger_on_merge":      job.Triggers.OnMerge,
+		"remote_trigger_git_provider":  job.Triggers.GitProviderWebhook,
+		"remote_trigger_github_webhook": job.Triggers.GithubWebhook,
+		"remote_schedule_type":         job.Schedule.Date.Type,
+	})
+	// #endregion
 
 	job.ProjectId = int(plan.ProjectID.ValueInt64())
 	job.EnvironmentId = int(plan.EnvironmentID.ValueInt64())
@@ -889,6 +971,18 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		)
 		return
 	}
+
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H3", "pkg/framework/objects/job/resource.go:Update", "UpdateJob response used for new state", map[string]any{
+		"job_id":                         jobIDStr,
+		"update_response_job_type":       updatedJob.JobType,
+		"update_response_trigger_schedule": updatedJob.Triggers.Schedule,
+		"update_response_trigger_on_merge": updatedJob.Triggers.OnMerge,
+		"update_response_trigger_git_provider": updatedJob.Triggers.GitProviderWebhook,
+		"update_response_trigger_github_webhook": updatedJob.Triggers.GithubWebhook,
+		"update_response_schedule_type":  updatedJob.Schedule.Date.Type,
+	})
+	// #endregion
 
 	if updatedJob.JobType != "" {
 		plan.JobType = types.StringValue(updatedJob.JobType)

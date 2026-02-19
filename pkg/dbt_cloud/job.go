@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type JobTrigger struct {
@@ -89,6 +91,28 @@ type Job struct {
 type JobWithEnvironment struct {
 	Job
 	Environment Environment `json:"environment"`
+}
+
+func debugJobTypeLog(runID, hypothesisID, location, message string, data map[string]any) {
+	payload := map[string]any{
+		"sessionId":    "cb43da",
+		"runId":        runID,
+		"hypothesisId": hypothesisID,
+		"location":     location,
+		"message":      message,
+		"data":         data,
+		"timestamp":    time.Now().UnixMilli(),
+	}
+	logLine, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug-cb43da.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	_, _ = f.Write(append(logLine, '\n'))
+	_ = f.Close()
 }
 
 func (c *Client) GetJob(jobID string) (*Job, error) {
@@ -327,6 +351,17 @@ func (c *Client) CreateJob(
 }
 
 func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H3", "pkg/dbt_cloud/job.go:UpdateJob", "Client UpdateJob outgoing payload fields", map[string]any{
+		"job_id":                      jobId,
+		"outgoing_job_type":           job.JobType,
+		"outgoing_trigger_schedule":   job.Triggers.Schedule,
+		"outgoing_trigger_on_merge":   job.Triggers.OnMerge,
+		"outgoing_trigger_git_provider": job.Triggers.GitProviderWebhook,
+		"outgoing_trigger_github_webhook": job.Triggers.GithubWebhook,
+		"outgoing_schedule_type":      job.Schedule.Date.Type,
+	})
+	// #endregion
 
 	jobData, err := json.Marshal(job)
 	if err != nil {
@@ -352,6 +387,18 @@ func (c *Client) UpdateJob(jobId string, job Job) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// #region agent log
+	debugJobTypeLog("pre-fix", "H3", "pkg/dbt_cloud/job.go:UpdateJob", "Client UpdateJob API response fields", map[string]any{
+		"job_id":                          jobId,
+		"response_job_type":               jobResponse.Data.JobType,
+		"response_trigger_schedule":       jobResponse.Data.Triggers.Schedule,
+		"response_trigger_on_merge":       jobResponse.Data.Triggers.OnMerge,
+		"response_trigger_git_provider":   jobResponse.Data.Triggers.GitProviderWebhook,
+		"response_trigger_github_webhook": jobResponse.Data.Triggers.GithubWebhook,
+		"response_schedule_type":          jobResponse.Data.Schedule.Date.Type,
+	})
+	// #endregion
 
 	return &jobResponse.Data, nil
 }
