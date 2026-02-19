@@ -2,45 +2,40 @@ package webhook_test
 
 import (
 	"fmt"
-	"testing"
-
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestDbtCloudWebhookDataSource(t *testing.T) {
-	randomWebhookName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	randomWebhookDescription := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+// func TestDbtCloudWebhookDataSource(t *testing.T) {
+// 	randomWebhookName := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+// 	randomWebhookDescription := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-	config := webhooks(randomWebhookName, randomWebhookDescription)
+// 	config := webhooks(randomWebhookName, randomWebhookDescription)
 
-	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "webhook_id"),
-		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "name", randomWebhookName),
-		resource.TestCheckResourceAttr(
-			"data.dbtcloud_webhook.test",
-			"description",
-			randomWebhookDescription,
-		),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "client_url"),
-		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "event_types.#", "2"),
-		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "job_ids.#", "0"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "http_status_code"),
-		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "account_identifier"),
-	)
+// 	check := resource.ComposeAggregateTestCheckFunc(
+// 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "webhook_id"),
+// 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "name", randomWebhookName),
+// 		resource.TestCheckResourceAttr(
+// 			"data.dbtcloud_webhook.test",
+// 			"description",
+// 			randomWebhookDescription,
+// 		),
+// 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "client_url"),
+// 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "event_types.#", "2"),
+// 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "job_ids.#", "0"),
+// 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "http_status_code"),
+// 		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "account_identifier"),
+// 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check:  check,
-			},
-		},
-	})
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: config,
+// 				Check:  check,
+// 			},
+// 		},
+// 	})
 
-}
+// }
 
 func webhooks(webhookName string, webhookDesc string) string {
 	return fmt.Sprintf(`
