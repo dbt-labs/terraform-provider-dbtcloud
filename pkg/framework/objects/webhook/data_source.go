@@ -67,8 +67,8 @@ func (d *webhookDataSource) Read(
 		return
 	}
 	state.Active = types.BoolValue(webhook.Active)
-	state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
-	state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
+	state.HTTPStatusCode = helper.ConvertStringPointer(webhook.HttpStatusCode)
+	state.AccountIdentifier = helper.ConvertStringPointer(webhook.AccountIdentifier)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
