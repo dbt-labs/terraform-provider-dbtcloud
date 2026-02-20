@@ -2,55 +2,59 @@ package environment_test
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_config"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// func TestAccDbtCloudEnvironmentsDataSource(t *testing.T) {
+func TestAccDbtCloudEnvironmentsDataSource(t *testing.T) {
 
-// 	randomProjectName1 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-// 	randomProjectName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-// 	randomEnvironmentName1 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-// 	randomEnvironmentName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+	randomProjectName1 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+	randomProjectName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+	randomEnvironmentName1 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+	randomEnvironmentName2 := acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
-// 	config := environments(
-// 		randomProjectName1,
-// 		randomProjectName2,
-// 		randomEnvironmentName1,
-// 		randomEnvironmentName2,
-// 	)
+	config := environments(
+		randomProjectName1,
+		randomProjectName2,
+		randomEnvironmentName1,
+		randomEnvironmentName2,
+	)
 
-// 	check := resource.ComposeAggregateTestCheckFunc(
-// 		resource.TestCheckResourceAttrSet(
-// 			"data.dbtcloud_environments.test_all",
-// 			"environments.1.%",
-// 		),
-// 		resource.TestCheckResourceAttr(
-// 			"data.dbtcloud_environments.test_one_project",
-// 			"environments.#",
-// 			"1",
-// 		),
-// 		resource.TestCheckResourceAttr(
-// 			"data.dbtcloud_environments.test_one_project",
-// 			"environments.0.name",
-// 			randomEnvironmentName2,
-// 		),
-// 		resource.TestCheckResourceAttrSet(
-// 			"data.dbtcloud_environments.test_one_project",
-// 			"environments.0.environment_id",
-// 		),
-// 	)
+	check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_environments.test_all",
+			"environments.1.%",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environments.test_one_project",
+			"environments.#",
+			"1",
+		),
+		resource.TestCheckResourceAttr(
+			"data.dbtcloud_environments.test_one_project",
+			"environments.0.name",
+			randomEnvironmentName2,
+		),
+		resource.TestCheckResourceAttrSet(
+			"data.dbtcloud_environments.test_one_project",
+			"environments.0.environment_id",
+		),
+	)
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: config,
-// 				Check:  check,
-// 			},
-// 		},
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  check,
+			},
+		},
+	})
+}
 
 func environments(
 	randomProjectName1,
