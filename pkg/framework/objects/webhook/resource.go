@@ -66,8 +66,9 @@ func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *db
 
 	resourceModel.Active = types.BoolValue(retrievedWebhook.Active)
 
-	resourceModel.HTTPStatusCode = types.StringValue(*retrievedWebhook.HttpStatusCode)
-	resourceModel.AccountIdentifier = types.StringValue(*retrievedWebhook.AccountIdentifier)
+	resourceModel.HmacSecret = helper.ConvertStringPointer(retrievedWebhook.HmacSecret)
+	resourceModel.HTTPStatusCode = helper.ConvertStringPointer(retrievedWebhook.HttpStatusCode)
+	resourceModel.AccountIdentifier = helper.ConvertStringPointer(retrievedWebhook.AccountIdentifier)
 
 	return nil
 }
@@ -165,10 +166,10 @@ func (r *webhookResource) Create(
 		return
 	}
 
-	// Set computed fields
-	plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
-	plan.AccountIdentifier = types.StringValue(*createdWebhook.AccountIdentifier)
-	plan.HTTPStatusCode = types.StringValue(*createdWebhook.HttpStatusCode)
+	// Set computed fields (API may omit these in create response)
+	plan.HmacSecret = helper.ConvertStringPointer(createdWebhook.HmacSecret)
+	plan.AccountIdentifier = helper.ConvertStringPointer(createdWebhook.AccountIdentifier)
+	plan.HTTPStatusCode = helper.ConvertStringPointer(createdWebhook.HttpStatusCode)
 	plan.Active = types.BoolValue(createdWebhook.Active)
 
 	// Set the state with all fields
