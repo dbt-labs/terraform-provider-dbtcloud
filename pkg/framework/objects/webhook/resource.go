@@ -59,15 +59,24 @@ func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *db
 	if diags.HasError() {
 		return diags
 	}
-	resourceModel.JobIDs, diags = helper.SliceStringToTypesListInt64Value(retrievedWebhook.JobIds)
+	resourceModel.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(retrievedWebhook.JobIds))
 	if diags.HasError() {
 		return diags
 	}
 
 	resourceModel.Active = types.BoolValue(retrievedWebhook.Active)
 
-	resourceModel.HTTPStatusCode = types.StringValue(*retrievedWebhook.HttpStatusCode)
-	resourceModel.AccountIdentifier = types.StringValue(*retrievedWebhook.AccountIdentifier)
+	if retrievedWebhook.HttpStatusCode != nil {
+		resourceModel.HTTPStatusCode = types.StringValue(*retrievedWebhook.HttpStatusCode)
+	} else {
+		resourceModel.HTTPStatusCode = types.StringNull()
+	}
+
+	if retrievedWebhook.AccountIdentifier != nil {
+		resourceModel.AccountIdentifier = types.StringValue(*retrievedWebhook.AccountIdentifier)
+	} else {
+		resourceModel.AccountIdentifier = types.StringNull()
+	}
 
 	return nil
 }
@@ -160,15 +169,29 @@ func (r *webhookResource) Create(
 	plan.ID = types.StringValue(createdWebhook.WebhookId)
 	plan.WebhookID = types.StringValue(createdWebhook.WebhookId)
 
-	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value(createdWebhook.JobIds)
+	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(createdWebhook.JobIds))
 	if diags.HasError() {
 		return
 	}
 
 	// Set computed fields
-	plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
-	plan.AccountIdentifier = types.StringValue(*createdWebhook.AccountIdentifier)
-	plan.HTTPStatusCode = types.StringValue(*createdWebhook.HttpStatusCode)
+	if createdWebhook.HmacSecret != nil {
+		plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
+	} else {
+		plan.HmacSecret = types.StringNull()
+	}
+
+	if createdWebhook.AccountIdentifier != nil {
+		plan.AccountIdentifier = types.StringValue(*createdWebhook.AccountIdentifier)
+	} else {
+		plan.AccountIdentifier = types.StringNull()
+	}
+
+	if createdWebhook.HttpStatusCode != nil {
+		plan.HTTPStatusCode = types.StringValue(*createdWebhook.HttpStatusCode)
+	} else {
+		plan.HTTPStatusCode = types.StringNull()
+	}
 	plan.Active = types.BoolValue(createdWebhook.Active)
 
 	// Set the state with all fields
@@ -220,7 +243,7 @@ func (r *webhookResource) Update(
 			Description: helper.TernaryOperator(descriptionChanged, plan.Description.ValueString(), retrievedWebhook.Description),
 			ClientUrl:   helper.TernaryOperator(clientUrlChanged, plan.ClientURL.ValueString(), retrievedWebhook.ClientUrl),
 			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.TypesListStringToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
-			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesListInt64SliceToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64(retrievedWebhook.JobIds)),
+			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesListInt64SliceToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64([]string(retrievedWebhook.JobIds))),
 			Active:      helper.TernaryOperator(activeChanged, plan.Active.ValueBool(), retrievedWebhook.Active),
 		}
 

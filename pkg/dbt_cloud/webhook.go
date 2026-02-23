@@ -13,17 +13,37 @@ type WebhookResponse struct {
 	Status ResponseStatus `json:"status"`
 }
 
+type FlexibleStringSlice []string
+
+func (f *FlexibleStringSlice) UnmarshalJSON(data []byte) error {
+	var strs []string
+	if err := json.Unmarshal(data, &strs); err == nil {
+		*f = strs
+		return nil
+	}
+	var numbers []int64
+	if err := json.Unmarshal(data, &numbers); err == nil {
+		result := make([]string, len(numbers))
+		for i, v := range numbers {
+			result[i] = strconv.FormatInt(v, 10)
+		}
+		*f = result
+		return nil
+	}
+	return fmt.Errorf("cannot unmarshal %s into string or number slice", string(data))
+}
+
 type WebhookRead struct {
-	WebhookId         string   `json:"id"`
-	Name              string   `json:"name"`
-	Description       string   `json:"description,omitempty"`
-	ClientUrl         string   `json:"client_url"`
-	EventTypes        []string `json:"event_types,omitempty"`
-	JobIds            []string `json:"job_ids"`
-	Active            bool     `json:"active,omitempty"`
-	HmacSecret        *string  `json:"hmac_secret,omitempty"`
-	HttpStatusCode    *string  `json:"http_status_code,omitempty"`
-	AccountIdentifier *string  `json:"account_identifier,omitempty"`
+	WebhookId         string              `json:"id"`
+	Name              string              `json:"name"`
+	Description       string              `json:"description,omitempty"`
+	ClientUrl         string              `json:"client_url"`
+	EventTypes        []string            `json:"event_types,omitempty"`
+	JobIds            FlexibleStringSlice `json:"job_ids"`
+	Active            bool                `json:"active,omitempty"`
+	HmacSecret        *string             `json:"hmac_secret,omitempty"`
+	HttpStatusCode    *string             `json:"http_status_code,omitempty"`
+	AccountIdentifier *string             `json:"account_identifier,omitempty"`
 }
 
 type WebhookWrite struct {
