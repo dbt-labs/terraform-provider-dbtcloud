@@ -1,0 +1,10 @@
+name: project
+
+label_overrides:
+  dbt_project_subdirectory: "Subdirectory"
+
+extra_columns:
+  - {json_tag: connection_id, label: "Connection ID"}
+  - {json_tag: repository_id, label: "Repository ID"}
+  - {json_tag: freshness_job_id, label: "Freshness Job ID"}
+  - {json_tag: docs_job_id, label: "Docs Job ID"}

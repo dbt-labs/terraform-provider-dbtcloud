@@ -14,16 +14,18 @@ type EnvironmentResponse struct {
 
 type Environment struct {
 	ID                           *int                 `json:"id,omitempty"`
-	State                        int                  `json:"state,omitempty"`
-	Account_Id                   int64                `json:"account_id"`
-	Project_Id                   int                  `json:"project_id"`
-	Credential_Id                *int                 `json:"credentials_id,omitempty"`
 	Name                         string               `json:"name"`
-	Dbt_Version                  string               `json:"dbt_version"`
 	Type                         string               `json:"type"`
-	Use_Custom_Branch            bool                 `json:"use_custom_branch"`
+	Dbt_Version                  string               `json:"dbt_version"`
+	DeploymentType               *string              `json:"deployment_type,omitempty"`
+	State                        int                  `json:"state,omitempty"`
 	Custom_Branch                *string              `json:"custom_branch"`
-	Environment_Id               *int                 `json:"-"` //TODO: check why this is here
+	Use_Custom_Branch            bool                 `json:"use_custom_branch"`
+	ConnectionID                 *int                 `json:"connection_id,omitempty"`
+	Project_Id                   int                  `json:"project_id"`
+	Account_Id                   int64                `json:"account_id"`
+	Credential_Id                *int                 `json:"credentials_id,omitempty"`
+	Environment_Id               *int                 `json:"-"`
 	Support_Docs                 bool                 `json:"supports_docs"`
 	Created_At                   *string              `json:"created_at"`
 	Updated_At                   *string              `json:"updated_at"`
@@ -31,9 +33,7 @@ type Environment struct {
 	Jobs                         *string              `json:"jobs"`
 	Credentials                  *SnowflakeCredential `json:"credentials"`
 	Custom_Environment_Variables *string              `json:"custom_environment_variables"`
-	DeploymentType               *string              `json:"deployment_type,omitempty"`
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
-	ConnectionID                 *int                 `json:"connection_id,omitempty"`
 	EnableModelQueryHistory      bool                 `json:"enable_model_query_history,omitempty"`
 	PrimaryProfileID             *int                 `json:"primary_profile_id,omitempty"`
 }
