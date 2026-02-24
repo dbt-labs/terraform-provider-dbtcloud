@@ -173,14 +173,10 @@ func (r *webhookResource) Create(
 	if diags.HasError() {
 		return
 	}
+	// Hmac is always present in create ops
+	plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
 
 	// Set computed fields
-	if createdWebhook.HmacSecret != nil {
-		plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
-	} else {
-		plan.HmacSecret = types.StringNull()
-	}
-
 	if createdWebhook.AccountIdentifier != nil {
 		plan.AccountIdentifier = types.StringValue(*createdWebhook.AccountIdentifier)
 	} else {
