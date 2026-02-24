@@ -61,14 +61,23 @@ func (d *webhookDataSource) Read(
 		return
 	}
 
-	state.JobIDs, diags = helper.SliceStringToTypesListInt64Value(webhook.JobIds)
+	state.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(webhook.JobIds))
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 	state.Active = types.BoolValue(webhook.Active)
-	state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
-	state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
+	if webhook.HttpStatusCode != nil {
+		state.HTTPStatusCode = types.StringValue(*webhook.HttpStatusCode)
+	} else {
+		state.HTTPStatusCode = types.StringNull()
+	}
+
+	if webhook.AccountIdentifier != nil {
+		state.AccountIdentifier = types.StringValue(*webhook.AccountIdentifier)
+	} else {
+		state.AccountIdentifier = types.StringNull()
+	}
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
