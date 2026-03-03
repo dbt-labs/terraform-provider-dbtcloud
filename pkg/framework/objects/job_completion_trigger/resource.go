@@ -232,4 +232,3 @@ func (r *jobCompletionTriggerResource) Delete(ctx context.Context, req resource.
 func (r *jobCompletionTriggerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
-

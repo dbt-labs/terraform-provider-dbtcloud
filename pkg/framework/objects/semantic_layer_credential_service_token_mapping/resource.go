@@ -76,6 +76,10 @@ func (r *semanticLayerCredentialServiceTokenMappingResource) Schema(_ context.Co
 					int64planmodifier.RequiresReplace(),
 				},
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

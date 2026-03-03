@@ -46,6 +46,10 @@ var snowflake_sl_credential_resource_schema = resource_schema.Schema{
 			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
 			Attributes:  snowflake_credential.SnowflakeCredentialResourceSchema.Attributes, // Reuse the schema
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 
@@ -108,6 +112,10 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Client X509 Cert URL for the Service Account",
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 
@@ -127,6 +135,10 @@ var redshift_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Redshift credential details, but used in the context of the Semantic Layer.",
 			Attributes:  redshift_credential.RedshiftResourceSchema.Attributes, // Reuse the schema
+		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
 		},
 	},
 }
@@ -148,6 +160,10 @@ var databricks_sl_credential_resource_schema = resource_schema.Schema{
 			Description: "Databricks credential details, but used in the context of the Semantic Layer.",
 			Attributes:  databricks_credential.DatabricksResourceSchema.Attributes, // Reuse the schema
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 
@@ -167,6 +183,10 @@ var postgres_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Postgres credential details, but used in the context of the Semantic Layer.",
 			Attributes:  postgres_credential.PostgresResourceSchema.Attributes, // Reuse the schema
+		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
 		},
 	},
 }

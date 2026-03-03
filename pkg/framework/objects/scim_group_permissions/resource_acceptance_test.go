@@ -17,8 +17,8 @@ func TestDbtCloudScimGroupPermissionsResource_ValidateConfig(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDbtCloudScimGroupPermissionsResourceBasicConfig(),
-				PlanOnly: true,
+				Config:             testAccDbtCloudScimGroupPermissionsResourceBasicConfig(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true, // We expect a plan because this would create resources
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {

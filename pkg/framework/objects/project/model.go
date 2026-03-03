@@ -49,9 +49,10 @@ type ProjectConnection struct {
 }
 
 type ProjectResourceModel struct {
-	ID                     types.Int64  `tfsdk:"id"`
-	Name                   types.String `tfsdk:"name"`
-	Description            types.String `tfsdk:"description"`
-	DbtProjectSubdirectory types.String `tfsdk:"dbt_project_subdirectory"`
-	DbtProjectType         types.Int64  `tfsdk:"type"`
+	ID                     types.Int64   `tfsdk:"id"`
+	Name                   types.String  `tfsdk:"name"`
+	Description            types.String  `tfsdk:"description"`
+	DbtProjectSubdirectory types.String  `tfsdk:"dbt_project_subdirectory"`
+	DbtProjectType         types.Int64   `tfsdk:"type"`
+	ResourceMetadata       types.Dynamic `tfsdk:"resource_metadata"`
 }

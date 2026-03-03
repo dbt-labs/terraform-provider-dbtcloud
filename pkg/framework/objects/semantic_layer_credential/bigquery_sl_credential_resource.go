@@ -70,7 +70,6 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.Configuration.Name = types.StringValue(credential.Name)
 	state.Configuration.AdapterVersion = types.StringValue(credential.AdapterVersion)
 
-
 	state.AuthURI = getStringFromMap(credential.Values, "auth_uri")
 	state.TokenURI = getStringFromMap(credential.Values, "token_uri")
 

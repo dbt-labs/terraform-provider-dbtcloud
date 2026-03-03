@@ -2,8 +2,8 @@ package semantic_layer_configuration
 
 import (
 	"context"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ resource.Resource                = &semanticLayerConfigurationResource{}
-	_ resource.ResourceWithConfigure   = &semanticLayerConfigurationResource{}
+	_ resource.Resource              = &semanticLayerConfigurationResource{}
+	_ resource.ResourceWithConfigure = &semanticLayerConfigurationResource{}
 )
 
 func SemanticLayerConfigurationResource() resource.Resource {

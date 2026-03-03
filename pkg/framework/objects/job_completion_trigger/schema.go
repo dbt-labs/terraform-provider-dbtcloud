@@ -19,8 +19,8 @@ func ResourceSchema() schema.Schema {
 				},
 			},
 			"job_id": schema.Int64Attribute{
-				Required:    true,
-				Description: "The ID of the job to add the trigger to (downstream job)",
+				Required:      true,
+				Description:   "The ID of the job to add the trigger to (downstream job)",
 				PlanModifiers: []planmodifier.Int64{
 					// If job_id changes, we must replace the resource (it's a different job)
 					// Actually, no, we can just delete the old one and create new one.
@@ -38,6 +38,10 @@ func ResourceSchema() schema.Schema {
 				Required:    true,
 				ElementType: types.StringType,
 				Description: "List of statuses to trigger the job on. Possible values are `success`, `error` and `canceled`.",
+			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
 			},
 		},
 	}

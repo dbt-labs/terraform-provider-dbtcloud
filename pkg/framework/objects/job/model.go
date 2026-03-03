@@ -104,18 +104,18 @@ type SingleJobDataSourceModel struct {
 
 type JobResourceModel struct {
 	// Execution                     *JobExecution         `tfsdk:"execution"`            // has timeout-seconds
-	TimeoutSeconds         types.Int64    `tfsdk:"timeout_seconds"`          // moved under execution , add deprecation message
-	GenerateDocs           types.Bool     `tfsdk:"generate_docs"`            // exists
-	RunGenerateSources     types.Bool     `tfsdk:"run_generate_sources"`     // exists
-	ID                     types.Int64    `tfsdk:"id"`                       // will hold job id?
-	JobId                  types.Int64    `tfsdk:"job_id"`                   // for framework
-	ProjectID              types.Int64    `tfsdk:"project_id"`               // exists
-	EnvironmentID          types.Int64    `tfsdk:"environment_id"`           // exists
-	Name                   types.String   `tfsdk:"name"`                     // exists
-	Description            types.String   `tfsdk:"description"`              // exists
-	DbtVersion             types.String   `tfsdk:"dbt_version"`              // exists
-	ExecuteSteps           []types.String `tfsdk:"execute_steps"`            // exists
-	ValidateExecuteSteps   types.Bool     `tfsdk:"validate_execute_steps"`   // opt-in validation
+	TimeoutSeconds           types.Int64    `tfsdk:"timeout_seconds"`            // moved under execution , add deprecation message
+	GenerateDocs             types.Bool     `tfsdk:"generate_docs"`              // exists
+	RunGenerateSources       types.Bool     `tfsdk:"run_generate_sources"`       // exists
+	ID                       types.Int64    `tfsdk:"id"`                         // will hold job id?
+	JobId                    types.Int64    `tfsdk:"job_id"`                     // for framework
+	ProjectID                types.Int64    `tfsdk:"project_id"`                 // exists
+	EnvironmentID            types.Int64    `tfsdk:"environment_id"`             // exists
+	Name                     types.String   `tfsdk:"name"`                       // exists
+	Description              types.String   `tfsdk:"description"`                // exists
+	DbtVersion               types.String   `tfsdk:"dbt_version"`                // exists
+	ExecuteSteps             []types.String `tfsdk:"execute_steps"`              // exists
+	ValidateExecuteSteps     types.Bool     `tfsdk:"validate_execute_steps"`     // opt-in validation
 	DeferringEnvironmentID   types.Int64    `tfsdk:"deferring_environment_id"`   // exists
 	ForceNodeSelection       types.Bool     `tfsdk:"force_node_selection"`       // exists - deprecated
 	CostOptimizationFeatures types.Set      `tfsdk:"cost_optimization_features"` // new SAO control
@@ -140,4 +140,5 @@ type JobResourceModel struct {
 	DeferringJobId                types.Int64                      `tfsdk:"deferring_job_id"` // add deprecated move to deferring_job_definition_id
 	SelfDeferring                 types.Bool                       `tfsdk:"self_deferring"`
 	CompareChangesFlags           types.String                     `tfsdk:"compare_changes_flags"`
+	ResourceMetadata              types.Dynamic                    `tfsdk:"resource_metadata"`
 }

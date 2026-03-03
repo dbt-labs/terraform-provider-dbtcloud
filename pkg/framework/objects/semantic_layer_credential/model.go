@@ -17,9 +17,10 @@ type SemanticLayerConfigurationModel struct {
 }
 
 type SnowflakeSLCredentialModel struct {
-	ID            types.Int64                                           `tfsdk:"id"`
-	Configuration SemanticLayerConfigurationModel                       `tfsdk:"configuration"`
-	Credential    snowflake_credential.SnowflakeCredentialResourceModel `tfsdk:"credential"`
+	ID               types.Int64                                           `tfsdk:"id"`
+	Configuration    SemanticLayerConfigurationModel                       `tfsdk:"configuration"`
+	Credential       snowflake_credential.SnowflakeCredentialResourceModel `tfsdk:"credential"`
+	ResourceMetadata types.Dynamic                                         `tfsdk:"resource_metadata"`
 }
 
 type BigQuerySLCredentialModel struct {
@@ -34,22 +35,26 @@ type BigQuerySLCredentialModel struct {
 	TokenURI            types.String                                        `tfsdk:"token_uri"`
 	AuthProviderCertURL types.String                                        `tfsdk:"auth_provider_x509_cert_url"`
 	ClientCertURL       types.String                                        `tfsdk:"client_x509_cert_url"`
+	ResourceMetadata    types.Map                                           `tfsdk:"resource_metadata"`
 }
 
 type RedshiftSLCredentialModel struct {
-	ID            types.Int64                                         `tfsdk:"id"`
-	Configuration SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
-	Credential    redshift_credential.RedshiftCredentialResourceModel `tfsdk:"credential"`
+	ID               types.Int64                                         `tfsdk:"id"`
+	Configuration    SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
+	Credential       redshift_credential.RedshiftCredentialResourceModel `tfsdk:"credential"`
+	ResourceMetadata types.Dynamic                                       `tfsdk:"resource_metadata"`
 }
 
 type DatabricksSLCredentialModel struct {
-	ID            types.Int64                                             `tfsdk:"id"`
-	Configuration SemanticLayerConfigurationModel                         `tfsdk:"configuration"`
-	Credential    databricks_credential.DatabricksCredentialResourceModel `tfsdk:"credential"`
+	ID               types.Int64                                             `tfsdk:"id"`
+	Configuration    SemanticLayerConfigurationModel                         `tfsdk:"configuration"`
+	Credential       databricks_credential.DatabricksCredentialResourceModel `tfsdk:"credential"`
+	ResourceMetadata types.Dynamic                                           `tfsdk:"resource_metadata"`
 }
 
 type PostgresSLCredentialModel struct {
-	ID            types.Int64                                             `tfsdk:"id"`
-	Configuration SemanticLayerConfigurationModel                         `tfsdk:"configuration"`
-	Credential    postgres_credential.PostgresCredentialResourceModel 	  `tfsdk:"credential"`
+	ID               types.Int64                                         `tfsdk:"id"`
+	Configuration    SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
+	Credential       postgres_credential.PostgresCredentialResourceModel `tfsdk:"credential"`
+	ResourceMetadata types.Dynamic                                       `tfsdk:"resource_metadata"`
 }

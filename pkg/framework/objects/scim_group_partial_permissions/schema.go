@@ -100,6 +100,10 @@ func (r *scimGroupPartialPermissionsResource) Schema(
 				},
 				Optional: true,
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

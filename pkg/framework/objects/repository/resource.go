@@ -59,6 +59,7 @@ func (r *repositoryResource) Create(
 	pullRequestURLTemplate := plan.PullRequestURLTemplate.ValueString()
 
 	var gitlabProjectID int
+	var createGitlabProjectID int
 	var githubInstallationID int
 	var privateLinkEndpointID string
 	var azureProjectID string
@@ -67,6 +68,9 @@ func (r *repositoryResource) Create(
 
 	if !plan.GitlabProjectID.IsNull() {
 		gitlabProjectID = int(plan.GitlabProjectID.ValueInt64())
+	}
+	if gitCloneStrategy == "deploy_token" {
+		createGitlabProjectID = gitlabProjectID
 	}
 
 	if !plan.GithubInstallationID.IsNull() {
@@ -94,7 +98,7 @@ func (r *repositoryResource) Create(
 		remoteURL,
 		isActive,
 		gitCloneStrategy,
-		gitlabProjectID,
+		createGitlabProjectID,
 		githubInstallationID,
 		privateLinkEndpointID,
 		azureProjectID,
@@ -111,7 +115,7 @@ func (r *repositoryResource) Create(
 	}
 
 	// checking potential issues with the creation of GitLab repositories with service tokens
-	if repository.RepositoryCredentialsID == nil && gitlabProjectID != 0 {
+	if repository.RepositoryCredentialsID == nil && createGitlabProjectID != 0 {
 		repositoryIDString := fmt.Sprintf("%d", *repository.ID)
 		projectIDString := fmt.Sprintf("%d", repository.ProjectID)
 		_, err := r.client.DeleteRepository(repositoryIDString, projectIDString)
@@ -158,7 +162,6 @@ func (r *repositoryResource) Create(
 	} else {
 		plan.GitlabProjectID = types.Int64Null()
 	}
-
 	if repository.GithubInstallationID != nil {
 		plan.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
 	} else if githubInstallationID != 0 {
@@ -271,7 +274,6 @@ func (r *repositoryResource) Read(
 	if repository.GitlabProjectID != nil { // GitlabProjectID is not returned by the api for the moment, it always return null
 		state.GitlabProjectID = types.Int64Value(int64(*repository.GitlabProjectID))
 	}
-
 	if repository.GithubInstallationID != nil {
 		state.GithubInstallationID = types.Int64Value(int64(*repository.GithubInstallationID))
 	} else {
@@ -506,3 +508,4 @@ func (r *repositoryResource) Configure(
 
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
+

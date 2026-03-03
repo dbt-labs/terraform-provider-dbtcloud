@@ -103,6 +103,10 @@ func (r *notificationResource) Schema(
 					stringvalidator.ConflictsWith(path.MatchRoot("external_email")),
 				},
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

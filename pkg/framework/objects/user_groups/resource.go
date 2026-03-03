@@ -87,7 +87,7 @@ func (u *userGroupsResource) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (u *userGroupsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	tflog.Warn(ctx, "[WARN] dbtcloud_user_groups does not support delete") 
+	tflog.Warn(ctx, "[WARN] dbtcloud_user_groups does not support delete")
 }
 
 func (u *userGroupsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -197,10 +197,10 @@ func (u *userGroupsResource) Update(ctx context.Context, req resource.UpdateRequ
 			)
 			return
 		}
-		
+
 		plan.ID = types.StringValue(fmt.Sprintf("%d", userID))
 	}
-	
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

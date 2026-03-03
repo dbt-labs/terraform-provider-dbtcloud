@@ -260,6 +260,10 @@ func (r *environmentResource) Schema(
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

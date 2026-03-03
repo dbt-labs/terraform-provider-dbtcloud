@@ -58,6 +58,10 @@ var resourceSchema = resource_schema.Schema{
 				helper.SchemaNameValidator(),
 			},
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 

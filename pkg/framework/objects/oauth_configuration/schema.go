@@ -75,6 +75,10 @@ func (r *oAuthConfigurationResource) Schema(
 				Description: "The Application ID URI for the OAuth integration. Only for Entra",
 				Default:     stringdefault.StaticString(""),
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

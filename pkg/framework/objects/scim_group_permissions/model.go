@@ -8,9 +8,10 @@ import (
 )
 
 type ScimGroupPermissionsResourceModel struct {
-	ID               types.Int64                   `tfsdk:"id"`
-	GroupID          types.Int64                   `tfsdk:"group_id"`
-	GroupPermissions []ScimGroupPermissionModel    `tfsdk:"permissions"`
+	ID               types.Int64                `tfsdk:"id"`
+	GroupID          types.Int64                `tfsdk:"group_id"`
+	GroupPermissions []ScimGroupPermissionModel `tfsdk:"permissions"`
+	ResourceMetadata types.Dynamic              `tfsdk:"resource_metadata"`
 }
 
 type ScimGroupPermissionModel struct {

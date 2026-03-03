@@ -64,6 +64,10 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     int64default.StaticInt64(1),
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 

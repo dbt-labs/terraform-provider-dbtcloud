@@ -31,6 +31,10 @@ func (r *semanticLayerConfigurationResource) Schema(
 				Required:    true,
 				Description: "The ID of the environment",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

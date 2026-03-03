@@ -5,7 +5,8 @@ import (
 )
 
 type LicenseMapResourceModel struct {
-	ID                      types.Int64  `tfsdk:"id"`
-	LicenseType             types.String `tfsdk:"license_type"`
-	SSOLicenseMappingGroups types.Set    `tfsdk:"sso_license_mapping_groups"`
+	ID                      types.Int64   `tfsdk:"id"`
+	LicenseType             types.String  `tfsdk:"license_type"`
+	SSOLicenseMappingGroups types.Set     `tfsdk:"sso_license_mapping_groups"`
+	ResourceMetadata        types.Dynamic `tfsdk:"resource_metadata"`
 }

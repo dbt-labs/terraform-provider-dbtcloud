@@ -177,6 +177,16 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	projectID := int(state.ID.ValueInt64())
 	projectIDString := strconv.Itoa(projectID)
 
+	// Metadata-only changes should not invoke remote API updates.
+	if plan.Name.Equal(state.Name) &&
+		plan.Description.Equal(state.Description) &&
+		plan.DbtProjectSubdirectory.Equal(state.DbtProjectSubdirectory) &&
+		plan.DbtProjectType.Equal(state.DbtProjectType) {
+		diags = resp.State.Set(ctx, plan)
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
 	updateProject, err := r.client.GetProject(projectIDString)
 	if err != nil {
 		resp.Diagnostics.AddError(

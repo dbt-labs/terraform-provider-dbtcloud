@@ -40,6 +40,10 @@ If you would like a different behavior, please open an issue on GitHub. To remov
 			ElementType: types.Int64Type,
 			Required:    true,
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }
 

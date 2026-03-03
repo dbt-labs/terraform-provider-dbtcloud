@@ -10,11 +10,12 @@ import (
 )
 
 type ServiceTokenResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	UID         types.String `tfsdk:"uid"`
-	Name        types.String `tfsdk:"name"`
-	TokenString types.String `tfsdk:"token_string"`
-	State       types.Int64  `tfsdk:"state"`
+	ID               types.String  `tfsdk:"id"`
+	UID              types.String  `tfsdk:"uid"`
+	Name             types.String  `tfsdk:"name"`
+	TokenString      types.String  `tfsdk:"token_string"`
+	State            types.Int64   `tfsdk:"state"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 
 	ServiceTokenPermissions []ServiceTokenPermission `tfsdk:"service_token_permissions"`
 }

@@ -222,5 +222,9 @@ var resourceSchema = resource_schema.Schema{
 				int64planmodifier.UseStateForUnknown(),
 			},
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+			Optional:    true,
+		},
 	},
 }

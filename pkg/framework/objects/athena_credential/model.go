@@ -6,12 +6,13 @@ import (
 
 // AthenaCredentialResourceModel is the model for the resource
 type AthenaCredentialResourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	CredentialID       types.Int64  `tfsdk:"credential_id"`
-	ProjectID          types.Int64  `tfsdk:"project_id"`
-	AWSAccessKeyID     types.String `tfsdk:"aws_access_key_id"`
-	AWSSecretAccessKey types.String `tfsdk:"aws_secret_access_key"`
-	Schema             types.String `tfsdk:"schema"`
+	ID                 types.String  `tfsdk:"id"`
+	CredentialID       types.Int64   `tfsdk:"credential_id"`
+	ProjectID          types.Int64   `tfsdk:"project_id"`
+	AWSAccessKeyID     types.String  `tfsdk:"aws_access_key_id"`
+	AWSSecretAccessKey types.String  `tfsdk:"aws_secret_access_key"`
+	Schema             types.String  `tfsdk:"schema"`
+	ResourceMetadata   types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 // AthenaCredentialDataSourceModel is the model for the data source

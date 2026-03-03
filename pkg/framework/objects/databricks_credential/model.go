@@ -16,13 +16,14 @@ type DatabricksCredentialDataSourceModel struct {
 }
 
 type DatabricksCredentialResourceModel struct {
-	ID                      types.String `tfsdk:"id"`
-	CredentialID            types.Int64  `tfsdk:"credential_id"`
-	ProjectID               types.Int64  `tfsdk:"project_id"`
-	TargetName              types.String `tfsdk:"target_name"`
-	Token                   types.String `tfsdk:"token"`
-	Catalog                 types.String `tfsdk:"catalog"`
-	Schema                  types.String `tfsdk:"schema"`
-	AdapterType             types.String `tfsdk:"adapter_type"`
-	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
+	ID                      types.String  `tfsdk:"id"`
+	CredentialID            types.Int64   `tfsdk:"credential_id"`
+	ProjectID               types.Int64   `tfsdk:"project_id"`
+	TargetName              types.String  `tfsdk:"target_name"`
+	Token                   types.String  `tfsdk:"token"`
+	Catalog                 types.String  `tfsdk:"catalog"`
+	Schema                  types.String  `tfsdk:"schema"`
+	AdapterType             types.String  `tfsdk:"adapter_type"`
+	SemanticLayerCredential types.Bool    `tfsdk:"semantic_layer_credential"`
+	ResourceMetadata        types.Dynamic `tfsdk:"resource_metadata"`
 }

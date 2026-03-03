@@ -54,6 +54,10 @@ func (r *accountFeaturesResource) Schema(
 				Computed:    true,
 				Description: "Whether warehouse cost visibility is enabled.",
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

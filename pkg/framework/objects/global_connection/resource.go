@@ -2,8 +2,11 @@ package global_connection
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/global_connection/validators"
@@ -14,6 +17,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/samber/lo"
 )
+
+func writeDebugLogGlobalConn(hypothesisID string, message string, data map[string]any) {
+	// #region agent log
+	payload := map[string]any{
+		"sessionId":    "2e9788",
+		"runId":        "pre-fix",
+		"hypothesisId": hypothesisID,
+		"location":     "pkg/framework/objects/global_connection/resource.go",
+		"message":      message,
+		"data":         data,
+		"timestamp":    time.Now().UnixMilli(),
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	f, err := os.OpenFile("/Users/operator/Documents/git/dbt-labs/terraform-dbtcloud-yaml/.cursor/debug-2e9788.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	_, _ = f.Write(append(b, '\n'))
+	// #endregion
+}
 
 var (
 	_ resource.Resource                     = &globalConnectionResource{}
@@ -110,6 +137,12 @@ func (r *globalConnectionResource) Read(
 		resp.Diagnostics.AddError("Error reading the connection", err.Error())
 		return
 	}
+	writeDebugLogGlobalConn("H3_H4", "global_connection_read_post_read_generic", map[string]any{
+		"id":                     state.ID.ValueInt64(),
+		"resource_metadata_null": newState.ResourceMetadata.IsNull(),
+		"resource_metadata_known": !newState.ResourceMetadata.IsUnknown(),
+		"action":                 action,
+	})
 
 	if action == "removeFromState" {
 		resp.Diagnostics.AddWarning(
@@ -135,6 +168,14 @@ func (r *globalConnectionResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	writeDebugLogGlobalConn("H3_H4", "global_connection_create_plan", map[string]any{
+		"name":                   plan.Name.ValueString(),
+		"resource_metadata_null": plan.ResourceMetadata.IsNull(),
+		"resource_metadata_known": !plan.ResourceMetadata.IsUnknown(),
+		"has_bigquery":           plan.BigQueryConfig != nil,
+		"has_snowflake":          plan.SnowflakeConfig != nil,
+		"has_databricks":         plan.DatabricksConfig != nil,
+	})
 
 	commonCfg := dbt_cloud.GlobalConnectionCommon{
 		Name: plan.Name.ValueStringPointer(),
@@ -313,6 +354,8 @@ func (r *globalConnectionResource) Create(
 
 		// preserve DeploymentEnvAuthType from plan since API may not return it
 		readState.BigQueryConfig.DeploymentEnvAuthType = plan.BigQueryConfig.DeploymentEnvAuthType
+		// preserve Terraform-only metadata field; API does not round-trip it
+		readState.ResourceMetadata = plan.ResourceMetadata
 
 		plan = *readState
 
@@ -666,6 +709,11 @@ func (r *globalConnectionResource) Create(
 	default:
 		panic("Unknown connection type")
 	}
+	writeDebugLogGlobalConn("H3_H4", "global_connection_create_pre_state_set", map[string]any{
+		"id":                     plan.ID.ValueInt64(),
+		"resource_metadata_null": plan.ResourceMetadata.IsNull(),
+		"resource_metadata_known": !plan.ResourceMetadata.IsUnknown(),
+	})
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

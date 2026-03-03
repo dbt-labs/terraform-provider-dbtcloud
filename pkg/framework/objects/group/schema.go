@@ -93,6 +93,10 @@ func (r *groupResource) Schema(
 			// 	},
 			// 	Optional: true,
 			// },
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 		// For now we use a Block to move from SDKv2 to PLugin Framework, but we might change to a SetAttribute in the future, using the code from above
 		Blocks: map[string]resource_schema.Block{

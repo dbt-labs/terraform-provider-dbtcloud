@@ -79,5 +79,9 @@ var SparkResourceSchema = resource_schema.Schema{
 			Description: "The schema where to create models",
 			Required:    true,
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }

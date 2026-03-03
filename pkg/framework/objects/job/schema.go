@@ -475,27 +475,27 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Description: "Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions",
 			},
-		"force_node_selection": resource_schema.BoolAttribute{
-			Optional:           true,
-			Computed:           true,
-			DeprecationMessage: "Use cost_optimization_features instead. force_node_selection will be removed in a future version.",
-			Description:        "Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified. Deprecated: Use cost_optimization_features instead.",
-			Validators: []validator.Bool{
-				job_validators.ForceNodeSelectionValidator(),
+			"force_node_selection": resource_schema.BoolAttribute{
+				Optional:           true,
+				Computed:           true,
+				DeprecationMessage: "Use cost_optimization_features instead. force_node_selection will be removed in a future version.",
+				Description:        "Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified. Deprecated: Use cost_optimization_features instead.",
+				Validators: []validator.Bool{
+					job_validators.ForceNodeSelectionValidator(),
+				},
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
-			PlanModifiers: []planmodifier.Bool{
-				boolplanmodifier.UseStateForUnknown(),
+			"cost_optimization_features": resource_schema.SetAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: types.StringType,
+				Description: "List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to force_node_selection=false). When empty or not set, SAO is disabled (equivalent to force_node_selection=true). This is the preferred way to control SAO; use this instead of force_node_selection.",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
-		},
-		"cost_optimization_features": resource_schema.SetAttribute{
-			Optional:    true,
-			Computed:    true,
-			ElementType: types.StringType,
-			Description: "List of cost optimization features enabled for the job. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to force_node_selection=false). When empty or not set, SAO is disabled (equivalent to force_node_selection=true). This is the preferred way to control SAO; use this instead of force_node_selection.",
-			PlanModifiers: []planmodifier.Set{
-				setplanmodifier.UseStateForUnknown(),
-			},
-		},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
 				ElementType: types.StringType,
@@ -617,8 +617,8 @@ func (j *jobResource) Schema(
 				Description: "Whether the CI job should be automatically triggered on draft PRs",
 			},
 			"compare_changes_flags": resource_schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
+				Optional: true,
+				Computed: true,
 				// No default - only set when run_compare_changes is true
 				// Setting a default causes SAO validation errors for CI/Merge jobs
 				Description: "The model selector for checking changes in the compare changes Advanced CI feature",
@@ -633,6 +633,10 @@ func (j *jobResource) Schema(
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
 			},
 
 			// todo add these after

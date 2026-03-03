@@ -42,6 +42,10 @@ func (p *projectArtefactsResource) Schema(_ context.Context, _ resource.SchemaRe
 				Computed:    true,
 				Default:     int64default.StaticInt64(0),
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

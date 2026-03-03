@@ -19,7 +19,6 @@ func UserGroupDataSource() datasource.DataSource {
 	return &userGroupDataSource{}
 }
 
-
 type userGroupDataSource struct {
 	client *dbt_cloud.Client
 }

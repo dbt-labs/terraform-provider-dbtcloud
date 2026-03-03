@@ -122,5 +122,9 @@ var resourceSchema = resource_schema.Schema{
 			Description: "Webhooks Account Identifier",
 			Computed:    true,
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Optional migration identity metadata persisted in Terraform state.",
+		},
 	},
 }

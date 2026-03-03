@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
-	
+
 	_, _, projectID := acctest_helper.GetSemanticLayerConfigTestingConfigurations()
 	if projectID == 0 {
 		t.Skip("Skipping test because config is not set")
@@ -73,7 +73,7 @@ func TestAccDbtCloudSLCredentialServiceTokenMappingResource(t *testing.T) {
 	})
 }
 
-func testAccDbtCloudSLCredServiceTokenMappingResourceConfig(projectID int, serviceTokenName  string) string {
+func testAccDbtCloudSLCredServiceTokenMappingResourceConfig(projectID int, serviceTokenName string) string {
 	return fmt.Sprintf(`
 
 resource "dbtcloud_service_token" "test_service_token" {
@@ -114,7 +114,7 @@ resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mappin
   service_token_id = dbtcloud_service_token.test_service_token.id
   project_id = "%s"
 }
-`, serviceTokenName, strconv.Itoa(projectID),  strconv.Itoa(projectID), strconv.Itoa(projectID), strconv.Itoa(projectID))
+`, serviceTokenName, strconv.Itoa(projectID), strconv.Itoa(projectID), strconv.Itoa(projectID), strconv.Itoa(projectID))
 }
 
 func testAccCheckDbtCloudSLCredServiceTokenMappingDestroy(s *terraform.State) error {

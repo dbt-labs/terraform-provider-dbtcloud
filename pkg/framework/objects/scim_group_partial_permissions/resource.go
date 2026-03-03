@@ -220,11 +220,11 @@ func (r *scimGroupPartialPermissionsResource) Update(
 		ctx,
 		"UPDATE - Permission changes",
 		map[string]any{
-			"Deleted Permissions":           fmt.Sprintf("%+v", deletedPermissions),
-			"New Permissions":               fmt.Sprintf("%+v", newPermissions),
-			"Required all Permissions":      fmt.Sprintf("%+v", requiredAllPermissions),
-			"Remote Permissions":            fmt.Sprintf("%+v", remotePermissions),
-			"Remote + New Permissions":      fmt.Sprintf("%+v", helper.UnionBy(remotePermissions, newPermissions, CompareScimGroupPartialPermissions)),
+			"Deleted Permissions":      fmt.Sprintf("%+v", deletedPermissions),
+			"New Permissions":          fmt.Sprintf("%+v", newPermissions),
+			"Required all Permissions": fmt.Sprintf("%+v", requiredAllPermissions),
+			"Remote Permissions":       fmt.Sprintf("%+v", remotePermissions),
+			"Remote + New Permissions": fmt.Sprintf("%+v", helper.UnionBy(remotePermissions, newPermissions, CompareScimGroupPartialPermissions)),
 		},
 	)
 

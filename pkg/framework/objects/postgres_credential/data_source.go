@@ -70,7 +70,7 @@ func (p *postgresCredentialDataSource) Read(ctx context.Context, req datasource.
 	state.DefaultSchema = types.StringValue(credential.Default_Schema)
 	state.Username = types.StringValue(credential.Username)
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
-	
+
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

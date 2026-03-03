@@ -14,10 +14,11 @@ type SparkCredentialDataSourceModel struct {
 }
 
 type SparkCredentialResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	CredentialID types.Int64  `tfsdk:"credential_id"`
-	ProjectID    types.Int64  `tfsdk:"project_id"`
-	TargetName   types.String `tfsdk:"target_name"`
-	Token        types.String `tfsdk:"token"`
-	Schema       types.String `tfsdk:"schema"`
+	ID               types.String  `tfsdk:"id"`
+	CredentialID     types.Int64   `tfsdk:"credential_id"`
+	ProjectID        types.Int64   `tfsdk:"project_id"`
+	TargetName       types.String  `tfsdk:"target_name"`
+	Token            types.String  `tfsdk:"token"`
+	Schema           types.String  `tfsdk:"schema"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }

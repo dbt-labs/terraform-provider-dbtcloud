@@ -70,6 +70,10 @@ func (r *lineageIntegrationResource) Schema(
 				Sensitive:   true,
 				Description: "The secret token value to use to authenticate to the BI server",
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Optional migration identity metadata persisted in Terraform state.",
+			},
 		},
 	}
 }

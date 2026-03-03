@@ -141,6 +141,7 @@ type GlobalConnectionResourceModel struct {
 	AthenaConfig          *AthenaConfig      `tfsdk:"athena"`
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
 	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
+	ResourceMetadata      types.Dynamic      `tfsdk:"resource_metadata"`
 }
 
 type SSHTunnelConfig struct {
