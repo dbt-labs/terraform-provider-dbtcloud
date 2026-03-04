@@ -1,5 +1,5 @@
 # When a new issue is opened or an issue is labeled "bug", notify for triage:
-# - Optionally call Runlayer webhook (set RUNLAYER_WEBHOOK_URL secret) with issue payload
+# - Optionally call Runlayer API (secrets: DBT_RUNLAYER_URL, DBT_RUNLAYER_API_KEY). If Runlayer has no public trigger URL, leave DBT_RUNLAYER_URL unset and this step is skipped.
 # - Add label "needs-triage" and comment so the agent can be run in Cursor with the dbtcloud-provider-support skill
 name: Bug triage
 
@@ -16,20 +16,26 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.action == 'opened' || github.event.label.name == 'bug'
     steps:
-      - name: Call Runlayer webhook (optional)
-        if: env.RUNLAYER_URL != ''
+      # Runs only when DBT_RUNLAYER_URL is set. If Runlayer doesn't document a trigger endpoint yet, leave URL unset; label + comment still run.
+      - name: Notify Runlayer via API (optional)
+        if: env.DBT_RUNLAYER_URL != ''
         env:
-          RUNLAYER_URL: ${{ secrets.RUNLAYER_WEBHOOK_URL }}
+          DBT_RUNLAYER_URL: ${{ secrets.DBT_RUNLAYER_URL }}
+          DBT_RUNLAYER_API_KEY: ${{ secrets.DBT_RUNLAYER_API_KEY }}
         uses: actions/github-script@v7
         continue-on-error: true
         with:
           script: |
-            const url = process.env.RUNLAYER_URL;
-            if (!url) return;
+            const url = process.env.DBT_RUNLAYER_URL;
+            const apiKey = process.env.DBT_RUNLAYER_API_KEY;
+            if (!url || !apiKey) return;
             const issue = context.payload.issue;
             await fetch(url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+              },
               body: JSON.stringify({
                 issue_number: issue.number,
                 issue_url: issue.html_url,
