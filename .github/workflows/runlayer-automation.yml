@@ -3,6 +3,10 @@ on:
   issues:
     types: [labeled]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   runlayer-fix:
     # Only run if the label added is "bug"
