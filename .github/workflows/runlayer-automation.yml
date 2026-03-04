@@ -1,0 +1,24 @@
+name: Trigger Runlayer Agent
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  runlayer-fix:
+    # Only run if the label added is "bug"
+    if: github.event.label.name == 'bug'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Runlayer Plugin
+        run: |
+          curl -X POST "${{ secrets.DBT_RUNLAYER_URL }}/v1/plugins/${{ secrets.DBT_RUNLAYER_PLUGIN_ID }}/execute" \
+          -H "Authorization: Bearer ${{ secrets.DBT_RUNLAYER_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "input": "Fix issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}",
+            "context": {
+              "repository": "${{ github.repository }}",
+              "issue_number": "${{ github.event.issue.number }}",
+              "skill_path": ".agents/skills/bug-fixer.md"
+            }
+          }'
