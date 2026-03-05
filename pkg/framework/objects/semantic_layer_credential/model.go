@@ -26,7 +26,7 @@ type SnowflakeSLCredentialModel struct {
 type BigQuerySLCredentialModel struct {
 	ID                  types.Int64                                         `tfsdk:"id"`
 	Configuration       SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
-	Credential          bigquery_credential.BigqueryCredentialResourceModel `tfsdk:"credential"`
+	Credential          bigquery_credential.BigqueryCredentialResourceModel   `tfsdk:"credential"`
 	PrivateKeyID        types.String                                        `tfsdk:"private_key_id"`
 	PrivateKey          types.String                                        `tfsdk:"private_key"`
 	ClientEmail         types.String                                        `tfsdk:"client_email"`
@@ -35,7 +35,7 @@ type BigQuerySLCredentialModel struct {
 	TokenURI            types.String                                        `tfsdk:"token_uri"`
 	AuthProviderCertURL types.String                                        `tfsdk:"auth_provider_x509_cert_url"`
 	ClientCertURL       types.String                                        `tfsdk:"client_x509_cert_url"`
-	ResourceMetadata    types.Map                                           `tfsdk:"resource_metadata"`
+	ResourceMetadata    types.Dynamic                                       `tfsdk:"resource_metadata"`
 }
 
 type RedshiftSLCredentialModel struct {
