@@ -263,7 +263,13 @@ func (r *repositoryResource) Read(
 	state.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	state.RepositoryID = types.Int64Value(int64(*repository.ID))
 	state.RemoteURL = types.StringValue(repository.RemoteUrl)
-	state.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	// When API returns "github_app" but repo has no github_installation_id, preserve state to avoid inconsistent result
+	if repository.GithubInstallationID != nil {
+		state.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	} else if repository.GitCloneStrategy != "github_app" {
+		state.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	}
+	// else: keep existing state.GitCloneStrategy
 
 	if repository.RepositoryCredentialsID != nil {
 		state.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))
@@ -387,7 +393,13 @@ func (r *repositoryResource) Update(
 	state.ProjectID = types.Int64Value(int64(updatedRepository.ProjectID))
 	state.RepositoryID = types.Int64Value(int64(*updatedRepository.ID))
 	state.RemoteURL = types.StringValue(updatedRepository.RemoteUrl)
-	state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+	if updatedRepository.GithubInstallationID != nil {
+		state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+	} else if updatedRepository.GitCloneStrategy == "github_app" {
+		state.GitCloneStrategy = plan.GitCloneStrategy
+	} else {
+		state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+	}
 
 	if updatedRepository.RepositoryCredentialsID != nil {
 		state.RepositoryCredentialsID = types.Int64Value(int64(*updatedRepository.RepositoryCredentialsID))

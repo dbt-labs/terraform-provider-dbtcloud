@@ -11,7 +11,8 @@ type ProfileResourceModel struct {
 	Key                  types.String `tfsdk:"key"`
 	ConnectionID         types.Int64  `tfsdk:"connection_id"`
 	CredentialsID        types.Int64  `tfsdk:"credentials_id"`
-	ExtendedAttributesID types.Int64  `tfsdk:"extended_attributes_id"`
+	ExtendedAttributesID types.Int64   `tfsdk:"extended_attributes_id"`
+	ResourceMetadata     types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type ProfileDataSourceModel struct {
