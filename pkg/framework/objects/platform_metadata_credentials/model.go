@@ -25,7 +25,8 @@ type SnowflakePlatformMetadataCredentialResourceModel struct {
 	Warehouse            types.String `tfsdk:"warehouse"`
 
 	// Read-only fields
-	AdapterVersion types.String `tfsdk:"adapter_version"`
+	AdapterVersion   types.String  `tfsdk:"adapter_version"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 // DatabricksPlatformMetadataCredentialResourceModel represents the Terraform state for Databricks
@@ -44,5 +45,6 @@ type DatabricksPlatformMetadataCredentialResourceModel struct {
 	Catalog types.String `tfsdk:"catalog"`
 
 	// Read-only fields
-	AdapterVersion types.String `tfsdk:"adapter_version"`
+	AdapterVersion   types.String  `tfsdk:"adapter_version"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }
