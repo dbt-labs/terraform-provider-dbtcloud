@@ -129,12 +129,10 @@ func (r *environmentResource) Create(
 		deploymentType = types.StringNull().ValueString()
 	}
 
-	// Handle connection_id: if null/unknown, pass 0 to API (API will auto-assign)
-	connectionID := int(0)
+	connectionIDForAPI := int64(0)
 	if !plan.ConnectionID.IsNull() && !plan.ConnectionID.IsUnknown() {
-		connectionID = int(plan.ConnectionID.ValueInt64())
+		connectionIDForAPI = plan.ConnectionID.ValueInt64()
 	}
-
 	environment, err := r.client.CreateEnvironment(
 		plan.IsActive.ValueBool(),
 		int(plan.ProjectID.ValueInt64()),
@@ -146,7 +144,7 @@ func (r *environmentResource) Create(
 		int(plan.CredentialID.ValueInt64()),
 		deploymentType,
 		int(plan.ExtendedAttributesID.ValueInt64()),
-		connectionID,
+		int(connectionIDForAPI),
 		plan.EnableModelQueryHistory.ValueBool(),
 		int(plan.PrimaryProfileID.ValueInt64()),
 	)
