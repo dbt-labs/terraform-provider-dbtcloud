@@ -1,0 +1,3 @@
+kind: Fixes
+body: Fix notification acceptance test flakiness caused by parallel test interference on shared user_id
+time: 2026-03-09T22:00:00.000000+00:00
