@@ -50,7 +50,9 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
-	resource.ParallelTest(t, resource.TestCase{
+	// Run serially (not ParallelTest) to avoid interference with the
+	// partial_notification test which also operates on notifications for the same user_id.
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acctest_helper.TestAccPreCheck(t)
 
