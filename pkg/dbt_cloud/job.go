@@ -59,28 +59,28 @@ type JobCompletionTriggerCondition struct {
 
 type Job struct {
 	ID                     *int                  `json:"id"`
-	AccountId              int64                 `json:"account_id"`
+	Name                   string                `json:"name"`
+	Description            string                `json:"description"`
 	ProjectId              int                   `json:"project_id"`
 	EnvironmentId          int                   `json:"environment_id"`
-	Name                   string                `json:"name"`
+	JobType                string                `json:"job_type,omitempty"`
+	ExecuteSteps           []string              `json:"execute_steps"`
+	State                  int                   `json:"state"`
+	GenerateDocs           bool                  `json:"generate_docs"`
+	RunGenerateSources     bool                  `json:"run_generate_sources"`
+	AccountId              int64                 `json:"account_id"`
 	CompareChangesFlags    string                `json:"compare_changes_flags"`
 	DbtVersion             *string               `json:"dbt_version"`
 	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
 	DeferringJobId         *int                  `json:"deferring_job_definition_id"`
-	Description            string                `json:"description"`
 	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
-	ExecuteSteps           []string              `json:"execute_steps"`
 	Execution              JobExecution          `json:"execution"`
 	ForceNodeSelection     *bool                 `json:"force_node_selection,omitempty"`
-	GenerateDocs           bool                  `json:"generate_docs"`
 	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
-	JobType                string                `json:"job_type,omitempty"`
 	RunCompareChanges      bool                  `json:"run_compare_changes"`
-	RunGenerateSources     bool                  `json:"run_generate_sources"`
 	RunLint                bool                  `json:"run_lint"`
 	Schedule               JobSchedule           `json:"schedule"`
 	Settings               JobSettings           `json:"settings"`
-	State                  int                   `json:"state"`
 	TriggersOnDraftPR      bool                  `json:"triggers_on_draft_pr"`
 	Triggers               JobTrigger            `json:"triggers"`
 }

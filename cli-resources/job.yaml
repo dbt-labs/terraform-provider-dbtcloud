@@ -1,0 +1,77 @@
+name: job
+list_type: JobWithEnvironment
+
+list:
+  mode: method
+  call: 'client.GetAllJobs(int(cmd.Int("project-id")), int(cmd.Int("environment-id")))'
+  flags:
+    - {name: project-id, type: int, usage: "Filter by project ID"}
+    - {name: environment-id, type: int, usage: "Filter by environment ID"}
+  validation: |
+    projectID := int(cmd.Int("project-id"))
+    environmentID := int(cmd.Int("environment-id"))
+    if projectID == 0 && environmentID == 0 {
+      return fmt.Errorf("must specify --project-id or --environment-id")
+    }
+    if projectID != 0 && environmentID != 0 {
+      return fmt.Errorf("cannot specify both --project-id and --environment-id")
+    }
+
+create:
+  flags:
+    - {name: name, type: string, required: true, usage: "Job name"}
+    - {name: project-id, type: int, required: true, usage: "Project ID"}
+    - {name: environment-id, type: int, required: true, usage: "Environment ID"}
+    - {name: execute-steps, type: string_slice, required: true, usage: "Execute steps (can be specified multiple times)"}
+    - {name: description, type: string, usage: "Job description"}
+    - {name: schedule-cron, type: string, usage: "Cron schedule expression"}
+    - {name: num-threads, type: int, usage: "Number of threads", default: "1"}
+    - {name: target-name, type: string, usage: "Target name", default: "default"}
+    - {name: generate-docs, type: bool, usage: "Generate docs on run"}
+    - {name: run-generate-sources, type: bool, usage: "Run generate sources on run"}
+    - {name: timeout-seconds, type: int, usage: "Timeout in seconds (0 for no timeout)", default: "0"}
+  call: |
+    triggers := map[string]any{
+      "schedule":             false,
+      "github_webhook":       false,
+      "git_provider_webhook": false,
+      "on_merge":             false,
+    }
+    scheduleType := "every_day"
+    scheduleCron := cmd.String("schedule-cron")
+    if scheduleCron != "" {
+      triggers["schedule"] = true
+      scheduleType = "custom_cron"
+    }
+    client.CreateJob(
+      int(cmd.Int("project-id")),
+      int(cmd.Int("environment-id")),
+      cmd.String("name"),
+      cmd.String("description"),
+      cmd.StringSlice("execute-steps"),
+      "",
+      true,
+      triggers,
+      int(cmd.Int("num-threads")),
+      cmd.String("target-name"),
+      cmd.Bool("generate-docs"),
+      cmd.Bool("run-generate-sources"),
+      scheduleType,
+      0,
+      []int{},
+      []int{},
+      scheduleCron,
+      0,
+      0,
+      false,
+      int(cmd.Int("timeout-seconds")),
+      false,
+      nil,
+      false,
+      false,
+      false,
+      "",
+      "",
+      nil,
+    )
+  result_var: job

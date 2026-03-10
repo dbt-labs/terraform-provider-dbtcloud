@@ -33,5 +33,15 @@ release:
 	git tag "v$(VERSION)"
 	git push origin "v$(VERSION)"
 
+generate-cli:
+	go run ./cmd/codegen/
+
+build-cli: generate-cli
+	go build -ldflags "-w -s" -o dbtp ./cmd/dbtp/
+
+install-cli: build-cli
+	mkdir -p $(HOME)/.local/bin
+	mv ./dbtp $(HOME)/.local/bin/dbtp
+
 d2doc:
 	d2 terraform_resources.d2 terraform_resources.png -l elk
