@@ -271,7 +271,12 @@ func (r *environmentResource) Update(
 
 	if plan.DeploymentType.ValueString() != state.DeploymentType.ValueString() {
 		deploymentType := plan.DeploymentType.ValueString()
-		envToUpdate.DeploymentType = &deploymentType
+		if deploymentType == "" {
+			// Nil omits deployment_type in JSON; a pointer to "" sends "" and the API rejects it (issue #623).
+			envToUpdate.DeploymentType = nil
+		} else {
+			envToUpdate.DeploymentType = &deploymentType
+		}
 	}
 
 	// Handle extended_attributes_id - need to properly handle null and unknown values
