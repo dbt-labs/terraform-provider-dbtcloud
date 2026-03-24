@@ -66,7 +66,7 @@ func (v BigQueryAuthValidator) ValidateResource(
 				return
 			}
 
-			if fieldValue.IsNull() || fieldValue.IsUnknown() {
+			if fieldValue.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("bigquery").AtName(field),
 					"Missing Required Field for External OAuth WIF",
@@ -96,7 +96,7 @@ func (v BigQueryAuthValidator) ValidateResource(
 			return
 		}
 
-		if fieldValue.IsNull() || fieldValue.IsUnknown() {
+		if fieldValue.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("bigquery").AtName(field),
 				"Missing Required Field for BigQuery",
