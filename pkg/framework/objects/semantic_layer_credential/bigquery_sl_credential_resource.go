@@ -75,6 +75,7 @@ func (r *bigQuerySemanticLayerCredentialResource) Read(
 	state.ClientID = getStringFromMap(credential.Values, "client_id")
 	state.AuthProviderCertURL = getStringFromMap(credential.Values, "auth_provider_x509_cert_url")
 	state.ClientCertURL = getStringFromMap(credential.Values, "client_x509_cert_url")
+	state.ExecutionProject = getStringFromMap(credential.Values, "execution_project")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 
@@ -113,6 +114,10 @@ func (r *bigQuerySemanticLayerCredentialResource) Create(
 		"token_uri":                   plan.TokenURI.ValueString(),
 		"auth_provider_x509_cert_url": plan.AuthProviderCertURL.ValueString(),
 		"client_x509_cert_url":        plan.ClientCertURL.ValueString(),
+	}
+
+	if !plan.ExecutionProject.IsNull() && !plan.ExecutionProject.IsUnknown() {
+		values["execution_project"] = plan.ExecutionProject.ValueString()
 	}
 
 	createdCredential, err := r.client.CreateSemanticLayerCredential(
@@ -206,6 +211,10 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 		"client_x509_cert_url":        plan.ClientCertURL.ValueString(),
 	}
 
+	if !plan.ExecutionProject.IsNull() && !plan.ExecutionProject.IsUnknown() {
+		values["execution_project"] = plan.ExecutionProject.ValueString()
+	}
+
 	credential.Name = plan.Configuration.Name.ValueString()
 	credential.Values = values
 
@@ -249,6 +258,7 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 	state.ClientID = getStringFromMap(updatedCredential.Values, "client_id")
 	state.AuthProviderCertURL = getStringFromMap(updatedCredential.Values, "auth_provider_x509_cert_url")
 	state.ClientCertURL = getStringFromMap(updatedCredential.Values, "client_x509_cert_url")
+	state.ExecutionProject = getStringFromMap(updatedCredential.Values, "execution_project")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

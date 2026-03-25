@@ -108,6 +108,11 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Client X509 Cert URL for the Service Account",
 		},
+
+		"execution_project": resource_schema.StringAttribute{
+			Optional:    true,
+			Description: "The GCP project that should execute BigQuery jobs for the semantic layer. When not set, jobs will execute in the project associated with the service account.",
+		},
 	},
 }
 

@@ -53,6 +53,10 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "example" {
 - `private_key_id` (String) Private Key ID for the Service Account
 - `token_uri` (String) Token URI for the Service Account
 
+### Optional
+
+- `execution_project` (String) The GCP project that should execute BigQuery jobs for the semantic layer. When not set, jobs will execute in the project associated with the service account.
+
 ### Read-Only
 
 - `id` (Number) The ID of the credential
