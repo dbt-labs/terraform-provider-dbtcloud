@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/testhelpers"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -127,7 +128,7 @@ func TestPrivatelinkEndpointDataSource_PaginationTwoPages(t *testing.T) {
 	page2Endpoints[49] = targetEndpoint
 
 	handlers := map[string]testhelpers.MockEndpointHandler{
-		"GET /v3/accounts/123/private-link-endpoints/": func(r *http.Request) (int, interface{}, error) {
+		fmt.Sprintf("GET /v3/accounts/123/%s/", dbt_cloud.ResourcePrivatelinkEndpoints): func(r *http.Request) (int, interface{}, error) {
 			offset := r.URL.Query().Get("offset")
 
 			if offset == "100" {
