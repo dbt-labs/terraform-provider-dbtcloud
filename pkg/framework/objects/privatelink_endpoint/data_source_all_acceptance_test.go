@@ -36,7 +36,7 @@ func TestAccDbtCloudPrivatelinkEndpointPagination(t *testing.T) {
 	}
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.URL.Path, "private-link-endpoints") {
+		if strings.Contains(r.URL.Path, dbt_cloud.ResourcePrivatelinkEndpoints) {
 			offset := r.URL.Query().Get("offset")
 			if offset == "100" {
 				// Page 2
@@ -126,7 +126,7 @@ func TestPrivatelinkEndpointsDataSource_Basic(t *testing.T) {
 	}
 
 	handlers := map[string]testhelpers.MockEndpointHandler{
-		"GET /v3/accounts/123/private-link-endpoints/": func(r *http.Request) (int, interface{}, error) {
+		fmt.Sprintf("GET /v3/accounts/123/%s/", dbt_cloud.ResourcePrivatelinkEndpoints): func(r *http.Request) (int, interface{}, error) {
 			// Parse pagination parameters like the real API
 			limit := 100
 			offset := 0
@@ -209,7 +209,7 @@ func TestPrivatelinkEndpointsDataSource_Empty(t *testing.T) {
 	}()
 
 	handlers := map[string]testhelpers.MockEndpointHandler{
-		"GET /v3/accounts/123/private-link-endpoints/": func(r *http.Request) (int, interface{}, error) {
+		fmt.Sprintf("GET /v3/accounts/123/%s/", dbt_cloud.ResourcePrivatelinkEndpoints): func(r *http.Request) (int, interface{}, error) {
 			response := map[string]interface{}{
 				"data": []interface{}{},
 				"extra": map[string]interface{}{
@@ -310,7 +310,7 @@ func TestPrivatelinkEndpointsDataSource_WithFiltering(t *testing.T) {
 	}
 
 	handlers := map[string]testhelpers.MockEndpointHandler{
-		"GET /v3/accounts/123/private-link-endpoints/": func(r *http.Request) (int, interface{}, error) {
+		fmt.Sprintf("GET /v3/accounts/123/%s/", dbt_cloud.ResourcePrivatelinkEndpoints): func(r *http.Request) (int, interface{}, error) {
 			response := map[string]interface{}{
 				"data": mockEndpoints,
 				"extra": map[string]interface{}{
@@ -456,7 +456,7 @@ func TestPrivatelinkEndpointsDataSource_ForEachPattern(t *testing.T) {
 	}
 
 	handlers := map[string]testhelpers.MockEndpointHandler{
-		"GET /v3/accounts/123/private-link-endpoints/": func(r *http.Request) (int, interface{}, error) {
+		fmt.Sprintf("GET /v3/accounts/123/%s/", dbt_cloud.ResourcePrivatelinkEndpoints): func(r *http.Request) (int, interface{}, error) {
 			response := map[string]interface{}{
 				"data": mockEndpoints,
 				"extra": map[string]interface{}{

@@ -22,7 +22,7 @@ const (
 // Resource name constants
 const (
 	ResourceAccounts             = "accounts"
-	ResourcePrivatelinkEndpoints = "private-link-endpoints"
+	ResourcePrivatelinkEndpoints = "private-endpoints"
 	ResourceGroups               = "groups"
 	ResourceEnvironments         = "environments"
 	ResourceNotifications        = "notifications"
