@@ -34,6 +34,7 @@ type BigQuerySLCredentialModel struct {
 	TokenURI            types.String                                        `tfsdk:"token_uri"`
 	AuthProviderCertURL types.String                                        `tfsdk:"auth_provider_x509_cert_url"`
 	ClientCertURL       types.String                                        `tfsdk:"client_x509_cert_url"`
+	ExecutionProject    types.String                                        `tfsdk:"execution_project"`
 }
 
 type RedshiftSLCredentialModel struct {
