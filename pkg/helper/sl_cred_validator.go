@@ -22,7 +22,7 @@ func (v SemanticLayerCredentialValidator) MarkdownDescription(ctx context.Contex
 
 func (v SemanticLayerCredentialValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 
-	if req.ConfigValue.IsUnknown() {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
 
