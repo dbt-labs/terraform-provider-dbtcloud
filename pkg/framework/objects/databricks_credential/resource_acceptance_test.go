@@ -142,6 +142,7 @@ func testCheckSchemaIsProvided() string {
     		catalog = "test"
 			target_name = "test"
     		token   = "test"
+			schema  = ""
 			adapter_type = "databricks"
 		}
 	`
@@ -341,6 +342,106 @@ func verifyDatabricksBugIsFixed(t *testing.T, tracker *testhelpers.APICallTracke
 		assert.GreaterOrEqual(t, tracker.ReadCount, 1, "expected at least 1 READ call")
 		return nil
 	}
+}
+
+// TestDatabricksCredential_AdapterTypeOptional is a regression test for
+// https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/650.
+// The old implementation had a SemanticLayerCredentialValidator on adapter_type
+// that fired against the raw config value (before defaults are applied), causing
+// an error when the field was omitted despite being Optional with a default.
+func TestDatabricksCredential_AdapterTypeOptional(t *testing.T) {
+	originalTFAcc := os.Getenv("TF_ACC")
+	os.Setenv("TF_ACC", "1")
+	defer func() {
+		if originalTFAcc == "" {
+			os.Unsetenv("TF_ACC")
+		} else {
+			os.Setenv("TF_ACC", originalTFAcc)
+		}
+	}()
+
+	accountID, projectID, credentialID := int64(12345), 67890, 333
+	tracker := &testhelpers.APICallTracker{}
+
+	handlers := databricksCredentialMockHandlers(accountID, projectID, credentialID, tracker)
+	srv := testhelpers.SetupMockServer(t, handlers)
+	defer srv.Close()
+
+	providerConfig := fmt.Sprintf(`
+		provider "dbtcloud" {
+			host_url   = "%s"
+			token      = "dummy-token"
+			account_id = %d
+		}`, srv.URL, accountID)
+
+	// adapter_type is intentionally omitted — the old validator would error here
+	configWithoutAdapterType := providerConfig + fmt.Sprintf(`
+		resource "dbtcloud_databricks_credential" "test" {
+			project_id = %d
+			token      = "test_token"
+			schema     = "test_schema"
+		}`, projectID)
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest:               true,
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithoutAdapterType,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("dbtcloud_databricks_credential.test", "adapter_type", "databricks"),
+				),
+			},
+		},
+	})
+}
+
+func databricksCredentialMockHandlers(accountID int64, projectID, credentialID int, tracker *testhelpers.APICallTracker) map[string]testhelpers.MockEndpointHandler {
+	handlers := make(map[string]testhelpers.MockEndpointHandler)
+
+	response := func() dbt_cloud.DatabricksCredentialResponse {
+		return dbt_cloud.DatabricksCredentialResponse{
+			Data: dbt_cloud.DatabricksCredential{
+				ID:             &credentialID,
+				Account_Id:     accountID,
+				Project_Id:     projectID,
+				Type:           "adapter",
+				State:          1,
+				Threads:        4,
+				Target_Name:    "default",
+				AdapterVersion: "databricks_v0",
+				Credential_Details: dbt_cloud.AdapterCredentialDetails{
+					Fields: map[string]dbt_cloud.AdapterCredentialField{
+						"schema": {Value: "test_schema"},
+						"token":  {Value: "test_token"},
+					},
+				},
+				UnencryptedCredentialDetails: dbt_cloud.DatabricksUnencryptedCredentialDetails{
+					Schema:     "test_schema",
+					TargetName: "default",
+					Threads:    4,
+					Token:      "test_token",
+				},
+			},
+			Status: dbt_cloud.ResponseStatus{Code: 200, Is_Success: true},
+		}
+	}
+
+	createPath := fmt.Sprintf("POST /v3/accounts/%d/projects/%d/credentials/", accountID, projectID)
+	handlers[createPath] = func(r *http.Request) (int, interface{}, error) {
+		tracker.CreateCount++
+		resp := response()
+		resp.Status.Code = 201
+		return http.StatusCreated, resp, nil
+	}
+
+	readPath := fmt.Sprintf("GET /v3/accounts/%d/projects/%d/credentials/%d/", accountID, projectID, credentialID)
+	handlers[readPath] = func(r *http.Request) (int, interface{}, error) {
+		tracker.ReadCount++
+		return http.StatusOK, response(), nil
+	}
+
+	return handlers
 }
 
 func updateDatabricksCredentialHandlers(handlers map[string]testhelpers.MockEndpointHandler, accountID int64, projectID, credentialID int, tracker *testhelpers.APICallTracker) {

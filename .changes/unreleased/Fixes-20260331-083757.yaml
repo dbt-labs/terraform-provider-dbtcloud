@@ -1,0 +1,3 @@
+kind: Fixes
+body: Don't validate adapter_type if not provided
+time: 2026-03-31T08:37:57.064215+03:00
