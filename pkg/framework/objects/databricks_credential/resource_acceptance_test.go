@@ -209,55 +209,6 @@ func testAccCheckDbtCloudDatabricksCredentialDestroy(s *terraform.State) error {
 	return nil
 }
 
-func getBasicConfigTestStep(projectName, catalogName, targetName, token string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
-			projectName,
-			catalogName,
-			targetName,
-			token,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudDatabricksCredentialExists(
-				"dbtcloud_databricks_credential.test_credential",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"target_name",
-				targetName,
-			),
-		),
-	}
-}
-
-func getModifyConfigTestStep(projectName, catalogName, targetName, targetName2, token, token2 string) resource.TestStep {
-	return resource.TestStep{
-		Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
-			projectName,
-			catalogName,
-			targetName2,
-			token2,
-		),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckDbtCloudDatabricksCredentialExists(
-				"dbtcloud_databricks_credential.test_credential",
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"target_name",
-				targetName2,
-			),
-			resource.TestCheckResourceAttr(
-				"dbtcloud_databricks_credential.test_credential",
-				"token",
-				token2,
-			),
-		),
-	}
-}
-
-// Mock server utilities for bug fix regression tests
-
 // TestDatabricksCredential_UpdateBugRegression tests the bug fix for credential updates
 func TestDatabricksCredential_UpdateBugRegression(t *testing.T) {
 	originalTFAcc := os.Getenv("TF_ACC")
