@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -125,8 +125,7 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	project, err := r.client.GetProject(projectIDString)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "project") {
 			return
 		}
 

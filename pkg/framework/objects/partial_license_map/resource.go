@@ -2,7 +2,6 @@ package partial_license_map
 
 import (
 	"context"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
@@ -46,12 +45,7 @@ func (r *partialLicenseMapResource) Read(
 	licenseMapID := int(state.ID.ValueInt64())
 	licenseMap, err := r.client.GetLicenseMap(licenseMapID)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The license map resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "license map") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the license map", err.Error())

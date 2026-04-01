@@ -3,7 +3,6 @@ package lineage_integration
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -47,12 +46,7 @@ func (r *lineageIntegrationResource) Read(
 	lineageIntegrationID := data.LineageIntegrationID.ValueInt64()
 	lineageIntegration, err := r.client.GetLineageIntegration(projectID, lineageIntegrationID)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The lineage_integration resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "lineage integration") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the lineage", err.Error())

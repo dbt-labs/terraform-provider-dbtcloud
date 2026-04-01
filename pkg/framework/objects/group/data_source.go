@@ -2,9 +2,9 @@ package group
 
 import (
 	"context"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -44,12 +44,7 @@ func (d *groupDataSource) Read(
 	retrievedGroup, err := d.client.GetGroup(int(groupID))
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The group was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "group") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the group", err.Error())

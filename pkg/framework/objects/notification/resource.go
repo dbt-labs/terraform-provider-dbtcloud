@@ -3,9 +3,9 @@ package notification
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -87,12 +87,7 @@ func (r *notificationResource) Read(
 	notificationID := data.ID.ValueString()
 	notification, err := r.client.GetNotification(notificationID)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The notification resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "notification") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the notification", err.Error())

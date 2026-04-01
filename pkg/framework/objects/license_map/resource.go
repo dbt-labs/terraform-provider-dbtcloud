@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/samber/lo"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -50,12 +49,7 @@ func (r *licenseMapResource) Read(
 	licenseMapID := state.ID.ValueInt64()
 	licenseMap, err := r.client.GetLicenseMap(int(licenseMapID))
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The license map resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "license map") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the license map", err.Error())

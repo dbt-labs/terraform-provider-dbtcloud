@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -109,8 +110,7 @@ func (r *connectionCatalogConfigResource) Read(
 
 	config, err := r.client.GetConnectionCatalogConfig(connectionID)
 	if err != nil {
-		if strings.Contains(err.Error(), "resource-not-found") {
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "connection catalog config") {
 			return
 		}
 		resp.Diagnostics.AddError(

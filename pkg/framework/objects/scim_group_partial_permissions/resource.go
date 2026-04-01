@@ -143,12 +143,7 @@ func (r *scimGroupPartialPermissionsResource) Read(
 	retrievedGroup, err := r.client.GetGroup(groupID)
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Group not found",
-				"The group was not found and has been removed from the state. This may indicate the group was deleted outside of Terraform.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "scim group") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the group", err.Error())
