@@ -9,3 +9,4 @@ NOTES.md
 .DS_Store
 .env
 /terraform-config-files
+.claude
