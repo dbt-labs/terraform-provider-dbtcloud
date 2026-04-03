@@ -74,7 +74,7 @@ func (d *teradataCredentialDataSource) Read(
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
-	var state TeradataCredentialModel
+	var state TeradataCredentialDataSourceModel
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
