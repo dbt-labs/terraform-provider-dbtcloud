@@ -190,8 +190,7 @@ func (r *profileResource) Read(
 
 	profile, err := r.client.GetProfile(projectID, profileID)
 	if err != nil {
-		if strings.Contains(err.Error(), "resource-not-found") {
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "profile") {
 			return
 		}
 

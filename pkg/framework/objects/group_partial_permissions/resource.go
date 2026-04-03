@@ -3,7 +3,6 @@ package group_partial_permissions
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group"
@@ -48,12 +47,7 @@ func (r *groupPartialPermissionsResource) Read(
 	groupIDFromState := state.ID.ValueInt64()
 	retrievedGroup, err := r.client.GetGroup(int(groupIDFromState))
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The notification resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "group") {
 			return
 		}
 		resp.Diagnostics.AddError(

@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -9,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -165,8 +168,24 @@ func NormalizeJSONString(jsonString string) string {
 }
 
 func ConvertStringPointer(s *string) types.String {
-	if s != nil { 
+	if s != nil {
 		return types.StringValue(*s)
 	}
 	return types.StringNull()
+}
+
+// HandleResourceNotFound checks if err is a "resource-not-found" error.
+// If so, it adds a warning diagnostic, removes the resource from state, and returns true.
+// The caller should return immediately when this returns true.
+// resourceName is used in the warning message, e.g. "project", "webhook".
+func HandleResourceNotFound(ctx context.Context, err error, diagnostics *diag.Diagnostics, state *tfsdk.State, resourceName string) bool {
+	if strings.HasPrefix(err.Error(), "resource-not-found") {
+		diagnostics.AddWarning(
+			"Resource not found",
+			fmt.Sprintf("The %s was not found and has been removed from the state.", resourceName),
+		)
+		state.RemoveResource(ctx)
+		return true
+	}
+	return false
 }

@@ -3,7 +3,6 @@ package service_token
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -173,12 +172,7 @@ func (st *serviceTokenResource) Read(ctx context.Context, req resource.ReadReque
 	svcTok, err := st.client.GetServiceToken(svcTokID)
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The service token was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "service token") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the service token", err.Error())

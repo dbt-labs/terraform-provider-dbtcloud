@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -106,12 +107,7 @@ func (r *scimGroupPermissionsResource) Read(
 	retrievedGroup, err := r.client.GetGroup(groupID)
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Group not found",
-				"The group was not found and has been removed from the state. This may indicate the group was deleted outside of Terraform.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "group") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the group", err.Error())

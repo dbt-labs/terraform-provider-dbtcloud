@@ -425,7 +425,7 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	job, err := j.client.GetJob(jobIDStr)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "job") {
 			return
 		}
 		resp.Diagnostics.AddError("Client Error", "Unable to retrieve job before deletion: "+err.Error())
@@ -455,12 +455,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	retrievedJob, err := j.client.GetJob(jobIDStr)
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The job was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "job") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting the job", err.Error())

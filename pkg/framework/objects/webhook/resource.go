@@ -3,7 +3,6 @@ package webhook
 import (
 	"context"
 	"reflect"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -96,12 +95,7 @@ func (r *webhookResource) Read(
 
 	retrievedWebhook, err := r.client.GetWebhook(webhookId)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddWarning(
-				"Resource not found",
-				"The webhook was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "webhook") {
 			return
 		}
 		resp.Diagnostics.AddError("Error getting webhook", err.Error())

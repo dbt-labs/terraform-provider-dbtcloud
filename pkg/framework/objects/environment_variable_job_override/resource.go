@@ -151,8 +151,7 @@ func (r *environmentVariableJobOverrideResource) Read(
 
 	environmentVariableJobOverride, err := r.client.GetEnvironmentVariableJobOverride(projectID, jobDefinitionID, int(id))
 	if err != nil {
-		if strings.Contains(err.Error(), "resource-not-found") {
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "environment variable job override") {
 			return
 		}
 

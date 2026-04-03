@@ -3,7 +3,6 @@ package project_artefacts
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -147,12 +146,7 @@ func (p *projectArtefactsResource) Read(ctx context.Context, req resource.ReadRe
 
 	project, err := p.client.GetProject(projectIDString)
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
-			resp.Diagnostics.AddError(
-				"Project not found",
-				"The project artefacts resource was not found and has been removed from the state.",
-			)
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "project artefacts") {
 			return
 		}
 		resp.Diagnostics.AddError(

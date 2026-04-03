@@ -198,7 +198,7 @@ func (p *postgresCredentialResource) Delete(ctx context.Context, req resource.De
 	_, err := p.client.DeletePostgresCredential(strconv.Itoa(credentialID), strconv.Itoa(projectID))
 	if err != nil {
 		// If the resource is already deleted (404), treat as success
-		if strings.HasPrefix(err.Error(), "resource-not-found") {
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "postgres credential") {
 			return
 		}
 		resp.Diagnostics.AddError(
@@ -226,8 +226,7 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 
 	credential, err := p.client.GetPostgresCredential(projectID, credentialID)
 	if err != nil {
-		if strings.Contains(err.Error(), "resource-not-found") {
-			resp.State.RemoveResource(ctx)
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "postgres credential") {
 			return
 		}
 
