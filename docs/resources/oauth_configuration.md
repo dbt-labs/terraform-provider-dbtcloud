@@ -45,7 +45,6 @@ resource "dbtcloud_oauth_configuration" "test" {
 
 - `authorize_url` (String) The Authorize URL for the OAuth integration
 - `client_id` (String) The Client ID for the OAuth integration
-- `client_secret` (String, Sensitive) The Client secret for the OAuth integration
 - `name` (String) The name of OAuth integration
 - `redirect_uri` (String) The redirect URL for the OAuth integration
 - `token_url` (String) The Token URL for the OAuth integration
@@ -54,6 +53,9 @@ resource "dbtcloud_oauth_configuration" "test" {
 ### Optional
 
 - `application_id_uri` (String) The Application ID URI for the OAuth integration. Only for Entra
+- `client_secret` (String, Sensitive) The Client secret for the OAuth integration. Consider using `client_secret_wo` instead, which is not stored in state.
+- `client_secret_wo` (String) Write-only alternative to `client_secret`. The value is not stored in state. Requires `client_secret_wo_version` to trigger updates.
+- `client_secret_wo_version` (Number) Version number for `client_secret_wo`. Increment this value to trigger an update of the client secret when using `client_secret_wo`.
 
 ### Read-Only
 

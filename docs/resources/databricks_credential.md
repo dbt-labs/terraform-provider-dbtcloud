@@ -27,7 +27,6 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
 ### Required
 
 - `project_id` (Number) Project ID to create the Databricks credential in
-- `token` (String, Sensitive) Token for Databricks user
 
 ### Optional
 
@@ -36,6 +35,9 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
 - `schema` (String) The schema where to create models. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Databricks credential for the Semantic Layer.
 - `target_name` (String, Deprecated) Target name
+- `token` (String, Sensitive) Token for Databricks user. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 

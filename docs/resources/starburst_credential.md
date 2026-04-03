@@ -28,10 +28,15 @@ resource "dbtcloud_starburst_credential" "example" {
 ### Required
 
 - `database` (String) The catalog to connect use
-- `password` (String, Sensitive) The password for the Starburst/Trino account
 - `project_id` (Number) Project ID to create the Starburst/Trino credential in
 - `schema` (String) The schema where to create models
 - `user` (String) The username for the Starburst/Trino account
+
+### Optional
+
+- `password` (String, Sensitive) The password for the Starburst/Trino account. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 
 ### Read-Only
 

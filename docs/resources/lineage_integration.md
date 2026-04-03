@@ -38,8 +38,13 @@ resource "dbtcloud_lineage_integration" "my_lineage" {
 - `host` (String) The URL of the BI server (see docs for more details)
 - `project_id` (Number) The dbt Cloud project ID for the integration
 - `site_id` (String) The sitename for the collections of dashboards (see docs for more details)
-- `token` (String, Sensitive) The secret token value to use to authenticate to the BI server
 - `token_name` (String) The token to use to authenticate to the BI server
+
+### Optional
+
+- `token` (String, Sensitive) The secret token value to use to authenticate to the BI server. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 

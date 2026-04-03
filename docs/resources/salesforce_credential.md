@@ -29,14 +29,18 @@ resource "dbtcloud_salesforce_credential" "my_salesforce_cred" {
 
 ### Required
 
-- `client_id` (String, Sensitive) The OAuth connected app client/consumer ID
-- `private_key` (String, Sensitive) The private key for JWT bearer flow authentication
 - `project_id` (Number) Project ID to create the Salesforce credential in
 - `username` (String) The Salesforce username for OAuth JWT bearer flow authentication
 
 ### Optional
 
+- `client_id` (String, Sensitive) The OAuth connected app client/consumer ID. Consider using `client_id_wo` instead, which is not stored in state.
+- `client_id_wo` (String) Write-only alternative to `client_id`. The value is not stored in state. Requires `client_id_wo_version` to trigger updates.
+- `client_id_wo_version` (Number) Version number for `client_id_wo`. Increment this value to trigger an update of the client ID when using `client_id_wo`.
 - `num_threads` (Number) The number of threads to use for dbt operations
+- `private_key` (String, Sensitive) The private key for JWT bearer flow authentication. Consider using `private_key_wo` instead, which is not stored in state.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 - `target_name` (String) Target name
 
 ### Read-Only

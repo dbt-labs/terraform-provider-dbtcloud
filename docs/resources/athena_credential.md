@@ -26,10 +26,17 @@ resource "dbtcloud_athena_credential" "example" {
 
 ### Required
 
-- `aws_access_key_id` (String, Sensitive) AWS access key ID for Athena user
-- `aws_secret_access_key` (String, Sensitive) AWS secret access key for Athena user
 - `project_id` (Number) Project ID to create the Athena credential in
 - `schema` (String) The schema where to create models
+
+### Optional
+
+- `aws_access_key_id` (String, Sensitive) AWS access key ID for Athena user. Consider using `aws_access_key_id_wo` instead, which is not stored in state.
+- `aws_access_key_id_wo` (String) Write-only alternative to `aws_access_key_id`. The value is not stored in state. Requires `aws_access_key_id_wo_version` to trigger updates.
+- `aws_access_key_id_wo_version` (Number) Version number for `aws_access_key_id_wo`. Increment this value to trigger an update of the AWS access key ID when using `aws_access_key_id_wo`.
+- `aws_secret_access_key` (String, Sensitive) AWS secret access key for Athena user. Consider using `aws_secret_access_key_wo` instead, which is not stored in state.
+- `aws_secret_access_key_wo` (String) Write-only alternative to `aws_secret_access_key`. The value is not stored in state. Requires `aws_secret_access_key_wo_version` to trigger updates.
+- `aws_secret_access_key_wo_version` (Number) Version number for `aws_secret_access_key_wo`. Increment this value to trigger an update of the AWS secret access key when using `aws_secret_access_key_wo`.
 
 ### Read-Only
 

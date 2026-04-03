@@ -53,13 +53,15 @@ resource "dbtcloud_databricks_platform_metadata_credential" "example" {
 
 - `catalog` (String) The Unity Catalog name to use.
 - `connection_id` (Number) The ID of the global connection this credential is associated with. Cannot be changed after creation.
-- `token` (String, Sensitive) The Databricks personal access token.
 
 ### Optional
 
 - `catalog_ingestion_enabled` (Boolean) Whether catalog ingestion is enabled for this credential. When enabled, dbt Cloud will ingest metadata about tables, views, and other objects from your data warehouse.
 - `cost_insights_enabled` (Boolean) Whether cost insights is enabled for this credential.
 - `cost_optimization_enabled` (Boolean) Whether cost optimization data collection is enabled for this credential.
+- `token` (String, Sensitive) The Databricks personal access token. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 

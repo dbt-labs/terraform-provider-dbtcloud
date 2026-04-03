@@ -17,13 +17,15 @@ Teradata credential resource
 
 ### Required
 
-- `password` (String, Sensitive) The password for the Teradata account
 - `project_id` (Number) Project ID to create the Teradata/Trino credential in
 - `schema` (String) The schema where to create models
 - `user` (String) The username for the Teradata account
 
 ### Optional
 
+- `password` (String, Sensitive) The password for the Teradata account. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `threads` (Number) The number of threads to use. Default is 1
 
 ### Read-Only

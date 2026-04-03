@@ -27,11 +27,13 @@ resource "dbtcloud_spark_credential" "my_spark_cred" {
 
 - `project_id` (Number) Project ID to create the Apache Spark credential in
 - `schema` (String) The schema where to create models
-- `token` (String, Sensitive) Token for Apache Spark user
 
 ### Optional
 
 - `target_name` (String, Deprecated) Target name
+- `token` (String, Sensitive) Token for Apache Spark user. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 

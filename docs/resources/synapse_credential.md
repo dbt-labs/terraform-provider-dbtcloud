@@ -58,8 +58,12 @@ resource "dbtcloud_synapse_credential" "my_synapse_cred_serv_princ" {
 ### Optional
 
 - `client_id` (String) The client ID of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.
-- `client_secret` (String, Sensitive) The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.
-- `password` (String, Sensitive) The password for the account to connect to. Only used when connection with AD user/pass
+- `client_secret` (String, Sensitive) The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal. Consider using `client_secret_wo` instead, which is not stored in state.
+- `client_secret_wo` (String) Write-only alternative to `client_secret`. The value is not stored in state. Requires `client_secret_wo_version` to trigger updates.
+- `client_secret_wo_version` (Number) Version number for `client_secret_wo`. Increment this value to trigger an update of the client secret when using `client_secret_wo`.
+- `password` (String, Sensitive) The password for the account to connect to. Only used when connection with AD user/pass. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `schema_authorization` (String) Optionally set this to the principal who should own the schemas created by dbt
 - `tenant_id` (String) The tenant ID of the Azure Active Directory instance. This is only used when connecting to Azure SQL with a service principal.
 - `user` (String) The username of the Synapse account to connect to. Only used when connection with AD user/pass

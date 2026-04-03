@@ -81,9 +81,15 @@ resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth" {
 - `catalog_ingestion_enabled` (Boolean) Whether catalog ingestion is enabled for this credential. When enabled, dbt Cloud will ingest metadata about tables, views, and other objects from your data warehouse.
 - `cost_insights_enabled` (Boolean) Whether cost insights is enabled for this credential.
 - `cost_optimization_enabled` (Boolean) Whether cost optimization data collection is enabled for this credential.
-- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase.
-- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password.
-- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password.
+- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password. Consider using `private_key_wo` instead, which is not stored in state.
+- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password. Consider using `private_key_passphrase_wo` instead, which is not stored in state.
+- `private_key_passphrase_wo` (String) Write-only alternative to `private_key_passphrase`. The value is not stored in state. Requires `private_key_passphrase_wo_version` to trigger updates.
+- `private_key_passphrase_wo_version` (Number) Version number for `private_key_passphrase_wo`. Increment this value to trigger an update of the private key passphrase when using `private_key_passphrase_wo`.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 
 ### Read-Only
 

@@ -36,7 +36,9 @@ resource "dbtcloud_redshift_credential" "redshift" {
 ### Optional
 
 - `is_active` (Boolean) Whether the Redshift credential is active
-- `password` (String, Sensitive) The password for the Redshift account
+- `password` (String, Sensitive) The password for the Redshift account. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `username` (String) The username for the Redshift account.
 
 ### Read-Only
