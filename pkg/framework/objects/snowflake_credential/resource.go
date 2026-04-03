@@ -73,6 +73,34 @@ func (r *snowflakeCredentialResource) Schema(
 	resp.Schema = SnowflakeCredentialResourceSchema
 }
 
+// resolveWriteOnlySecrets reads the config to get write-only attribute values
+// and resolves them against the regular attributes (write-only takes precedence).
+func resolveWriteOnlySecrets(
+	config SnowflakeCredentialResourceModel,
+	plan SnowflakeCredentialResourceModel,
+) (password, privateKey, privateKeyPassphrase string) {
+	// Write-only attributes take precedence over regular attributes
+	if !config.PasswordWo.IsNull() {
+		password = config.PasswordWo.ValueString()
+	} else {
+		password = plan.Password.ValueString()
+	}
+
+	if !config.PrivateKeyWo.IsNull() {
+		privateKey = config.PrivateKeyWo.ValueString()
+	} else {
+		privateKey = plan.PrivateKey.ValueString()
+	}
+
+	if !config.PrivateKeyPassphraseWo.IsNull() {
+		privateKeyPassphrase = config.PrivateKeyPassphraseWo.ValueString()
+	} else {
+		privateKeyPassphrase = plan.PrivateKeyPassphrase.ValueString()
+	}
+
+	return
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *snowflakeCredentialResource) Create(
 	ctx context.Context,
@@ -87,6 +115,14 @@ func (r *snowflakeCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SnowflakeCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	project_id := int(plan.ProjectID.ValueInt64())
 	auth_type := plan.AuthType.ValueString()
 	database := plan.Database.ValueString()
@@ -94,11 +130,10 @@ func (r *snowflakeCredentialResource) Create(
 	warehouse := plan.Warehouse.ValueString()
 	schema := plan.Schema.ValueString()
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
-	private_key := plan.PrivateKey.ValueString()
-	private_key_passphrase := plan.PrivateKeyPassphrase.ValueString()
 	num_threads := int(plan.NumThreads.ValueInt64())
 	is_active := plan.IsActive.ValueBool()
+
+	password, private_key, private_key_passphrase := resolveWriteOnlySecrets(config, plan)
 
 	// Create new credential
 	credential, err := r.client.CreateSnowflakeCredential(
@@ -191,6 +226,14 @@ func (r *snowflakeCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SnowflakeCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state SnowflakeCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -211,6 +254,9 @@ func (r *snowflakeCredentialResource) Update(
 		(state.Password != plan.Password) ||
 		(state.PrivateKey != plan.PrivateKey) ||
 		(state.PrivateKeyPassphrase != plan.PrivateKeyPassphrase) ||
+		(state.PasswordWoVersion != plan.PasswordWoVersion) ||
+		(state.PrivateKeyWoVersion != plan.PrivateKeyWoVersion) ||
+		(state.PrivateKeyPassphraseWoVersion != plan.PrivateKeyPassphraseWoVersion) ||
 		(state.IsActive != plan.IsActive) ||
 		(state.NumThreads != plan.NumThreads) {
 		credential, err := r.client.GetSnowflakeCredential(projectID, credentialID)
@@ -222,15 +268,17 @@ func (r *snowflakeCredentialResource) Update(
 			return
 		}
 
+		password, privateKey, privateKeyPassphrase := resolveWriteOnlySecrets(config, plan)
+
 		credential.Auth_Type = plan.AuthType.ValueString()
 		credential.Database = plan.Database.ValueString()
 		credential.Role = plan.Role.ValueString()
 		credential.Warehouse = plan.Warehouse.ValueString()
 		credential.Schema = plan.Schema.ValueString()
 		credential.User = plan.User.ValueString()
-		credential.Password = plan.Password.ValueString()
-		credential.PrivateKey = plan.PrivateKey.ValueString()
-		credential.PrivateKeyPassphrase = plan.PrivateKeyPassphrase.ValueString()
+		credential.Password = password
+		credential.PrivateKey = privateKey
+		credential.PrivateKeyPassphrase = privateKeyPassphrase
 		credential.Threads = int(plan.NumThreads.ValueInt64())
 
 		// Set State based on IsActive

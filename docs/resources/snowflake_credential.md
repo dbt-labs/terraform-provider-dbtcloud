@@ -13,6 +13,7 @@ Snowflake credential resource. This resource is used both as a stand-alone crede
 ## Example Usage
 
 ```terraform
+// Using the classic sensitive attribute (stored in state)
 resource "dbtcloud_snowflake_credential" "prod_credential" {
   project_id  = dbtcloud_project.dbt_project.id
   auth_type   = "password"
@@ -20,6 +21,25 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
   schema      = "SCHEMA"
   user        = "user"
   password    = "password"
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+//
+// The password_wo value is never persisted in the Terraform state file.
+// Use password_wo_version to trigger an update when the password changes.
+variable "snowflake_password" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_snowflake_credential" "prod_credential_wo" {
+  project_id          = dbtcloud_project.dbt_project.id
+  auth_type           = "password"
+  num_threads         = 16
+  schema              = "SCHEMA"
+  user                = "user"
+  password_wo         = var.snowflake_password
+  password_wo_version = 1
 }
 ```
 
@@ -36,9 +56,15 @@ resource "dbtcloud_snowflake_credential" "prod_credential" {
 
 - `database` (String) The catalog to connect use
 - `is_active` (Boolean) Whether the Snowflake credential is active
-- `password` (String, Sensitive) The password for the Snowflake account
-- `private_key` (String, Sensitive) The private key for the Snowflake account
-- `private_key_passphrase` (String, Sensitive) The passphrase for the private key
+- `password` (String, Sensitive) The password for the Snowflake account. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `private_key` (String, Sensitive) The private key for the Snowflake account. Consider using `private_key_wo` instead, which is not stored in state.
+- `private_key_passphrase` (String, Sensitive) The passphrase for the private key. Consider using `private_key_passphrase_wo` instead, which is not stored in state.
+- `private_key_passphrase_wo` (String) Write-only alternative to `private_key_passphrase`. The value is not stored in state. Requires `private_key_passphrase_wo_version` to trigger updates.
+- `private_key_passphrase_wo_version` (Number) Version number for `private_key_passphrase_wo`. Increment this value to trigger an update of the private key passphrase when using `private_key_passphrase_wo`.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 - `role` (String) The role to assume
 - `schema` (String) The schema where to create models. This is an optional field ONLY if the credential is used for Semantic Layer configuration, otherwise it is required.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Snowflake credential for the Semantic Layer.
