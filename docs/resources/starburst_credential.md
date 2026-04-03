@@ -13,12 +13,31 @@ Starburst/Trino credential resource
 ## Example Usage
 
 ```terraform
+// Using the classic sensitive attribute (stored in state)
 resource "dbtcloud_starburst_credential" "example" {
   project_id = dbtcloud_project.example.id
-  database = "your_catalog"
-  schema = "your_schema"
-  user = "your_user"
-  password = "your_password"
+  database   = "your_catalog"
+  schema     = "your_schema"
+  user       = "your_user"
+  password   = "your_password"
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+//
+// The password_wo value is never persisted in the Terraform state file.
+// Use password_wo_version to trigger an update when the password changes.
+variable "starburst_password" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_starburst_credential" "example_wo" {
+  project_id          = dbtcloud_project.example.id
+  database            = "your_catalog"
+  schema              = "your_schema"
+  user                = "your_user"
+  password_wo         = var.starburst_password
+  password_wo_version = 1
 }
 ```
 
