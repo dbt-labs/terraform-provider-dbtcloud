@@ -87,8 +87,16 @@ func (r *teradataCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config TeradataCredentialModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	schema := plan.Schema.ValueString()
 	projectID := int(plan.ProjectID.ValueInt64())
 	threads := plan.Threads.ValueInt64()
@@ -178,6 +186,14 @@ func (r *teradataCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config TeradataCredentialModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state TeradataCredentialModel
 	diags = req.State.Get(ctx, &state)
@@ -189,7 +205,7 @@ func (r *teradataCredentialResource) Update(
 	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	schema := plan.Schema.ValueString()
 
 	// Generate credential details

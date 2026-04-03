@@ -73,34 +73,6 @@ func (r *snowflakeCredentialResource) Schema(
 	resp.Schema = SnowflakeCredentialResourceSchema
 }
 
-// resolveWriteOnlySecrets reads the config to get write-only attribute values
-// and resolves them against the regular attributes (write-only takes precedence).
-func resolveWriteOnlySecrets(
-	config SnowflakeCredentialResourceModel,
-	plan SnowflakeCredentialResourceModel,
-) (password, privateKey, privateKeyPassphrase string) {
-	// Write-only attributes take precedence over regular attributes
-	if !config.PasswordWo.IsNull() {
-		password = config.PasswordWo.ValueString()
-	} else {
-		password = plan.Password.ValueString()
-	}
-
-	if !config.PrivateKeyWo.IsNull() {
-		privateKey = config.PrivateKeyWo.ValueString()
-	} else {
-		privateKey = plan.PrivateKey.ValueString()
-	}
-
-	if !config.PrivateKeyPassphraseWo.IsNull() {
-		privateKeyPassphrase = config.PrivateKeyPassphraseWo.ValueString()
-	} else {
-		privateKeyPassphrase = plan.PrivateKeyPassphrase.ValueString()
-	}
-
-	return
-}
-
 // Create creates the resource and sets the initial Terraform state.
 func (r *snowflakeCredentialResource) Create(
 	ctx context.Context,
@@ -133,7 +105,9 @@ func (r *snowflakeCredentialResource) Create(
 	num_threads := int(plan.NumThreads.ValueInt64())
 	is_active := plan.IsActive.ValueBool()
 
-	password, private_key, private_key_passphrase := resolveWriteOnlySecrets(config, plan)
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	private_key := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+	private_key_passphrase := helper.ResolveWriteOnlyString(config.PrivateKeyPassphraseWo, plan.PrivateKeyPassphrase)
 
 	// Create new credential
 	credential, err := r.client.CreateSnowflakeCredential(
@@ -268,7 +242,9 @@ func (r *snowflakeCredentialResource) Update(
 			return
 		}
 
-		password, privateKey, privateKeyPassphrase := resolveWriteOnlySecrets(config, plan)
+		password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+		privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+		privateKeyPassphrase := helper.ResolveWriteOnlyString(config.PrivateKeyPassphraseWo, plan.PrivateKeyPassphrase)
 
 		credential.Auth_Type = plan.AuthType.ValueString()
 		credential.Database = plan.Database.ValueString()

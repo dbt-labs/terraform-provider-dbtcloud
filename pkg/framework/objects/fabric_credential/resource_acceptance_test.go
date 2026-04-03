@@ -183,6 +183,191 @@ resource "dbtcloud_fabric_credential" "test_credential" {
 `, projectName, clientId, tenantId, clientSecret)
 }
 
+func TestAccDbtCloudFabricCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	tenantId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientSecret2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudFabricCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudFabricCredentialWriteOnlyUserPassConfig(
+					projectName, user, password, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudFabricCredentialExists(
+						"dbtcloud_fabric_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"user",
+						user,
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudFabricCredentialWriteOnlyUserPassConfig(
+					projectName, user, password2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudFabricCredentialExists(
+						"dbtcloud_fabric_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Switch to service principal with write-only client_secret
+			{
+				Config: testAccDbtCloudFabricCredentialWriteOnlyServicePrincipalConfig(
+					projectName, clientId, tenantId, clientSecret, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudFabricCredentialExists(
+						"dbtcloud_fabric_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"client_id",
+						clientId,
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"client_secret_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 4: Update client_secret by incrementing version
+			{
+				Config: testAccDbtCloudFabricCredentialWriteOnlyServicePrincipalConfig(
+					projectName, clientId, tenantId, clientSecret2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudFabricCredentialExists(
+						"dbtcloud_fabric_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential_wo",
+						"client_secret_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 5: Import
+			{
+				ResourceName:      "dbtcloud_fabric_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"password", "client_secret",
+					"password_wo", "password_wo_version",
+					"client_secret_wo", "client_secret_wo_version",
+					"schema_authorization", "user", "adapter_type",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudFabricCredentialWriteOnlyUserPassConfig(
+	projectName, user, passwordWo string, passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "fabric" {
+  name = "My Fabric connection"
+  fabric = {
+    project_id = dbtcloud_project.test_project.id
+	name = "Fabric"
+	database = "testdb"
+	server = "example.com"
+	port = 1234
+  }
+}
+
+resource "dbtcloud_fabric_credential" "test_credential_wo" {
+    project_id = dbtcloud_project.test_project.id
+    schema = "my_schema"
+    user = "%s"
+    password_wo = "%s"
+    password_wo_version = %d
+    schema_authorization = "sp"
+	adapter_type = "fabric"
+}
+`, projectName, user, passwordWo, passwordWoVersion)
+}
+
+func testAccDbtCloudFabricCredentialWriteOnlyServicePrincipalConfig(
+	projectName, clientId, tenantId, clientSecretWo string, clientSecretWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "fabric" {
+  name = "My Fabric connection"
+  fabric = {
+    project_id = dbtcloud_project.test_project.id
+	name = "Fabric"
+	database = "testdb"
+	server = "example.com"
+	port = 1234
+  }
+}
+
+resource "dbtcloud_fabric_credential" "test_credential_wo" {
+    project_id = dbtcloud_project.test_project.id
+    schema = "my_schema_new"
+    client_id = "%s"
+    tenant_id = "%s"
+    client_secret_wo = "%s"
+    client_secret_wo_version = %d
+	adapter_type = "fabric"
+}
+`, projectName, clientId, tenantId, clientSecretWo, clientSecretWoVersion)
+}
+
 func testAccCheckDbtCloudFabricCredentialExists(resource string) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]

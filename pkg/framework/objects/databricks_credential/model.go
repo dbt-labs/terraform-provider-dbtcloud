@@ -21,6 +21,8 @@ type DatabricksCredentialResourceModel struct {
 	ProjectID               types.Int64  `tfsdk:"project_id"`
 	TargetName              types.String `tfsdk:"target_name"`
 	Token                   types.String `tfsdk:"token"`
+	TokenWo                 types.String `tfsdk:"token_wo"`
+	TokenWoVersion          types.Int64  `tfsdk:"token_wo_version"`
 	Catalog                 types.String `tfsdk:"catalog"`
 	Schema                  types.String `tfsdk:"schema"`
 	AdapterType             types.String `tfsdk:"adapter_type"`

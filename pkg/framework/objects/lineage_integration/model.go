@@ -11,4 +11,6 @@ type LineageIntegrationResourceModel struct {
 	SiteID               types.String `tfsdk:"site_id"`
 	TokenName            types.String `tfsdk:"token_name"`
 	Token                types.String `tfsdk:"token"`
+	TokenWo              types.String `tfsdk:"token_wo"`
+	TokenWoVersion       types.Int64  `tfsdk:"token_wo_version"`
 }

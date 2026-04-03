@@ -86,14 +86,23 @@ func (r *fabricCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config FabricCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
 	tenantId := plan.TenantId.ValueString()
 	clientId := plan.ClientId.ValueString()
-	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
 	// Create new credential
 	credential, err := r.client.CreateFabricCredential(
@@ -182,6 +191,14 @@ func (r *fabricCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config FabricCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state FabricCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -193,12 +210,13 @@ func (r *fabricCredentialResource) Update(
 	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
 	tenantId := plan.TenantId.ValueString()
 	clientId := plan.ClientId.ValueString()
-	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(

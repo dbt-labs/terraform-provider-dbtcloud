@@ -4,6 +4,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -83,9 +84,25 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
 		"token": resource_schema.StringAttribute{
-			Description: "Token for Databricks user",
-			Required:    true,
+			Description: "Token for Databricks user. Consider using `token_wo` instead, which is not stored in state.",
+			Optional:    true,
 			Sensitive:   true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("token_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("token_wo")),
+			},
+		},
+		"token_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("token")),
+			},
+		},
+		"token_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.",
 		},
 		"catalog": resource_schema.StringAttribute{
 			Description: "The catalog where to create models (only for the databricks adapter)",

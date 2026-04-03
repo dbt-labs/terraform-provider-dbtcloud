@@ -127,6 +127,84 @@ func testAccCheckDbtCloudTeradataCredentialExists(resource string) resource.Test
 	}
 }
 
+func TestAccDbtCloudTeradataCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	schema := "test_schema"
+	user := "test_user"
+	password := "test_password"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudTeradataCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Create with write-only password
+			{
+				Config: testAccDbtCloudTeradataCredentialResourceWriteOnlyConfig(
+					projectName,
+					schema,
+					user,
+					password,
+					1,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudTeradataCredentialExists("dbtcloud_teradata_credential.test"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_teradata_credential.test",
+						"id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_teradata_credential.test",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_teradata_credential.test",
+						"schema",
+						schema,
+					),
+				),
+			},
+			// Update with bumped write-only version
+			{
+				Config: testAccDbtCloudTeradataCredentialResourceWriteOnlyConfig(
+					projectName,
+					schema,
+					user,
+					"updated_password",
+					2,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudTeradataCredentialExists("dbtcloud_teradata_credential.test"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudTeradataCredentialResourceWriteOnlyConfig(
+	projectName string,
+	schema string,
+	user string,
+	password string,
+	passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test" {
+  name = "%s"
+}
+
+resource "dbtcloud_teradata_credential" "test" {
+  project_id           = dbtcloud_project.test.id
+  schema               = "%s"
+  user                 = "%s"
+  password_wo          = "%s"
+  password_wo_version  = %d
+}
+`, projectName, schema, user, password, passwordWoVersion)
+}
+
 func testAccCheckDbtCloudTeradataCredentialDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

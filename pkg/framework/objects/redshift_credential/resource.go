@@ -87,12 +87,20 @@ func (r *redshiftCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config RedshiftCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	isActive := plan.IsActive.ValueBool()
 	projectID := int(plan.ProjectID.ValueInt64())
 	defaultSchema := plan.DefaultSchema.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 	username := plan.Username.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 
 	// Create new credential
 	credential, err := r.client.CreateRedshiftCredential(
@@ -186,6 +194,14 @@ func (r *redshiftCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config RedshiftCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state RedshiftCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -199,7 +215,10 @@ func (r *redshiftCredentialResource) Update(
 	dataset := plan.DefaultSchema.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
-	if (state.DefaultSchema.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+	if (state.DefaultSchema.ValueString() != dataset) ||
+		(state.NumThreads.ValueInt64() != int64(numThreads)) ||
+		(state.Password != plan.Password) ||
+		(state.PasswordWoVersion != plan.PasswordWoVersion) {
 		credential, err := r.client.GetRedshiftCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -209,12 +228,15 @@ func (r *redshiftCredentialResource) Update(
 			return
 		}
 
+		password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+
 		if state.DefaultSchema.ValueString() != dataset {
 			credential.DefaultSchema = dataset
 		}
 		if state.NumThreads.ValueInt64() != int64(numThreads) {
 			credential.Threads = numThreads
 		}
+		credential.Password = password
 
 		_, err = r.client.UpdateRedshiftCredential(
 			projectID,

@@ -6,8 +6,11 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/postgres_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/snowflake_credential"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	config_resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 var semantic_layer_config_resource_schema = config_resource_schema.Schema{
@@ -74,9 +77,24 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 		},
 
 		"private_key": resource_schema.StringAttribute{
-			Required:    true,
+			Optional:    true,
 			Sensitive:   true,
-			Description: "Private Key for the Service Account",
+			Description: "Private Key for the Service Account. Consider using `private_key_wo` instead, which is not stored in state.",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("private_key_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("private_key_wo")),
+			},
+		},
+
+		"private_key_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.",
+		},
+
+		"private_key_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.",
 		},
 
 		"client_email": resource_schema.StringAttribute{

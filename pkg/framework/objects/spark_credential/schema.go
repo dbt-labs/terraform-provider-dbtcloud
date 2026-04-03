@@ -1,12 +1,15 @@
 package spark_credential
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 var dataSourceSchema = datasource_schema.Schema{
@@ -71,9 +74,25 @@ var SparkResourceSchema = resource_schema.Schema{
 			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
 		"token": resource_schema.StringAttribute{
-			Description: "Token for Apache Spark user",
-			Required:    true,
+			Description: "Token for Apache Spark user. Consider using `token_wo` instead, which is not stored in state.",
+			Optional:    true,
 			Sensitive:   true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("token_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("token_wo")),
+			},
+		},
+		"token_wo": resource_schema.StringAttribute{
+			Description: "Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.",
+			Optional:    true,
+			WriteOnly:   true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("token")),
+			},
+		},
+		"token_wo_version": resource_schema.Int64Attribute{
+			Description: "Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.",
+			Optional:    true,
 		},
 		"schema": resource_schema.StringAttribute{
 			Description: "The schema where to create models",

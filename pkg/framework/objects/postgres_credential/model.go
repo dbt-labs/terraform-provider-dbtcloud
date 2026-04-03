@@ -25,5 +25,7 @@ type PostgresCredentialResourceModel struct {
 	Type                    types.String `tfsdk:"type"`
 	TargetName              types.String `tfsdk:"target_name"`
 	Password                types.String `tfsdk:"password"`
+	PasswordWo              types.String `tfsdk:"password_wo"`
+	PasswordWoVersion       types.Int64  `tfsdk:"password_wo_version"`
 	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
 }

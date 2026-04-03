@@ -86,15 +86,24 @@ func (r *synapseCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SynapseCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
 	authentication := plan.Authentication.ValueString()
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
 	tenantId := plan.TenantId.ValueString()
 	clientId := plan.ClientId.ValueString()
-	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
 	if (authentication == "ServicePrincipal" && user != "") || (authentication != "ServicePrincipal" && user == "") {
 		resp.Diagnostics.AddError(
@@ -192,6 +201,14 @@ func (r *synapseCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SynapseCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state SynapseCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -204,12 +221,13 @@ func (r *synapseCredentialResource) Update(
 	credentialID := int(state.CredentialID.ValueInt64())
 	authentication := plan.Authentication.ValueString()
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
 	tenantId := plan.TenantId.ValueString()
 	clientId := plan.ClientId.ValueString()
-	clientSecret := plan.ClientSecret.ValueString()
 	schema := plan.Schema.ValueString()
 	schemaAuthorization := plan.SchemaAuthorization.ValueString()
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
 	if (authentication == "ServicePrincipal" && user != "") || (authentication != "ServicePrincipal" && user == "") {
 		resp.Diagnostics.AddError(

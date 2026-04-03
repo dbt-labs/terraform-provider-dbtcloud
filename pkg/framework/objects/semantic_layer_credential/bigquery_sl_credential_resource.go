@@ -97,12 +97,21 @@ func (r *bigQuerySemanticLayerCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config BigQuerySLCredentialModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := plan.Credential.ProjectID.ValueInt64()
+
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
 
 	//add credential fields to values map
 	values := map[string]interface{}{
 		"private_key_id":              plan.PrivateKeyID.ValueString(),
-		"private_key":                 plan.PrivateKey.ValueString(),
+		"private_key":                 privateKey,
 		"client_email":                plan.ClientEmail.ValueString(),
 		"client_id":                   plan.ClientID.ValueString(),
 		"auth_uri":                    plan.AuthURI.ValueString(),
@@ -184,6 +193,13 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config BigQuerySLCredentialModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	id := state.ID.ValueInt64()
 
 	credential, err := r.client.GetSemanticLayerCredential(id)
@@ -195,9 +211,11 @@ func (r *bigQuerySemanticLayerCredentialResource) Update(
 		return
 	}
 
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+
 	values := map[string]interface{}{
 		"private_key_id":              plan.PrivateKeyID.ValueString(),
-		"private_key":                 plan.PrivateKey.ValueString(),
+		"private_key":                 privateKey,
 		"client_email":                plan.ClientEmail.ValueString(),
 		"client_id":                   plan.ClientID.ValueString(),
 		"auth_uri":                    plan.AuthURI.ValueString(),

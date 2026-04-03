@@ -110,12 +110,29 @@ var resourceSchema = resource_schema.Schema{
 			Sensitive:   true,
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
-			Description: "The password for the account to connect to. Only used when connection with AD user/pass",
+			Description: "The password for the account to connect to. Only used when connection with AD user/pass. Consider using `password_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
 					conflictingFields: []string{"tenant_id", "client_id", "client_secret"},
 				},
+				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
 			},
+		},
+		"password_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				conflictingFieldsValidator{
+					conflictingFields: []string{"tenant_id", "client_id", "client_secret"},
+				},
+				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+			},
+		},
+		"password_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.",
 		},
 		"tenant_id": resource_schema.StringAttribute{
 			Optional:    true,
@@ -144,12 +161,29 @@ var resourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Sensitive:   true,
 			Default:     stringdefault.StaticString(""),
-			Description: "The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.",
+			Description: "The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal. Consider using `client_secret_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				conflictingFieldsValidator{
 					conflictingFields: []string{"user", "password"},
 				},
+				stringvalidator.ConflictsWith(path.MatchRoot("client_secret_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("client_secret_wo")),
 			},
+		},
+		"client_secret_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `client_secret`. The value is not stored in state. Requires `client_secret_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				conflictingFieldsValidator{
+					conflictingFields: []string{"user", "password", "password_wo"},
+				},
+				stringvalidator.ConflictsWith(path.MatchRoot("client_secret")),
+			},
+		},
+		"client_secret_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `client_secret_wo`. Increment this value to trigger an update of the client secret when using `client_secret_wo`.",
 		},
 		"schema": resource_schema.StringAttribute{
 			Required:    true,
