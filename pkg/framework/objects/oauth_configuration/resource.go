@@ -47,6 +47,14 @@ func (r *oAuthConfigurationResource) ValidateConfig(
 		return
 	}
 
+	// Validate that at least one of client_secret or client_secret_wo is set
+	if data.ClientSecret.IsNull() && data.ClientSecretWo.IsNull() {
+		resp.Diagnostics.AddError(
+			"Missing client secret",
+			"One of `client_secret` or `client_secret_wo` must be set",
+		)
+	}
+
 	if data.Type.ValueString() == "okta" && !data.ApplicationIdUri.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("application_id_uri"),
@@ -119,10 +127,17 @@ func (r *oAuthConfigurationResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config OAuthConfigurationResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	oAuthType := plan.Type.ValueString()
 	name := plan.Name.ValueString()
 	clientID := plan.ClientId.ValueString()
-	clientSecret := plan.ClientSecret.ValueString()
+	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 	authorizeURL := plan.AuthorizeUrl.ValueString()
 	tokenURL := plan.TokenUrl.ValueString()
 	redirectURI := plan.RedirectUri.ValueString()
@@ -189,6 +204,14 @@ func (r *oAuthConfigurationResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Retrieve config to access write-only attributes
+	var config OAuthConfigurationResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
@@ -213,8 +236,8 @@ func (r *oAuthConfigurationResource) Update(
 	if plan.ClientId != state.ClientId {
 		retrievedOAuthConfiguration.ClientId = plan.ClientId.ValueString()
 	}
-	if plan.ClientSecret != state.ClientSecret {
-		retrievedOAuthConfiguration.ClientSecret = plan.ClientSecret.ValueString()
+	if plan.ClientSecret != state.ClientSecret || plan.ClientSecretWoVersion != state.ClientSecretWoVersion {
+		retrievedOAuthConfiguration.ClientSecret = helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 	}
 	if plan.AuthorizeUrl != state.AuthorizeUrl {
 		retrievedOAuthConfiguration.AuthorizeUrl = plan.AuthorizeUrl.ValueString()

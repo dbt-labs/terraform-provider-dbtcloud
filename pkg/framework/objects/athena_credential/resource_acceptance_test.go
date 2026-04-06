@@ -163,6 +163,131 @@ func testAccCheckDbtCloudAthenaCredentialExists(resource string) resource.TestCh
 	}
 }
 
+func TestAccDbtCloudAthenaCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping write-only acceptance test until CI environment supports it")
+
+	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	schema := "test_schema"
+	awsAccessKeyID := "test_access_key_id"
+	awsAccessKeyID2 := "test_access_key_id_2"
+	awsSecretAccessKey := "test_secret_access_key"
+	awsSecretAccessKey2 := "test_secret_access_key_2"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudAthenaCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only attributes
+			{
+				Config: testAccDbtCloudAthenaCredentialWriteOnlyConfig(
+					projectName, schema, awsAccessKeyID, awsSecretAccessKey, 1, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudAthenaCredentialExists(
+						"dbtcloud_athena_credential.test_wo",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_athena_credential.test_wo",
+						"id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_athena_credential.test_wo",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"schema",
+						schema,
+					),
+					// write-only attributes should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_access_key_id_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_access_key_id_wo_version",
+						"1",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_secret_access_key_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_secret_access_key_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing versions with new values
+			{
+				Config: testAccDbtCloudAthenaCredentialWriteOnlyConfig(
+					projectName, schema, awsAccessKeyID2, awsSecretAccessKey2, 2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudAthenaCredentialExists(
+						"dbtcloud_athena_credential.test_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_access_key_id_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_access_key_id_wo_version",
+						"2",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_secret_access_key_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_athena_credential.test_wo",
+						"aws_secret_access_key_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_athena_credential.test_wo",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"aws_access_key_id",
+					"aws_secret_access_key",
+					"aws_access_key_id_wo",
+					"aws_access_key_id_wo_version",
+					"aws_secret_access_key_wo",
+					"aws_secret_access_key_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudAthenaCredentialWriteOnlyConfig(
+	projectName, schema, awsAccessKeyIDWo, awsSecretAccessKeyWo string,
+	accessKeyWoVersion, secretKeyWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test" {
+  name = "%s"
+}
+
+resource "dbtcloud_athena_credential" "test_wo" {
+  project_id                      = dbtcloud_project.test.id
+  schema                          = "%s"
+  aws_access_key_id_wo            = "%s"
+  aws_access_key_id_wo_version    = %d
+  aws_secret_access_key_wo        = "%s"
+  aws_secret_access_key_wo_version = %d
+}
+`, projectName, schema, awsAccessKeyIDWo, accessKeyWoVersion, awsSecretAccessKeyWo, secretKeyWoVersion)
+}
+
 func testAccCheckDbtCloudAthenaCredentialDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

@@ -14,12 +14,16 @@ type SalesforceCredentialDataSourceModel struct {
 }
 
 type SalesforceCredentialResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	CredentialID types.Int64  `tfsdk:"credential_id"`
-	ProjectID    types.Int64  `tfsdk:"project_id"`
-	Username     types.String `tfsdk:"username"`
-	ClientID     types.String `tfsdk:"client_id"`
-	PrivateKey   types.String `tfsdk:"private_key"`
-	TargetName   types.String `tfsdk:"target_name"`
-	NumThreads   types.Int64  `tfsdk:"num_threads"`
+	ID                  types.String `tfsdk:"id"`
+	CredentialID        types.Int64  `tfsdk:"credential_id"`
+	ProjectID           types.Int64  `tfsdk:"project_id"`
+	Username            types.String `tfsdk:"username"`
+	ClientID            types.String `tfsdk:"client_id"`
+	ClientIDWo          types.String `tfsdk:"client_id_wo"`
+	ClientIDWoVersion   types.Int64  `tfsdk:"client_id_wo_version"`
+	PrivateKey          types.String `tfsdk:"private_key"`
+	PrivateKeyWo        types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion types.Int64  `tfsdk:"private_key_wo_version"`
+	TargetName          types.String `tfsdk:"target_name"`
+	NumThreads          types.Int64  `tfsdk:"num_threads"`
 }

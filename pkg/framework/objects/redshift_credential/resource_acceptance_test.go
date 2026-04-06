@@ -102,6 +102,98 @@ func testAccCheckDbtCloudRedshiftCredentialExists(resource string) resource.Test
 	}
 }
 
+func TestAccDbtCloudRedshiftCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	username := acctest.RandString(10)
+	password := acctest.RandString(10)
+	password2 := acctest.RandString(10)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudRedshiftCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudRedshiftCredentialWriteOnlyConfig(
+					projectName, username, password, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudRedshiftCredentialExists(
+						"dbtcloud_redshift_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_credential.test_credential_wo",
+						"username",
+						username,
+					),
+					// password_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_redshift_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_credential.test_credential_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudRedshiftCredentialWriteOnlyConfig(
+					projectName, username, password2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudRedshiftCredentialExists(
+						"dbtcloud_redshift_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_redshift_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_redshift_credential.test_credential_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_redshift_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"password",
+					"password_wo", "password_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudRedshiftCredentialWriteOnlyConfig(
+	projectName, username, passwordWo string, passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+resource "dbtcloud_redshift_credential" "test_credential_wo" {
+    is_active    = true
+    project_id   = dbtcloud_project.test_project.id
+    num_threads  = 3
+    default_schema = "test"
+    username     = "%s"
+    password_wo  = "%s"
+    password_wo_version = %d
+}
+`, projectName, username, passwordWo, passwordWoVersion)
+}
+
 func testAccCheckDbtCloudRedshiftCredentialDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

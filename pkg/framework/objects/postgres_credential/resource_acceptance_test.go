@@ -427,6 +427,106 @@ func verifyBugIsFixed(t *testing.T, tracker *APICallTracker) resource.TestCheckF
 	}
 }
 
+func TestAccDbtCloudPostgresCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	defaultSchema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	username := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudPostgresCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudPostgresCredentialWriteOnlyConfig(
+					projectName, defaultSchema, username, password, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudPostgresCredentialExists(
+						"dbtcloud_postgres_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"default_schema",
+						defaultSchema,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"username",
+						username,
+					),
+					// password_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudPostgresCredentialWriteOnlyConfig(
+					projectName, defaultSchema, username, password2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudPostgresCredentialExists(
+						"dbtcloud_postgres_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_postgres_credential.test_credential_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_postgres_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"password",
+					"password_wo", "password_wo_version",
+					"semantic_layer_credential",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudPostgresCredentialWriteOnlyConfig(
+	projectName, defaultSchema, username, passwordWo string, passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+resource "dbtcloud_postgres_credential" "test_credential_wo" {
+    is_active      = true
+    project_id     = dbtcloud_project.test_project.id
+    type           = "postgres"
+    default_schema = "%s"
+    username       = "%s"
+    password_wo    = "%s"
+    password_wo_version = %d
+    num_threads    = 3
+}
+`, projectName, defaultSchema, username, passwordWo, passwordWoVersion)
+}
+
 func updatePostgresCredentialHandlers(handlers map[string]MockEndpointHandler, accountID int64, projectID, credentialID int, tracker *APICallTracker) {
 	currentSchema := "test_schema"
 

@@ -64,7 +64,9 @@ Optional:
 - `default_schema` (String) Default schema name. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `is_active` (Boolean) Whether the Postgres/Redshift/AlloyDB credential is active
 - `num_threads` (Number) Number of threads to use (required for Redshift)
-- `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB
+- `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.
 - `target_name` (String) Default schema name
 - `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.

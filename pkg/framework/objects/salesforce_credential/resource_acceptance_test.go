@@ -126,6 +126,121 @@ func testAccCheckDbtCloudSalesforceCredentialExists(resourceName string) resourc
 	}
 }
 
+func TestAccDbtCloudSalesforceCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	username := strings.ToLower(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)) + "@example.com"
+	clientID := strings.ToUpper(acctest.RandStringFromCharSet(20, acctest.CharSetAlpha))
+	clientID2 := strings.ToUpper(acctest.RandStringFromCharSet(20, acctest.CharSetAlpha))
+	privateKey := "-----BEGIN RSA PRIVATE KEY-----MIIEpAIBAAKCAQEA" + strings.ToUpper(acctest.RandStringFromCharSet(50, acctest.CharSetAlpha)) + "-----END RSA PRIVATE KEY-----"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSalesforceCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only attributes
+			{
+				Config: testAccDbtCloudSalesforceCredentialWriteOnlyConfig(
+					projectName, connectionName, username, clientID, privateKey, 1, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSalesforceCredentialExists(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"username",
+						username,
+					),
+					// client_id_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"client_id_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"client_id_wo_version",
+						"1",
+					),
+					// private_key_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"private_key_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"private_key_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing client_id_wo_version
+			{
+				Config: testAccDbtCloudSalesforceCredentialWriteOnlyConfig(
+					projectName, connectionName, username, clientID2, privateKey, 2, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSalesforceCredentialExists(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"client_id_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_salesforce_credential.test_credential_wo",
+						"client_id_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_salesforce_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"client_id", "private_key",
+					"client_id_wo", "client_id_wo_version",
+					"private_key_wo", "private_key_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudSalesforceCredentialWriteOnlyConfig(
+	projectName, connectionName, username, clientIDWo, privateKeyWo string,
+	clientIDWoVersion, privateKeyWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "salesforce" {
+  name = "%s"
+  salesforce = {
+    login_url                  = "https://login.salesforce.com"
+    database                   = "default"
+    data_transform_run_timeout = 300
+  }
+}
+
+resource "dbtcloud_salesforce_credential" "test_credential_wo" {
+  project_id            = dbtcloud_project.test_project.id
+  username              = "%s"
+  client_id_wo          = "%s"
+  client_id_wo_version  = %d
+  private_key_wo        = "%s"
+  private_key_wo_version = %d
+}
+`, projectName, connectionName, username, clientIDWo, clientIDWoVersion, privateKeyWo, privateKeyWoVersion)
+}
+
 func testAccCheckDbtCloudSalesforceCredentialDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

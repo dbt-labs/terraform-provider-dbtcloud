@@ -143,9 +143,17 @@ func (p *postgresCredentialResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config PostgresCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
 	username := plan.Username.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	defaultSchema := plan.DefaultSchema.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 	type_value := plan.Type.ValueString()
@@ -270,6 +278,14 @@ func (p *postgresCredentialResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config PostgresCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	var state PostgresCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -294,11 +310,14 @@ func (p *postgresCredentialResource) Update(ctx context.Context, req resource.Up
 		)
 		return
 	}
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+
 	credential.Type = plan.Type.ValueString()
 	credential.Default_Schema = plan.DefaultSchema.ValueString()
 	credential.Target_Name = plan.TargetName.ValueString()
 	credential.Username = plan.Username.ValueString()
-	credential.Password = plan.Password.ValueString()
+	credential.Password = password
 	credential.Threads = int(plan.NumThreads.ValueInt64())
 
 	if plan.IsActive.ValueBool() {

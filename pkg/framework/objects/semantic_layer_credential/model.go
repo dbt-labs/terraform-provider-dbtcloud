@@ -28,6 +28,8 @@ type BigQuerySLCredentialModel struct {
 	Credential          bigquery_credential.BigqueryCredentialResourceModel `tfsdk:"credential"`
 	PrivateKeyID        types.String                                        `tfsdk:"private_key_id"`
 	PrivateKey          types.String                                        `tfsdk:"private_key"`
+	PrivateKeyWo        types.String                                        `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion types.Int64                                         `tfsdk:"private_key_wo_version"`
 	ClientEmail         types.String                                        `tfsdk:"client_email"`
 	ClientID            types.String                                        `tfsdk:"client_id"`
 	AuthURI             types.String                                        `tfsdk:"auth_uri"`

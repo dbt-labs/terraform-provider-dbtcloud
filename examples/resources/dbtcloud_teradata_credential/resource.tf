@@ -1,7 +1,6 @@
 // Using the classic sensitive attribute (stored in state)
-resource "dbtcloud_starburst_credential" "example" {
+resource "dbtcloud_teradata_credential" "example" {
   project_id = dbtcloud_project.example.id
-  database   = "your_catalog"
   schema     = "your_schema"
   user       = "your_user"
   password   = "your_password"
@@ -11,16 +10,15 @@ resource "dbtcloud_starburst_credential" "example" {
 //
 // The password_wo value is never persisted in the Terraform state file.
 // Use password_wo_version to trigger an update when the password changes.
-variable "starburst_password" {
+variable "teradata_password" {
   type      = string
   ephemeral = true
 }
 
-resource "dbtcloud_starburst_credential" "example_wo" {
+resource "dbtcloud_teradata_credential" "example_wo" {
   project_id          = dbtcloud_project.example.id
-  database            = "your_catalog"
   schema              = "your_schema"
   user                = "your_user"
-  password_wo         = var.starburst_password
+  password_wo         = var.teradata_password
   password_wo_version = 1
 }

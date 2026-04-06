@@ -13,10 +13,27 @@ Apache Spark credential resource
 ## Example Usage
 
 ```terraform
+// Using the classic sensitive attribute (stored in state)
 resource "dbtcloud_spark_credential" "my_spark_cred" {
   project_id = dbtcloud_project.dbt_project.id
   token      = "abcdefgh"
   schema     = "my_schema"
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+//
+// The token_wo value is never persisted in the Terraform state file.
+// Use token_wo_version to trigger an update when the token changes.
+variable "spark_token" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_spark_credential" "my_spark_cred_wo" {
+  project_id       = dbtcloud_project.dbt_project.id
+  token_wo         = var.spark_token
+  token_wo_version = 1
+  schema           = "my_schema"
 }
 ```
 
@@ -27,11 +44,13 @@ resource "dbtcloud_spark_credential" "my_spark_cred" {
 
 - `project_id` (Number) Project ID to create the Apache Spark credential in
 - `schema` (String) The schema where to create models
-- `token` (String, Sensitive) Token for Apache Spark user
 
 ### Optional
 
 - `target_name` (String, Deprecated) Target name
+- `token` (String, Sensitive) Token for Apache Spark user. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 

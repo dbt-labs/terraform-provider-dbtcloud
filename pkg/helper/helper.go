@@ -24,6 +24,16 @@ func EmptySetDefault(elemType attr.Type) defaults.Set {
 	)
 }
 
+// ResolveWriteOnlyString returns the write-only value if set, otherwise falls
+// back to the regular attribute value. Use this to resolve _wo / non-_wo pairs
+// in resource Create and Update methods.
+func ResolveWriteOnlyString(writeOnlyValue, regularValue types.String) string {
+	if !writeOnlyValue.IsNull() {
+		return writeOnlyValue.ValueString()
+	}
+	return regularValue.ValueString()
+}
+
 func IntPointerToInt64Pointer(value *int) *int64 {
 	if value == nil {
 		return nil

@@ -9,7 +9,9 @@ type OAuthConfigurationResourceModel struct {
 	Type             types.String `tfsdk:"type"`
 	Name             types.String `tfsdk:"name"`
 	ClientId         types.String `tfsdk:"client_id"`
-	ClientSecret     types.String `tfsdk:"client_secret"`
+	ClientSecret          types.String `tfsdk:"client_secret"`
+	ClientSecretWo        types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWoVersion types.Int64  `tfsdk:"client_secret_wo_version"`
 	AuthorizeUrl     types.String `tfsdk:"authorize_url"`
 	TokenUrl         types.String `tfsdk:"token_url"`
 	RedirectUri      types.String `tfsdk:"redirect_uri"`

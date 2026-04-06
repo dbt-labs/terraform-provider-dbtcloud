@@ -4,8 +4,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// TeradataCredentialModel is the model for the resource
-type TeradataCredentialModel struct {
+// TeradataCredentialDataSourceModel is the model for the data source
+type TeradataCredentialDataSourceModel struct {
 	ID           types.String `tfsdk:"id"`
 	CredentialID types.Int64  `tfsdk:"credential_id"`
 	ProjectID    types.Int64  `tfsdk:"project_id"`
@@ -13,4 +13,17 @@ type TeradataCredentialModel struct {
 	Password     types.String `tfsdk:"password"`
 	Schema       types.String `tfsdk:"schema"`
 	Threads      types.Int64  `tfsdk:"threads"`
+}
+
+// TeradataCredentialModel is the model for the resource
+type TeradataCredentialModel struct {
+	ID                types.String `tfsdk:"id"`
+	CredentialID      types.Int64  `tfsdk:"credential_id"`
+	ProjectID         types.Int64  `tfsdk:"project_id"`
+	User              types.String `tfsdk:"user"`
+	Password          types.String `tfsdk:"password"`
+	PasswordWo        types.String `tfsdk:"password_wo"`
+	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
+	Schema            types.String `tfsdk:"schema"`
+	Threads           types.Int64  `tfsdk:"threads"`
 }

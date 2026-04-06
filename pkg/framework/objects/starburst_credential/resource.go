@@ -87,9 +87,17 @@ func (r *starburstCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config StarburstCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	database := plan.Database.ValueString()
 	schema := plan.Schema.ValueString()
 
@@ -178,6 +186,14 @@ func (r *starburstCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config StarburstCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state StarburstCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -189,7 +205,7 @@ func (r *starburstCredentialResource) Update(
 	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 	user := plan.User.ValueString()
-	password := plan.Password.ValueString()
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	database := plan.Database.ValueString()
 	schema := plan.Schema.ValueString()
 

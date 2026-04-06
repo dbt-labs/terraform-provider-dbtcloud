@@ -80,6 +80,16 @@ func (r *databricksPlatformMetadataCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config DatabricksPlatformMetadataCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
+
 	// Build the API request
 	credential := dbt_cloud.PlatformMetadataCredential{
 		ConnectionID:            plan.ConnectionID.ValueInt64(),
@@ -87,7 +97,7 @@ func (r *databricksPlatformMetadataCredentialResource) Create(
 		CostOptimizationEnabled: plan.CostOptimizationEnabled.ValueBool(),
 		CostInsightsEnabled:     plan.CostInsightsEnabled.ValueBool(),
 		Config: dbt_cloud.PlatformMetadataCredentialConfig{
-			Token:   plan.Token.ValueString(),
+			Token:   token,
 			Catalog: plan.Catalog.ValueString(),
 		},
 	}
@@ -174,6 +184,14 @@ func (r *databricksPlatformMetadataCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config DatabricksPlatformMetadataCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	var state DatabricksPlatformMetadataCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -183,6 +201,8 @@ func (r *databricksPlatformMetadataCredentialResource) Update(
 
 	credentialID := state.CredentialID.ValueInt64()
 
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
+
 	// Build the update request
 	// Note: connection_id is immutable and should not be included in update requests
 	credential := dbt_cloud.PlatformMetadataCredential{
@@ -190,7 +210,7 @@ func (r *databricksPlatformMetadataCredentialResource) Update(
 		CostOptimizationEnabled: plan.CostOptimizationEnabled.ValueBool(),
 		CostInsightsEnabled:     plan.CostInsightsEnabled.ValueBool(),
 		Config: dbt_cloud.PlatformMetadataCredentialConfig{
-			Token:   plan.Token.ValueString(),
+			Token:   token,
 			Catalog: plan.Catalog.ValueString(),
 		},
 	}

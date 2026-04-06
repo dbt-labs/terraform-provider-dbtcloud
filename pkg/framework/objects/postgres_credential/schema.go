@@ -4,6 +4,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -109,7 +110,23 @@ var PostgresResourceSchema = resource_schema.Schema{
 		"password": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
-			Description: "Password for Postgres/Redshift/AlloyDB",
+			Description: "Password for Postgres/Redshift/AlloyDB. Consider using `password_wo` instead, which is not stored in state.",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
+			},
+		},
+		"password_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+			},
+		},
+		"password_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.",
 		},
 		"num_threads": resource_schema.Int64Attribute{
 			Optional:    true,

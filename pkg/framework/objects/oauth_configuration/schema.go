@@ -5,6 +5,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -53,9 +54,22 @@ func (r *oAuthConfigurationResource) Schema(
 				Description: "The Client ID for the OAuth integration",
 			},
 			"client_secret": resource_schema.StringAttribute{
-				Required:    true,
-				Description: "The Client secret for the OAuth integration",
+				Optional:    true,
+				Description: "The Client secret for the OAuth integration. Consider using `client_secret_wo` instead, which is not stored in state.",
 				Sensitive:   true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("client_secret_wo")),
+					stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("client_secret_wo")),
+				},
+			},
+			"client_secret_wo": resource_schema.StringAttribute{
+				Optional:    true,
+				WriteOnly:   true,
+				Description: "Write-only alternative to `client_secret`. The value is not stored in state. Requires `client_secret_wo_version` to trigger updates.",
+			},
+			"client_secret_wo_version": resource_schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version number for `client_secret_wo`. Increment this value to trigger an update of the client secret when using `client_secret_wo`.",
 			},
 			"authorize_url": resource_schema.StringAttribute{
 				Required:    true,

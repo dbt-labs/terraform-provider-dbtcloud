@@ -19,12 +19,33 @@ This resource requires having an environment tagged as production already create
 // the resource can only be configured when a Prod environment has been set
 // so, you might want to explicitly set the dependency on your Prod environment resource
 
+// Using the classic sensitive attribute (stored in state)
 resource "dbtcloud_lineage_integration" "my_lineage" {
   project_id = dbtcloud_project.my_project.id
   host       = "my.host.com"
   site_id    = "mysiteid"
   token_name = "my-token-name"
   token      = "my-sensitive-token"
+
+  depends_on = [dbtcloud_environment.my_prod_env]
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+//
+// The token_wo value is never persisted in the Terraform state file.
+// Use token_wo_version to trigger an update when the token changes.
+variable "lineage_token" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_lineage_integration" "my_lineage_wo" {
+  project_id       = dbtcloud_project.my_project.id
+  host             = "my.host.com"
+  site_id          = "mysiteid"
+  token_name       = "my-token-name"
+  token_wo         = var.lineage_token
+  token_wo_version = 1
 
   depends_on = [dbtcloud_environment.my_prod_env]
 }
@@ -38,8 +59,13 @@ resource "dbtcloud_lineage_integration" "my_lineage" {
 - `host` (String) The URL of the BI server (see docs for more details)
 - `project_id` (Number) The dbt Cloud project ID for the integration
 - `site_id` (String) The sitename for the collections of dashboards (see docs for more details)
-- `token` (String, Sensitive) The secret token value to use to authenticate to the BI server
 - `token_name` (String) The token to use to authenticate to the BI server
+
+### Optional
+
+- `token` (String, Sensitive) The secret token value to use to authenticate to the BI server. Consider using `token_wo` instead, which is not stored in state.
+- `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
+- `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.
 
 ### Read-Only
 
