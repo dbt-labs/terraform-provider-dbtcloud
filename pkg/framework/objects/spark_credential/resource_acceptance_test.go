@@ -15,7 +15,6 @@ import (
 func TestAccDbtCloudSparkCredentialResourceGlobConn(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -27,17 +26,11 @@ func TestAccDbtCloudSparkCredentialResourceGlobConn(t *testing.T) {
 			{
 				Config: testAccDbtCloudSparkCredentialResourceBasicConfigGlobConn(
 					projectName,
-					targetName,
 					token,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudSparkCredentialExists(
 						"dbtcloud_spark_credential.test_spark_credential",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_spark_credential.test_spark_credential",
-						"target_name",
-						targetName,
 					),
 				),
 			},
@@ -45,7 +38,6 @@ func TestAccDbtCloudSparkCredentialResourceGlobConn(t *testing.T) {
 			{
 				Config: testAccDbtCloudSparkCredentialResourceBasicConfigGlobConn(
 					projectName,
-					targetName,
 					token2,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -71,7 +63,7 @@ func TestAccDbtCloudSparkCredentialResourceGlobConn(t *testing.T) {
 }
 
 func testAccDbtCloudSparkCredentialResourceBasicConfigGlobConn(
-	projectName, targetName, token string,
+	projectName, token string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -79,10 +71,9 @@ resource "dbtcloud_project" "test_project" {
 }
 
 resource "dbtcloud_spark_credential" "test_spark_credential" {
-  project_id  = dbtcloud_project.test_project.id
-  target_name = "%s"
-  token       = "%s"
-  schema      = "my_schema"
+  project_id = dbtcloud_project.test_project.id
+  token      = "%s"
+  schema     = "my_schema"
 }
   
 resource "dbtcloud_global_connection" "apache_spark" {
@@ -107,14 +98,13 @@ resource "dbtcloud_environment" "spark_environment" {
 }
 
 
-`, projectName, targetName, token)
+`, projectName, token)
 }
 
 func TestAccDbtCloudSparkCredentialResourceWriteOnly(t *testing.T) {
 	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -127,18 +117,12 @@ func TestAccDbtCloudSparkCredentialResourceWriteOnly(t *testing.T) {
 			{
 				Config: testAccDbtCloudSparkCredentialWriteOnlyConfig(
 					projectName,
-					targetName,
 					token,
 					1,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudSparkCredentialExists(
 						"dbtcloud_spark_credential.test_spark_credential_wo",
-					),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_spark_credential.test_spark_credential_wo",
-						"target_name",
-						targetName,
 					),
 					// token_wo should not be in state
 					resource.TestCheckNoResourceAttr(
@@ -156,7 +140,6 @@ func TestAccDbtCloudSparkCredentialResourceWriteOnly(t *testing.T) {
 			{
 				Config: testAccDbtCloudSparkCredentialWriteOnlyConfig(
 					projectName,
-					targetName,
 					token2,
 					2,
 				),
@@ -189,7 +172,7 @@ func TestAccDbtCloudSparkCredentialResourceWriteOnly(t *testing.T) {
 }
 
 func testAccDbtCloudSparkCredentialWriteOnlyConfig(
-	projectName, targetName, tokenWo string, tokenWoVersion int,
+	projectName, tokenWo string, tokenWoVersion int,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -198,7 +181,6 @@ resource "dbtcloud_project" "test_project" {
 
 resource "dbtcloud_spark_credential" "test_spark_credential_wo" {
   project_id       = dbtcloud_project.test_project.id
-  target_name      = "%s"
   token_wo         = "%s"
   token_wo_version = %d
   schema           = "my_schema"
@@ -226,7 +208,7 @@ resource "dbtcloud_environment" "spark_environment" {
 }
 
 
-`, projectName, targetName, tokenWo, tokenWoVersion)
+`, projectName, tokenWo, tokenWoVersion)
 }
 
 func testAccCheckDbtCloudSparkCredentialExists(resource string) resource.TestCheckFunc {

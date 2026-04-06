@@ -1,6 +1,7 @@
 package dbt_cloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -188,7 +189,25 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 
 	setRequestHeaders(req, c.Token)
 
+	// Capture the request body bytes upfront so they can be replayed on retries.
+	// http.Request.Body is consumed after the first Do() call, so without this
+	// any retry would send an empty body.
+	var requestBodyBytes []byte
+	if req.Body != nil {
+		requestBodyBytes, err = io.ReadAll(req.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error reading request body: %w", err)
+		}
+		req.Body = io.NopCloser(bytes.NewReader(requestBodyBytes))
+	}
+
 	for i := 0; i < c.MaxRetries; i++ {
+		// Reset the body at the start of every attempt after the first, since
+		// the previous Do() call will have consumed it.
+		if i > 0 && requestBodyBytes != nil {
+			req.Body = io.NopCloser(bytes.NewReader(requestBodyBytes))
+		}
+
 		res, err := c.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
@@ -239,6 +258,19 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 		}
 
 		if res.StatusCode == 500 {
+			// Only retry when the response has no JSON Content-Type, which
+			// indicates the request never reached the application (e.g. a
+			// load-balancer or reverse-proxy swallowed it). When the API itself
+			// returns a 500 it always sets Content-Type: application/json, so
+			// retrying that case is not safe — a create may have succeeded
+			// server-side and a retry could produce a duplicate resource.
+			isInfraError := !strings.Contains(res.Header.Get("Content-Type"), "application/json")
+			if isInfraError && i < c.MaxRetries-1 {
+				waitDuration := time.Duration(c.RetryIntervalSeconds) * time.Second * time.Duration(1<<uint(i))
+				fmt.Printf("Received transient 500 (infrastructure error) on attempt %d/%d, retrying in %v...\n", i+1, c.MaxRetries, waitDuration)
+				time.Sleep(waitDuration)
+				continue
+			}
 			return nil, fmt.Errorf("internal-server-error: %s", body)
 		}
 
