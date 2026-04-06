@@ -20,10 +20,6 @@ Retrieve data for a single repository
 - `project_id` (Number) Project ID to create the repository in
 - `repository_id` (Number) ID for the repository
 
-### Optional
-
-- `fetch_deploy_key` (Boolean, Deprecated) Whether we should return the public deploy key
-
 ### Read-Only
 
 - `azure_active_directory_project_id` (String) The Azure Dev Ops project ID

@@ -204,12 +204,6 @@ func (r *repositoryResource) Create(
 		plan.AzureBypassWebhookRegistrationFailure = types.BoolValue(azureBypassWebhookRegistrationFailure)
 	}
 
-	// Handle the deprecated FetchDeployKey field - just maintain the planned value
-	// This field doesn't affect API behavior but needs to be consistent for Terraform
-	if plan.FetchDeployKey.IsNull() {
-		plan.FetchDeployKey = types.BoolValue(false)
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -305,12 +299,6 @@ func (r *repositoryResource) Read(
 		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(*repository.AzureBypassWebhookRegistrationFailure)
 	} else {
 		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
-	}
-
-	// Handle the deprecated FetchDeployKey field - maintain existing value or default to false
-	// This field doesn't affect API behavior but needs to be consistent for Terraform
-	if state.FetchDeployKey.IsNull() {
-		state.FetchDeployKey = types.BoolValue(false)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -430,10 +418,6 @@ func (r *repositoryResource) Update(
 	} else {
 		state.AzureBypassWebhookRegistrationFailure = types.BoolValue(false)
 	}
-
-	// Handle the deprecated FetchDeployKey field - maintain the planned value
-	// This field doesn't affect API behavior but needs to be consistent for Terraform
-	state.FetchDeployKey = plan.FetchDeployKey
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

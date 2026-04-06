@@ -72,9 +72,8 @@ func TestAccDbtCloudRepositoryResourceDeploy(t *testing.T) {
 	var importDeployTestStep = resource.TestStep{
 		// IMPORT
 		ResourceName:            "dbtcloud_repository.test_repository_github_app",
-		ImportState:             true,
-		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+		ImportState:      true,
+		ImportStateVerify: true,
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,9 +92,8 @@ func TestAccDbtCloudRepositoryResourceClone(t *testing.T) {
 	var importCloneTestStep = resource.TestStep{
 		// IMPORT
 		ResourceName:            "dbtcloud_repository.test_repository_github",
-		ImportState:             true,
-		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"fetch_deploy_key"},
+		ImportState:      true,
+		ImportStateVerify: true,
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
