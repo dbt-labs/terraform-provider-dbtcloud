@@ -34,11 +34,6 @@ func getJobAttributes() map[string]schema.Attribute {
 				},
 			},
 		},
-		"timeout_seconds": schema.Int64Attribute{
-			Computed:           true,
-			DeprecationMessage: "Moved to execution.timeout_seconds",
-			Description:        "[Deprectated - Moved to execution.timeout_seconds] Number of seconds before the job times out",
-		},
 		"generate_docs": schema.BoolAttribute{
 			Computed:    true,
 			Description: "Whether the job generate docs",
@@ -209,15 +204,9 @@ func (j *jobDataSource) Schema(
 		Description: "The ID of the job",
 	}
 
-	jobAttributes["deferring_job_id"] = schema.Int64Attribute{
-		Computed:           true,
-		DeprecationMessage: "Deferral is now set at the environment level",
-		Description:        "[Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to",
-	}
-
 	jobAttributes["self_deferring"] = schema.BoolAttribute{
 		Computed:    true,
-		Description: "Whether this job defers on a previous run of itself (overrides value in deferring_job_id)",
+		Description: "Whether this job defers on a previous run of itself",
 	}
 
 	jobAttributes["job_completion_trigger_condition"] = schema.ListNestedAttribute{
@@ -259,11 +248,6 @@ func (d *jobsDataSource) Schema(
 	jobAttributes["job_id"] = schema.Int64Attribute{
 		Computed:    true,
 		Description: "The ID of the job",
-	}
-	jobAttributes["deferring_job_definition_id"] = schema.Int64Attribute{
-		Computed:           true,
-		DeprecationMessage: "Deferral is now set at the environment level",
-		Description:        "[Deprectated - Deferral is now set at the environment level] The ID of the job definition this job defers to",
 	}
 	jobAttributes["job_completion_trigger_condition"] = schema.SingleNestedAttribute{
 		Computed:    true,
@@ -345,13 +329,6 @@ func (j *jobResource) Schema(
 						Description: "The number of seconds before the job times out",
 					},
 				},
-			},
-			"timeout_seconds": resource_schema.Int64Attribute{
-				Optional:           true,
-				Computed:           true,
-				Default:            int64default.StaticInt64(0),
-				DeprecationMessage: "Use execution.timeout_seconds instead",
-				Description:        "Number of seconds to allow the job to run before timing out. Use execution.timeout_seconds instead.",
 			},
 			"generate_docs": resource_schema.BoolAttribute{
 				Optional:    true,

@@ -46,7 +46,6 @@ resource "dbtcloud_job" "daily_job" {
   schedule_type  = "days_of_week"
   schedule_hours = [0]
 
-  # set job timeout using the execution block (recommended)
   execution = {
     timeout_seconds = 1800
   }
@@ -79,7 +78,6 @@ resource "dbtcloud_job" "ci_job" {
   schedule_days = [0, 1, 2, 3, 4, 5, 6]
   schedule_type = "days_of_week"
 
-  # set job timeout - use execution block (recommended) instead of the deprecated timeout_seconds
   execution = {
     timeout_seconds = 3600
   }
@@ -240,7 +238,6 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 - `schedule_type` (String) Type of schedule to use, one of every_day/ days_of_week/ custom_cron/ interval_cron
 - `self_deferring` (Boolean) Whether this job defers on a previous run of itself
 - `target_name` (String) Target name for the dbt profile
-- `timeout_seconds` (Number, Deprecated) Number of seconds to allow the job to run before timing out. Use execution.timeout_seconds instead.
 - `triggers_on_draft_pr` (Boolean) Whether the CI job should be automatically triggered on draft PRs
 - `validate_execute_steps` (Boolean) When set to `true`, the provider will validate the `execute_steps` during plan time to ensure they contain valid dbt commands. If a command is not recognized (e.g., a new dbt command not yet supported by the provider), the validation will fail. Defaults to `false` to allow flexibility with newer dbt commands.
 

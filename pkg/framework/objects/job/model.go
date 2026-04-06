@@ -48,7 +48,6 @@ type JobSchedule struct {
 
 type JobDataSourceModel struct {
 	Execution                     *JobExecution         `tfsdk:"execution"`
-	TimeoutSeconds                types.Int64           `tfsdk:"timeout_seconds"`
 	GenerateDocs                  types.Bool            `tfsdk:"generate_docs"`
 	RunGenerateSources            types.Bool            `tfsdk:"run_generate_sources"`
 	ID                            types.Int64           `tfsdk:"id"`
@@ -59,7 +58,6 @@ type JobDataSourceModel struct {
 	Description                   types.String          `tfsdk:"description"`
 	DbtVersion                    types.String          `tfsdk:"dbt_version"`
 	ExecuteSteps                  []types.String        `tfsdk:"execute_steps"`
-	DeferringJobDefinitionID      types.Int64           `tfsdk:"deferring_job_definition_id"`
 	DeferringEnvironmentID        types.Int64           `tfsdk:"deferring_environment_id"`
 	ForceNodeSelection            types.Bool            `tfsdk:"force_node_selection"`
 	Triggers                      *JobTriggers          `tfsdk:"triggers"`
@@ -75,7 +73,6 @@ type JobDataSourceModel struct {
 // TODO remove this in the next major release
 type SingleJobDataSourceModel struct {
 	Execution                     *JobExecution                    `tfsdk:"execution"`
-	TimeoutSeconds                types.Int64                      `tfsdk:"timeout_seconds"`
 	GenerateDocs                  types.Bool                       `tfsdk:"generate_docs"`
 	RunGenerateSources            types.Bool                       `tfsdk:"run_generate_sources"`
 	ID                            types.Int64                      `tfsdk:"id"`
@@ -86,7 +83,6 @@ type SingleJobDataSourceModel struct {
 	Description                   types.String                     `tfsdk:"description"`
 	DbtVersion                    types.String                     `tfsdk:"dbt_version"`
 	ExecuteSteps                  []types.String                   `tfsdk:"execute_steps"`
-	DeferringJobId                types.Int64                      `tfsdk:"deferring_job_id"`
 	DeferringEnvironmentID        types.Int64                      `tfsdk:"deferring_environment_id"`
 	ForceNodeSelection            types.Bool                       `tfsdk:"force_node_selection"`
 	SelfDeferring                 types.Bool                       `tfsdk:"self_deferring"`
@@ -102,7 +98,6 @@ type SingleJobDataSourceModel struct {
 
 type JobResourceModel struct {
 	Execution              *JobExecution  `tfsdk:"execution"`
-	TimeoutSeconds         types.Int64    `tfsdk:"timeout_seconds"`          // deprecated, use Execution.TimeoutSeconds
 	GenerateDocs           types.Bool     `tfsdk:"generate_docs"`            // exists
 	RunGenerateSources     types.Bool     `tfsdk:"run_generate_sources"`     // exists
 	ID                     types.Int64    `tfsdk:"id"`                       // will hold job id?

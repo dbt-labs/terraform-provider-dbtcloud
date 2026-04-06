@@ -86,11 +86,6 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 						acctest_config.DBT_CLOUD_VERSION,
 					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_job.test_job",
-						"timeout_seconds",
-						"180",
-					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
@@ -159,11 +154,6 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 						acctest_config.DBT_CLOUD_VERSION,
 					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "target_name", "test"),
-					resource.TestCheckResourceAttr(
-						"dbtcloud_job.test_job",
-						"timeout_seconds",
-						"180",
-					),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "project_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "environment_id"),
 					resource.TestCheckResourceAttrSet("dbtcloud_job.test_job", "is_active"),
@@ -404,7 +394,6 @@ resource "dbtcloud_job" "test_job" {
   generate_docs = true
   schedule_type = "every_day"
   schedule_hours = [9, 17]
-  timeout_seconds = 180
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, acctest_config.DBT_CLOUD_VERSION)
 }
@@ -452,7 +441,6 @@ resource "dbtcloud_job" "test_job" {
   generate_docs = true
   schedule_type = "every_day"
   schedule_hours = [9, 17]
-  timeout_seconds = 180
 }
 
 resource "dbtcloud_job" "test_job_4" {

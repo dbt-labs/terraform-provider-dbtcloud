@@ -250,14 +250,9 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	selfDeferring := plan.SelfDeferring.ValueBool()
-	// Handle timeout_seconds from either execution block (preferred) or top-level (deprecated)
 	var timeoutSeconds int
 	if plan.Execution != nil && !plan.Execution.TimeoutSeconds.IsNull() {
 		timeoutSeconds = int(plan.Execution.TimeoutSeconds.ValueInt64())
-	} else {
-		if !plan.TimeoutSeconds.IsNull() {
-			timeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
-		}
 	}
 	triggersOnDraftPR := plan.TriggersOnDraftPr.ValueBool()
 	runCompareChanges := plan.RunCompareChanges.ValueBool()
@@ -368,11 +363,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.Execution = &JobExecution{
 			TimeoutSeconds: types.Int64Value(int64(createdJob.Execution.TimeoutSeconds)),
 		}
-		// Don't update deprecated timeout_seconds when user is using execution block
-		// to avoid "inconsistent result after apply" error
-	} else {
-		// Only update deprecated timeout_seconds when user is NOT using execution block
-		plan.TimeoutSeconds = types.Int64Value(int64(createdJob.Execution.TimeoutSeconds))
 	}
 
 	if createdJob.JobType != "" {
@@ -539,11 +529,6 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.Execution = &JobExecution{
 			TimeoutSeconds: types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds)),
 		}
-		// Don't update deprecated timeout_seconds when user is using execution block
-		// to avoid "inconsistent result after apply" error
-	} else {
-		// Only update deprecated timeout_seconds when user is NOT using execution block
-		state.TimeoutSeconds = types.Int64Value(int64(retrievedJob.Execution.TimeoutSeconds))
 	}
 
 	var triggers map[string]interface{}
@@ -753,11 +738,8 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 	}
 
-	// Handle timeout_seconds from either execution block (preferred) or top-level (deprecated)
 	if plan.Execution != nil && !plan.Execution.TimeoutSeconds.IsNull() {
 		job.Execution.TimeoutSeconds = int(plan.Execution.TimeoutSeconds.ValueInt64())
-	} else {
-		job.Execution.TimeoutSeconds = int(plan.TimeoutSeconds.ValueInt64())
 	}
 	job.TriggersOnDraftPR = plan.TriggersOnDraftPr.ValueBool()
 
@@ -859,11 +841,6 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.Execution = &JobExecution{
 			TimeoutSeconds: types.Int64Value(int64(updatedJob.Execution.TimeoutSeconds)),
 		}
-		// Don't update deprecated timeout_seconds when user is using execution block
-		// to avoid "inconsistent result after apply" error
-	} else {
-		// Only update deprecated timeout_seconds when user is NOT using execution block
-		plan.TimeoutSeconds = types.Int64Value(int64(updatedJob.Execution.TimeoutSeconds))
 	}
 
 	// Populate force_node_selection from API response

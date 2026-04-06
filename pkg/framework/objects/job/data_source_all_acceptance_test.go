@@ -101,7 +101,9 @@ func jobsResourceConfig(jobName string, jobName2 string) string {
           "schedule" : false,
           "git_provider_webhook": false
         }
-        timeout_seconds = 180
+        execution = {
+            timeout_seconds = 180
+        }
 		job_completion_trigger_condition {
 			job_id = dbtcloud_job.test_job2.id
 			project_id = dbtcloud_project.test_project.id
@@ -121,8 +123,7 @@ func jobsResourceConfig(jobName string, jobName2 string) string {
           "schedule" : false,
           "git_provider_webhook": false
         }
-        timeout_seconds = 1800
-    }	
+    }
 
     data "dbtcloud_jobs" "test" {
         project_id = dbtcloud_project.test_project.id

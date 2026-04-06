@@ -110,9 +110,6 @@ func (d *jobsDataSource) Read(
 				job.DbtVersion,
 			),
 			ExecuteSteps: helper.SliceStringToSliceTypesString(job.ExecuteSteps),
-			DeferringJobDefinitionID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
-				job.DeferringJobId),
-			),
 			DeferringEnvironmentID: types.Int64PointerValue(helper.IntPointerToInt64Pointer(
 				job.DeferringEnvironmentId),
 			),
