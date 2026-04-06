@@ -96,9 +96,6 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		credentialResponse.UnencryptedCredentialDetails.Catalog,
 	)...)
 
-	// Set adapter_type - this is required but not returned from the API
-	// Since it's in the ImportStateVerifyIgnore list, we can skip it
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -148,16 +145,6 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
 	schema := plan.Schema.ValueString()
 	catalog := plan.Catalog.ValueString()
-	adapterType := plan.AdapterType.ValueString()
-
-	if adapterType == "spark" {
-		resp.Diagnostics.AddError(
-			"For spark credentials, please use the spark_credential resource",
-			"Spark credentials are now a separate resource. Please use the spark_credential resource instead.",
-		)
-		return
-	}
-
 	databricksCredential, err := d.client.CreateDatabricksCredential(
 		projectID,
 		token,

@@ -21,7 +21,6 @@ import (
 func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	catalog := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -35,7 +34,6 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
 					projectName,
 					catalog,
-					targetName,
 					token,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -60,7 +58,6 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				Config: testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
 					projectName,
 					"",
-					targetName,
 					token2,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -84,14 +81,14 @@ func TestAccDbtCloudDatabricksCredentialResourceGlobConn(t *testing.T) {
 				ResourceName:            "dbtcloud_databricks_credential.test_credential",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"token", "adapter_type", "semantic_layer_credential"},
+				ImportStateVerifyIgnore: []string{"token", "semantic_layer_credential"},
 			},
 		},
 	})
 }
 
 func testAccDbtCloudDatabricksCredentialResourceBasicConfigGlobConn(
-	projectName, catalogName, targetName, token string,
+	projectName, catalogName, token string,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -123,12 +120,10 @@ resource "dbtcloud_environment" "prod_environment" {
 resource "dbtcloud_databricks_credential" "test_credential" {
     project_id = dbtcloud_project.test_project.id
     catalog = "%s"
-	target_name = "%s"
     token   = "%s"
     schema  = "my_schema"
-	adapter_type = "databricks"
 }
-`, projectName, catalogName, targetName, token)
+`, projectName, catalogName, token)
 }
 
 func testCheckSchemaIsProvided() string {
@@ -140,10 +135,8 @@ func testCheckSchemaIsProvided() string {
 		resource "dbtcloud_databricks_credential" "test_credential" {
     		project_id = dbtcloud_project.test_project.id
     		catalog = "test"
-			target_name = "test"
     		token   = "test"
 			schema  = ""
-			adapter_type = "databricks"
 		}
 	`
 }
@@ -251,7 +244,6 @@ func TestDatabricksCredential_UpdateBugRegression(t *testing.T) {
 			token        = "test_token"
 			schema       = "test_schema"
 			catalog      = "test_catalog"
-			adapter_type = "databricks"
 		}`, projectID)
 
 	updatedConfig := providerConfig + fmt.Sprintf(`
@@ -260,7 +252,6 @@ func TestDatabricksCredential_UpdateBugRegression(t *testing.T) {
 			token        = "test_token"
 			schema       = "updated_schema"
 			catalog      = "test_catalog"
-			adapter_type = "databricks"
 		}`, projectID)
 
 	resource.Test(t, resource.TestCase{
@@ -295,63 +286,10 @@ func verifyDatabricksBugIsFixed(t *testing.T, tracker *testhelpers.APICallTracke
 	}
 }
 
-// TestDatabricksCredential_AdapterTypeOptional is a regression test for
-// https://github.com/dbt-labs/terraform-provider-dbtcloud/issues/650.
-// The old implementation had a SemanticLayerCredentialValidator on adapter_type
-// that fired against the raw config value (before defaults are applied), causing
-// an error when the field was omitted despite being Optional with a default.
-func TestDatabricksCredential_AdapterTypeOptional(t *testing.T) {
-	originalTFAcc := os.Getenv("TF_ACC")
-	os.Setenv("TF_ACC", "1")
-	defer func() {
-		if originalTFAcc == "" {
-			os.Unsetenv("TF_ACC")
-		} else {
-			os.Setenv("TF_ACC", originalTFAcc)
-		}
-	}()
-
-	accountID, projectID, credentialID := int64(12345), 67890, 333
-	tracker := &testhelpers.APICallTracker{}
-
-	handlers := databricksCredentialMockHandlers(accountID, projectID, credentialID, tracker)
-	srv := testhelpers.SetupMockServer(t, handlers)
-	defer srv.Close()
-
-	providerConfig := fmt.Sprintf(`
-		provider "dbtcloud" {
-			host_url   = "%s"
-			token      = "dummy-token"
-			account_id = %d
-		}`, srv.URL, accountID)
-
-	// adapter_type is intentionally omitted — the old validator would error here
-	configWithoutAdapterType := providerConfig + fmt.Sprintf(`
-		resource "dbtcloud_databricks_credential" "test" {
-			project_id = %d
-			token      = "test_token"
-			schema     = "test_schema"
-		}`, projectID)
-
-	resource.Test(t, resource.TestCase{
-		IsUnitTest:               true,
-		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithoutAdapterType,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("dbtcloud_databricks_credential.test", "adapter_type", "databricks"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
 	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
-	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	catalog := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -364,7 +302,7 @@ func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
 			// Step 1: Create with write-only token
 			{
 				Config: testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
-					projectName, catalog, targetName, token, 1,
+					projectName, catalog, token, 1,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudDatabricksCredentialExists(
@@ -390,7 +328,7 @@ func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
 			// Step 2: Update by incrementing version with new token
 			{
 				Config: testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
-					projectName, catalog, targetName, token2, 2,
+					projectName, catalog, token2, 2,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudDatabricksCredentialExists(
@@ -413,7 +351,7 @@ func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
 				ImportState:        true,
 				ImportStateVerify:  true,
 				ImportStateVerifyIgnore: []string{
-					"token", "adapter_type", "semantic_layer_credential",
+					"token", "semantic_layer_credential",
 					"token_wo", "token_wo_version",
 				},
 			},
@@ -422,7 +360,7 @@ func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
 }
 
 func testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
-	projectName, catalogName, targetName, tokenWo string, tokenWoVersion int,
+	projectName, catalogName, tokenWo string, tokenWoVersion int,
 ) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
@@ -453,13 +391,11 @@ resource "dbtcloud_environment" "prod_environment" {
 resource "dbtcloud_databricks_credential" "test_credential_wo" {
     project_id       = dbtcloud_project.test_project.id
     catalog          = "%s"
-    target_name      = "%s"
     token_wo         = "%s"
     token_wo_version = %d
     schema           = "my_schema"
-    adapter_type     = "databricks"
 }
-`, projectName, catalogName, targetName, tokenWo, tokenWoVersion)
+`, projectName, catalogName, tokenWo, tokenWoVersion)
 }
 
 func databricksCredentialMockHandlers(accountID int64, projectID, credentialID int, tracker *testhelpers.APICallTracker) map[string]testhelpers.MockEndpointHandler {

@@ -60,7 +60,6 @@ func databricks_credential(
 		project_id = dbtcloud_project.test_credential_project.id
 		token = "abcdefg"
 		schema = "my_schema"
-		adapter_type = "databricks"
 		catalog = "my_catalog"
 	}
 	`, projectName)

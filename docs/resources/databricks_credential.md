@@ -18,7 +18,6 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
   project_id   = dbtcloud_project.dbt_project.id
   token        = "abcdefgh"
   schema       = "my_schema"
-  adapter_type = "databricks"
 }
 
 // Using write-only attributes (not stored in state, requires Terraform >= 1.11)
@@ -48,7 +47,6 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred_wo" {
 
 ### Optional
 
-- `adapter_type` (String, Deprecated) The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
 - `schema` (String) The schema where to create models. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Databricks credential for the Semantic Layer.

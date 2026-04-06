@@ -23,6 +23,5 @@ type DatabricksCredentialResourceModel struct {
 	TokenWoVersion          types.Int64  `tfsdk:"token_wo_version"`
 	Catalog                 types.String `tfsdk:"catalog"`
 	Schema                  types.String `tfsdk:"schema"`
-	AdapterType             types.String `tfsdk:"adapter_type"`
 	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
 }

@@ -3,7 +3,6 @@ resource "dbtcloud_databricks_credential" "my_databricks_cred" {
   project_id   = dbtcloud_project.dbt_project.id
   token        = "abcdefgh"
   schema       = "my_schema"
-  adapter_type = "databricks"
 }
 
 // Using write-only attributes (not stored in state, requires Terraform >= 1.11)
