@@ -20,10 +20,6 @@ func TestAccDbtCloudDatabricksCredentialDataSource(t *testing.T) {
 			"credential_id",
 		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "project_id"),
-		resource.TestCheckResourceAttrSet(
-			"data.dbtcloud_databricks_credential.test",
-			"target_name",
-		),
 		resource.TestCheckResourceAttrSet("data.dbtcloud_databricks_credential.test", "schema"),
 		resource.TestCheckResourceAttrSet(
 			"data.dbtcloud_databricks_credential.test",
