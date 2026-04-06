@@ -66,7 +66,6 @@ func (d *sparkCredentialDataSource) Read(ctx context.Context, req datasource.Rea
 	state.ID = types.StringValue(fmt.Sprintf("%d%s%d", credential.Project_Id, dbt_cloud.ID_DELIMITER, *credential.ID))
 	state.NumThreads = types.Int64Value(int64(credential.Threads))
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-	state.TargetName = types.StringValue(credential.Target_Name)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
 
 	diags = resp.State.Set(ctx, &state)

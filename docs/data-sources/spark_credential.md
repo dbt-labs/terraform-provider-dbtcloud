@@ -32,4 +32,3 @@ data "dbtcloud_spark_credential" "my_spark_cred" {
 - `id` (String) The ID of this resource. Contains the project ID and the credential ID.
 - `num_threads` (Number) The number of threads to use
 - `schema` (String) The schema where to create models
-- `target_name` (String) Target name

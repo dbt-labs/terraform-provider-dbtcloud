@@ -92,15 +92,12 @@ func (c *Client) CreateDatabricksCredential(
 	projectId int,
 	token string,
 	schema string,
-	targetName string,
 	catalog string,
-
 ) (*DatabricksCredential, error) {
 
 	credentialDetails, err := GenerateDatabricksCredentialDetails(
 		token,
 		schema,
-		targetName,
 		catalog,
 	)
 	if err != nil {
@@ -192,9 +189,7 @@ func (c *Client) UpdateDatabricksCredentialGlobConn(
 func GenerateDatabricksCredentialDetails(
 	token string,
 	schema string,
-	targetName string,
 	catalog string,
-
 ) (AdapterCredentialDetails, error) {
 	// the default config is taken from  the calls made to the API
 	// we just remove all the different values and set them to ""
@@ -294,7 +289,7 @@ func GenerateDatabricksCredentialDetails(
 	fieldMapping := map[string]interface{}{
 		"token":       token,
 		"schema":      schema,
-		"target_name": targetName,
+		"target_name": "",
 		"catalog":     catalog,
 		"auth_type":   "token",
 	}

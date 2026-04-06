@@ -82,13 +82,6 @@ func (d *databricksCredentialResource) ImportState(ctx context.Context, req reso
 		credentialID,
 	)...)
 
-	// Set target_name
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("target_name"),
-		credentialResponse.Target_Name,
-	)...)
-
 	// Set schema from API response
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
@@ -154,7 +147,6 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 	projectID := int(plan.ProjectID.ValueInt64())
 	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
 	schema := plan.Schema.ValueString()
-	targetName := plan.TargetName.ValueString()
 	catalog := plan.Catalog.ValueString()
 	adapterType := plan.AdapterType.ValueString()
 
@@ -170,7 +162,6 @@ func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *D
 		projectID,
 		token,
 		schema,
-		targetName,
 		catalog,
 	)
 	if err != nil {
@@ -240,7 +231,6 @@ func (d *databricksCredentialResource) Read(ctx context.Context, req resource.Re
 
 	state.Catalog = types.StringValue(credential.UnencryptedCredentialDetails.Catalog)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
-	state.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -293,14 +283,12 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
 		!plan.TokenWoVersion.Equal(state.TokenWoVersion) ||
-		!plan.TargetName.Equal(state.TargetName) ||
 		!plan.Catalog.Equal(state.Catalog) ||
 		!plan.Schema.Equal(state.Schema) {
 
 		patchCredentialsDetails, err := dbt_cloud.GenerateDatabricksCredentialDetails(
 			token,
 			plan.Schema.ValueString(),
-			plan.TargetName.ValueString(),
 			plan.Catalog.ValueString(),
 		)
 		if err != nil {
@@ -317,10 +305,6 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 				}
 			case "schema":
 				if plan.Schema.Equal(state.Schema) {
-					delete(patchCredentialsDetails.Fields, key)
-				}
-			case "target_name":
-				if plan.TargetName.Equal(state.TargetName) {
 					delete(patchCredentialsDetails.Fields, key)
 				}
 			case "catalog":

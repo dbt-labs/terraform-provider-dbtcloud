@@ -91,13 +91,11 @@ func (c *Client) CreateSparkCredential(
 	projectId int,
 	token string,
 	schema string,
-	targetName string,
 ) (*SparkCredential, error) {
 
 	credentialDetails, err := GenerateSparkCredentialDetails(
 		token,
 		schema,
-		targetName,
 	)
 	if err != nil {
 		return nil, err
@@ -188,7 +186,6 @@ func (c *Client) UpdateSparkCredentialGlobConn(
 func GenerateSparkCredentialDetails(
 	token string,
 	schema string,
-	targetName string,
 ) (AdapterCredentialDetails, error) {
 	// the default config is taken from the calls made to the API for Spark credentials
 	// Note: Spark credentials do NOT include auth_type field (unlike Databricks)
@@ -246,7 +243,7 @@ func GenerateSparkCredentialDetails(
 	fieldMapping := map[string]interface{}{
 		"token":       token,
 		"schema":      schema,
-		"target_name": targetName,
+		"target_name": "",
 	}
 
 	sparkCredentialFields := map[string]AdapterCredentialField{}

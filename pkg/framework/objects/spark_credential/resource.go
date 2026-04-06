@@ -82,13 +82,6 @@ func (d *sparkCredentialResource) ImportState(ctx context.Context, req resource.
 		credentialID,
 	)...)
 
-	// Set target_name
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("target_name"),
-		credentialResponse.Target_Name,
-	)...)
-
 	// Set schema from API response
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
@@ -144,13 +137,11 @@ func (d *sparkCredentialResource) createGlobal(ctx context.Context, plan *SparkC
 	projectID := int(plan.ProjectID.ValueInt64())
 	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
 	schema := plan.Schema.ValueString()
-	targetName := plan.TargetName.ValueString()
 
 	sparkCredential, err := d.client.CreateSparkCredential(
 		projectID,
 		token,
 		schema,
-		targetName,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Apache Spark credential", err.Error())
@@ -218,7 +209,6 @@ func (d *sparkCredentialResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
-	state.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -271,13 +261,11 @@ func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state 
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
 		!plan.TokenWoVersion.Equal(state.TokenWoVersion) ||
-		!plan.TargetName.Equal(state.TargetName) ||
 		!plan.Schema.Equal(state.Schema) {
 
 		patchCredentialsDetails, err := dbt_cloud.GenerateSparkCredentialDetails(
 			token,
 			plan.Schema.ValueString(),
-			plan.TargetName.ValueString(),
 		)
 		if err != nil {
 			resp.Diagnostics.AddError("Error generating credential details", err.Error())
@@ -293,10 +281,6 @@ func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state 
 				}
 			case "schema":
 				if plan.Schema.Equal(state.Schema) {
-					delete(patchCredentialsDetails.Fields, key)
-				}
-			case "target_name":
-				if plan.TargetName.Equal(state.TargetName) {
 					delete(patchCredentialsDetails.Fields, key)
 				}
 			}

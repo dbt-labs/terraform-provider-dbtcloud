@@ -29,10 +29,6 @@ var dataSourceSchema = datasource_schema.Schema{
 			Description: "Credential ID",
 			Required:    true,
 		},
-		"target_name": datasource_schema.StringAttribute{
-			Description: "Target name",
-			Computed:    true,
-		},
 		"num_threads": datasource_schema.Int64Attribute{
 			Description: "The number of threads to use",
 			Computed:    true,
@@ -75,13 +71,6 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.UseStateForUnknown(),
 			},
-		},
-		"target_name": resource_schema.StringAttribute{
-			Description:        "Target name",
-			Optional:           true,
-			Computed:           true,
-			Default:            stringdefault.StaticString("default"),
-			DeprecationMessage: "This field is deprecated at the environment level (it was never possible to set it in the UI) and will be removed in a future release. Please remove it and set the target name at the job level or leverage environment variables.",
 		},
 		"token": resource_schema.StringAttribute{
 			Description: "Token for Databricks user. Consider using `token_wo` instead, which is not stored in state.",
