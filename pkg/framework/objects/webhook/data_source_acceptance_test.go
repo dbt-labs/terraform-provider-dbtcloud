@@ -16,7 +16,7 @@ func TestDbtCloudWebhookDataSource(t *testing.T) {
 	config := webhooks(randomWebhookName, randomWebhookDescription)
 
 	check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "webhook_id"),
+		resource.TestCheckResourceAttrSet("data.dbtcloud_webhook.test", "id"),
 		resource.TestCheckResourceAttr("data.dbtcloud_webhook.test", "name", randomWebhookName),
 		resource.TestCheckResourceAttr(
 			"data.dbtcloud_webhook.test",
@@ -55,7 +55,7 @@ func webhooks(webhookName string, webhookDesc string) string {
     }
 
     data "dbtcloud_webhook" "test" {
-        webhook_id = dbtcloud_webhook.test_webhook.id
+        id = dbtcloud_webhook.test_webhook.id
     }
     `, webhookName, webhookDesc)
 }
