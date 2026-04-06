@@ -49,7 +49,6 @@ resource "dbtcloud_webhook" "test_webhook" {
 - `hmac_secret` (String, Sensitive) Secret key for the webhook. Can be used to validate the authenticity of the webhook.
 - `http_status_code` (String) Latest HTTP status of the webhook
 - `id` (String) Webhook's ID
-- `webhook_id` (String, Deprecated) Webhook's ID
 
 ## Import
 

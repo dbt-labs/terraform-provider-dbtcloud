@@ -17,7 +17,7 @@ Retrieve webhook details
 
 ### Required
 
-- `webhook_id` (String, Deprecated) Webhook's ID
+- `id` (String) Webhook's ID
 
 ### Read-Only
 
@@ -27,6 +27,5 @@ Retrieve webhook details
 - `description` (String) Webhooks Description
 - `event_types` (List of String) Webhooks Event Types
 - `http_status_code` (String) Webhooks HTTP Status Code
-- `id` (String) Webhook's ID
 - `job_ids` (List of Number) List of job IDs to trigger the webhook
 - `name` (String) Webhooks Name

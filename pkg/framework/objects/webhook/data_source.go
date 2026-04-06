@@ -41,16 +41,15 @@ func (d *webhookDataSource) Read(
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 
-	webhook, err := d.client.GetWebhook(state.WebhookID.ValueString())
+	webhook, err := d.client.GetWebhook(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Did not find webhook with id: %s", state.WebhookID.ValueString()),
+			fmt.Sprintf("Did not find webhook with id: %s", state.ID.ValueString()),
 			err.Error(),
 		)
 		return
 	}
 
-	state.WebhookID = types.StringValue(webhook.WebhookId)
 	state.Name = types.StringValue(webhook.Name)
 	state.Description = types.StringValue(webhook.Description)
 	state.ClientURL = types.StringValue(webhook.ClientUrl)

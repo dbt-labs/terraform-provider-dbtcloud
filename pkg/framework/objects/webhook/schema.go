@@ -13,14 +13,9 @@ import (
 var dataSourceSchema = datasource_schema.Schema{
 	Description: "Retrieve webhook details",
 	Attributes: map[string]datasource_schema.Attribute{
-		"id": resource_schema.StringAttribute{
-			Computed:    true,
+		"id": datasource_schema.StringAttribute{
+			Required:    true,
 			Description: "Webhook's ID",
-		},
-		"webhook_id": datasource_schema.StringAttribute{
-			Required:           true,
-			Description:        "Webhook's ID",
-			DeprecationMessage: "Use `id` instead",
 		},
 		"name": datasource_schema.StringAttribute{
 			Computed:    true,
@@ -64,14 +59,6 @@ var resourceSchema = resource_schema.Schema{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,
 			Description: "Webhook's ID",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-		"webhook_id": resource_schema.StringAttribute{
-			Computed:           true,
-			Description:        "Webhook's ID",
-			DeprecationMessage: "Use `id` instead",
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.UseStateForUnknown(),
 			},

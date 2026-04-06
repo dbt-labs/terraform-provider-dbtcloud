@@ -6,7 +6,6 @@ import (
 
 type WebhookDataSourceModel struct {
 	ID                types.String `tfsdk:"id"`
-	WebhookID         types.String `tfsdk:"webhook_id"`
 	Name              types.String `tfsdk:"name"`
 	Description       types.String `tfsdk:"description"`
 	ClientURL         types.String `tfsdk:"client_url"`
@@ -19,7 +18,6 @@ type WebhookDataSourceModel struct {
 
 type WebhookResourceModel struct {
 	ID                types.String `tfsdk:"id"`
-	WebhookID         types.String `tfsdk:"webhook_id"`
 	Name              types.String `tfsdk:"name"`
 	Description       types.String `tfsdk:"description"`
 	ClientURL         types.String `tfsdk:"client_url"`

@@ -43,9 +43,6 @@ func (r *webhookResource) Schema(
 }
 
 func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *dbt_cloud.WebhookRead, resourceModel *WebhookResourceModel) diag.Diagnostics {
-	// these two are identical. WebhookID should not have been used in the
-	// first place, but we're keeping it here for backwards compatibility reasons
-	resourceModel.WebhookID = types.StringValue(retrievedWebhook.WebhookId)
 	resourceModel.ID = types.StringValue(retrievedWebhook.WebhookId)
 
 	resourceModel.Name = types.StringValue(retrievedWebhook.Name)
@@ -161,7 +158,6 @@ func (r *webhookResource) Create(
 	}
 
 	plan.ID = types.StringValue(createdWebhook.WebhookId)
-	plan.WebhookID = types.StringValue(createdWebhook.WebhookId)
 
 	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(createdWebhook.JobIds))
 	if diags.HasError() {
@@ -217,7 +213,7 @@ func (r *webhookResource) Update(
 	var activeChanged = !reflect.DeepEqual(plan.Active, state.Active)
 
 	if nameChanged || descriptionChanged || clientUrlChanged || eventTypesChanged || jobIdsChanged || activeChanged {
-		var webhookId = state.WebhookID.ValueString()
+		var webhookId = state.ID.ValueString()
 		retrievedWebhook, err := r.client.GetWebhook(webhookId)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -282,7 +278,7 @@ func (r *webhookResource) Delete(
 		return
 	}
 
-	_, err := r.client.DeleteWebhook(state.WebhookID.ValueString())
+	_, err := r.client.DeleteWebhook(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting webhook",
