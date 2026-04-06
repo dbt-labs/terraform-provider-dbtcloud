@@ -91,13 +91,22 @@ func (r *lineageIntegrationResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config LineageIntegrationResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	token := helper.ResolveWriteOnlyString(config.TokenWo, data.Token)
+
 	lineageIntegration, err := r.client.CreateLineageIntegration(
 		data.ProjectID.ValueInt64(),
 		data.Name.ValueString(),
 		data.Host.ValueString(),
 		data.SiteID.ValueString(),
 		data.TokenName.ValueString(),
-		data.Token.ValueString(),
+		token,
 	)
 
 	if err != nil {
@@ -158,6 +167,15 @@ func (r *lineageIntegrationResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config LineageIntegrationResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
+
 	patchPayload := dbt_cloud.LineageIntegration{}
 
 	if plan.Host != state.Host {
@@ -169,8 +187,8 @@ func (r *lineageIntegrationResource) Update(
 	if plan.TokenName != state.TokenName {
 		patchPayload.Config.TokenName = plan.TokenName.ValueString()
 	}
-	if plan.Token != state.Token {
-		patchPayload.Config.Token = plan.Token.ValueString()
+	if plan.Token != state.Token || plan.TokenWoVersion != state.TokenWoVersion {
+		patchPayload.Config.Token = token
 	}
 
 	projectID := state.ProjectID.ValueInt64()

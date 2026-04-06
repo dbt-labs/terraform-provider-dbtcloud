@@ -18,19 +18,25 @@ type SnowflakeCredentialDataSourceModel struct {
 
 // SnowflakeCredentialResourceModel is the model for the resource
 type SnowflakeCredentialResourceModel struct {
-	ID                      types.String `tfsdk:"id"`
-	CredentialID            types.Int64  `tfsdk:"credential_id"`
-	ProjectID               types.Int64  `tfsdk:"project_id"`
-	User                    types.String `tfsdk:"user"`
-	Password                types.String `tfsdk:"password"`
-	AuthType                types.String `tfsdk:"auth_type"`
-	Database                types.String `tfsdk:"database"`
-	Role                    types.String `tfsdk:"role"`
-	Warehouse               types.String `tfsdk:"warehouse"`
-	Schema                  types.String `tfsdk:"schema"`
-	PrivateKey              types.String `tfsdk:"private_key"`
-	PrivateKeyPassphrase    types.String `tfsdk:"private_key_passphrase"`
-	IsActive                types.Bool   `tfsdk:"is_active"`
-	NumThreads              types.Int64  `tfsdk:"num_threads"`
-	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
+	ID                            types.String `tfsdk:"id"`
+	CredentialID                  types.Int64  `tfsdk:"credential_id"`
+	ProjectID                     types.Int64  `tfsdk:"project_id"`
+	User                          types.String `tfsdk:"user"`
+	Password                      types.String `tfsdk:"password"`
+	PasswordWo                    types.String `tfsdk:"password_wo"`
+	PasswordWoVersion             types.Int64  `tfsdk:"password_wo_version"`
+	AuthType                      types.String `tfsdk:"auth_type"`
+	Database                      types.String `tfsdk:"database"`
+	Role                          types.String `tfsdk:"role"`
+	Warehouse                     types.String `tfsdk:"warehouse"`
+	Schema                        types.String `tfsdk:"schema"`
+	PrivateKey                    types.String `tfsdk:"private_key"`
+	PrivateKeyWo                  types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion           types.Int64  `tfsdk:"private_key_wo_version"`
+	PrivateKeyPassphrase          types.String `tfsdk:"private_key_passphrase"`
+	PrivateKeyPassphraseWo        types.String `tfsdk:"private_key_passphrase_wo"`
+	PrivateKeyPassphraseWoVersion types.Int64  `tfsdk:"private_key_passphrase_wo_version"`
+	IsActive                      types.Bool   `tfsdk:"is_active"`
+	NumThreads                    types.Int64  `tfsdk:"num_threads"`
+	SemanticLayerCredential       types.Bool   `tfsdk:"semantic_layer_credential"`
 }

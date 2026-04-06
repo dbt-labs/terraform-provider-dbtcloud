@@ -16,13 +16,19 @@ type SnowflakePlatformMetadataCredentialResourceModel struct {
 	CostInsightsEnabled     types.Bool `tfsdk:"cost_insights_enabled"`
 
 	// Snowflake-specific fields
-	AuthType             types.String `tfsdk:"auth_type"`
-	User                 types.String `tfsdk:"user"`
-	Password             types.String `tfsdk:"password"`
-	PrivateKey           types.String `tfsdk:"private_key"`
-	PrivateKeyPassphrase types.String `tfsdk:"private_key_passphrase"`
-	Role                 types.String `tfsdk:"role"`
-	Warehouse            types.String `tfsdk:"warehouse"`
+	AuthType                      types.String `tfsdk:"auth_type"`
+	User                          types.String `tfsdk:"user"`
+	Password                      types.String `tfsdk:"password"`
+	PasswordWo                    types.String `tfsdk:"password_wo"`
+	PasswordWoVersion             types.Int64  `tfsdk:"password_wo_version"`
+	PrivateKey                    types.String `tfsdk:"private_key"`
+	PrivateKeyWo                  types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion           types.Int64  `tfsdk:"private_key_wo_version"`
+	PrivateKeyPassphrase          types.String `tfsdk:"private_key_passphrase"`
+	PrivateKeyPassphraseWo        types.String `tfsdk:"private_key_passphrase_wo"`
+	PrivateKeyPassphraseWoVersion types.Int64  `tfsdk:"private_key_passphrase_wo_version"`
+	Role                          types.String `tfsdk:"role"`
+	Warehouse                     types.String `tfsdk:"warehouse"`
 
 	// Read-only fields
 	AdapterVersion types.String `tfsdk:"adapter_version"`
@@ -40,8 +46,10 @@ type DatabricksPlatformMetadataCredentialResourceModel struct {
 	CostInsightsEnabled     types.Bool `tfsdk:"cost_insights_enabled"`
 
 	// Databricks-specific fields
-	Token   types.String `tfsdk:"token"`
-	Catalog types.String `tfsdk:"catalog"`
+	Token          types.String `tfsdk:"token"`
+	TokenWo        types.String `tfsdk:"token_wo"`
+	TokenWoVersion types.Int64  `tfsdk:"token_wo_version"`
+	Catalog        types.String `tfsdk:"catalog"`
 
 	// Read-only fields
 	AdapterVersion types.String `tfsdk:"adapter_version"`

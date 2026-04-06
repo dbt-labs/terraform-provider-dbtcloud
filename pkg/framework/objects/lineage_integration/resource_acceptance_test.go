@@ -3,9 +3,13 @@ package lineage_integration_test
 import (
 	"fmt"
 	"regexp"
+	"strings"
+	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -65,6 +69,126 @@ import (
 // 		},
 // 	})
 // }
+
+func TestAccDbtCloudLineageIntegrationResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping lineage integration write-only acceptance tests until Tableau credentials are available")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	host := "https://tableau.example.com"
+	siteID := "my-site"
+	tokenName := "my-token"
+	token := strings.ToUpper(acctest.RandStringFromCharSet(20, acctest.CharSetAlpha))
+	token2 := strings.ToUpper(acctest.RandStringFromCharSet(20, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudLineageIntegrationDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only token
+			{
+				Config: testAccDbtCloudLineageIntegrationWriteOnlyConfig(
+					projectName, host, siteID, tokenName, token, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"id",
+					),
+					// token_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"token_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"token_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new token
+			{
+				Config: testAccDbtCloudLineageIntegrationWriteOnlyConfig(
+					projectName, host, siteID, tokenName, token2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"id",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"token_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_lineage_integration.my_lineage_wo",
+						"token_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_lineage_integration.my_lineage_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"token", "token_wo", "token_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudLineageIntegrationWriteOnlyConfig(
+	projectName, host, siteID, tokenName, tokenWo string, tokenWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_lineage_integration_wo" {
+	name = "%s"
+}
+
+resource "dbtcloud_snowflake_credential" "my_cred_wo" {
+  project_id  = dbtcloud_project.test_lineage_integration_wo.id
+  auth_type   = "password"
+  num_threads = 16
+  schema      = "SCHEMA"
+  user        = "user"
+  password    = "password"
+}
+
+resource "dbtcloud_global_connection" "my_connection_wo" {
+name = "terraform_snowflake_testing_proj_qa_wo"
+	snowflake = {
+		account   = "NA"
+		database  = "DB"
+		warehouse = "WH"
+	}
+}
+
+resource dbtcloud_environment my_env_wo {
+  dbt_version     = "versionless"
+  name            = "Prod"
+  project_id      = dbtcloud_project.test_lineage_integration_wo.id
+  type            = "deployment"
+  credential_id   = dbtcloud_snowflake_credential.my_cred_wo.credential_id
+  deployment_type = "production"
+  connection_id   = dbtcloud_global_connection.my_connection_wo.id
+}
+
+resource dbtcloud_lineage_integration my_lineage_wo {
+  project_id = dbtcloud_project.test_lineage_integration_wo.id
+  host = "%s"
+  site_id = "%s"
+  token_name = "%s"
+  token_wo = "%s"
+  token_wo_version = %d
+
+  depends_on = [dbtcloud_environment.my_env_wo]
+}
+`, projectName, host, siteID, tokenName, tokenWo, tokenWoVersion)
+}
 
 func testAccDbtCloudLineageIntegrationResourceBasicConfig(
 	projectName, host, siteID, tokenName, token string,

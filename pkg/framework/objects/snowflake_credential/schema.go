@@ -5,6 +5,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -119,32 +120,74 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 		"password": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
-			Description: "The password for the Snowflake account",
+			Description: "The password for the Snowflake account. Consider using `password_wo` instead, which is not stored in state.",
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"private_key", "private_key_passphrase"}},
+				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
 			},
+		},
+		"password_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"private_key", "private_key_passphrase", "private_key_wo", "private_key_passphrase_wo"}},
+			},
+		},
+		"password_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.",
 		},
 		"private_key": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
-			Description: "The private key for the Snowflake account",
+			Description: "The private key for the Snowflake account. Consider using `private_key_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
+				stringvalidator.ConflictsWith(path.MatchRoot("private_key_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("private_key_wo")),
 			},
+		},
+		"private_key_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password", "password_wo"}},
+			},
+		},
+		"private_key_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.",
 		},
 		"private_key_passphrase": resource_schema.StringAttribute{
 			Optional:    true,
 			Sensitive:   true,
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
-			Description: "The passphrase for the private key",
+			Description: "The passphrase for the private key. Consider using `private_key_passphrase_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
+				stringvalidator.ConflictsWith(path.MatchRoot("private_key_passphrase_wo")),
+				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("private_key_passphrase_wo")),
 			},
+		},
+		"private_key_passphrase_wo": resource_schema.StringAttribute{
+			Optional:    true,
+			WriteOnly:   true,
+			Description: "Write-only alternative to `private_key_passphrase`. The value is not stored in state. Requires `private_key_passphrase_wo_version` to trigger updates.",
+			Validators: []validator.String{
+				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password", "password_wo"}},
+			},
+		},
+		"private_key_passphrase_wo_version": resource_schema.Int64Attribute{
+			Optional:    true,
+			Description: "Version number for `private_key_passphrase_wo`. Increment this value to trigger an update of the private key passphrase when using `private_key_passphrase_wo`.",
 		},
 		"num_threads": resource_schema.Int64Attribute{
 			Required:    true,

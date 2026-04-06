@@ -49,13 +49,15 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "example" {
 - `client_x509_cert_url` (String) Client X509 Cert URL for the Service Account
 - `configuration` (Attributes) Semantic Layer credential configuration details. (see [below for nested schema](#nestedatt--configuration))
 - `credential` (Attributes) BigQuery credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
-- `private_key` (String, Sensitive) Private Key for the Service Account
 - `private_key_id` (String) Private Key ID for the Service Account
 - `token_uri` (String) Token URI for the Service Account
 
 ### Optional
 
 - `execution_project` (String) The GCP project that should execute BigQuery jobs for the semantic layer. When not set, jobs will execute in the project associated with the service account.
+- `private_key` (String, Sensitive) Private Key for the Service Account. Consider using `private_key_wo` instead, which is not stored in state.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 
 ### Read-Only
 

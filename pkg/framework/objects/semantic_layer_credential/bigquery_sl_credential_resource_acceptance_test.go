@@ -359,6 +359,138 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "test_bigquery_semantic_l
 }`, strconv.Itoa(projectID), name, strconv.Itoa(projectID), privateKeyID, privateKey, clientEmail, clientID, authURI, tokenURI, authProviderCertURL, clientCertURL)
 }
 
+func TestDbtCloudSemanticLayerConfigurationBigQueryResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping write-only acceptance test until CI environment supports it")
+
+	_, _, projectID := acctest_helper.GetSemanticLayerConfigTestingConfigurations()
+	if projectID == 0 {
+		t.Skip("Skipping test because config is not set")
+	}
+
+	name := acctest.RandomWithPrefix("bigquery_wo_test")
+	privateKeyID := acctest.RandString(10)
+	privateKey := acctest.RandString(20)
+	privateKey2 := acctest.RandString(20)
+	clientEmail := acctest.RandString(10) + "@example.com"
+	clientID := acctest.RandString(10)
+	authURI := "https://accounts.google.com/o/oauth2/auth"
+	tokenURI := "https://oauth2.googleapis.com/token"
+	authProviderCertURL := "https://www.googleapis.com/oauth2/v1/certs"
+	clientCertURL := "https://www.googleapis.com/robot/v1/metadata/x509/test%40example.com"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSemanticLayerCredentialBigQueryDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only private_key
+			{
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialWriteOnlyResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey,
+					1,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"configuration.name",
+						name,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"private_key_id",
+						privateKeyID,
+					),
+					// private_key_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"private_key_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"private_key_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new private key
+			{
+				Config: testAccDbtCloudBigQuerySemanticLayerCredentialWriteOnlyResource(
+					projectID,
+					name,
+					privateKeyID,
+					privateKey2,
+					2,
+					clientEmail,
+					clientID,
+					authURI,
+					tokenURI,
+					authProviderCertURL,
+					clientCertURL,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"private_key_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_semantic_layer_credential.test_bigquery_semantic_layer_credential_wo",
+						"private_key_wo_version",
+						"2",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudBigQuerySemanticLayerCredentialWriteOnlyResource(
+	projectID int,
+	name string,
+	privateKeyID string,
+	privateKeyWo string,
+	privateKeyWoVersion int,
+	clientEmail string,
+	clientID string,
+	authURI string,
+	tokenURI string,
+	authProviderCertURL string,
+	clientCertURL string,
+) string {
+	return fmt.Sprintf(`
+
+resource "dbtcloud_bigquery_semantic_layer_credential" "test_bigquery_semantic_layer_credential_wo" {
+  configuration = {
+    project_id = %s
+    name = "%s"
+    adapter_version = "bigquery_v0"
+  }
+  credential = {
+    project_id = %s
+    is_active = true
+    num_threads = 3
+    dataset = "test"
+  }
+  private_key_id = "%s"
+  private_key_wo = "%s"
+  private_key_wo_version = %d
+  client_email = "%s"
+  client_id = "%s"
+  auth_uri = "%s"
+  token_uri = "%s"
+  auth_provider_x509_cert_url = "%s"
+  client_x509_cert_url = "%s"
+}`, strconv.Itoa(projectID), name, strconv.Itoa(projectID), privateKeyID, privateKeyWo, privateKeyWoVersion, clientEmail, clientID, authURI, tokenURI, authProviderCertURL, clientCertURL)
+}
+
 func testAccCheckDbtCloudSemanticLayerCredentialBigQueryDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

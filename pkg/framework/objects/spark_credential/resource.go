@@ -129,12 +129,20 @@ func (d *sparkCredentialResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	d.createGlobal(ctx, &plan, resp)
+	// Retrieve config to access write-only attributes
+	var config SparkCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	d.createGlobal(ctx, &plan, &config, resp)
 }
 
-func (d *sparkCredentialResource) createGlobal(ctx context.Context, plan *SparkCredentialResourceModel, resp *resource.CreateResponse) {
+func (d *sparkCredentialResource) createGlobal(ctx context.Context, plan *SparkCredentialResourceModel, config *SparkCredentialResourceModel, resp *resource.CreateResponse) {
 	projectID := int(plan.ProjectID.ValueInt64())
-	token := plan.Token.ValueString()
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
 	schema := plan.Schema.ValueString()
 	targetName := plan.TargetName.ValueString()
 
@@ -237,10 +245,18 @@ func (d *sparkCredentialResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	d.updateGlobal(ctx, &plan, &state, resp)
+	// Retrieve config to access write-only attributes
+	var config SparkCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	d.updateGlobal(ctx, &plan, &state, &config, resp)
 }
 
-func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state *SparkCredentialResourceModel, resp *resource.UpdateResponse) {
+func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state *SparkCredentialResourceModel, config *SparkCredentialResourceModel, resp *resource.UpdateResponse) {
 	projectID, credentialID, err := helper.SplitIDToInts(
 		state.ID.ValueString(),
 		"spark_credential",
@@ -250,13 +266,16 @@ func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state 
 		return
 	}
 
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
+
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
+		!plan.TokenWoVersion.Equal(state.TokenWoVersion) ||
 		!plan.TargetName.Equal(state.TargetName) ||
 		!plan.Schema.Equal(state.Schema) {
 
 		patchCredentialsDetails, err := dbt_cloud.GenerateSparkCredentialDetails(
-			plan.Token.ValueString(),
+			token,
 			plan.Schema.ValueString(),
 			plan.TargetName.ValueString(),
 		)
@@ -269,7 +288,7 @@ func (d *sparkCredentialResource) updateGlobal(ctx context.Context, plan, state 
 		for key := range patchCredentialsDetails.Fields {
 			switch key {
 			case "token":
-				if plan.Token.Equal(state.Token) {
+				if plan.Token.Equal(state.Token) && plan.TokenWoVersion.Equal(state.TokenWoVersion) {
 					delete(patchCredentialsDetails.Fields, key)
 				}
 			case "schema":

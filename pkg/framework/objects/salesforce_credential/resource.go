@@ -79,10 +79,17 @@ func (r *salesforceCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SalesforceCredentialResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
 	username := plan.Username.ValueString()
-	clientID := plan.ClientID.ValueString()
-	privateKey := plan.PrivateKey.ValueString()
+	clientID := helper.ResolveWriteOnlyString(config.ClientIDWo, plan.ClientID)
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
 	targetName := plan.TargetName.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
@@ -154,13 +161,23 @@ func (r *salesforceCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SalesforceCredentialResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(state.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
 
+	clientID := helper.ResolveWriteOnlyString(config.ClientIDWo, plan.ClientID)
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+
 	credentialDetails, err := dbt_cloud.GenerateSalesforceCredentialDetails(
 		plan.Username.ValueString(),
-		plan.ClientID.ValueString(),
-		plan.PrivateKey.ValueString(),
+		clientID,
+		privateKey,
 		plan.TargetName.ValueString(),
 		int(plan.NumThreads.ValueInt64()),
 	)

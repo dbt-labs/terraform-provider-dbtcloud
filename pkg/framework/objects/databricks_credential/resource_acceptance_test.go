@@ -347,6 +347,121 @@ func TestDatabricksCredential_AdapterTypeOptional(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudDatabricksCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	catalog := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	token2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudDatabricksCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only token
+			{
+				Config: testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
+					projectName, catalog, targetName, token, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential_wo",
+						"catalog",
+						catalog,
+					),
+					// token_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_databricks_credential.test_credential_wo",
+						"token_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential_wo",
+						"token_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new token
+			{
+				Config: testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
+					projectName, catalog, targetName, token2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudDatabricksCredentialExists(
+						"dbtcloud_databricks_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_databricks_credential.test_credential_wo",
+						"token_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_databricks_credential.test_credential_wo",
+						"token_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_databricks_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"token", "adapter_type", "semantic_layer_credential",
+					"token_wo", "token_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudDatabricksCredentialWriteOnlyConfig(
+	projectName, catalogName, targetName, tokenWo string, tokenWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_global_connection" "databricks" {
+  name = "My Databricks connection"
+  databricks = {
+    host      = "my-databricks-host.cloud.databricks.com"
+    http_path = "/sql/my/http/path"
+    catalog       = "dbt_catalog"
+    client_id     = "yourclientid"
+    client_secret = "yourclientsecret"
+  }
+}
+
+resource "dbtcloud_environment" "prod_environment" {
+  dbt_version     = "versionless"
+  name            = "Prod"
+  project_id      = dbtcloud_project.test_project.id
+  connection_id   = dbtcloud_global_connection.databricks.id
+  type            = "deployment"
+  credential_id   = dbtcloud_databricks_credential.test_credential_wo.credential_id
+  deployment_type = "production"
+}
+
+resource "dbtcloud_databricks_credential" "test_credential_wo" {
+    project_id       = dbtcloud_project.test_project.id
+    catalog          = "%s"
+    target_name      = "%s"
+    token_wo         = "%s"
+    token_wo_version = %d
+    schema           = "my_schema"
+    adapter_type     = "databricks"
+}
+`, projectName, catalogName, targetName, tokenWo, tokenWoVersion)
+}
+
 func databricksCredentialMockHandlers(accountID int64, projectID, credentialID int, tracker *testhelpers.APICallTracker) map[string]testhelpers.MockEndpointHandler {
 	handlers := make(map[string]testhelpers.MockEndpointHandler)
 

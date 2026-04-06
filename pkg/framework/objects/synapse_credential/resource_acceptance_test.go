@@ -185,6 +185,192 @@ resource "dbtcloud_synapse_credential" "test_credential" {
 `, projectName, clientId, tenantId, clientSecret)
 }
 
+func TestAccDbtCloudSynapseCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	tenantId := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	clientSecret2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSynapseCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password (user/pass auth)
+			{
+				Config: testAccDbtCloudSynapseCredentialWriteOnlyUserPassConfig(
+					projectName, user, password, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSynapseCredentialExists(
+						"dbtcloud_synapse_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"user",
+						user,
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update password by incrementing version
+			{
+				Config: testAccDbtCloudSynapseCredentialWriteOnlyUserPassConfig(
+					projectName, user, password2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSynapseCredentialExists(
+						"dbtcloud_synapse_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Create with write-only client_secret (service principal auth)
+			{
+				Config: testAccDbtCloudSynapseCredentialWriteOnlyServicePrincipalConfig(
+					projectName, clientId, tenantId, clientSecret, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSynapseCredentialExists(
+						"dbtcloud_synapse_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"client_id",
+						clientId,
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"client_secret_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 4: Update client_secret by incrementing version
+			{
+				Config: testAccDbtCloudSynapseCredentialWriteOnlyServicePrincipalConfig(
+					projectName, clientId, tenantId, clientSecret2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSynapseCredentialExists(
+						"dbtcloud_synapse_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_synapse_credential.test_credential_wo",
+						"client_secret_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 5: Import
+			{
+				ResourceName:      "dbtcloud_synapse_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"password", "client_secret", "schema_authorization", "user", "adapter_type",
+					"password_wo", "password_wo_version",
+					"client_secret_wo", "client_secret_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudSynapseCredentialWriteOnlyUserPassConfig(
+	projectName, user, passwordWo string, passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_global_connection" "synapse" {
+  name = "My Synapse connection"
+  synapse = {
+    project_id = dbtcloud_project.test_project.id
+	name = "Synapse"
+	database = "testdb"
+	host = "example.com"
+	port = 1234
+  }
+}
+
+resource "dbtcloud_synapse_credential" "test_credential_wo" {
+    project_id = dbtcloud_project.test_project.id
+    schema = "my_schema"
+	authentication = "sql"
+    user = "%s"
+    password_wo = "%s"
+    password_wo_version = %d
+    schema_authorization = "sp"
+	adapter_type = "synapse"
+}
+`, projectName, user, passwordWo, passwordWoVersion)
+}
+
+func testAccDbtCloudSynapseCredentialWriteOnlyServicePrincipalConfig(
+	projectName, clientId, tenantId, clientSecretWo string, clientSecretWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+
+resource "dbtcloud_global_connection" "synapse" {
+  name = "My Synapse connection"
+  synapse = {
+    project_id = dbtcloud_project.test_project.id
+	name = "Synapse"
+	database = "testdb"
+	host = "example.com"
+	port = 1234
+  }
+}
+
+resource "dbtcloud_synapse_credential" "test_credential_wo" {
+    project_id = dbtcloud_project.test_project.id
+    schema = "my_schema_new"
+	authentication = "ServicePrincipal"
+    client_id = "%s"
+    tenant_id = "%s"
+    client_secret_wo = "%s"
+    client_secret_wo_version = %d
+	adapter_type = "synapse"
+}
+`, projectName, clientId, tenantId, clientSecretWo, clientSecretWoVersion)
+}
+
 func testAccCheckDbtCloudSynapseCredentialExists(resource string) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]

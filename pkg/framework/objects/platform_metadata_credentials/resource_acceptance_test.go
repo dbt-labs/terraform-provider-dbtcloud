@@ -187,6 +187,211 @@ func testAccCheckDbtCloudSnowflakePlatformMetadataCredentialDestroy(s *terraform
 	return nil
 }
 
+func TestAccDbtCloudSnowflakePlatformMetadataCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping write-only acceptance test until CI environment supports it")
+
+	config := acctest_helper.GetPlatformMetadataCredentialTestingConfigurations()
+	if config == nil {
+		t.Skip("Skipping test because required environment variables are not set.")
+	}
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSnowflakePlatformMetadataCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudSnowflakePlatformMetadataCredentialWriteOnlyConfig(
+					connectionName,
+					config.SnowflakeAccount,
+					config.SnowflakeDatabase,
+					config.SnowflakeWarehouse,
+					config.User,
+					config.Password,
+					config.Role,
+					1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("dbtcloud_snowflake_platform_metadata_credential.test_wo", "id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_snowflake_platform_metadata_credential.test_wo", "credential_id"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_platform_metadata_credential.test_wo", "user", config.User),
+					// password_wo should not be in state
+					resource.TestCheckNoResourceAttr("dbtcloud_snowflake_platform_metadata_credential.test_wo", "password_wo"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_platform_metadata_credential.test_wo", "password_wo_version", "1"),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudSnowflakePlatformMetadataCredentialWriteOnlyConfig(
+					connectionName,
+					config.SnowflakeAccount,
+					config.SnowflakeDatabase,
+					config.SnowflakeWarehouse,
+					config.User,
+					"new_password",
+					config.Role,
+					2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("dbtcloud_snowflake_platform_metadata_credential.test_wo", "password_wo"),
+					resource.TestCheckResourceAttr("dbtcloud_snowflake_platform_metadata_credential.test_wo", "password_wo_version", "2"),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_snowflake_platform_metadata_credential.test_wo",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password", "private_key", "private_key_passphrase",
+					"password_wo", "password_wo_version",
+					"private_key_wo", "private_key_wo_version",
+					"private_key_passphrase_wo", "private_key_passphrase_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudSnowflakePlatformMetadataCredentialWriteOnlyConfig(
+	connectionName string,
+	snowflakeAccount string,
+	snowflakeDatabase string,
+	snowflakeWarehouse string,
+	user string,
+	passwordWo string,
+	role string,
+	passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_global_connection" "test_snowflake_wo" {
+  name = "%s"
+
+  snowflake = {
+    account   = "%s"
+    database  = "%s"
+    warehouse = "%s"
+    allow_sso = false
+  }
+}
+
+resource "dbtcloud_snowflake_platform_metadata_credential" "test_wo" {
+  connection_id = dbtcloud_global_connection.test_snowflake_wo.id
+
+  catalog_ingestion_enabled = true
+  cost_optimization_enabled = false
+  cost_insights_enabled     = false
+
+  auth_type           = "password"
+  user                = "%s"
+  password_wo         = "%s"
+  password_wo_version = %d
+  role                = "%s"
+  warehouse           = "%s"
+}
+`, connectionName, snowflakeAccount, snowflakeDatabase, snowflakeWarehouse,
+		user, passwordWo, passwordWoVersion, role, snowflakeWarehouse)
+}
+
+func TestAccDbtCloudDatabricksPlatformMetadataCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping write-only acceptance test until CI environment supports it")
+
+	config := acctest_helper.GetDatabricksPlatformMetadataCredentialTestingConfigurations()
+	if config == nil {
+		t.Skip("Skipping test because required environment variables are not set.")
+	}
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudDatabricksPlatformMetadataCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only token
+			{
+				Config: testAccDbtCloudDatabricksPlatformMetadataCredentialWriteOnlyConfig(
+					connectionName,
+					config.Host,
+					config.HTTPPath,
+					config.Token,
+					config.Catalog,
+					1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("dbtcloud_databricks_platform_metadata_credential.test_wo", "id"),
+					resource.TestCheckResourceAttrSet("dbtcloud_databricks_platform_metadata_credential.test_wo", "credential_id"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test_wo", "catalog", config.Catalog),
+					// token_wo should not be in state
+					resource.TestCheckNoResourceAttr("dbtcloud_databricks_platform_metadata_credential.test_wo", "token_wo"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test_wo", "token_wo_version", "1"),
+				),
+			},
+			// Step 2: Update by incrementing version with new token
+			{
+				Config: testAccDbtCloudDatabricksPlatformMetadataCredentialWriteOnlyConfig(
+					connectionName,
+					config.Host,
+					config.HTTPPath,
+					"new_token_value",
+					config.Catalog,
+					2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("dbtcloud_databricks_platform_metadata_credential.test_wo", "token_wo"),
+					resource.TestCheckResourceAttr("dbtcloud_databricks_platform_metadata_credential.test_wo", "token_wo_version", "2"),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_databricks_platform_metadata_credential.test_wo",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"token",
+					"token_wo", "token_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudDatabricksPlatformMetadataCredentialWriteOnlyConfig(
+	connectionName string,
+	host string,
+	httpPath string,
+	tokenWo string,
+	catalog string,
+	tokenWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_global_connection" "test_databricks_wo" {
+  name = "%s"
+
+  databricks = {
+    host      = "%s"
+    http_path = "%s"
+    catalog   = "%s"
+  }
+}
+
+resource "dbtcloud_databricks_platform_metadata_credential" "test_wo" {
+  connection_id = dbtcloud_global_connection.test_databricks_wo.id
+
+  catalog_ingestion_enabled = true
+  cost_optimization_enabled = false
+  cost_insights_enabled     = false
+
+  token_wo         = "%s"
+  token_wo_version = %d
+  catalog          = "%s"
+}
+`, connectionName, host, httpPath, catalog, tokenWo, tokenWoVersion, catalog)
+}
+
 func TestAccDbtCloudDatabricksPlatformMetadataCredentialResource(t *testing.T) {
 	config := acctest_helper.GetDatabricksPlatformMetadataCredentialTestingConfigurations()
 	if config == nil {

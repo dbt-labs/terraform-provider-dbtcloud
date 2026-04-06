@@ -80,6 +80,18 @@ func (r *snowflakePlatformMetadataCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SnowflakePlatformMetadataCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+	privateKeyPassphrase := helper.ResolveWriteOnlyString(config.PrivateKeyPassphraseWo, plan.PrivateKeyPassphrase)
+
 	// Build the API request
 	credential := dbt_cloud.PlatformMetadataCredential{
 		ConnectionID:            plan.ConnectionID.ValueInt64(),
@@ -89,9 +101,9 @@ func (r *snowflakePlatformMetadataCredentialResource) Create(
 		Config: dbt_cloud.PlatformMetadataCredentialConfig{
 			AuthType:             plan.AuthType.ValueString(),
 			User:                 plan.User.ValueString(),
-			Password:             plan.Password.ValueString(),
-			PrivateKey:           plan.PrivateKey.ValueString(),
-			PrivateKeyPassphrase: plan.PrivateKeyPassphrase.ValueString(),
+			Password:             password,
+			PrivateKey:           privateKey,
+			PrivateKeyPassphrase: privateKeyPassphrase,
 			Role:                 plan.Role.ValueString(),
 			Warehouse:            plan.Warehouse.ValueString(),
 		},
@@ -189,6 +201,14 @@ func (r *snowflakePlatformMetadataCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config SnowflakePlatformMetadataCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	var state SnowflakePlatformMetadataCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -197,6 +217,10 @@ func (r *snowflakePlatformMetadataCredentialResource) Update(
 	}
 
 	credentialID := state.CredentialID.ValueInt64()
+
+	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
+	privateKey := helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
+	privateKeyPassphrase := helper.ResolveWriteOnlyString(config.PrivateKeyPassphraseWo, plan.PrivateKeyPassphrase)
 
 	// Build the update request
 	// Note: connection_id is immutable and should not be included in update requests
@@ -207,9 +231,9 @@ func (r *snowflakePlatformMetadataCredentialResource) Update(
 		Config: dbt_cloud.PlatformMetadataCredentialConfig{
 			AuthType:             plan.AuthType.ValueString(),
 			User:                 plan.User.ValueString(),
-			Password:             plan.Password.ValueString(),
-			PrivateKey:           plan.PrivateKey.ValueString(),
-			PrivateKeyPassphrase: plan.PrivateKeyPassphrase.ValueString(),
+			Password:             password,
+			PrivateKey:           privateKey,
+			PrivateKeyPassphrase: privateKeyPassphrase,
 			Role:                 plan.Role.ValueString(),
 			Warehouse:            plan.Warehouse.ValueString(),
 		},

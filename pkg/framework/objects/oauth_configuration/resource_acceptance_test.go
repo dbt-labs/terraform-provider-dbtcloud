@@ -168,6 +168,116 @@ func TestAccDbtCloudOAuthConfigurationEntraResource(t *testing.T) {
 	})
 }
 
+func TestAccDbtCloudOAuthConfigurationResourceWriteOnly(t *testing.T) {
+	t.Skip("Skipping write-only acceptance test until write-only attribute support is GA")
+
+	oAuthType := "okta"
+	oAuthConfigurationName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	oauthClientId := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	oauthClientSecret := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	oauthClientSecret2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	authorizeUrl := "https://" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha) + ".com"
+	tokenUrl := "https://" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha) + ".com"
+	redirectUri := "https://" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha) + ".com"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudOAuthConfigurationDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only client_secret
+			{
+				Config: testAccDbtCloudOAuthConfigurationWriteOnlyConfig(
+					oAuthType,
+					oAuthConfigurationName,
+					oauthClientId,
+					oauthClientSecret,
+					1,
+					authorizeUrl,
+					tokenUrl,
+					redirectUri,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_oauth_configuration.test_oauth_configuration_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_oauth_configuration.test_oauth_configuration_wo",
+						"client_secret_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new client_secret
+			{
+				Config: testAccDbtCloudOAuthConfigurationWriteOnlyConfig(
+					oAuthType,
+					oAuthConfigurationName,
+					oauthClientId,
+					oauthClientSecret2,
+					2,
+					authorizeUrl,
+					tokenUrl,
+					redirectUri,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_oauth_configuration.test_oauth_configuration_wo",
+						"client_secret_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_oauth_configuration.test_oauth_configuration_wo",
+						"client_secret_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_oauth_configuration.test_oauth_configuration_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"client_secret",
+					"client_secret_wo", "client_secret_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudOAuthConfigurationWriteOnlyConfig(
+	oAuthType,
+	oAuthConfigurationName,
+	oauthClientId,
+	oauthClientSecretWo string,
+	oauthClientSecretWoVersion int,
+	authorizeUrl,
+	tokenUrl,
+	redirectUri string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_oauth_configuration" "test_oauth_configuration_wo" {
+    type = "%s"
+    name = "%s"
+	client_id = "%s"
+	client_secret_wo = "%s"
+	client_secret_wo_version = %d
+	authorize_url = "%s"
+	token_url = "%s"
+	redirect_uri = "%s"
+}
+	`, oAuthType,
+		oAuthConfigurationName,
+		oauthClientId,
+		oauthClientSecretWo,
+		oauthClientSecretWoVersion,
+		authorizeUrl,
+		tokenUrl,
+		redirectUri)
+}
+
 func testAccDbtCloudOAuthConfigurationResourceBasicConfig(
 	oAuthType,
 	oAuthConfigurationName,

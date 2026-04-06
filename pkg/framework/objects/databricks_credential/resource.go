@@ -139,12 +139,20 @@ func (d *databricksCredentialResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	d.createGlobal(ctx, &plan, resp)
+	// Retrieve config to access write-only attributes
+	var config DatabricksCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	d.createGlobal(ctx, &plan, &config, resp)
 }
 
-func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *DatabricksCredentialResourceModel, resp *resource.CreateResponse) {
+func (d *databricksCredentialResource) createGlobal(ctx context.Context, plan *DatabricksCredentialResourceModel, config *DatabricksCredentialResourceModel, resp *resource.CreateResponse) {
 	projectID := int(plan.ProjectID.ValueInt64())
-	token := plan.Token.ValueString()
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
 	schema := plan.Schema.ValueString()
 	targetName := plan.TargetName.ValueString()
 	catalog := plan.Catalog.ValueString()
@@ -259,10 +267,18 @@ func (d *databricksCredentialResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	d.updateGlobal(ctx, &plan, &state, resp)
+	// Retrieve config to access write-only attributes
+	var config DatabricksCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	d.updateGlobal(ctx, &plan, &state, &config, resp)
 }
 
-func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, state *DatabricksCredentialResourceModel, resp *resource.UpdateResponse) {
+func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, state *DatabricksCredentialResourceModel, config *DatabricksCredentialResourceModel, resp *resource.UpdateResponse) {
 	projectID, credentialID, err := helper.SplitIDToInts(
 		state.ID.ValueString(),
 		"databricks_credential",
@@ -272,14 +288,17 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 		return
 	}
 
+	token := helper.ResolveWriteOnlyString(config.TokenWo, plan.Token)
+
 	// Check if any relevant fields have changed
 	if !plan.Token.Equal(state.Token) ||
+		!plan.TokenWoVersion.Equal(state.TokenWoVersion) ||
 		!plan.TargetName.Equal(state.TargetName) ||
 		!plan.Catalog.Equal(state.Catalog) ||
 		!plan.Schema.Equal(state.Schema) {
 
 		patchCredentialsDetails, err := dbt_cloud.GenerateDatabricksCredentialDetails(
-			plan.Token.ValueString(),
+			token,
 			plan.Schema.ValueString(),
 			plan.TargetName.ValueString(),
 			plan.Catalog.ValueString(),
@@ -293,7 +312,7 @@ func (d *databricksCredentialResource) updateGlobal(ctx context.Context, plan, s
 		for key := range patchCredentialsDetails.Fields {
 			switch key {
 			case "token":
-				if plan.Token.Equal(state.Token) {
+				if plan.Token.Equal(state.Token) && plan.TokenWoVersion.Equal(state.TokenWoVersion) {
 					delete(patchCredentialsDetails.Fields, key)
 				}
 			case "schema":

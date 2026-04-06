@@ -87,9 +87,17 @@ func (r *athenaCredentialResource) Create(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config AthenaCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	projectID := int(plan.ProjectID.ValueInt64())
-	awsAccessKeyID := plan.AWSAccessKeyID.ValueString()
-	awsSecretAccessKey := plan.AWSSecretAccessKey.ValueString()
+	awsAccessKeyID := helper.ResolveWriteOnlyString(config.AWSAccessKeyIDWo, plan.AWSAccessKeyID)
+	awsSecretAccessKey := helper.ResolveWriteOnlyString(config.AWSSecretAccessKeyWo, plan.AWSSecretAccessKey)
 	schema := plan.Schema.ValueString()
 
 	// Create new credential
@@ -175,6 +183,14 @@ func (r *athenaCredentialResource) Update(
 		return
 	}
 
+	// Retrieve config to access write-only attributes
+	var config AthenaCredentialResourceModel
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Get current state
 	var state AthenaCredentialResourceModel
 	diags = req.State.Get(ctx, &state)
@@ -185,8 +201,8 @@ func (r *athenaCredentialResource) Update(
 
 	projectID := int(plan.ProjectID.ValueInt64())
 	credentialID := int(state.CredentialID.ValueInt64())
-	awsAccessKeyID := plan.AWSAccessKeyID.ValueString()
-	awsSecretAccessKey := plan.AWSSecretAccessKey.ValueString()
+	awsAccessKeyID := helper.ResolveWriteOnlyString(config.AWSAccessKeyIDWo, plan.AWSAccessKeyID)
+	awsSecretAccessKey := helper.ResolveWriteOnlyString(config.AWSSecretAccessKeyWo, plan.AWSSecretAccessKey)
 	schema := plan.Schema.ValueString()
 
 	// Generate credential details

@@ -13,6 +13,7 @@ Postgres credential resource.
 ## Example Usage
 
 ```terraform
+// Using the classic sensitive attribute (stored in state)
 resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
   is_active      = true
   project_id     = dbtcloud_project.dbt_project.id
@@ -21,6 +22,26 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
   username       = "my_username"
   password       = "my_password"
   num_threads    = 16
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+//
+// The password_wo value is never persisted in the Terraform state file.
+// Use password_wo_version to trigger an update when the password changes.
+variable "postgres_password" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_postgres_credential" "postgres_prod_credential_wo" {
+  is_active           = true
+  project_id          = dbtcloud_project.dbt_project.id
+  type                = "postgres"
+  default_schema      = "my_schema"
+  username            = "my_username"
+  password_wo         = var.postgres_password
+  password_wo_version = 1
+  num_threads         = 16
 }
 ```
 
@@ -37,7 +58,9 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential" {
 - `default_schema` (String) Default schema name. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `is_active` (Boolean) Whether the Postgres/Redshift/AlloyDB credential is active
 - `num_threads` (Number) Number of threads to use (required for Redshift)
-- `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB
+- `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.
 - `target_name` (String) Default schema name
 - `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.

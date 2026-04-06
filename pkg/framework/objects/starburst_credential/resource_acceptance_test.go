@@ -137,6 +137,116 @@ func testAccCheckDbtCloudStarburstCredentialExists(resource string) resource.Tes
 	}
 }
 
+func TestAccDbtCloudStarburstCredentialResourceWriteOnly(t *testing.T) {
+	t.Skip("Requires Terraform >= 1.11")
+
+	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	database := "test_catalog"
+	schema := "test_schema"
+	user := "test_user"
+	password := "test_password"
+	password2 := "test_password_updated"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudStarburstCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudStarburstCredentialWriteOnlyConfig(
+					projectName, database, schema, user, password, 1,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudStarburstCredentialExists("dbtcloud_starburst_credential.test_wo"),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_starburst_credential.test_wo",
+						"id",
+					),
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_starburst_credential.test_wo",
+						"credential_id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"database",
+						database,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"schema",
+						schema,
+					),
+					// password_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudStarburstCredentialWriteOnlyConfig(
+					projectName, database, schema, user, password2, 2,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDbtCloudStarburstCredentialExists("dbtcloud_starburst_credential.test_wo"),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_starburst_credential.test_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_starburst_credential.test_wo",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"user",
+					"password",
+					"password_wo",
+					"password_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudStarburstCredentialWriteOnlyConfig(
+	projectName string,
+	database string,
+	schema string,
+	user string,
+	passwordWo string,
+	passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test" {
+  name = "%s"
+}
+
+resource "dbtcloud_starburst_credential" "test_wo" {
+  project_id          = dbtcloud_project.test.id
+  database            = "%s"
+  schema              = "%s"
+  user                = "%s"
+  password_wo         = "%s"
+  password_wo_version = %d
+}
+`, projectName, database, schema, user, passwordWo, passwordWoVersion)
+}
+
 func testAccCheckDbtCloudStarburstCredentialDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {

@@ -374,6 +374,118 @@ func testAccCheckDbtCloudSnowflakeCredentialDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccDbtCloudSnowflakeCredentialResourceWriteOnly(t *testing.T) {
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	database := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	role := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	warehouse := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	schema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	password2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudSnowflakeCredentialDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Create with write-only password
+			{
+				Config: testAccDbtCloudSnowflakeCredentialWriteOnlyConfig(
+					projectName, database, role, warehouse, schema, user, password, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSnowflakeCredentialExists(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"database",
+						database,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"schema",
+						schema,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"user",
+						user,
+					),
+					// password_wo should not be in state
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"password_wo_version",
+						"1",
+					),
+				),
+			},
+			// Step 2: Update by incrementing version with new password
+			{
+				Config: testAccDbtCloudSnowflakeCredentialWriteOnlyConfig(
+					projectName, database, role, warehouse, schema, user, password2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudSnowflakeCredentialExists(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"password_wo",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_snowflake_credential.test_credential_wo",
+						"password_wo_version",
+						"2",
+					),
+				),
+			},
+			// Step 3: Import
+			{
+				ResourceName:      "dbtcloud_snowflake_credential.test_credential_wo",
+				ImportState:        true,
+				ImportStateVerify:  true,
+				ImportStateVerifyIgnore: []string{
+					"password", "private_key", "private_key_passphrase",
+					"password_wo", "password_wo_version",
+					"private_key_wo", "private_key_wo_version",
+					"private_key_passphrase_wo", "private_key_passphrase_wo_version",
+					"semantic_layer_credential",
+				},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudSnowflakeCredentialWriteOnlyConfig(
+	projectName, database, role, warehouse, schema, user, passwordWo string, passwordWoVersion int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+resource "dbtcloud_snowflake_credential" "test_credential_wo" {
+    is_active    = true
+    project_id   = dbtcloud_project.test_project.id
+    auth_type    = "password"
+    database     = "%s"
+    role         = "%s"
+    warehouse    = "%s"
+    schema       = "%s"
+    user         = "%s"
+    password_wo  = "%s"
+    password_wo_version = %d
+    num_threads  = 3
+}
+`, projectName, database, role, warehouse, schema, user, passwordWo, passwordWoVersion)
+}
+
 func testAccDbtCloudSnowflakeSlCredentialNoSchema(
 	projectName, database, role, warehouse, user, password string,
 ) string {

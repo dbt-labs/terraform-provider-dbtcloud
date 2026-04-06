@@ -33,7 +33,7 @@ you must destroy and recreate the resource.
 ## Example Usage
 
 ```terraform
-# Example: Snowflake Platform Metadata Credential with password auth
+// Using the classic sensitive attributes (stored in state)
 resource "dbtcloud_snowflake_platform_metadata_credential" "password_auth" {
   connection_id = dbtcloud_global_connection.snowflake.id
 
@@ -48,7 +48,6 @@ resource "dbtcloud_snowflake_platform_metadata_credential" "password_auth" {
   warehouse = "METADATA_WH"
 }
 
-# Example: Snowflake Platform Metadata Credential with keypair auth
 resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth" {
   connection_id = dbtcloud_global_connection.snowflake.id
 
@@ -62,6 +61,54 @@ resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth" {
   private_key_passphrase = var.snowflake_private_key_passphrase
   role                   = "METADATA_READER_ROLE"
   warehouse              = "METADATA_WH"
+}
+
+// Using write-only attributes (not stored in state, requires Terraform >= 1.11)
+variable "snowflake_metadata_password" {
+  type      = string
+  ephemeral = true
+}
+
+variable "snowflake_metadata_private_key" {
+  type      = string
+  ephemeral = true
+}
+
+variable "snowflake_metadata_private_key_passphrase" {
+  type      = string
+  ephemeral = true
+}
+
+resource "dbtcloud_snowflake_platform_metadata_credential" "password_auth_wo" {
+  connection_id = dbtcloud_global_connection.snowflake.id
+
+  catalog_ingestion_enabled = true
+  cost_optimization_enabled = true
+  cost_insights_enabled     = false
+
+  auth_type          = "password"
+  user               = "METADATA_READER"
+  password_wo        = var.snowflake_metadata_password
+  password_wo_version = 1
+  role               = "METADATA_READER_ROLE"
+  warehouse          = "METADATA_WH"
+}
+
+resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth_wo" {
+  connection_id = dbtcloud_global_connection.snowflake.id
+
+  catalog_ingestion_enabled = true
+  cost_optimization_enabled = false
+  cost_insights_enabled     = false
+
+  auth_type                         = "keypair"
+  user                              = "METADATA_READER"
+  private_key_wo                    = var.snowflake_metadata_private_key
+  private_key_wo_version            = 1
+  private_key_passphrase_wo         = var.snowflake_metadata_private_key_passphrase
+  private_key_passphrase_wo_version = 1
+  role                              = "METADATA_READER_ROLE"
+  warehouse                         = "METADATA_WH"
 }
 ```
 
@@ -81,9 +128,15 @@ resource "dbtcloud_snowflake_platform_metadata_credential" "keypair_auth" {
 - `catalog_ingestion_enabled` (Boolean) Whether catalog ingestion is enabled for this credential. When enabled, dbt Cloud will ingest metadata about tables, views, and other objects from your data warehouse.
 - `cost_insights_enabled` (Boolean) Whether cost insights is enabled for this credential.
 - `cost_optimization_enabled` (Boolean) Whether cost optimization data collection is enabled for this credential.
-- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase.
-- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password.
-- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password.
+- `password` (String, Sensitive) The password for password authentication. Required when auth_type is 'password'. Cannot be used with private_key or private_key_passphrase. Consider using `password_wo` instead, which is not stored in state.
+- `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
+- `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `private_key` (String, Sensitive) The private key for keypair authentication. Required when auth_type is 'keypair'. Cannot be used with password. Consider using `private_key_wo` instead, which is not stored in state.
+- `private_key_passphrase` (String, Sensitive) The passphrase for the private key, if encrypted. Optional when auth_type is 'keypair'. Cannot be used with password. Consider using `private_key_passphrase_wo` instead, which is not stored in state.
+- `private_key_passphrase_wo` (String) Write-only alternative to `private_key_passphrase`. The value is not stored in state. Requires `private_key_passphrase_wo_version` to trigger updates.
+- `private_key_passphrase_wo_version` (Number) Version number for `private_key_passphrase_wo`. Increment this value to trigger an update of the private key passphrase when using `private_key_passphrase_wo`.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 
 ### Read-Only
 

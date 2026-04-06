@@ -4,12 +4,15 @@ import (
 	"context"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 func (r *lineageIntegrationResource) Schema(
@@ -66,9 +69,26 @@ func (r *lineageIntegrationResource) Schema(
 				Description: "The token to use to authenticate to the BI server",
 			},
 			"token": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
-				Description: "The secret token value to use to authenticate to the BI server",
+				Description: "The secret token value to use to authenticate to the BI server. Consider using `token_wo` instead, which is not stored in state.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("token_wo")),
+					stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("token_wo")),
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("token"),
+						path.MatchRoot("token_wo"),
+					),
+				},
+			},
+			"token_wo": schema.StringAttribute{
+				Optional:    true,
+				WriteOnly:   true,
+				Description: "Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.",
+			},
+			"token_wo_version": schema.Int64Attribute{
+				Optional:    true,
+				Description: "Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.",
 			},
 		},
 	}
