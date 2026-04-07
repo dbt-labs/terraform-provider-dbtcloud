@@ -52,6 +52,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/openai_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_partial_permissions"
@@ -357,6 +358,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
+		openai_integration.OpenAIIntegrationResource,
 		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
