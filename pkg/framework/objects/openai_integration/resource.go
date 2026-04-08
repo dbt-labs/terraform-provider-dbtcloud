@@ -111,7 +111,9 @@ func (r *openAIIntegrationResource) ValidateConfig(
 // key_value, key_value_wo, and key_value_wo_version are never returned by the
 // API and must not be overwritten.
 func applyAPIResponse(api *dbt_cloud.OpenAIIntegration, m *OpenAIIntegrationResourceModel) {
-	m.ID = types.Int64Value(*api.ID)
+	if api.ID != nil {
+		m.ID = types.Int64Value(*api.ID)
+	}
 	m.AccountID = types.Int64Value(api.AccountID)
 	m.KeyType = types.StringValue(api.KeyType)
 
@@ -132,9 +134,13 @@ func applyAPIResponse(api *dbt_cloud.OpenAIIntegration, m *OpenAIIntegrationReso
 	}
 	if api.CreatedAt != nil {
 		m.CreatedAt = types.StringValue(*api.CreatedAt)
+	} else {
+		m.CreatedAt = types.StringNull()
 	}
 	if api.UpdatedAt != nil {
 		m.UpdatedAt = types.StringValue(*api.UpdatedAt)
+	} else {
+		m.UpdatedAt = types.StringNull()
 	}
 }
 

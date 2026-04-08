@@ -94,6 +94,9 @@ func (c *Client) CreateOpenAIIntegration(integration OpenAIIntegration) (*OpenAI
 }
 
 func (c *Client) UpdateOpenAIIntegration(integrationID int64, integration OpenAIIntegration) (*OpenAIIntegration, error) {
+	// account_id is passed via the URL path; zero it out to avoid API rejection.
+	integration.AccountID = 0
+
 	payload, err := json.Marshal(integration)
 	if err != nil {
 		return nil, err
