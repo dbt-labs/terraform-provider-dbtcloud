@@ -27,6 +27,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_ad_application"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/connection_catalog_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
@@ -41,6 +42,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/auth_provider"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
@@ -51,6 +53,9 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/openai_integration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/semantic_layer_credential_service_token_mapping"
@@ -342,8 +347,10 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		auth_provider.AuthProviderResource,
 		account_features.AccountFeaturesResource,
 		athena_credential.NewAthenaCredentialResource,
+		azure_ad_application.AzureADApplicationResource,
 		connection_catalog_config.ConnectionCatalogConfigResource,
 		global_connection.GlobalConnectionResource,
 		group_partial_permissions.GroupPartialPermissionsResource,
@@ -354,6 +361,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
 		oauth_configuration.OAuthConfigurationResource,
+		openai_integration.OpenAIIntegrationResource,
 		partial_environment_variable.PartialEnvironmentVariableResource,
 		partial_license_map.PartialLicenseMapResource,
 		partial_notification.PartialNotificationResource,
@@ -361,6 +369,8 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		platform_metadata_credentials.DatabricksPlatformMetadataCredentialResource,
 		profile.ProfileResource,
 		repository.RepositoryResource,
+		scim_config.SCIMConfigResource,
+		scim_config_token.SCIMConfigTokenResource,
 		scim_group_permissions.ScimGroupPermissionsResource,
 		scim_group_partial_permissions.ScimGroupPartialPermissionsResource,
 		service_token.ServiceTokenResource,
