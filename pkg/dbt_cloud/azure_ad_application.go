@@ -124,6 +124,9 @@ func (c *Client) CreateAzureADApplication(app AzureADApplication) (*AzureADAppli
 }
 
 func (c *Client) UpdateAzureADApplication(applicationID int64, app AzureADApplication) (*AzureADApplication, error) {
+	// account_id is passed via the URL path; zero it out to avoid API rejection.
+	app.AccountID = 0
+
 	payload, err := json.Marshal(app)
 	if err != nil {
 		return nil, err

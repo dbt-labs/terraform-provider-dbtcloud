@@ -68,7 +68,9 @@ func modelToApp(m AzureADApplicationResourceModel) dbt_cloud.AzureADApplication 
 // client_id, client_secret, tenant_id are never returned by the API — the
 // values already in state are preserved.
 func applyAPIResponse(api *dbt_cloud.AzureADApplication, m *AzureADApplicationResourceModel) {
-	m.ID = types.Int64Value(*api.ID)
+	if api.ID != nil {
+		m.ID = types.Int64Value(*api.ID)
+	}
 	m.AccountID = types.Int64Value(api.AccountID)
 	m.OrganizationName = types.StringValue(api.OrganizationName)
 	m.AzureServiceAuthenticationMethod = types.StringValue(api.AzureServiceAuthenticationMethod)
@@ -80,9 +82,13 @@ func applyAPIResponse(api *dbt_cloud.AzureADApplication, m *AzureADApplicationRe
 	}
 	if api.CreatedAt != nil {
 		m.CreatedAt = types.StringValue(*api.CreatedAt)
+	} else {
+		m.CreatedAt = types.StringNull()
 	}
 	if api.UpdatedAt != nil {
 		m.UpdatedAt = types.StringValue(*api.UpdatedAt)
+	} else {
+		m.UpdatedAt = types.StringNull()
 	}
 	// client_id, client_secret, tenant_id: leave untouched — API never returns them.
 }
