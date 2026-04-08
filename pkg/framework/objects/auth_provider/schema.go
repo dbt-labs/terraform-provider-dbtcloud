@@ -60,16 +60,10 @@ func (r *authProviderResource) Schema(
 			"login_url": resource_schema.StringAttribute{
 				Computed:    true,
 				Description: "The SSO login URL for the account, auto-generated from the slug.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"cert_expiry_date": resource_schema.StringAttribute{
 				Computed:    true,
 				Description: "Expiry date of the SAML X.509 certificate (SAML/Okta only).",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"created_at": resource_schema.StringAttribute{
 				Computed: true,
