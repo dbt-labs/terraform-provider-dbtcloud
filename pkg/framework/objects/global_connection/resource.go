@@ -334,6 +334,7 @@ func (r *globalConnectionResource) Create(
 		newState.BigQueryConfig.ApplicationID = plan.BigQueryConfig.ApplicationID
 		newState.BigQueryConfig.ApplicationSecret = plan.BigQueryConfig.ApplicationSecret
 		newState.AdapterVersion = types.StringValue(adapterVersion)
+		newState.ResourceMetadata = plan.ResourceMetadata
 
 		readState, action, err := readGeneric(r.client, &newState, adapterVersion)
 		if err != nil {
