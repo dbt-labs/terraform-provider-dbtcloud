@@ -937,10 +937,14 @@ func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
 	})
 }
 
-// TestAccDbtCloudJobCostOptimizationFeatures tests creating and updating a job
-// with cost_optimization_features set (the preferred replacement for force_node_selection).
+// TestAccDbtCloudJobCostOptimizationFeatures tests creating a job with
+// cost_optimization_features set (the preferred replacement for force_node_selection).
+// Note: clearing cost_optimization_features is not tested here because the acceptance
+// test account has account-level SAO enforcement, which means force_node_selection
+// cannot be disabled via the API on this account.
 func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -963,18 +967,19 @@ func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 					),
 				),
 			},
-			// 2. Update cost_optimization_features to empty
+			// 2. Update job name while keeping cost_optimization_features stable
 			{
 				Config: testAccDbtCloudJobCostOptimizationFeaturesConfig(
-					jobName, projectName, environmentName, `[]`,
+					jobNameUpdated, projectName, environmentName, `["node_selection"]`,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
-					resource.TestCheckResourceAttr(
+					resource.TestCheckTypeSetElemAttr(
 						"dbtcloud_job.test_job",
-						"cost_optimization_features.#",
-						"0",
+						"cost_optimization_features.*",
+						"node_selection",
 					),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobNameUpdated),
 				),
 			},
 			// IMPORT

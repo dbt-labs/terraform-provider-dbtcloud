@@ -828,8 +828,9 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
 			features := helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
 			job.CostOptimizationFeatures = features
-			// Bridge: cost_optimization_features drives force_node_selection when not explicitly set.
-			if job.ForceNodeSelection == nil {
+			// Bridge: cost_optimization_features drives force_node_selection when
+			// force_node_selection is not explicitly set in the plan.
+			if plan.ForceNodeSelection.IsNull() {
 				hasNodeSelection := false
 				for _, f := range features {
 					if f == "node_selection" {
