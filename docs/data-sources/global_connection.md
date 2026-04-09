@@ -25,6 +25,10 @@ data dbtcloud_global_connection my_connection {
 
 - `id` (Number) Connection Identifier
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `adapter_version` (String) Version of the adapter
