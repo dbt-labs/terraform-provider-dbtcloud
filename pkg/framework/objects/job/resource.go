@@ -11,6 +11,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -277,6 +278,11 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		forceNodeSelection = &fns
 	}
 
+	var costOptimizationFeatures []string
+	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+	}
+
 	var jobCompletionTriggerCondition map[string]any
 
 	if len(plan.JobCompletionTriggerCondition) != 0 {
@@ -334,6 +340,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		jobType,
 		compareChangesFlags,
 		forceNodeSelection,
+		costOptimizationFeatures,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -390,6 +397,9 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 			plan.ForceNodeSelection = types.BoolNull()
 		}
 	}
+
+	// Populate cost_optimization_features from API response
+	plan.CostOptimizationFeatures = sliceStringToTypesSet(createdJob.CostOptimizationFeatures)
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 
@@ -610,6 +620,9 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ForceNodeSelection = types.BoolNull()
 	}
 
+	// Populate cost_optimization_features from API response
+	state.CostOptimizationFeatures = sliceStringToTypesSet(retrievedJob.CostOptimizationFeatures)
+
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
 	} else {
@@ -732,7 +745,11 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
-		job.DeferringEnvironmentId = nil
+		// For CI and Merge jobs, preserve the API's deferring_environment_id when the plan doesn't set it.
+		// Other job types clear it when not specified.
+		if job.JobType != JobTypeCI && job.JobType != JobTypeMerge {
+			job.DeferringEnvironmentId = nil
+		}
 	} else {
 		deferringEnvId := int(plan.DeferringEnvironmentID.ValueInt64())
 		job.DeferringEnvironmentId = &deferringEnvId
@@ -784,11 +801,25 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
-	if plan.ForceNodeSelection.IsNull() {
+	// CI and Merge jobs do not support SAO features (force_node_selection / cost_optimization_features).
+	// Sending these fields for those job types results in a 405 from the API, so we skip them.
+	isCIOrMerge := job.JobType == JobTypeCI || job.JobType == JobTypeMerge
+	if isCIOrMerge {
 		job.ForceNodeSelection = nil
+		job.CostOptimizationFeatures = nil
 	} else {
-		fns := plan.ForceNodeSelection.ValueBool()
-		job.ForceNodeSelection = &fns
+		if plan.ForceNodeSelection.IsNull() {
+			job.ForceNodeSelection = nil
+		} else {
+			fns := plan.ForceNodeSelection.ValueBool()
+			job.ForceNodeSelection = &fns
+		}
+
+		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+			job.CostOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+		} else {
+			job.CostOptimizationFeatures = nil
+		}
 	}
 
 	// Handle job_type updates with validation
@@ -873,6 +904,17 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.ForceNodeSelection = types.BoolNull()
 	}
 
+	// Populate cost_optimization_features from API response
+	plan.CostOptimizationFeatures = sliceStringToTypesSet(updatedJob.CostOptimizationFeatures)
+
+	// For CI/Merge jobs, preserve deferring_environment_id from the API response
+	// so it is not lost in state when the plan did not explicitly configure it.
+	if updatedJob.DeferringEnvironmentId != nil {
+		plan.DeferringEnvironmentID = types.Int64Value(int64(*updatedJob.DeferringEnvironmentId))
+	} else if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
+		plan.DeferringEnvironmentID = types.Int64Null()
+	}
+
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
 	updatedSelfDeferring := updatedJob.DeferringJobId != nil && strconv.Itoa(*updatedJob.DeferringJobId) == updatedJobIDStr
 	plan.SelfDeferring = types.BoolValue(updatedSelfDeferring)
@@ -882,6 +924,18 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// sliceStringToTypesSet returns a types.Set of strings; an empty set for nil/empty input.
+func sliceStringToTypesSet(values []string) types.Set {
+	if len(values) == 0 {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+	elems := make([]attr.Value, len(values))
+	for i, v := range values {
+		elems[i] = types.StringValue(v)
+	}
+	return types.SetValueMust(types.StringType, elems)
 }
 
 func (j *jobResource) validateExecuteSteps(executeSteps []string) error {

@@ -479,6 +479,12 @@ func (j *jobResource) Schema(
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"cost_optimization_features": resource_schema.SetAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: types.StringType,
+				Description: "List of cost optimization features to enable for this job. Replaces the deprecated `force_node_selection`. Valid values: `node_selection`.",
+			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
 				ElementType: types.StringType,
