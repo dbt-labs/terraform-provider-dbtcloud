@@ -281,6 +281,18 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var costOptimizationFeatures []string
 	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
 		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+		// Bridge: cost_optimization_features drives force_node_selection when not explicitly set.
+		// The API uses force_node_selection (bool) under the hood, not a cost_optimization_features array.
+		if forceNodeSelection == nil {
+			hasNodeSelection := false
+			for _, f := range costOptimizationFeatures {
+				if f == "node_selection" {
+					hasNodeSelection = true
+					break
+				}
+			}
+			forceNodeSelection = &hasNodeSelection
+		}
 	}
 
 	var jobCompletionTriggerCondition map[string]any
@@ -398,8 +410,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		}
 	}
 
-	// Populate cost_optimization_features from API response
-	plan.CostOptimizationFeatures = sliceStringToTypesSet(createdJob.CostOptimizationFeatures)
+	plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(createdJob.ForceNodeSelection)
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 
@@ -620,8 +631,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.ForceNodeSelection = types.BoolNull()
 	}
 
-	// Populate cost_optimization_features from API response
-	state.CostOptimizationFeatures = sliceStringToTypesSet(retrievedJob.CostOptimizationFeatures)
+	state.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(retrievedJob.ForceNodeSelection)
 
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
@@ -816,7 +826,19 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 
 		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
-			job.CostOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+			features := helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+			job.CostOptimizationFeatures = features
+			// Bridge: cost_optimization_features drives force_node_selection when not explicitly set.
+			if job.ForceNodeSelection == nil {
+				hasNodeSelection := false
+				for _, f := range features {
+					if f == "node_selection" {
+						hasNodeSelection = true
+						break
+					}
+				}
+				job.ForceNodeSelection = &hasNodeSelection
+			}
 		} else {
 			job.CostOptimizationFeatures = nil
 		}
@@ -904,8 +926,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.ForceNodeSelection = types.BoolNull()
 	}
 
-	// Populate cost_optimization_features from API response
-	plan.CostOptimizationFeatures = sliceStringToTypesSet(updatedJob.CostOptimizationFeatures)
+	plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(updatedJob.ForceNodeSelection)
 
 	// For CI/Merge jobs, preserve deferring_environment_id from the API response
 	// so it is not lost in state when the plan did not explicitly configure it.
@@ -936,6 +957,16 @@ func sliceStringToTypesSet(values []string) types.Set {
 		elems[i] = types.StringValue(v)
 	}
 	return types.SetValueMust(types.StringType, elems)
+}
+
+// costOptimizationFeaturesFromForceNodeSelection derives the cost_optimization_features state
+// from the API's force_node_selection bool field, since the API does not return a
+// cost_optimization_features array — it bridges through force_node_selection.
+func costOptimizationFeaturesFromForceNodeSelection(forceNodeSelection *bool) types.Set {
+	if forceNodeSelection != nil && *forceNodeSelection {
+		return types.SetValueMust(types.StringType, []attr.Value{types.StringValue("node_selection")})
+	}
+	return types.SetValueMust(types.StringType, []attr.Value{})
 }
 
 func (j *jobResource) validateExecuteSteps(executeSteps []string) error {
