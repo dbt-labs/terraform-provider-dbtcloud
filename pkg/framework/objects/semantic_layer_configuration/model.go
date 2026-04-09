@@ -5,7 +5,8 @@ import (
 )
 
 type SemanticLayerConfigurationModel struct {
-	ID              types.Int64  `tfsdk:"id"`
-	ProjectID       types.Int64  `tfsdk:"project_id"`
-	EnvironmentID   types.Int64  `tfsdk:"environment_id"`
+	ID               types.Int64   `tfsdk:"id"`
+	ProjectID        types.Int64   `tfsdk:"project_id"`
+	EnvironmentID    types.Int64   `tfsdk:"environment_id"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }

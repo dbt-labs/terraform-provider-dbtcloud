@@ -61,6 +61,7 @@ resource "dbtcloud_athena_credential" "example_wo" {
 - `aws_secret_access_key` (String, Sensitive) AWS secret access key for Athena user. Consider using `aws_secret_access_key_wo` instead, which is not stored in state.
 - `aws_secret_access_key_wo` (String) Write-only alternative to `aws_secret_access_key`. The value is not stored in state. Requires `aws_secret_access_key_wo_version` to trigger updates.
 - `aws_secret_access_key_wo_version` (Number) Version number for `aws_secret_access_key_wo`. Increment this value to trigger an update of the AWS secret access key when using `aws_secret_access_key_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

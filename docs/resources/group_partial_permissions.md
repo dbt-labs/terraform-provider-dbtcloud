@@ -80,6 +80,7 @@ resource "dbtcloud_group_partial_permissions" "tf_group_2" {
 
 - `assign_by_default` (Boolean) Whether the group will be assigned by default to users. The value needs to be the same for all partial permissions for the same group.
 - `group_permissions` (Attributes Set) Partial permissions for the group. Those permissions will be added/removed when config is added/removed. (see [below for nested schema](#nestedatt--group_permissions))
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `sso_mapping_groups` (Set of String) Mapping groups from the IdP. At the moment the complete list needs to be provided in each partial permission for the same group.
 
 ### Read-Only
@@ -97,8 +98,8 @@ Required:
 Optional:
 
 - `project_id` (Number) Project ID to apply this permission to for this group.
-- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to. 
-Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
-The values allowed are `all`, `development`, `staging`, `production` and `other`. 
-Not setting a value is the same as selecting `all`. 
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
+Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+The values allowed are `all`, `development`, `staging`, `production` and `other`.
+Not setting a value is the same as selecting `all`.
 Not all permission sets support environment level write settings, only `analyst`, `database_admin`, `developer`, `git_admin` and `team_admin`.

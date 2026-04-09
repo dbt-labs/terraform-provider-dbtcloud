@@ -47,6 +47,7 @@ resource "dbtcloud_spark_credential" "my_spark_cred_wo" {
 
 ### Optional
 
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `target_name` (String, Deprecated) Target name
 - `token` (String, Sensitive) Token for Apache Spark user. Consider using `token_wo` instead, which is not stored in state.
 - `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.

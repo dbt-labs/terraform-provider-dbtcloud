@@ -40,6 +40,10 @@ resource "dbtcloud_environment_variable" "dbt_my_env_var" {
 - `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
 - `project_id` (Number) Project ID to create the environment variable in
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (String) The ID of this resource. Contains the project ID and the environment variable ID.

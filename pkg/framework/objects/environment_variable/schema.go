@@ -35,6 +35,10 @@ var resourceSchema = resource_schema.Schema{
 			ElementType: types.StringType,
 			Description: "Map from environment names to respective variable value, a special key `project` should be set for the project default variable value. This field is not set as sensitive so take precautions when using secret environment variables.",
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }
 

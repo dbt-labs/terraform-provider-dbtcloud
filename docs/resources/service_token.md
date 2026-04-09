@@ -84,6 +84,7 @@ resource "dbtcloud_service_token" "test_service_token" {
 
 ### Optional
 
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `service_token_permissions` (Block Set) Permissions set for the service token (see [below for nested schema](#nestedblock--service_token_permissions))
 - `state` (Number) Service token state (1 is active, 2 is inactive)
 

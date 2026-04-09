@@ -14,5 +14,6 @@ type AzureADApplicationResourceModel struct {
 	AzureServiceAuthenticationMethod types.String `tfsdk:"azure_service_authentication_method"`
 	OAuthRedirectURIDomain           types.String `tfsdk:"oauth_redirect_uri_domain"`
 	CreatedAt                        types.String `tfsdk:"created_at"`
-	UpdatedAt                        types.String `tfsdk:"updated_at"`
+	UpdatedAt                        types.String  `tfsdk:"updated_at"`
+	ResourceMetadata                 types.Dynamic `tfsdk:"resource_metadata"`
 }

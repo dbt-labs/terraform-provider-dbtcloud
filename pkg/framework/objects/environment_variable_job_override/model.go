@@ -12,5 +12,6 @@ type EnvironmentVariableJobOverrideResourceModel struct {
 	Name                             types.String `tfsdk:"name"`
 	JobDefinitionID                  types.Int64  `tfsdk:"job_definition_id"`
 	RawValue                         types.String `tfsdk:"raw_value"`
-	EnvironmentVariableJobOverrideID types.Int64  `tfsdk:"environment_variable_job_override_id"`
+	EnvironmentVariableJobOverrideID types.Int64   `tfsdk:"environment_variable_job_override_id"`
+	ResourceMetadata                 types.Dynamic `tfsdk:"resource_metadata"`
 }

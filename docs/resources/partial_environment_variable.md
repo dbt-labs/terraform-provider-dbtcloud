@@ -53,6 +53,10 @@ resource "dbtcloud_partial_environment_variable" "test_env_var_partial" {
 - `name` (String) Name for the variable, must be unique within a project, must be prefixed with 'DBT_'
 - `project_id` (Number) Project ID to create or update the environment variable in
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (String) The ID of the environment variable in the format 'project_id:name'

@@ -39,6 +39,10 @@ resource "dbtcloud_redshift_semantic_layer_credential" "test_redshift_semantic_l
 - `configuration` (Attributes) Semantic Layer credential configuration details. (see [below for nested schema](#nestedatt--configuration))
 - `credential` (Attributes) Redshift credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (Number) The ID of the credential
@@ -68,6 +72,7 @@ Optional:
 - `password` (String, Sensitive) The password for the Redshift account. Consider using `password_wo` instead, which is not stored in state.
 - `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
 - `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `username` (String) The username for the Redshift account.
 
 Read-Only:

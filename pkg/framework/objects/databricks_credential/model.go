@@ -26,5 +26,6 @@ type DatabricksCredentialResourceModel struct {
 	Catalog                 types.String `tfsdk:"catalog"`
 	Schema                  types.String `tfsdk:"schema"`
 	AdapterType             types.String `tfsdk:"adapter_type"`
-	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
+	SemanticLayerCredential types.Bool    `tfsdk:"semantic_layer_credential"`
+	ResourceMetadata        types.Dynamic `tfsdk:"resource_metadata"`
 }

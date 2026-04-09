@@ -125,5 +125,9 @@ var SalesforceResourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     int64default.StaticInt64(6),
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }

@@ -41,6 +41,10 @@ func (r *licenseMapResource) Schema(
 				Description: "SSO license mapping group names for this group",
 				ElementType: types.StringType,
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

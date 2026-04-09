@@ -64,6 +64,10 @@ func (r *accountFeaturesResource) Schema(
 				Optional:    true,
 				Computed:    true,
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

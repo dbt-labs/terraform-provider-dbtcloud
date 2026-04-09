@@ -78,6 +78,7 @@ resource "dbtcloud_environment" "profiled_environment" {
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `is_active` (Boolean) Whether the environment is active
 - `primary_profile_id` (Number) The ID of the primary profile for this environment. A profile ties together a connection and credentials. Only applicable to deployment environments. ~> Setting `primary_profile_id` alongside `connection_id`, `credential_id`, or `extended_attributes_id` will produce an error. When a profile is assigned, the API determines those values from the profile. Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
 
 ### Read-Only

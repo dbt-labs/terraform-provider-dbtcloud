@@ -63,6 +63,7 @@ resource "dbtcloud_lineage_integration" "my_lineage_wo" {
 
 ### Optional
 
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `token` (String, Sensitive) The secret token value to use to authenticate to the BI server. Consider using `token_wo` instead, which is not stored in state.
 - `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
 - `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.

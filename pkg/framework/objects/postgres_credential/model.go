@@ -27,5 +27,6 @@ type PostgresCredentialResourceModel struct {
 	Password                types.String `tfsdk:"password"`
 	PasswordWo              types.String `tfsdk:"password_wo"`
 	PasswordWoVersion       types.Int64  `tfsdk:"password_wo_version"`
-	SemanticLayerCredential types.Bool   `tfsdk:"semantic_layer_credential"`
+	SemanticLayerCredential types.Bool    `tfsdk:"semantic_layer_credential"`
+	ResourceMetadata        types.Dynamic `tfsdk:"resource_metadata"`
 }

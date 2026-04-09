@@ -17,13 +17,14 @@ type TeradataCredentialDataSourceModel struct {
 
 // TeradataCredentialModel is the model for the resource
 type TeradataCredentialModel struct {
-	ID                types.String `tfsdk:"id"`
-	CredentialID      types.Int64  `tfsdk:"credential_id"`
-	ProjectID         types.Int64  `tfsdk:"project_id"`
-	User              types.String `tfsdk:"user"`
-	Password          types.String `tfsdk:"password"`
-	PasswordWo        types.String `tfsdk:"password_wo"`
-	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
-	Schema            types.String `tfsdk:"schema"`
-	Threads           types.Int64  `tfsdk:"threads"`
+	ID                types.String  `tfsdk:"id"`
+	CredentialID      types.Int64   `tfsdk:"credential_id"`
+	ProjectID         types.Int64   `tfsdk:"project_id"`
+	User              types.String  `tfsdk:"user"`
+	Password          types.String  `tfsdk:"password"`
+	PasswordWo        types.String  `tfsdk:"password_wo"`
+	PasswordWoVersion types.Int64   `tfsdk:"password_wo_version"`
+	Schema            types.String  `tfsdk:"schema"`
+	Threads           types.Int64   `tfsdk:"threads"`
+	ResourceMetadata  types.Dynamic `tfsdk:"resource_metadata"`
 }

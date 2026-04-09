@@ -91,6 +91,10 @@ you must destroy and recreate the resource.
 				Optional:    true,
 				ElementType: types.StringType,
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

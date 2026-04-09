@@ -17,6 +17,7 @@ type ServiceTokenResourceModel struct {
 	State       types.Int64  `tfsdk:"state"`
 
 	ServiceTokenPermissions []ServiceTokenPermission `tfsdk:"service_token_permissions"`
+	ResourceMetadata        types.Dynamic            `tfsdk:"resource_metadata"`
 }
 
 type ServiceTokenDataSourceModel struct {

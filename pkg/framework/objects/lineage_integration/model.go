@@ -12,5 +12,6 @@ type LineageIntegrationResourceModel struct {
 	TokenName            types.String `tfsdk:"token_name"`
 	Token                types.String `tfsdk:"token"`
 	TokenWo              types.String `tfsdk:"token_wo"`
-	TokenWoVersion       types.Int64  `tfsdk:"token_wo_version"`
+	TokenWoVersion       types.Int64   `tfsdk:"token_wo_version"`
+	ResourceMetadata     types.Dynamic `tfsdk:"resource_metadata"`
 }

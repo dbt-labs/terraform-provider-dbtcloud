@@ -31,6 +31,10 @@ resource "dbtcloud_environment_variable_job_override" "my_env_var_job_override" 
 - `project_id` (Number) Project ID to create the environment variable job override in
 - `raw_value` (String) The value for the override of the environment variable
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `account_id` (Number) The account id

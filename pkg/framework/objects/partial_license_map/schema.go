@@ -50,6 +50,10 @@ func (r *partialLicenseMapResource) Schema(
 				Required:    true,
 				Description: "List of SSO groups to map to the license type.",
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

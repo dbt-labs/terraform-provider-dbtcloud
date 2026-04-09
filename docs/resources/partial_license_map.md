@@ -49,6 +49,10 @@ resource "dbtcloud_partial_license_map" "it_license_map" {
 - `license_type` (String) The license type to update
 - `sso_license_mapping_groups` (Set of String) List of SSO groups to map to the license type.
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (Number) The ID of the notification

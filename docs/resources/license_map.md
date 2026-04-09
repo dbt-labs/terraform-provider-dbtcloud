@@ -41,6 +41,7 @@ resource "dbtcloud_license_map" "it_license_map" {
 
 ### Optional
 
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `sso_license_mapping_groups` (Set of String) SSO license mapping group names for this group
 
 ### Read-Only

@@ -273,6 +273,7 @@ resource "dbtcloud_scim_group_partial_permissions" "data_science" {
 ### Optional
 
 - `permissions` (Attributes Set) Partial set of permissions to apply to the group. These permissions will be added to any existing permissions. Other permissions on the group will not be affected. (see [below for nested schema](#nestedatt--permissions))
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 
@@ -289,10 +290,10 @@ Required:
 Optional:
 
 - `project_id` (Number) Project ID to apply this permission to for this group.
-- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to. 
-Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
-The values allowed are `all`, `development`, `staging`, `production` and `other`. 
-Not setting a value is the same as selecting `all`. 
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
+Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+The values allowed are `all`, `development`, `staging`, `production` and `other`.
+Not setting a value is the same as selecting `all`.
 Not all permission sets support environment level write settings, only `analyst`, `database_admin`, `developer`, `git_admin` and `team_admin`.
 
 ## Import

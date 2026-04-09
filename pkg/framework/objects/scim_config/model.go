@@ -5,8 +5,9 @@ import (
 )
 
 type SCIMConfigResourceModel struct {
-	ID                        types.String `tfsdk:"id"`
-	Enabled                   types.Bool   `tfsdk:"enabled"`
-	ManualUpdatesAllowed      types.Bool   `tfsdk:"manual_updates_allowed"`
-	SCIMControlledLicenseType types.Bool   `tfsdk:"scim_controlled_license_type"`
+	ID                        types.String  `tfsdk:"id"`
+	Enabled                   types.Bool    `tfsdk:"enabled"`
+	ManualUpdatesAllowed      types.Bool    `tfsdk:"manual_updates_allowed"`
+	SCIMControlledLicenseType types.Bool    `tfsdk:"scim_controlled_license_type"`
+	ResourceMetadata          types.Dynamic `tfsdk:"resource_metadata"`
 }

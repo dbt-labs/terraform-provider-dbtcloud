@@ -38,6 +38,10 @@ resource "dbtcloud_scim_config" "main" {
 - `manual_updates_allowed` (Boolean) Whether administrators can manually update users and groups that are managed by SCIM. When set to ~~~false~~~, SCIM is the sole source of truth for user and group management.
 - `scim_controlled_license_type` (Boolean) Whether the dbt Cloud license type (Developer, Read-Only, IT) is controlled by SCIM attribute mapping. When set to ~~~false~~~, license types are managed manually inside dbt Cloud.
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (String) The ID of the resource (matches the dbt Cloud account ID).

@@ -15,6 +15,7 @@ type GroupResourceModel struct {
 	AssignByDefault  types.Bool        `tfsdk:"assign_by_default"`
 	SSOMappingGroups types.Set         `tfsdk:"sso_mapping_groups"`
 	GroupPermissions []GroupPermission `tfsdk:"group_permissions"`
+	ResourceMetadata types.Dynamic     `tfsdk:"resource_metadata"`
 }
 
 // we need a different one just because historically the data source uses `group_id` instead of `id`

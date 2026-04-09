@@ -17,5 +17,6 @@ type ConnectionCatalogConfigResourceModel struct {
 	TableAllow    types.List `tfsdk:"table_allow"`
 	TableDeny     types.List `tfsdk:"table_deny"`
 	ViewAllow     types.List `tfsdk:"view_allow"`
-	ViewDeny      types.List `tfsdk:"view_deny"`
+	ViewDeny         types.List    `tfsdk:"view_deny"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }

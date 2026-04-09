@@ -6,10 +6,11 @@ import (
 
 // EnvironmentVariableResourceModel is the model for the resource
 type EnvironmentVariableResourceModel struct {
-	ID                types.String `tfsdk:"id"`
-	ProjectID         types.Int64  `tfsdk:"project_id"`
-	Name              types.String `tfsdk:"name"`
-	EnvironmentValues types.Map    `tfsdk:"environment_values"`
+	ID                types.String  `tfsdk:"id"`
+	ProjectID         types.Int64   `tfsdk:"project_id"`
+	Name              types.String  `tfsdk:"name"`
+	EnvironmentValues types.Map     `tfsdk:"environment_values"`
+	ResourceMetadata  types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 // EnvironmentVariableDataSourceModel is the model for the data source

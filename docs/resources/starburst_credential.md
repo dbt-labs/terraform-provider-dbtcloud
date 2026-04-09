@@ -56,6 +56,7 @@ resource "dbtcloud_starburst_credential" "example_wo" {
 - `password` (String, Sensitive) The password for the Starburst/Trino account. Consider using `password_wo` instead, which is not stored in state.
 - `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
 - `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

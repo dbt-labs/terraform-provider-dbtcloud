@@ -194,6 +194,7 @@ resource "dbtcloud_global_connection" "teradata" {
 - `postgres` (Attributes) PostgreSQL connection configuration. (see [below for nested schema](#nestedatt--postgres))
 - `private_link_endpoint_id` (String) Private Link Endpoint ID. This ID can be found using the `privatelink_endpoint` data source
 - `redshift` (Attributes) Redshift connection configuration (see [below for nested schema](#nestedatt--redshift))
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `salesforce` (Attributes) Salesforce connection configuration. (see [below for nested schema](#nestedatt--salesforce))
 - `snowflake` (Attributes) Snowflake connection configuration (see [below for nested schema](#nestedatt--snowflake))
 - `starburst` (Attributes) Starburst/Trino connection configuration. (see [below for nested schema](#nestedatt--starburst))

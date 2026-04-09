@@ -123,6 +123,10 @@ func ResourceSchema() resource_schema.Schema {
 				Computed:    true,
 				Description: "URL template for creating a pull request. If it is not set, the default template will create a PR from the current branch to the branch configured in the Development environment.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

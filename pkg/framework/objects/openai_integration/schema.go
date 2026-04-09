@@ -99,6 +99,10 @@ func (r *openAIIntegrationResource) Schema(
 				Computed:    true,
 				Description: "Timestamp when the integration was last updated.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

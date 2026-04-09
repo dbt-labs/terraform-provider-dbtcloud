@@ -62,6 +62,10 @@ func (r *modelNotificationsResource) Schema(
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether to send notifications for skipped model runs",
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

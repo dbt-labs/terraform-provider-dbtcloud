@@ -36,6 +36,7 @@ resource "dbtcloud_model_notifications" "prod_model_notifications" {
 - `on_skipped` (Boolean) Whether to send notifications for skipped model runs
 - `on_success` (Boolean) Whether to send notifications for successful model runs
 - `on_warning` (Boolean) Whether to send notifications for model runs with warnings
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

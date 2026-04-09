@@ -70,6 +70,7 @@ resource "dbtcloud_openai_integration" "azure" {
 - `key_value` (String, Sensitive) The OpenAI or Azure OpenAI API key. Stored as a sensitive value in Terraform state. Conflicts with ~~~key_value_wo~~~. For Terraform 1.11+, prefer ~~~key_value_wo~~~ to avoid storing secrets in state.
 - `key_value_wo` (String) Write-only variant of the API key (Terraform 1.11+). Never stored in state. Increment ~~~key_value_wo_version~~~ to rotate the key. Conflicts with ~~~key_value~~~.
 - `key_value_wo_version` (Number) Increment this value to rotate the key when using ~~~key_value_wo~~~.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

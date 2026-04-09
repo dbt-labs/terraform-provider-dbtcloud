@@ -14,7 +14,8 @@ type RedshiftCredentialResourceModel struct {
 	PasswordWo        types.String `tfsdk:"password_wo"`
 	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
 	DefaultSchema     types.String `tfsdk:"default_schema"`
-	NumThreads        types.Int64  `tfsdk:"num_threads"`
+	NumThreads        types.Int64   `tfsdk:"num_threads"`
+	ResourceMetadata  types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type RedshiftCredentialDataSourceModel struct {

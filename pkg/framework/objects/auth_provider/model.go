@@ -41,5 +41,6 @@ type AuthProviderResourceModel struct {
 	// Google Workspace only
 	GsuiteAdminID     types.String `tfsdk:"gsuite_admin_id"`
 	AuthorizationURL  types.String `tfsdk:"authorization_url"`
-	AdminRefreshToken types.String `tfsdk:"admin_refresh_token"`
+	AdminRefreshToken types.String  `tfsdk:"admin_refresh_token"`
+	ResourceMetadata  types.Dynamic `tfsdk:"resource_metadata"`
 }

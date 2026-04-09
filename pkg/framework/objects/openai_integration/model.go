@@ -15,5 +15,6 @@ type OpenAIIntegrationResourceModel struct {
 	AzureDeploymentName types.String `tfsdk:"azure_deployment_name"`
 	AzureAPIVersion     types.String `tfsdk:"azure_api_version"`
 	CreatedAt           types.String `tfsdk:"created_at"`
-	UpdatedAt           types.String `tfsdk:"updated_at"`
+	UpdatedAt           types.String  `tfsdk:"updated_at"`
+	ResourceMetadata    types.Dynamic `tfsdk:"resource_metadata"`
 }

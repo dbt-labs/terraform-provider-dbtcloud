@@ -6,12 +6,13 @@ import (
 )
 
 type IPRestrictionsRuleResourceModel struct {
-	ID             types.Int64  `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	Type           types.String `tfsdk:"type"`
-	Description    types.String `tfsdk:"description"`
-	RuleSetEnabled types.Bool   `tfsdk:"rule_set_enabled"`
-	Cidrs          []CidrModel  `tfsdk:"cidrs"`
+	ID               types.Int64   `tfsdk:"id"`
+	Name             types.String  `tfsdk:"name"`
+	Type             types.String  `tfsdk:"type"`
+	Description      types.String  `tfsdk:"description"`
+	RuleSetEnabled   types.Bool    `tfsdk:"rule_set_enabled"`
+	Cidrs            []CidrModel   `tfsdk:"cidrs"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type CidrModel struct {

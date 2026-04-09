@@ -151,6 +151,7 @@ type GlobalConnectionResourceModel struct {
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
 	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
 	SalesforceConfig      *SalesforceConfig  `tfsdk:"salesforce"`
+	ResourceMetadata      types.Dynamic      `tfsdk:"resource_metadata"`
 }
 
 type SSHTunnelConfig struct {

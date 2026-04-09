@@ -42,6 +42,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 - `active` (Boolean) Webhooks active flag
 - `description` (String) Webhooks Description
 - `job_ids` (List of Number) List of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

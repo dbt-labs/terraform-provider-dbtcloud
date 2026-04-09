@@ -93,6 +93,10 @@ func (r *azureADApplicationResource) Schema(
 				Computed:    true,
 				Description: "Timestamp when the application was last updated.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

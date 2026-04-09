@@ -137,4 +137,5 @@ type JobResourceModel struct {
 	DeferringJobId                types.Int64                      `tfsdk:"deferring_job_id"` // add deprecated move to deferring_job_definition_id
 	SelfDeferring                 types.Bool                       `tfsdk:"self_deferring"`
 	CompareChangesFlags           types.String                     `tfsdk:"compare_changes_flags"`
+	ResourceMetadata              types.Dynamic                    `tfsdk:"resource_metadata"`
 }

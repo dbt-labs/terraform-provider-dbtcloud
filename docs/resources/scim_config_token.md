@@ -44,6 +44,10 @@ output "scim_token" {
 
 - `name` (String) A human-readable name for the token. Changing this value forces a new token to be created.
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `created_at` (String) Timestamp when the token was created.

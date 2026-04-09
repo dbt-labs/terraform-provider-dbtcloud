@@ -89,16 +89,20 @@ func (r *scimGroupPartialPermissionsResource) Schema(
 							ElementType: types.StringType,
 							Optional:    true,
 							Description: helper.DocString(
-								`What types of environments to apply Write permissions to. 
-								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
-								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~. 
-								Not setting a value is the same as selecting ~~~all~~~. 
+								`What types of environments to apply Write permissions to.
+								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~.
+								Not setting a value is the same as selecting ~~~all~~~.
 								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
 							),
 						},
 					},
 				},
 				Optional: true,
+			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
 			},
 		},
 	}

@@ -119,6 +119,7 @@ resource "dbtcloud_repository" "ado_repo" {
 - `is_active` (Boolean) Whether the repository is active
 - `private_link_endpoint_id` (String) Identifier for the PrivateLink endpoint.
 - `pull_request_url_template` (String) URL template for creating a pull request. If it is not set, the default template will create a PR from the current branch to the branch configured in the Development environment.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

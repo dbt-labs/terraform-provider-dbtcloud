@@ -72,6 +72,7 @@ resource "dbtcloud_notification" "prod_job_slack_notifications" {
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success
 - `on_warning` (Set of Number) List of job IDs to trigger the webhook on warning
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `slack_channel_id` (String) The ID of the Slack channel to receive the notification. It can be found at the bottom of the Slack channel settings
 - `slack_channel_name` (String) The name of the slack channel
 - `state` (Number) State of the notification (1 = active (default), 2 = inactive)

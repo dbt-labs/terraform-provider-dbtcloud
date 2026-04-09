@@ -38,5 +38,6 @@ type SnowflakeCredentialResourceModel struct {
 	PrivateKeyPassphraseWoVersion types.Int64  `tfsdk:"private_key_passphrase_wo_version"`
 	IsActive                      types.Bool   `tfsdk:"is_active"`
 	NumThreads                    types.Int64  `tfsdk:"num_threads"`
-	SemanticLayerCredential       types.Bool   `tfsdk:"semantic_layer_credential"`
+	SemanticLayerCredential       types.Bool    `tfsdk:"semantic_layer_credential"`
+	ResourceMetadata              types.Dynamic `tfsdk:"resource_metadata"`
 }

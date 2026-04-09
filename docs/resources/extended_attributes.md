@@ -51,6 +51,7 @@ resource "dbtcloud_environment" "issue_depl" {
 
 ### Optional
 
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `state` (Number) The state of the extended attributes (1 = active, 2 = inactive)
 
 ### Read-Only

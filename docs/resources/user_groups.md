@@ -50,6 +50,10 @@ resource "dbtcloud_user_groups" "my_other_user_groups" {
 - `group_ids` (Set of Number) IDs of the groups to assign to the user. If additional groups were assigned manually in dbt Cloud, they will be removed.
 - `user_id` (Number) The internal ID of a dbt Cloud user.
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (String) The ID of this resource. It is the same as the user_id.

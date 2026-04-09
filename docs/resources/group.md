@@ -72,6 +72,7 @@ resource "dbtcloud_group" "tf_group_1" {
 
 - `assign_by_default` (Boolean) Whether the group will be assigned by default to users. The value needs to be the same for all partial permissions for the same group.
 - `group_permissions` (Block Set) Partial permissions for the group. Those permissions will be added/removed when config is added/removed. (see [below for nested schema](#nestedblock--group_permissions))
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `sso_mapping_groups` (Set of String) Mapping groups from the IdP. At the moment the complete list needs to be provided in each partial permission for the same group.
 
 ### Read-Only

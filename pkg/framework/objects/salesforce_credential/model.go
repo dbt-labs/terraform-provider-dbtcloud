@@ -25,5 +25,6 @@ type SalesforceCredentialResourceModel struct {
 	PrivateKeyWo        types.String `tfsdk:"private_key_wo"`
 	PrivateKeyWoVersion types.Int64  `tfsdk:"private_key_wo_version"`
 	TargetName          types.String `tfsdk:"target_name"`
-	NumThreads          types.Int64  `tfsdk:"num_threads"`
+	NumThreads          types.Int64   `tfsdk:"num_threads"`
+	ResourceMetadata    types.Dynamic `tfsdk:"resource_metadata"`
 }

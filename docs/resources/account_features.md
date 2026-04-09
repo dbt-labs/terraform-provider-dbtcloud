@@ -47,6 +47,7 @@ resource "dbtcloud_account_features" "my_features" {
 - `fusion_migration_permissions` (Boolean) Whether permissions for accounts migrating to Fusion are enabled.
 - `partial_parsing` (Boolean) Whether partial parsing is enabled.
 - `repo_caching` (Boolean) Whether repository caching is enabled.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

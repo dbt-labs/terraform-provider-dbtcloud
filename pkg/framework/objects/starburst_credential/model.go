@@ -14,7 +14,8 @@ type StarburstCredentialResourceModel struct {
 	PasswordWo        types.String `tfsdk:"password_wo"`
 	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
 	Database          types.String `tfsdk:"database"`
-	Schema            types.String `tfsdk:"schema"`
+	Schema            types.String  `tfsdk:"schema"`
+	ResourceMetadata  types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 // StarburstCredentialDataSourceModel is the model for the data source

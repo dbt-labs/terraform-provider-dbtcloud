@@ -36,6 +36,10 @@ resource "dbtcloud_databricks_semantic_layer_credential" "sl_cred_databricks_exa
 - `configuration` (Attributes) Semantic Layer credential configuration details. (see [below for nested schema](#nestedatt--configuration))
 - `credential` (Attributes) Databricks credential details, but used in the context of the Semantic Layer. (see [below for nested schema](#nestedatt--credential))
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (Number) The ID of the credential
@@ -61,6 +65,7 @@ Optional:
 
 - `adapter_type` (String, Deprecated) The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `catalog` (String) The catalog where to create models (only for the databricks adapter)
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `schema` (String) The schema where to create models. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Databricks credential for the Semantic Layer.
 - `target_name` (String, Deprecated) Target name

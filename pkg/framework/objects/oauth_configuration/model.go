@@ -15,5 +15,6 @@ type OAuthConfigurationResourceModel struct {
 	AuthorizeUrl     types.String `tfsdk:"authorize_url"`
 	TokenUrl         types.String `tfsdk:"token_url"`
 	RedirectUri      types.String `tfsdk:"redirect_uri"`
-	ApplicationIdUri types.String `tfsdk:"application_id_uri"`
+	ApplicationIdUri types.String  `tfsdk:"application_id_uri"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }

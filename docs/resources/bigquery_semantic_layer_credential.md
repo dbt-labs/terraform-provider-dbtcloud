@@ -58,6 +58,7 @@ resource "dbtcloud_bigquery_semantic_layer_credential" "example" {
 - `private_key` (String, Sensitive) Private Key for the Service Account. Consider using `private_key_wo` instead, which is not stored in state.
 - `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
 - `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 
@@ -86,6 +87,7 @@ Optional:
 
 - `connection_id` (Number) The ID of the global connection to use for this credential. When provided, the credential will automatically use the correct adapter version based on the connection's configuration (e.g., bigquery_v1 for connections with use_latest_adapter=true).
 - `is_active` (Boolean) Whether the BigQuery credential is active
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 Read-Only:
 

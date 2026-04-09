@@ -31,6 +31,7 @@ resource "dbtcloud_project_artefacts" "my_project_artefacts" {
 
 - `docs_job_id` (Number) Docs Job ID
 - `freshness_job_id` (Number) Freshness Job ID
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

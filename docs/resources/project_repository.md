@@ -27,6 +27,10 @@ resource "dbtcloud_project_repository" "dbt_project_repository" {
 - `project_id` (Number) Project ID
 - `repository_id` (Number) Repository ID
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (String) The ID of the project repository.

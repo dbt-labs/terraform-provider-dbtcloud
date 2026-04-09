@@ -8,13 +8,14 @@ import (
 )
 
 type ModelNotificationsResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	EnvironmentID types.String `tfsdk:"environment_id"`
-	Enabled       types.Bool   `tfsdk:"enabled"`
-	OnSuccess     types.Bool   `tfsdk:"on_success"`
-	OnFailure     types.Bool   `tfsdk:"on_failure"`
-	OnWarning     types.Bool   `tfsdk:"on_warning"`
-	OnSkipped     types.Bool   `tfsdk:"on_skipped"`
+	ID               types.String  `tfsdk:"id"`
+	EnvironmentID    types.String  `tfsdk:"environment_id"`
+	Enabled          types.Bool    `tfsdk:"enabled"`
+	OnSuccess        types.Bool    `tfsdk:"on_success"`
+	OnFailure        types.Bool    `tfsdk:"on_failure"`
+	OnWarning        types.Bool    `tfsdk:"on_warning"`
+	OnSkipped        types.Bool    `tfsdk:"on_skipped"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type ModelNotificationsDataSourceModel struct {

@@ -1,0 +1,3 @@
+kind: Changes
+body: Add optional `resource_metadata` Dynamic field to all resource schemas and models for account migration tooling support
+time: 2026-04-09T19:58:00.000000+00:00

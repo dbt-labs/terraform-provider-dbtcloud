@@ -55,6 +55,7 @@ resource "dbtcloud_azure_ad_application" "this" {
 ### Optional
 
 - `azure_service_authentication_method` (String) The method used for service authentication. One of: ~~~service_user~~~, ~~~service_principal~~~. Defaults to ~~~service_user~~~.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

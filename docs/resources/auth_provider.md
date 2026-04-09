@@ -166,6 +166,7 @@ resource "dbtcloud_auth_provider" "gsuite" {
 - `gsuite_admin_id` (String) Google Workspace admin email used to fetch group memberships.
 - `include_indirect_groups` (Boolean) Whether to include transitive (indirect) group memberships from Azure AD. Defaults to true.
 - `max_groups_to_retrieve` (Number) Maximum number of Azure AD groups to fetch per user. Defaults to 250.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `sign_request` (Boolean) Whether to sign SAML authentication requests. Defaults to false.
 - `slug` (String) URL-safe identifier used in the SSO login URL. Auto-generated if omitted. Immutable on accounts where auto-slug enforcement is enabled.
 - `sso_url` (String) SAML Single Sign-On URL from your identity provider. Required for `saml` and `okta`.

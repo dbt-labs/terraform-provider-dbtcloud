@@ -42,6 +42,7 @@ resource "dbtcloud_ip_restrictions_rule" "test" {
 ### Optional
 
 - `description` (String) A description of the IP restriction rule
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

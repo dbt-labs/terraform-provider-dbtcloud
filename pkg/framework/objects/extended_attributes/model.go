@@ -5,11 +5,12 @@ import (
 )
 
 type ExtendedAttributesResourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	ExtendedAttributesID types.Int64  `tfsdk:"extended_attributes_id"`
-	State                types.Int64  `tfsdk:"state"`
-	ProjectID            types.Int64  `tfsdk:"project_id"`
-	ExtendedAttributes   types.String `tfsdk:"extended_attributes"`
+	ID                   types.String  `tfsdk:"id"`
+	ExtendedAttributesID types.Int64   `tfsdk:"extended_attributes_id"`
+	State                types.Int64   `tfsdk:"state"`
+	ProjectID            types.Int64   `tfsdk:"project_id"`
+	ExtendedAttributes   types.String  `tfsdk:"extended_attributes"`
+	ResourceMetadata     types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type ExtendedAttributesDataSourceModel struct {

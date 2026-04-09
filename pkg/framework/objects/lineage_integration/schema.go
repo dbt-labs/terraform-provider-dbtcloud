@@ -90,6 +90,10 @@ func (r *lineageIntegrationResource) Schema(
 				Optional:    true,
 				Description: "Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.",
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

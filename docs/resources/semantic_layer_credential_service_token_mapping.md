@@ -29,6 +29,10 @@ resource "dbtcloud_semantic_layer_credential_service_token_mapping" "test_mappin
 - `semantic_layer_credential_id` (Number) The ID of the semantic layer credential to map.
 - `service_token_id` (Number) The ID of the service token to map to the semantic layer credential.
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (Number) The unique identifier of the semantic layer credential service token mapping.

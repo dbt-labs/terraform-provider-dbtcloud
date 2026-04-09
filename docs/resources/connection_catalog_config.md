@@ -99,6 +99,7 @@ resource "dbtcloud_connection_catalog_config" "with_creds" {
 
 - `database_allow` (List of String) List of database names to include. Supports wildcards (e.g., 'analytics_*'). If set, only these databases are ingested.
 - `database_deny` (List of String) List of database names to exclude. Supports wildcards (e.g., 'staging_*'). Matching databases are not ingested.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `schema_allow` (List of String) List of schema names to include. Supports wildcards (e.g., 'public_*'). If set, only these schemas are ingested.
 - `schema_deny` (List of String) List of schema names to exclude. Supports wildcards (e.g., 'temp_*'). Matching schemas are not ingested.
 - `table_allow` (List of String) List of table names to include. Supports wildcards (e.g., 'fact_*'). If set, only these tables are ingested.

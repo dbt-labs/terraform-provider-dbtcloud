@@ -86,6 +86,10 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 					int64planmodifier.RequiresReplace(),
 				},
 			},
+			"resource_metadata": schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"service_token_permissions": schema.SetNestedBlock{

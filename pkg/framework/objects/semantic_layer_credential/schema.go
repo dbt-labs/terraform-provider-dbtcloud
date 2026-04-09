@@ -49,6 +49,10 @@ var snowflake_sl_credential_resource_schema = resource_schema.Schema{
 			Description: "Snowflake credential details, but used in the context of the Semantic Layer.",
 			Attributes:  snowflake_credential.SnowflakeCredentialResourceSchema.Attributes, // Reuse the schema
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }
 
@@ -131,6 +135,10 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 			Optional:    true,
 			Description: "The GCP project that should execute BigQuery jobs for the semantic layer. When not set, jobs will execute in the project associated with the service account.",
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }
 
@@ -150,6 +158,10 @@ var redshift_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Redshift credential details, but used in the context of the Semantic Layer.",
 			Attributes:  redshift_credential.RedshiftResourceSchema.Attributes, // Reuse the schema
+		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
 		},
 	},
 }
@@ -171,6 +183,10 @@ var databricks_sl_credential_resource_schema = resource_schema.Schema{
 			Description: "Databricks credential details, but used in the context of the Semantic Layer.",
 			Attributes:  databricks_credential.DatabricksResourceSchema.Attributes, // Reuse the schema
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }
 
@@ -190,6 +206,10 @@ var postgres_sl_credential_resource_schema = resource_schema.Schema{
 			Required:    true,
 			Description: "Postgres credential details, but used in the context of the Semantic Layer.",
 			Attributes:  postgres_credential.PostgresResourceSchema.Attributes, // Reuse the schema
+		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
 		},
 	},
 }

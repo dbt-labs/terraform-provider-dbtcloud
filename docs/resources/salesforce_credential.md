@@ -66,6 +66,7 @@ resource "dbtcloud_salesforce_credential" "my_salesforce_cred_wo" {
 - `private_key` (String, Sensitive) The private key for JWT bearer flow authentication. Consider using `private_key_wo` instead, which is not stored in state.
 - `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
 - `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `target_name` (String) Target name
 
 ### Read-Only

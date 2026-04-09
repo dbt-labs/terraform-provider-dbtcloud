@@ -42,6 +42,7 @@ resource "dbtcloud_bigquery_credential" "my_credential_v1" {
 
 - `connection_id` (Number) The ID of the global connection to use for this credential. When provided, the credential will automatically use the correct adapter version based on the connection's configuration (e.g., bigquery_v1 for connections with use_latest_adapter=true).
 - `is_active` (Boolean) Whether the BigQuery credential is active
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

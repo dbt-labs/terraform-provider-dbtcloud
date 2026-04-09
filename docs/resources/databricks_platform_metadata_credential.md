@@ -77,6 +77,7 @@ resource "dbtcloud_databricks_platform_metadata_credential" "example_wo" {
 - `catalog_ingestion_enabled` (Boolean) Whether catalog ingestion is enabled for this credential. When enabled, dbt Cloud will ingest metadata about tables, views, and other objects from your data warehouse.
 - `cost_insights_enabled` (Boolean) Whether cost insights is enabled for this credential.
 - `cost_optimization_enabled` (Boolean) Whether cost optimization data collection is enabled for this credential.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `token` (String, Sensitive) The Databricks personal access token. Consider using `token_wo` instead, which is not stored in state.
 - `token_wo` (String) Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.
 - `token_wo_version` (Number) Version number for `token_wo`. Increment this value to trigger an update of the token when using `token_wo`.

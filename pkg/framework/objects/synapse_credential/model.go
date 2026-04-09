@@ -20,7 +20,8 @@ type SynapseCredentialResourceModel struct {
 	ClientSecretWoVersion  types.Int64  `tfsdk:"client_secret_wo_version"`
 	Schema                 types.String `tfsdk:"schema"`
 	SchemaAuthorization    types.String `tfsdk:"schema_authorization"`
-	AdapterType            types.String `tfsdk:"adapter_type"`
+	AdapterType            types.String  `tfsdk:"adapter_type"`
+	ResourceMetadata       types.Dynamic `tfsdk:"resource_metadata"`
 }
 
 type SynapseCredentialDataSourceModel struct {

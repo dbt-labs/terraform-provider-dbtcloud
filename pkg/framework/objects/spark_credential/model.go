@@ -21,5 +21,6 @@ type SparkCredentialResourceModel struct {
 	Token          types.String `tfsdk:"token"`
 	TokenWo        types.String `tfsdk:"token_wo"`
 	TokenWoVersion types.Int64  `tfsdk:"token_wo_version"`
-	Schema         types.String `tfsdk:"schema"`
+	Schema           types.String  `tfsdk:"schema"`
+	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
 }

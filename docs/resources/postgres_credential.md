@@ -61,6 +61,7 @@ resource "dbtcloud_postgres_credential" "postgres_prod_credential_wo" {
 - `password` (String, Sensitive) Password for Postgres/Redshift/AlloyDB. Consider using `password_wo` instead, which is not stored in state.
 - `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
 - `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `semantic_layer_credential` (Boolean) This field indicates that the credential is used as part of the Semantic Layer configuration. It is used to create a Postgres credential for the Semantic Layer.
 - `target_name` (String) Default schema name
 - `type` (String) Type of connection. One of (postgres/redshift). Use postgres for alloydb connections. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.

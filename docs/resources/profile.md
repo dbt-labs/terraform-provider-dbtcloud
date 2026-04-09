@@ -44,6 +44,7 @@ resource "dbtcloud_profile" "my_profile_with_attrs" {
 ### Optional
 
 - `extended_attributes_id` (Number) The ID of the extended attributes for this profile. Set to null to unset.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 
 ### Read-Only
 

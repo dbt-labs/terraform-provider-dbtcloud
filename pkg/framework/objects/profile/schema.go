@@ -48,6 +48,10 @@ var resourceSchema = resource_schema.Schema{
 			Description: "The ID of the extended attributes for this profile. Set to null to unset.",
 			Optional:    true,
 		},
+		"resource_metadata": resource_schema.DynamicAttribute{
+			Optional:    true,
+			Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+		},
 	},
 }
 

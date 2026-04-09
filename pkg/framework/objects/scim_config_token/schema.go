@@ -58,6 +58,10 @@ func (r *scimConfigTokenResource) Schema(
 				Computed:    true,
 				Description: "Timestamp when the token was last used. Null if never used.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }

@@ -12,5 +12,6 @@ type AccountFeaturesResourceModel struct {
 	AIFeatures                 types.Bool   `tfsdk:"ai_features"`
 	CatalogIngestion           types.Bool   `tfsdk:"catalog_ingestion"`
 	ExplorerAccountUI          types.Bool   `tfsdk:"explorer_account_ui"`
-	FusionMigrationPermissions types.Bool   `tfsdk:"fusion_migration_permissions"`
+	FusionMigrationPermissions types.Bool    `tfsdk:"fusion_migration_permissions"`
+	ResourceMetadata           types.Dynamic `tfsdk:"resource_metadata"`
 }

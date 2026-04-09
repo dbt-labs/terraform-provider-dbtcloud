@@ -38,6 +38,7 @@ resource "dbtcloud_project" "dbt_project_with_subdir" {
 
 - `dbt_project_subdirectory` (String) DBT project subdirectory
 - `description` (String) Description for the project. Will show in dbt Explorer.
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
 - `type` (Number) The type of dbt project (0=default or 1=hybrid)
 
 ### Read-Only

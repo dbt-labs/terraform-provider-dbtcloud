@@ -29,6 +29,10 @@ resource "dbtcloud_semantic_layer_configuration" "example" {
 - `environment_id` (Number) The ID of the environment
 - `project_id` (Number) The ID of the project
 
+### Optional
+
+- `resource_metadata` (Dynamic) Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.
+
 ### Read-Only
 
 - `id` (Number) The ID of the configuration

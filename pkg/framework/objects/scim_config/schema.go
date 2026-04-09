@@ -43,6 +43,10 @@ func (r *scimConfigResource) Schema(
 				Required:    true,
 				Description: "Whether the dbt Cloud license type (Developer, Read-Only, IT) is controlled by SCIM attribute mapping. When set to ~~~false~~~, license types are managed manually inside dbt Cloud.",
 			},
+			"resource_metadata": resource_schema.DynamicAttribute{
+				Optional:    true,
+				Description: "Metadata for tracking resource identity during account migrations. Stored in Terraform state only and not sent to the API.",
+			},
 		},
 	}
 }
