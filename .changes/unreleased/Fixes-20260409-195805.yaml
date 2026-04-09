@@ -1,0 +1,3 @@
+kind: Fixes
+body: Narrow `dbtcloud_job` type transition replacement rules — only CI↔non-CI and Adaptive↔non-Adaptive transitions now force resource replacement
+time: 2026-04-09T19:58:05.000000+00:00
