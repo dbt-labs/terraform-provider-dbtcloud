@@ -19,6 +19,15 @@ var (
 	_ resource.ResourceWithImportState = &environmentResource{}
 )
 
+// connectionIDFromAPI converts the API connection_id pointer to a types.Int64 value,
+// treating nil and 0 as "not set" (null) so Terraform doesn't see a spurious diff.
+func connectionIDFromAPI(id *int) types.Int64 {
+	if id != nil && *id != 0 {
+		return types.Int64Value(int64(*id))
+	}
+	return types.Int64Null()
+}
+
 func EnvironmentResource() resource.Resource {
 	return &environmentResource{}
 }
@@ -81,11 +90,7 @@ func (r *environmentResource) Read(
 		state.ExtendedAttributesID = types.Int64Null()
 	}
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
-	if environment.ConnectionID != nil {
-		state.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
-	} else {
-		state.ConnectionID = types.Int64Value(0)
-	}
+	state.ConnectionID = connectionIDFromAPI(environment.ConnectionID)
 	if environment.Credential_Id != nil {
 		state.CredentialID = types.Int64Value(int64(*environment.Credential_Id))
 	} else {
@@ -185,11 +190,7 @@ func (r *environmentResource) Create(
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
-	if environment.ConnectionID != nil {
-		plan.ConnectionID = types.Int64Value(int64(*environment.ConnectionID))
-	} else {
-		plan.ConnectionID = types.Int64Value(0)
-	}
+	plan.ConnectionID = connectionIDFromAPI(environment.ConnectionID)
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
 	)
@@ -329,11 +330,7 @@ func (r *environmentResource) Update(
 	}
 
 	plan.EnvironmentID = types.Int64Value(int64(*updatedEnv.Environment_Id))
-	if updatedEnv.ConnectionID != nil {
-		plan.ConnectionID = types.Int64Value(int64(*updatedEnv.ConnectionID))
-	} else {
-		plan.ConnectionID = types.Int64Value(0)
-	}
+	plan.ConnectionID = connectionIDFromAPI(updatedEnv.ConnectionID)
 	if updatedEnv.Credential_Id != nil {
 		plan.CredentialID = types.Int64Value(int64(*updatedEnv.Credential_Id))
 	} else {
@@ -435,8 +432,8 @@ func (r *environmentResource) ImportState(
 		return
 	}
 
-	// Set connection_id to 0 to match the test's expectation
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_id"), types.Int64Value(0))...)
+	// Set connection_id to null so it is refreshed from the API on the next plan/apply
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_id"), types.Int64Null())...)
 }
 
 func (r *environmentResource) Configure(
