@@ -1106,6 +1106,15 @@ func TestAccDbtCloudJobResourceJobTypeCIRequiresReplacement(t *testing.T) {
 }
 
 func testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, jobType string) string {
+	// The API infers job_type from triggers, so we must set matching triggers.
+	scheduleTrigger := "false"
+	onMergeTrigger := "false"
+	switch jobType {
+	case "scheduled":
+		scheduleTrigger = "true"
+	case "merge":
+		onMergeTrigger = "true"
+	}
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_job_project" {
     name = "%s"
@@ -1126,11 +1135,12 @@ resource "dbtcloud_job" "test_job" {
     triggers = {
         "github_webhook"      : false,
         "git_provider_webhook": false,
-        "schedule"            : false,
+        "schedule"            : %s,
+        "on_merge"            : %s,
     }
     job_type = "%s"
 }
-`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, jobType)
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, scheduleTrigger, onMergeTrigger, jobType)
 }
 
 func testAccDbtCloudJobResourceJobTypeCIConfig(jobName, projectName, environmentName string) string {
