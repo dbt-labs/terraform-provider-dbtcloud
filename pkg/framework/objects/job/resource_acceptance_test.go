@@ -981,3 +981,184 @@ resource "dbtcloud_job" "test_job" {
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, interval, daysStr)
 }
+
+// TestAccDbtCloudJobResourceJobTypeInPlaceTransitions verifies that transitions
+// between scheduled, other, and merge do NOT require resource replacement.
+func TestAccDbtCloudJobResourceJobTypeInPlaceTransitions(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	var firstID string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// Create with job_type = "scheduled"
+			{
+				Config: testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, "scheduled"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "scheduled"),
+					// Capture the resource ID for later comparison
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources["dbtcloud_job.test_job"]
+						if !ok {
+							return fmt.Errorf("resource dbtcloud_job.test_job not found")
+						}
+						firstID = rs.Primary.ID
+						return nil
+					},
+				),
+			},
+			// Transition scheduled -> other: must be in-place (same ID)
+			{
+				Config: testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, "other"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "other"),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources["dbtcloud_job.test_job"]
+						if !ok {
+							return fmt.Errorf("resource dbtcloud_job.test_job not found")
+						}
+						if rs.Primary.ID != firstID {
+							return fmt.Errorf("expected same resource ID after in-place job_type change (scheduled->other), got %s, want %s", rs.Primary.ID, firstID)
+						}
+						return nil
+					},
+				),
+			},
+			// Transition other -> merge: must be in-place (same ID)
+			{
+				Config: testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, "merge"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "merge"),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources["dbtcloud_job.test_job"]
+						if !ok {
+							return fmt.Errorf("resource dbtcloud_job.test_job not found")
+						}
+						if rs.Primary.ID != firstID {
+							return fmt.Errorf("expected same resource ID after in-place job_type change (other->merge), got %s, want %s", rs.Primary.ID, firstID)
+						}
+						return nil
+					},
+				),
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobResourceJobTypeCIRequiresReplacement verifies that a
+// transition from ci to scheduled forces resource replacement (new ID).
+func TestAccDbtCloudJobResourceJobTypeCIRequiresReplacement(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	var ciID string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// Create with job_type = "ci"
+			{
+				Config: testAccDbtCloudJobResourceJobTypeCIConfig(jobName, projectName, environmentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "ci"),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources["dbtcloud_job.test_job"]
+						if !ok {
+							return fmt.Errorf("resource dbtcloud_job.test_job not found")
+						}
+						ciID = rs.Primary.ID
+						return nil
+					},
+				),
+			},
+			// Transition ci -> scheduled: must create a new resource (different ID)
+			{
+				Config: testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, "scheduled"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "job_type", "scheduled"),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources["dbtcloud_job.test_job"]
+						if !ok {
+							return fmt.Errorf("resource dbtcloud_job.test_job not found")
+						}
+						if rs.Primary.ID == ciID {
+							return fmt.Errorf("expected new resource ID after ci->scheduled job_type change (replacement required), but ID is unchanged: %s", ciID)
+						}
+						return nil
+					},
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobResourceJobTypeTransitionConfig(jobName, projectName, environmentName, jobType string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name       = "%s"
+    dbt_version = "%s"
+    type       = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+    name           = "%s"
+    project_id     = dbtcloud_project.test_job_project.id
+    environment_id = dbtcloud_environment.test_job_environment.environment_id
+    execute_steps  = ["dbt build"]
+    triggers = {
+        "github_webhook"      : false,
+        "git_provider_webhook": false,
+        "schedule"            : false,
+    }
+    job_type = "%s"
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, jobType)
+}
+
+func testAccDbtCloudJobResourceJobTypeCIConfig(jobName, projectName, environmentName string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name       = "%s"
+    dbt_version = "%s"
+    type       = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+    name                     = "%s"
+    project_id               = dbtcloud_project.test_job_project.id
+    environment_id           = dbtcloud_environment.test_job_environment.environment_id
+    deferring_environment_id = dbtcloud_environment.test_job_environment.environment_id
+    execute_steps            = ["dbt build"]
+    triggers = {
+        "github_webhook"      : false,
+        "git_provider_webhook": false,
+        "schedule"            : false,
+    }
+    job_type            = "ci"
+    run_compare_changes = true
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+}

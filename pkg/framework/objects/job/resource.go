@@ -36,44 +36,40 @@ type jobResource struct {
 	client *dbt_cloud.Client
 }
 
-// validateJobTypeChange validates if a job type transition is allowed.
-// This mirrors the server-side validation in _validate_job_type_change.
+// requiresJobTypeReplacement reports whether changing from oldType to newType
+// requires the resource to be destroyed and recreated.
+// Only transitions involving CI or Adaptive require replacement; all other
+// transitions (scheduled <-> other <-> merge) can be performed in-place.
+func requiresJobTypeReplacement(oldType, newType string) bool {
+	if oldType == newType {
+		return false
+	}
+	if oldType == JobTypeCI || newType == JobTypeCI {
+		return true
+	}
+	if oldType == JobTypeAdaptive || newType == JobTypeAdaptive {
+		return true
+	}
+	return false
+}
+
+// validateJobTypeChange returns an error if the in-place job_type transition is
+// not permitted by the API. CI and Adaptive transitions are handled upstream by
+// requiresJobTypeReplacement (forced replace); this function guards the remaining
+// invalid combinations as a safety net.
 func validateJobTypeChange(prevJobType, newJobType string) error {
-	// If no change, always allowed
-	if prevJobType == newJobType {
+	if prevJobType == newJobType || prevJobType == "" {
 		return nil
 	}
-
-	// If previous type is empty (not set), any new type is allowed
-	if prevJobType == "" {
-		return nil
-	}
-
-	// CI jobs can only stay CI
 	if prevJobType == JobTypeCI && newJobType != JobTypeCI {
 		return fmt.Errorf("the job type field for this job can only be set to 'ci'")
 	}
-
-	// Adaptive jobs can only stay adaptive
 	if prevJobType == JobTypeAdaptive && newJobType != JobTypeAdaptive {
 		return fmt.Errorf("the job type field for this job can only be set to 'adaptive'")
 	}
-
-	// Scheduled jobs can only change to scheduled or other
-	if prevJobType == JobTypeScheduled && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
-		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
+	if newJobType == JobTypeCI || newJobType == JobTypeAdaptive {
+		return fmt.Errorf("cannot change job_type to '%s' from '%s'", newJobType, prevJobType)
 	}
-
-	// Other jobs can only change to scheduled or other
-	if prevJobType == JobTypeOther && (newJobType == JobTypeCI || newJobType == JobTypeAdaptive) {
-		return fmt.Errorf("the job type field for this job can only be set to 'scheduled' or 'other'")
-	}
-
-	// Merge jobs - treating similar to CI (cannot change away from merge)
-	if prevJobType == JobTypeMerge && newJobType != JobTypeMerge {
-		return fmt.Errorf("the job type field for this job can only be set to 'merge'")
-	}
-
 	return nil
 }
 
@@ -108,50 +104,40 @@ func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		return
 	}
 
-	// Skip checks if necessary fields are null
 	if plan.Triggers == nil || state.Triggers == nil {
 		return
 	}
 
-	// if we change the job type (CI, merge or "empty"), we need to recreate the job as dbt Cloud doesn't allow updating them
-	// the job type is determined by the triggers
-	if plan.Triggers != nil && state.Triggers != nil {
-		oldCI := state.Triggers.GithubWebhook.ValueBool() || state.Triggers.GitProviderWebhook.ValueBool()
-		oldOnMerge := state.Triggers.OnMerge.ValueBool()
-
-		oldType := ""
-		if oldCI {
-			oldType = "ci"
-		} else if oldOnMerge {
-			oldType = "merge"
-		}
-
-		newCI := plan.Triggers.GithubWebhook.ValueBool() || plan.Triggers.GitProviderWebhook.ValueBool()
-		newOnMerge := plan.Triggers.OnMerge.ValueBool()
-
-		newType := ""
-		if newCI {
-			newType = "ci"
-		} else if newOnMerge {
-			newType = "merge"
-		}
-
-		if oldType != newType {
-			resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
-		}
+	oldCI := state.Triggers.GithubWebhook.ValueBool() || state.Triggers.GitProviderWebhook.ValueBool()
+	oldOnMerge := state.Triggers.OnMerge.ValueBool()
+	oldType := JobTypeOther
+	if oldCI {
+		oldType = JobTypeCI
+	} else if oldOnMerge {
+		oldType = JobTypeMerge
 	}
 
-	// Validate job_type field changes if the field is being explicitly set
-	// Note: If plan.JobType is set but state.JobType is null (first time setting it),
-	// the validation will happen in Update against the actual server value
-	// Skip validation if either value is empty (empty means "not explicitly set")
+	newCI := plan.Triggers.GithubWebhook.ValueBool() || plan.Triggers.GitProviderWebhook.ValueBool()
+	newOnMerge := plan.Triggers.OnMerge.ValueBool()
+	newType := JobTypeOther
+	if newCI {
+		newType = JobTypeCI
+	} else if newOnMerge {
+		newType = JobTypeMerge
+	}
+
+	if requiresJobTypeReplacement(oldType, newType) {
+		resp.RequiresReplace = append(resp.RequiresReplace, path.Root("triggers"))
+	}
+
 	if !plan.JobType.IsNull() && !state.JobType.IsNull() {
 		prevJobType := state.JobType.ValueString()
 		newJobType := plan.JobType.ValueString()
 
-		// Only validate if both values are non-empty (explicitly set)
-		if prevJobType != "" && newJobType != "" {
-			if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
+		if prevJobType != "" && newJobType != "" && prevJobType != newJobType {
+			if requiresJobTypeReplacement(prevJobType, newJobType) {
+				resp.RequiresReplace = append(resp.RequiresReplace, path.Root("job_type"))
+			} else if err := validateJobTypeChange(prevJobType, newJobType); err != nil {
 				resp.Diagnostics.AddError(
 					"Invalid job_type change",
 					fmt.Sprintf("Cannot change job_type from '%s' to '%s': %s", prevJobType, newJobType, err.Error()),
