@@ -42,6 +42,7 @@ func repositoryDataSourceConfig(projectName, repositoryUrl string) string {
     resource "dbtcloud_repository" "test_repository" {
         project_id = dbtcloud_project.test_project.id
         remote_url = "%s"
+        git_clone_strategy = "deploy_key"
         is_active = true
         depends_on = [
             dbtcloud_project.test_project
