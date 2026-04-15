@@ -68,6 +68,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_repository" "test_repository" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
+  git_clone_strategy = "deploy_key"
   depends_on = [dbtcloud_project.test_project]
 }
 
@@ -87,6 +88,7 @@ resource "dbtcloud_project" "test_project" {
 resource "dbtcloud_repository" "test_repository" {
   remote_url = "%s"
   project_id = dbtcloud_project.test_project.id
+  git_clone_strategy = "deploy_key"
   depends_on = [dbtcloud_project.test_project]
 }
 `, projectName, repoUrlGithub)
