@@ -8,6 +8,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -156,6 +157,46 @@ func (r *environmentVariableResource) Read(
 
 	// Refresh state values
 	state.ID = types.StringValue(fmt.Sprintf("%d:%s", projectID, envVar.Name))
+
+	isSecret := strings.HasPrefix(envVar.Name, "DBT_ENV_SECRET_") ||
+		strings.HasPrefix(envVar.Name, "DBT_SECRET_")
+
+	if !isSecret {
+		// Non-secret: sync full values from API to detect drift.
+		envVarElements := make(map[string]attr.Value)
+		for key, value := range envVar.EnvironmentNameValues {
+			envVarElements[key] = types.StringValue(value.Value)
+		}
+		envVarMap, d := types.MapValue(types.StringType, envVarElements)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.EnvironmentValues = envVarMap
+	} else {
+		// Secret: API masks values so we can't sync them, but we can still detect
+		// structural changes (environments added/removed) by reconciling the key
+		// set from the API against the preserved values from state.
+		existingValues := state.EnvironmentValues.Elements()
+		envVarElements := make(map[string]attr.Value)
+		for key := range envVar.EnvironmentNameValues {
+			if existing, ok := existingValues[key]; ok {
+				// Keep the known plaintext value for environments that still exist.
+				envVarElements[key] = existing
+			} else {
+				// New environment appeared in API that we have no state value for.
+				envVarElements[key] = types.StringValue("")
+			}
+		}
+		// Keys present in state but absent from API have been removed — omitting
+		// them here causes Terraform to surface the drift.
+		envVarMap, d := types.MapValue(types.StringType, envVarElements)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.EnvironmentValues = envVarMap
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
