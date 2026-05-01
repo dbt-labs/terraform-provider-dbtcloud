@@ -12,6 +12,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -49,7 +50,7 @@ func TestAccDbtCloudEnvironmentVariableResourceSecret(t *testing.T) {
 		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
 		Steps: []resource.TestStep{
 			getSecretEnvTestStep(projectName, environmentName, environmentVariableName),
-			getImportTestStep(),
+			getImportTestStepSecret(),
 		},
 	})
 }
@@ -70,6 +71,17 @@ func TestAccDbtCloudEnvironmentVariableResourceModify(t *testing.T) {
 }
 
 func getImportTestStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      "dbtcloud_environment_variable.test_env_var",
+		ImportState:       true,
+		ImportStateVerify: true,
+		// environment_values is now readable from the API for non-secret vars.
+	}
+}
+
+// getImportTestStepSecret ignores environment_values on import because the API
+// masks secret values and cannot round-trip them.
+func getImportTestStepSecret() resource.TestStep {
 	return resource.TestStep{
 		ResourceName:            "dbtcloud_environment_variable.test_env_var",
 		ImportState:             true,
@@ -241,6 +253,83 @@ resource "dbtcloud_environment_variable" "test_env_var" {
   ]
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, environmentVariableName, environmentName)
+}
+
+// TestAccDbtCloudEnvironmentVariableResourceDrift verifies that changes made to a
+// non-secret env var outside of Terraform (e.g. via the dbt Cloud UI) are detected
+// as drift on the next plan.
+func TestAccDbtCloudEnvironmentVariableResourceDrift(t *testing.T) {
+	projectName, environmentName, environmentVariableName := getTestInputData()
+
+	var capturedProjectID int
+	var capturedEnvVarName string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentVariableDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: create the resource and capture its project ID and name for use in PreConfig.
+			{
+				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(
+					projectName,
+					environmentName,
+					environmentVariableName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						rs := s.RootModule().Resources["dbtcloud_environment_variable.test_env_var"]
+						parts := strings.Split(rs.Primary.ID, dbt_cloud.ID_DELIMITER)
+						var err error
+						capturedProjectID, err = strconv.Atoi(parts[0])
+						if err != nil {
+							return fmt.Errorf("could not parse project ID from %s", rs.Primary.ID)
+						}
+						capturedEnvVarName = parts[1]
+						return nil
+					},
+				),
+			},
+			// Step 2: change values out-of-band via the API, then assert the plan is non-empty
+			// (drift detected). Applying the step also restores the original values.
+			{
+				PreConfig: func() {
+					client, err := acctest_helper.SharedClient()
+					if err != nil {
+						panic(fmt.Sprintf("could not get shared client: %s", err))
+					}
+					envVar, err := client.GetEnvironmentVariable(capturedProjectID, capturedEnvVarName)
+					if err != nil {
+						panic(fmt.Sprintf("could not read env var for out-of-band change: %s", err))
+					}
+					envValuesMap := make(map[string]string)
+					for _, v := range envVar.EnvironmentNameValues {
+						envValuesMap[strconv.Itoa(v.ID)] = "OutOfBandValue"
+					}
+					if _, err := client.UpdateEnvironmentVariable(
+						capturedProjectID,
+						dbt_cloud.AbstractedEnvironmentVariable{
+							Name:              capturedEnvVarName,
+							ProjectID:         capturedProjectID,
+							EnvironmentValues: envValuesMap,
+						},
+					); err != nil {
+						panic(fmt.Sprintf("out-of-band env var update failed: %s", err))
+					}
+				},
+				Config: testAccDbtCloudEnvironmentVariableResourceBasicConfig(
+					projectName,
+					environmentName,
+					environmentVariableName,
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectNonEmptyPlan(),
+					},
+				},
+			},
+		},
+	})
 }
 
 func testAccCheckDbtCloudEnvironmentVariableExists(resource string) resource.TestCheckFunc {
