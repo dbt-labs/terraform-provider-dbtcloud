@@ -158,8 +158,7 @@ func (r *environmentVariableResource) Read(
 	// Refresh state values
 	state.ID = types.StringValue(fmt.Sprintf("%d:%s", projectID, envVar.Name))
 
-	isSecret := strings.HasPrefix(envVar.Name, "DBT_ENV_SECRET_") ||
-		strings.HasPrefix(envVar.Name, "DBT_SECRET_")
+	isSecret := strings.HasPrefix(envVar.Name, "DBT_ENV_SECRET")
 
 	if !isSecret {
 		// Non-secret: sync full values from API to detect drift.
