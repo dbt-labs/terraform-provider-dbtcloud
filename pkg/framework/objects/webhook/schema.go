@@ -59,7 +59,8 @@ var dataSourceSchema = datasource_schema.Schema{
 	},
 }
 var resourceSchema = resource_schema.Schema{
-	Description: "Webhook details",
+	Description:        "**Deprecated**: use `dbtcloud_notification_setting` with a `webhook` channel instead. The notification settings resource leverages dbt Cloud's redesigned notifications system and is the supported way to configure webhook notifications going forward.",
+	DeprecationMessage: "The `dbtcloud_webhook` resource is deprecated. Use `dbtcloud_notification_setting` with a `webhook` channel instead, which leverages dbt Cloud's redesigned notifications system.",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,
