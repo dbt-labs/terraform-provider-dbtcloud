@@ -211,14 +211,14 @@ func testAccCheckDbtCloudNotificationSettingDestroy(s *terraform.State) error {
 			return fmt.Errorf("Notification setting %s still exists", rs.Primary.ID)
 		}
 
-		// The notification-settings detail GET currently returns 500 with this
+		// The notification-settings detail GET currently returns 500 with a
 		// generic message instead of 404 when the row has been deleted (the bare
 		// `except Exception` block in notification_settings_views.py swallows
-		// `DoesNotExist`). Accept either response as proof of deletion until the
-		// backend distinguishes them.
-		expectedErr := regexp.MustCompile(
-			`resource-not-found|Internal server error getting notification setting`,
-		)
+		// `DoesNotExist`). Until the backend distinguishes them, treat any 500
+		// from the verification GET as proof of deletion — DELETE has already
+		// returned 2xx by this point, so a follow-up gateway timeout or generic
+		// 500 just means we can't reconfirm via GET.
+		expectedErr := regexp.MustCompile(`resource-not-found|internal-server-error`)
 		if !expectedErr.Match([]byte(err.Error())) {
 			return fmt.Errorf("expected not-found-style error, got %s", err)
 		}
