@@ -48,7 +48,7 @@ func (r *notificationSettingResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
-				Description: "Whether this notification setting is active. Defaults to true.",
+				Description: "Whether this notification setting is active. Used as an archival flag for misconfigured webhook subscriptions. Defaults to true.",
 			},
 			"channels": schema.ListNestedAttribute{
 				Required:    true,
@@ -84,7 +84,7 @@ func (r *notificationSettingResource) Schema(
 						"webhook_hmac_secret": schema.StringAttribute{
 							Optional:    true,
 							Sensitive:   true,
-							Description: "HMAC secret used to sign webhook payloads. Only used when `channel_type` is `webhook`. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.",
+							Description: "HMAC secret used to sign webhook payloads. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.",
 						},
 						"webhook_subscription_id": schema.StringAttribute{
 							Optional:    true,
@@ -107,15 +107,12 @@ func (r *notificationSettingResource) Schema(
 						},
 						"trigger_on": schema.StringAttribute{
 							Required:    true,
-							Description: "Event that fires the notification. One of `run_started`, `run_successful`, `run_warning`, `run_cancelled`, `run_errored`, `metadata_ingested`.",
+							Description: "Event that fires the notification. One of `run_started`, `run_successful`, `run_errored`.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									"run_started",
 									"run_successful",
-									"run_warning",
-									"run_cancelled",
 									"run_errored",
-									"metadata_ingested",
 								),
 							},
 						},

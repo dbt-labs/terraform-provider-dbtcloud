@@ -13,10 +13,9 @@ import (
 )
 
 var (
-	_ resource.Resource                   = &notificationSettingResource{}
-	_ resource.ResourceWithConfigure      = &notificationSettingResource{}
-	_ resource.ResourceWithImportState    = &notificationSettingResource{}
-	_ resource.ResourceWithValidateConfig = &notificationSettingResource{}
+	_ resource.Resource                = &notificationSettingResource{}
+	_ resource.ResourceWithConfigure   = &notificationSettingResource{}
+	_ resource.ResourceWithImportState = &notificationSettingResource{}
 )
 
 func NotificationSettingResource() resource.Resource {
@@ -46,54 +45,6 @@ func (r *notificationSettingResource) Configure(
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
-func (r *notificationSettingResource) ValidateConfig(
-	ctx context.Context,
-	req resource.ValidateConfigRequest,
-	resp *resource.ValidateConfigResponse,
-) {
-	var data NotificationSettingResourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	for i, ch := range data.Channels {
-		channelPath := path.Root("channels").AtListIndex(i)
-
-		switch ch.ChannelType.ValueString() {
-		case "teams":
-			if ch.TeamsTeamID.IsNull() || ch.TeamsChannelID.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					channelPath,
-					"Missing Teams channel fields",
-					"`channel_type = \"teams\"` requires both `teams_team_id` and `teams_channel_id`.",
-				)
-			}
-			if !ch.WebhookClientURL.IsNull() || !ch.WebhookHmacSecret.IsNull() || !ch.WebhookSubscriptionID.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					channelPath,
-					"Conflicting webhook fields on Teams channel",
-					"`channel_type = \"teams\"` channels must not set any `webhook_*` field.",
-				)
-			}
-		case "webhook":
-			if ch.WebhookClientURL.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					channelPath,
-					"Missing webhook URL",
-					"`channel_type = \"webhook\"` requires `webhook_client_url`.",
-				)
-			}
-			if !ch.TeamsTeamID.IsNull() || !ch.TeamsChannelID.IsNull() {
-				resp.Diagnostics.AddAttributeError(
-					channelPath,
-					"Conflicting Teams fields on webhook channel",
-					"`channel_type = \"webhook\"` channels must not set any `teams_*` field.",
-				)
-			}
-		}
-	}
-}
 
 func (r *notificationSettingResource) Read(
 	ctx context.Context,

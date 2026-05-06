@@ -64,7 +64,7 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.trigger_on", "run_errored"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.trigger_on", "run_warning"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.trigger_on", "run_started"),
 					// Second rule has no job_id — fires for all jobs.
 					resource.TestCheckNoResourceAttr(resourceName, "rules.1.job_id"),
 				),
@@ -155,7 +155,7 @@ resource "dbtcloud_notification_setting" "test" {
 			job_id     = dbtcloud_job.test_notification_setting_job.id
 		},
 		{
-			trigger_on = "run_warning"
+			trigger_on = "run_started"
 		},
 	]
 }

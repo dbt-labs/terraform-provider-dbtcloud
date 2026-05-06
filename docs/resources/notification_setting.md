@@ -81,7 +81,7 @@ resource "dbtcloud_notification_setting" "webhook_warnings" {
 ### Optional
 
 - `description` (String) Optional description of what this notification setting does
-- `is_active` (Boolean) Whether this notification setting is active. Defaults to true.
+- `is_active` (Boolean) Whether this notification setting is active. Used as an archival flag for misconfigured webhook subscriptions. Defaults to true.
 
 ### Read-Only
 
@@ -99,7 +99,7 @@ Optional:
 - `teams_channel_id` (String) Microsoft Teams channel ID. Required when `channel_type` is `teams`.
 - `teams_team_id` (String) Microsoft Teams team ID. Required when `channel_type` is `teams`.
 - `webhook_client_url` (String) Webhook URL to POST notifications to. Required when `channel_type` is `webhook`.
-- `webhook_hmac_secret` (String, Sensitive) HMAC secret used to sign webhook payloads. Only used when `channel_type` is `webhook`. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.
+- `webhook_hmac_secret` (String, Sensitive) HMAC secret used to sign webhook payloads. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.
 - `webhook_subscription_id` (String) Subscription ID for webhook channels. Optional; the API generates one when omitted. Write-only: not returned by the API.
 
 Read-Only:
@@ -112,7 +112,7 @@ Read-Only:
 
 Required:
 
-- `trigger_on` (String) Event that fires the notification. One of `run_started`, `run_successful`, `run_warning`, `run_cancelled`, `run_errored`, `metadata_ingested`.
+- `trigger_on` (String) Event that fires the notification. One of `run_started`, `run_successful`, `run_errored`.
 
 Optional:
 
