@@ -7,6 +7,7 @@ description: |-
 
 # dbtcloud_webhook (Resource)
 
+
 Manages webhook notifications in dbt Cloud.
 
 ## Example Usage
