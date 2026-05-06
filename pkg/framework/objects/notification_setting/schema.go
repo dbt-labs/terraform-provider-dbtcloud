@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -43,12 +42,6 @@ func (r *notificationSettingResource) Schema(
 			"description": schema.StringAttribute{
 				Optional:    true,
 				Description: "Optional description of what this notification setting does",
-			},
-			"is_active": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(true),
-				Description: "Whether this notification setting is active. Defaults to true.",
 			},
 			"channels": schema.ListNestedAttribute{
 				Required:    true,

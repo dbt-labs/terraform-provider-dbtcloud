@@ -33,7 +33,6 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					testAccCheckDbtCloudNotificationSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", settingName),
 					resource.TestCheckResourceAttr(resourceName, "description", "initial"),
-					resource.TestCheckResourceAttr(resourceName, "is_active", "true"),
 					resource.TestCheckResourceAttr(resourceName, "channels.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "channels.0.channel_type", "teams"),
 					resource.TestCheckResourceAttr(
@@ -60,7 +59,6 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					testAccCheckDbtCloudNotificationSettingExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", settingNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "description", "updated"),
-					resource.TestCheckResourceAttr(resourceName, "is_active", "false"),
 					resource.TestCheckResourceAttr(resourceName, "channels.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "channels.0.channel_type", "teams"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
@@ -112,7 +110,6 @@ func testAccDbtCloudNotificationSettingResourceCreate(projectName, settingName s
 resource "dbtcloud_notification_setting" "test" {
 	name        = "%s"
 	description = "initial"
-	is_active   = true
 
 	channels = [
 		{
@@ -138,7 +135,6 @@ func testAccDbtCloudNotificationSettingResourceUpdate(projectName, settingName s
 resource "dbtcloud_notification_setting" "test" {
 	name        = "%s"
 	description = "updated"
-	is_active   = false
 
 	channels = [
 		{

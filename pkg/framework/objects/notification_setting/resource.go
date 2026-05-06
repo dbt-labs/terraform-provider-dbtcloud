@@ -195,7 +195,7 @@ func modelToAPI(m NotificationSettingResourceModel) dbt_cloud.NotificationSettin
 	return dbt_cloud.NotificationSetting{
 		Name:        m.Name.ValueString(),
 		Description: m.Description.ValueStringPointer(),
-		IsActive:    m.IsActive.ValueBool(),
+		IsActive:    true,
 		Channels:    channels,
 		Rules:       rules,
 	}
@@ -211,7 +211,6 @@ func apiToModel(
 	}
 	m.Name = types.StringValue(s.Name)
 	m.Description = normalizeOptionalString(s.Description)
-	m.IsActive = types.BoolValue(s.IsActive)
 
 	m.Channels = make([]NotificationSettingChannelModel, len(s.Channels))
 	for i, ch := range s.Channels {
@@ -248,7 +247,6 @@ func apiToModelByIndex(s *dbt_cloud.NotificationSetting, m *NotificationSettingR
 	}
 	m.Name = types.StringValue(s.Name)
 	m.Description = normalizeOptionalString(s.Description)
-	m.IsActive = types.BoolValue(s.IsActive)
 
 	for i := range s.Channels {
 		ch := s.Channels[i]

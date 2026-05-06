@@ -8,7 +8,6 @@ type NotificationSettingResourceModel struct {
 	ID          types.Int64                          `tfsdk:"id"`
 	Name        types.String                         `tfsdk:"name"`
 	Description types.String                         `tfsdk:"description"`
-	IsActive    types.Bool                           `tfsdk:"is_active"`
 	Channels    []NotificationSettingChannelModel    `tfsdk:"channels"`
 	Rules       []NotificationSettingRuleModel       `tfsdk:"rules"`
 }

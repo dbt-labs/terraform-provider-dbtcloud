@@ -62,7 +62,6 @@ resource "dbtcloud_notification_setting" "teams_prod_failures" {
 ### Optional
 
 - `description` (String) Optional description of what this notification setting does
-- `is_active` (Boolean) Whether this notification setting is active. Defaults to true.
 
 ### Read-Only
 
