@@ -2,13 +2,12 @@
 page_title: "dbtcloud_webhook Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Deprecated: use dbtcloud_notification_setting with a webhook channel instead. The notification settings resource leverages dbt Cloud's redesigned notifications system and is the supported way to configure webhook notifications going forward.
+  Manages webhook notifications in dbt Cloud.
 ---
 
 # dbtcloud_webhook (Resource)
 
-
-**Deprecated**: use `dbtcloud_notification_setting` with a `webhook` channel instead. The notification settings resource leverages dbt Cloud's redesigned notifications system and is the supported way to configure webhook notifications going forward.
+Manages webhook notifications in dbt Cloud.
 
 ## Example Usage
 

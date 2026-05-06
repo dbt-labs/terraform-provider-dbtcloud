@@ -9,16 +9,13 @@ import (
 
 const APIVersionPrivate = "private"
 
-// NotificationSettingChannel represents a delivery channel (Microsoft Teams or webhook)
+// NotificationSettingChannel represents a delivery channel (Microsoft Teams)
 // attached to a notification setting in the v3 notifications API.
 type NotificationSettingChannel struct {
-	ID                    *int64  `json:"id,omitempty"`
-	ChannelType           string  `json:"channel_type"`
-	WebhookSubscriptionID *string `json:"webhook_subscription_id,omitempty"`
-	WebhookClientURL      *string `json:"webhook_client_url,omitempty"`
-	WebhookHmacSecret     *string `json:"webhook_hmac_secret,omitempty"`
-	TeamsTeamID           *string `json:"teams_team_id,omitempty"`
-	TeamsChannelID        *string `json:"teams_channel_id,omitempty"`
+	ID             *int64  `json:"id,omitempty"`
+	ChannelType    string  `json:"channel_type"`
+	TeamsTeamID    *string `json:"teams_team_id,omitempty"`
+	TeamsChannelID *string `json:"teams_channel_id,omitempty"`
 }
 
 // NotificationSettingRule represents a trigger rule attached to a notification setting.
