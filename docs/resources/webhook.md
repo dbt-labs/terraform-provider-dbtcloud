@@ -2,13 +2,13 @@
 page_title: "dbtcloud_webhook Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Webhook details
+  Manages webhook notifications in dbt Cloud.
 ---
 
 # dbtcloud_webhook (Resource)
 
 
-Webhook details
+Manages webhook notifications in dbt Cloud.
 
 ## Example Usage
 

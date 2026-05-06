@@ -59,7 +59,7 @@ var dataSourceSchema = datasource_schema.Schema{
 	},
 }
 var resourceSchema = resource_schema.Schema{
-	Description: "Webhook details",
+	Description: "Manages webhook notifications in dbt Cloud.",
 	Attributes: map[string]resource_schema.Attribute{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,

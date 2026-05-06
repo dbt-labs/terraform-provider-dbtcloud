@@ -42,6 +42,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification_setting"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/auth_provider"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
@@ -361,6 +362,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		lineage_integration.LineageIntegrationResource,
 		model_notifications.ModelNotificationsResource,
 		notification.NotificationResource,
+		notification_setting.NotificationSettingResource,
 		oauth_configuration.OAuthConfigurationResource,
 		openai_integration.OpenAIIntegrationResource,
 		partial_environment_variable.PartialEnvironmentVariableResource,
