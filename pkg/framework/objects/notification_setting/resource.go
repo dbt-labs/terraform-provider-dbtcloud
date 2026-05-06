@@ -13,10 +13,9 @@ import (
 )
 
 var (
-	_ resource.Resource                   = &notificationSettingResource{}
-	_ resource.ResourceWithConfigure      = &notificationSettingResource{}
-	_ resource.ResourceWithImportState    = &notificationSettingResource{}
-	_ resource.ResourceWithValidateConfig = &notificationSettingResource{}
+	_ resource.Resource              = &notificationSettingResource{}
+	_ resource.ResourceWithConfigure = &notificationSettingResource{}
+	_ resource.ResourceWithImportState = &notificationSettingResource{}
 )
 
 func NotificationSettingResource() resource.Resource {
@@ -44,13 +43,6 @@ func (r *notificationSettingResource) Configure(
 		return
 	}
 	r.client = req.ProviderData.(*dbt_cloud.Client)
-}
-
-func (r *notificationSettingResource) ValidateConfig(
-	ctx context.Context,
-	req resource.ValidateConfigRequest,
-	resp *resource.ValidateConfigResponse,
-) {
 }
 
 func (r *notificationSettingResource) Read(
@@ -95,7 +87,6 @@ func (r *notificationSettingResource) Create(
 		return
 	}
 
-	// Carry write-only secrets back into state from the plan, keyed by position.
 	apiToModelByIndex(created, &plan)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
