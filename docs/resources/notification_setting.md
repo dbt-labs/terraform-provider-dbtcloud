@@ -2,21 +2,21 @@
 page_title: "dbtcloud_notification_setting Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Configures Microsoft Teams and webhook notifications using dbt Cloud's notifications system.
-  This is a separate resource from dbtcloud_notification because Microsoft Teams notifications are delivered through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send). Email and Slack notifications still go through the legacy dbtcloud_notification resource.
+  Configures Microsoft Teams notifications using dbt Cloud's notifications system.
+  This resource manages Teams notifications through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send).
 ---
 
 # dbtcloud_notification_setting (Resource)
 
 
-Configures Microsoft Teams and webhook notifications using dbt Cloud's notifications system.
+Configures Microsoft Teams notifications using dbt Cloud's notifications system.
 
-This is a separate resource from `dbtcloud_notification` because Microsoft Teams notifications are delivered through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send). Email and Slack notifications still go through the legacy `dbtcloud_notification` resource.
+This resource manages Teams notifications through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send).
 
 ## Example Usage
 
 ```terraform
-// dbtcloud_notification_setting configures Microsoft Teams and webhook notifications
+// dbtcloud_notification_setting configures Microsoft Teams notifications
 // using dbt Cloud's notifications system.
 //
 // It is a separate resource from `dbtcloud_notification` because Teams is delivered
@@ -62,7 +62,7 @@ resource "dbtcloud_notification_setting" "teams_prod_failures" {
 ### Optional
 
 - `description` (String) Optional description of what this notification setting does
-- `is_active` (Boolean) Whether this notification setting is active. Used as an archival flag for misconfigured webhook subscriptions. Defaults to true.
+- `is_active` (Boolean) Whether this notification setting is active. Defaults to true.
 
 ### Read-Only
 
@@ -73,15 +73,9 @@ resource "dbtcloud_notification_setting" "teams_prod_failures" {
 
 Required:
 
-- `channel_type` (String) Channel type. One of `teams` or `webhook`.
-
-Optional:
-
-- `teams_channel_id` (String) Microsoft Teams channel ID. Required when `channel_type` is `teams`.
-- `teams_team_id` (String) Microsoft Teams team ID. Required when `channel_type` is `teams`.
-- `webhook_client_url` (String) Webhook URL to POST notifications to. Required when `channel_type` is `webhook`.
-- `webhook_hmac_secret` (String, Sensitive) HMAC secret used to sign webhook payloads. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.
-- `webhook_subscription_id` (String) Subscription ID for webhook channels. Optional; the API generates one when omitted. Write-only: not returned by the API.
+- `channel_type` (String) Channel type. Currently only `teams` is supported.
+- `teams_channel_id` (String) Microsoft Teams channel ID.
+- `teams_team_id` (String) Microsoft Teams team ID.
 
 Read-Only:
 
@@ -93,7 +87,7 @@ Read-Only:
 
 Required:
 
-- `trigger_on` (String) Event that fires the notification. Valid values depend on channel type: Teams supports `run_warning`, `run_successful`, `run_errored`, `run_cancelled`; webhooks support `run_started`, `run_errored`, `metadata_ingested`.
+- `trigger_on` (String) Event that fires the notification. Valid values: `run_warning`, `run_successful`, `run_errored`, `run_cancelled`.
 
 Optional:
 

@@ -21,9 +21,9 @@ func (r *notificationSettingResource) Schema(
 ) {
 	resp.Schema = schema.Schema{
 		Description: helper.DocString(
-			`Configures Microsoft Teams and webhook notifications using dbt Cloud's notifications system.
+			`Configures Microsoft Teams notifications using dbt Cloud's notifications system.
 
-			This is a separate resource from ~~~dbtcloud_notification~~~ because Microsoft Teams notifications are delivered through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send). Email and Slack notifications still go through the legacy ~~~dbtcloud_notification~~~ resource.`,
+			This resource manages Teams notifications through a redesigned notifications system that models a single setting as a collection of channels (where to send) and rules (when to send).`,
 		),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.Int64Attribute{
@@ -48,7 +48,7 @@ func (r *notificationSettingResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
-				Description: "Whether this notification setting is active. Used as an archival flag for misconfigured webhook subscriptions. Defaults to true.",
+				Description: "Whether this notification setting is active. Defaults to true.",
 			},
 			"channels": schema.ListNestedAttribute{
 				Required:    true,
@@ -64,31 +64,18 @@ func (r *notificationSettingResource) Schema(
 						},
 						"channel_type": schema.StringAttribute{
 							Required:    true,
-							Description: "Channel type. One of `teams` or `webhook`.",
+							Description: "Channel type. Currently only `teams` is supported.",
 							Validators: []validator.String{
-								stringvalidator.OneOf("teams", "webhook"),
+								stringvalidator.OneOf("teams"),
 							},
 						},
 						"teams_team_id": schema.StringAttribute{
-							Optional:    true,
-							Description: "Microsoft Teams team ID. Required when `channel_type` is `teams`.",
+							Required:    true,
+							Description: "Microsoft Teams team ID.",
 						},
 						"teams_channel_id": schema.StringAttribute{
-							Optional:    true,
-							Description: "Microsoft Teams channel ID. Required when `channel_type` is `teams`.",
-						},
-						"webhook_client_url": schema.StringAttribute{
-							Optional:    true,
-							Description: "Webhook URL to POST notifications to. Required when `channel_type` is `webhook`.",
-						},
-						"webhook_hmac_secret": schema.StringAttribute{
-							Optional:    true,
-							Sensitive:   true,
-							Description: "HMAC secret used to sign webhook payloads. Write-only: the API does not return this value, so changes outside Terraform cannot be detected.",
-						},
-						"webhook_subscription_id": schema.StringAttribute{
-							Optional:    true,
-							Description: "Subscription ID for webhook channels. Optional; the API generates one when omitted. Write-only: not returned by the API.",
+							Required:    true,
+							Description: "Microsoft Teams channel ID.",
 						},
 					},
 				},
@@ -107,15 +94,13 @@ func (r *notificationSettingResource) Schema(
 						},
 						"trigger_on": schema.StringAttribute{
 							Required:    true,
-							Description: "Event that fires the notification. Valid values depend on channel type: Teams supports `run_warning`, `run_successful`, `run_errored`, `run_cancelled`; webhooks support `run_started`, `run_errored`, `metadata_ingested`.",
+							Description: "Event that fires the notification. Valid values: `run_warning`, `run_successful`, `run_errored`, `run_cancelled`.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
-									"run_started",
 									"run_warning",
 									"run_successful",
 									"run_errored",
 									"run_cancelled",
-									"metadata_ingested",
 								),
 							},
 						},

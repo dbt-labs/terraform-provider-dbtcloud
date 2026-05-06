@@ -26,7 +26,7 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudNotificationSettingDestroy,
 		Steps: []resource.TestStep{
-			// CREATE - one webhook channel, one rule scoped to a job
+			// CREATE - one Teams channel, one rule scoped to a job
 			{
 				Config: testAccDbtCloudNotificationSettingResourceCreate(projectName, settingName),
 				Check: resource.ComposeTestCheckFunc(
@@ -35,11 +35,16 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "initial"),
 					resource.TestCheckResourceAttr(resourceName, "is_active", "true"),
 					resource.TestCheckResourceAttr(resourceName, "channels.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "channels.0.channel_type", "webhook"),
+					resource.TestCheckResourceAttr(resourceName, "channels.0.channel_type", "teams"),
 					resource.TestCheckResourceAttr(
 						resourceName,
-						"channels.0.webhook_client_url",
-						"https://example.com/hook-initial",
+						"channels.0.teams_team_id",
+						"19:abcdef0123456789@thread.tacv2",
+					),
+					resource.TestCheckResourceAttr(
+						resourceName,
+						"channels.0.teams_channel_id",
+						"19:fedcba9876543210@thread.tacv2",
 					),
 					resource.TestCheckResourceAttrSet(resourceName, "channels.0.id"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
@@ -48,7 +53,7 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "rules.0.job_id"),
 				),
 			},
-			// UPDATE - rename, flip is_active, change webhook URL, add an all-jobs rule
+			// UPDATE - rename, flip is_active, add a Teams warning rule
 			{
 				Config: testAccDbtCloudNotificationSettingResourceUpdate(projectName, settingNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
@@ -57,14 +62,10 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "updated"),
 					resource.TestCheckResourceAttr(resourceName, "is_active", "false"),
 					resource.TestCheckResourceAttr(resourceName, "channels.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"channels.0.webhook_client_url",
-						"https://example.com/hook-updated",
-					),
+					resource.TestCheckResourceAttr(resourceName, "channels.0.channel_type", "teams"),
 					resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rules.0.trigger_on", "run_errored"),
-					resource.TestCheckResourceAttr(resourceName, "rules.1.trigger_on", "run_started"),
+					resource.TestCheckResourceAttr(resourceName, "rules.1.trigger_on", "run_warning"),
 					// Second rule has no job_id — fires for all jobs.
 					resource.TestCheckNoResourceAttr(resourceName, "rules.1.job_id"),
 				),
@@ -74,8 +75,6 @@ func TestAccDbtCloudNotificationSettingResource(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// hmac secrets are write-only and never returned by the API.
-				ImportStateVerifyIgnore: []string{"channels.0.webhook_hmac_secret"},
 			},
 		},
 	})
@@ -117,9 +116,9 @@ resource "dbtcloud_notification_setting" "test" {
 
 	channels = [
 		{
-			channel_type        = "webhook"
-			webhook_client_url  = "https://example.com/hook-initial"
-			webhook_hmac_secret = "initial-secret"
+			channel_type       = "teams"
+			teams_team_id      = "19:abcdef0123456789@thread.tacv2"
+			teams_channel_id   = "19:fedcba9876543210@thread.tacv2"
 		},
 	]
 
@@ -143,9 +142,9 @@ resource "dbtcloud_notification_setting" "test" {
 
 	channels = [
 		{
-			channel_type        = "webhook"
-			webhook_client_url  = "https://example.com/hook-updated"
-			webhook_hmac_secret = "updated-secret"
+			channel_type       = "teams"
+			teams_team_id      = "19:abcdef0123456789@thread.tacv2"
+			teams_channel_id   = "19:fedcba9876543210@thread.tacv2"
 		},
 	]
 
@@ -155,7 +154,7 @@ resource "dbtcloud_notification_setting" "test" {
 			job_id     = dbtcloud_job.test_notification_setting_job.id
 		},
 		{
-			trigger_on = "run_started"
+			trigger_on = "run_warning"
 		},
 	]
 }

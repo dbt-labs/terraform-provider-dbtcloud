@@ -1,4 +1,4 @@
-// dbtcloud_notification_setting configures Microsoft Teams and webhook notifications
+// dbtcloud_notification_setting configures Microsoft Teams notifications
 // using dbt Cloud's notifications system.
 //
 // It is a separate resource from `dbtcloud_notification` because Teams is delivered

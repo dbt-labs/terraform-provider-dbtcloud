@@ -51,57 +51,6 @@ func (r *notificationSettingResource) ValidateConfig(
 	req resource.ValidateConfigRequest,
 	resp *resource.ValidateConfigResponse,
 ) {
-	var data NotificationSettingResourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	teamsValidTriggers := map[string]bool{
-		"run_warning":    true,
-		"run_successful": true,
-		"run_errored":    true,
-		"run_cancelled":  true,
-	}
-	webhookValidTriggers := map[string]bool{
-		"run_started":       true,
-		"run_errored":       true,
-		"metadata_ingested": true,
-	}
-
-	for i, rule := range data.Rules {
-		if rule.TriggerOn.IsNull() || rule.TriggerOn.IsUnknown() {
-			continue
-		}
-		trigger := rule.TriggerOn.ValueString()
-		rulePath := path.Root("rules").AtListIndex(i)
-
-		for _, ch := range data.Channels {
-			if ch.ChannelType.IsNull() || ch.ChannelType.IsUnknown() {
-				continue
-			}
-			channelType := ch.ChannelType.ValueString()
-
-			switch channelType {
-			case "teams":
-				if !teamsValidTriggers[trigger] {
-					resp.Diagnostics.AddAttributeError(
-						rulePath,
-						"Invalid trigger for Teams channel",
-						fmt.Sprintf("`trigger_on = %q` is not supported for Teams channels. Teams supports: run_warning, run_successful, run_errored, run_cancelled.", trigger),
-					)
-				}
-			case "webhook":
-				if !webhookValidTriggers[trigger] {
-					resp.Diagnostics.AddAttributeError(
-						rulePath,
-						"Invalid trigger for webhook channel",
-						fmt.Sprintf("`trigger_on = %q` is not supported for webhook channels. Webhooks support: run_started, run_errored, metadata_ingested.", trigger),
-					)
-				}
-			}
-		}
-	}
 }
 
 func (r *notificationSettingResource) Read(
@@ -124,18 +73,7 @@ func (r *notificationSettingResource) Read(
 		return
 	}
 
-	// webhook_hmac_secret and webhook_subscription_id are write-only:
-	// the API does not echo them on read. Preserve whatever is already in state.
-	priorSecrets := make(map[int64]types.String, len(state.Channels))
-	priorSubscriptionIDs := make(map[int64]types.String, len(state.Channels))
-	for _, ch := range state.Channels {
-		if !ch.ID.IsNull() && !ch.ID.IsUnknown() {
-			priorSecrets[ch.ID.ValueInt64()] = ch.WebhookHmacSecret
-			priorSubscriptionIDs[ch.ID.ValueInt64()] = ch.WebhookSubscriptionID
-		}
-	}
-
-	apiToModel(setting, &state, priorSecrets, priorSubscriptionIDs)
+	apiToModel(setting, &state)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -235,12 +173,9 @@ func modelToAPI(m NotificationSettingResourceModel) dbt_cloud.NotificationSettin
 	channels := make([]dbt_cloud.NotificationSettingChannel, len(m.Channels))
 	for i, ch := range m.Channels {
 		channels[i] = dbt_cloud.NotificationSettingChannel{
-			ChannelType:           ch.ChannelType.ValueString(),
-			WebhookSubscriptionID: ch.WebhookSubscriptionID.ValueStringPointer(),
-			WebhookClientURL:      ch.WebhookClientURL.ValueStringPointer(),
-			WebhookHmacSecret:     ch.WebhookHmacSecret.ValueStringPointer(),
-			TeamsTeamID:           ch.TeamsTeamID.ValueStringPointer(),
-			TeamsChannelID:        ch.TeamsChannelID.ValueStringPointer(),
+			ChannelType:    ch.ChannelType.ValueString(),
+			TeamsTeamID:    ch.TeamsTeamID.ValueStringPointer(),
+			TeamsChannelID: ch.TeamsChannelID.ValueStringPointer(),
 		}
 	}
 
@@ -266,13 +201,10 @@ func modelToAPI(m NotificationSettingResourceModel) dbt_cloud.NotificationSettin
 	}
 }
 
-// apiToModel populates the model from the API response. Write-only fields keyed
-// by channel ID from the prior state are preserved (the API never returns them).
+// apiToModel populates the model from the API response.
 func apiToModel(
 	s *dbt_cloud.NotificationSetting,
 	m *NotificationSettingResourceModel,
-	priorSecrets map[int64]types.String,
-	priorSubscriptionIDs map[int64]types.String,
 ) {
 	if s.ID != nil {
 		m.ID = types.Int64Value(*s.ID)
@@ -284,21 +216,12 @@ func apiToModel(
 	m.Channels = make([]NotificationSettingChannelModel, len(s.Channels))
 	for i, ch := range s.Channels {
 		channel := NotificationSettingChannelModel{
-			ChannelType:           types.StringValue(ch.ChannelType),
-			WebhookClientURL:      types.StringPointerValue(ch.WebhookClientURL),
-			TeamsTeamID:           types.StringPointerValue(ch.TeamsTeamID),
-			TeamsChannelID:        types.StringPointerValue(ch.TeamsChannelID),
-			WebhookHmacSecret:     types.StringNull(),
-			WebhookSubscriptionID: types.StringNull(),
+			ChannelType:    types.StringValue(ch.ChannelType),
+			TeamsTeamID:    types.StringPointerValue(ch.TeamsTeamID),
+			TeamsChannelID: types.StringPointerValue(ch.TeamsChannelID),
 		}
 		if ch.ID != nil {
 			channel.ID = types.Int64Value(*ch.ID)
-			if prior, ok := priorSecrets[*ch.ID]; ok {
-				channel.WebhookHmacSecret = prior
-			}
-			if prior, ok := priorSubscriptionIDs[*ch.ID]; ok {
-				channel.WebhookSubscriptionID = prior
-			}
 		}
 		m.Channels[i] = channel
 	}
@@ -318,8 +241,7 @@ func apiToModel(
 }
 
 // apiToModelByIndex updates the model from the API response after a Create/Update.
-// Channels and rules are matched by position so write-only secrets in the plan
-// (which the API doesn't echo back) are preserved.
+// Channels and rules are matched by position.
 func apiToModelByIndex(s *dbt_cloud.NotificationSetting, m *NotificationSettingResourceModel) {
 	if s.ID != nil {
 		m.ID = types.Int64Value(*s.ID)
@@ -337,13 +259,8 @@ func apiToModelByIndex(s *dbt_cloud.NotificationSetting, m *NotificationSettingR
 			m.Channels[i].ID = types.Int64Value(*ch.ID)
 		}
 		m.Channels[i].ChannelType = types.StringValue(ch.ChannelType)
-		// webhook_client_url, teams_team_id, teams_channel_id come back from the API.
-		// Re-set them so unset Optional fields become null rather than unknown.
-		m.Channels[i].WebhookClientURL = types.StringPointerValue(ch.WebhookClientURL)
 		m.Channels[i].TeamsTeamID = types.StringPointerValue(ch.TeamsTeamID)
 		m.Channels[i].TeamsChannelID = types.StringPointerValue(ch.TeamsChannelID)
-		// webhook_hmac_secret and webhook_subscription_id stay as supplied by the plan
-		// (the API doesn't echo them).
 	}
 
 	for i := range s.Rules {
