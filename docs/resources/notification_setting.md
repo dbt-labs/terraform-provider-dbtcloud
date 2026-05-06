@@ -93,7 +93,7 @@ Read-Only:
 
 Required:
 
-- `trigger_on` (String) Event that fires the notification. One of `run_started`, `run_successful`, `run_errored`.
+- `trigger_on` (String) Event that fires the notification. Valid values depend on channel type: Teams supports `run_warning`, `run_successful`, `run_errored`, `run_cancelled`; webhooks support `run_started`, `run_errored`, `metadata_ingested`.
 
 Optional:
 

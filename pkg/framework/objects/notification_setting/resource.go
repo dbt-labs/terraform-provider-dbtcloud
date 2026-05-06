@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = &notificationSettingResource{}
-	_ resource.ResourceWithConfigure   = &notificationSettingResource{}
-	_ resource.ResourceWithImportState = &notificationSettingResource{}
+	_ resource.Resource                   = &notificationSettingResource{}
+	_ resource.ResourceWithConfigure      = &notificationSettingResource{}
+	_ resource.ResourceWithImportState    = &notificationSettingResource{}
+	_ resource.ResourceWithValidateConfig = &notificationSettingResource{}
 )
 
 func NotificationSettingResource() resource.Resource {
@@ -45,6 +46,63 @@ func (r *notificationSettingResource) Configure(
 	r.client = req.ProviderData.(*dbt_cloud.Client)
 }
 
+func (r *notificationSettingResource) ValidateConfig(
+	ctx context.Context,
+	req resource.ValidateConfigRequest,
+	resp *resource.ValidateConfigResponse,
+) {
+	var data NotificationSettingResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	teamsValidTriggers := map[string]bool{
+		"run_warning":    true,
+		"run_successful": true,
+		"run_errored":    true,
+		"run_cancelled":  true,
+	}
+	webhookValidTriggers := map[string]bool{
+		"run_started":       true,
+		"run_errored":       true,
+		"metadata_ingested": true,
+	}
+
+	for i, rule := range data.Rules {
+		if rule.TriggerOn.IsNull() || rule.TriggerOn.IsUnknown() {
+			continue
+		}
+		trigger := rule.TriggerOn.ValueString()
+		rulePath := path.Root("rules").AtListIndex(i)
+
+		for _, ch := range data.Channels {
+			if ch.ChannelType.IsNull() || ch.ChannelType.IsUnknown() {
+				continue
+			}
+			channelType := ch.ChannelType.ValueString()
+
+			switch channelType {
+			case "teams":
+				if !teamsValidTriggers[trigger] {
+					resp.Diagnostics.AddAttributeError(
+						rulePath,
+						"Invalid trigger for Teams channel",
+						fmt.Sprintf("`trigger_on = %q` is not supported for Teams channels. Teams supports: run_warning, run_successful, run_errored, run_cancelled.", trigger),
+					)
+				}
+			case "webhook":
+				if !webhookValidTriggers[trigger] {
+					resp.Diagnostics.AddAttributeError(
+						rulePath,
+						"Invalid trigger for webhook channel",
+						fmt.Sprintf("`trigger_on = %q` is not supported for webhook channels. Webhooks support: run_started, run_errored, metadata_ingested.", trigger),
+					)
+				}
+			}
+		}
+	}
+}
 
 func (r *notificationSettingResource) Read(
 	ctx context.Context,
