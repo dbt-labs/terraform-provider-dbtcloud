@@ -2,7 +2,7 @@
 page_title: "dbtcloud_group Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Provide a complete set of permissions for a group. This is different from dbt_cloud_partial_group_permissions.
+  Provide a complete set of permissions for a group. This is different from dbtcloud_group_partial_permissions.
   With this resource type only one resource can be used to manage the permissions for a given group.
 ---
 
@@ -39,7 +39,7 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 |Webhooks Only | webhooks_only|
 
 
-Provide a complete set of permissions for a group. This is different from `dbt_cloud_partial_group_permissions`.
+Provide a complete set of permissions for a group. This is different from `dbtcloud_group_partial_permissions`.
 
 With this resource type only one resource can be used to manage the permissions for a given group.
 
@@ -71,7 +71,7 @@ resource "dbtcloud_group" "tf_group_1" {
 ### Optional
 
 - `assign_by_default` (Boolean) Whether the group will be assigned by default to users. The value needs to be the same for all partial permissions for the same group.
-- `group_permissions` (Block Set) Partial permissions for the group. Those permissions will be added/removed when config is added/removed. (see [below for nested schema](#nestedblock--group_permissions))
+- `group_permissions` (Block Set) The complete set of permissions to apply to the group. Each block defines one permission set; remove or modify blocks to adjust the group's permissions. (see [below for nested schema](#nestedblock--group_permissions))
 - `sso_mapping_groups` (Set of String) Mapping groups from the IdP. At the moment the complete list needs to be provided in each partial permission for the same group.
 
 ### Read-Only
@@ -84,15 +84,15 @@ resource "dbtcloud_group" "tf_group_1" {
 Required:
 
 - `all_projects` (Boolean) Whether access should be provided for all projects or not.
-- `permission_set` (String) Set of permissions to apply. The permissions allowed are the same as the ones for the `dbtcloud_group` resource.
+- `permission_set` (String) The permission set to apply (e.g. `developer`, `analyst`, `account_admin`). See the table at the top of this page for the full list of permission codes.
 
 Optional:
 
 - `project_id` (Number) Project ID to apply this permission to for this group.
-- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to. 
-Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
-The values allowed are `all`, `development`, `staging`, `production` and `other`. 
-Not setting a value is the same as selecting `all`. 
+- `writable_environment_categories` (Set of String) What types of environments to apply Write permissions to.
+Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+The values allowed are `all`, `development`, `staging`, `production` and `other`.
+Not setting a value (or setting an empty list) means the permission set has no Write access to any environment — only Read access. To grant Write access to all environments, set this to `["all"]`.
 Not all permission sets support environment level write settings, only `analyst`, `database_admin`, `developer`, `git_admin` and `team_admin`.
 
 ## Import

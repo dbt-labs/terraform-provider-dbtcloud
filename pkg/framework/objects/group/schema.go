@@ -25,7 +25,7 @@ func (r *groupResource) Schema(
 ) {
 	resp.Schema = resource_schema.Schema{
 		Description: helper.DocString(
-			`Provide a complete set of permissions for a group. This is different from ~~~dbt_cloud_partial_group_permissions~~~.
+			`Provide a complete set of permissions for a group. This is different from ~~~dbtcloud_group_partial_permissions~~~.
 
 			With this resource type only one resource can be used to manage the permissions for a given group.
 			`,
@@ -97,7 +97,7 @@ func (r *groupResource) Schema(
 		// For now we use a Block to move from SDKv2 to PLugin Framework, but we might change to a SetAttribute in the future, using the code from above
 		Blocks: map[string]resource_schema.Block{
 			"group_permissions": resource_schema.SetNestedBlock{
-				Description: "Partial permissions for the group. Those permissions will be added/removed when config is added/removed.",
+				Description: "The complete set of permissions to apply to the group. Each block defines one permission set; remove or modify blocks to adjust the group's permissions.",
 				NestedObject: resource_schema.NestedBlockObject{
 					Attributes: map[string]resource_schema.Attribute{
 						"permission_set": resource_schema.StringAttribute{
@@ -105,7 +105,7 @@ func (r *groupResource) Schema(
 							Validators: []validator.String{
 								stringvalidator.OneOf(dbt_cloud.PermissionSets...),
 							},
-							Description: "Set of permissions to apply. The permissions allowed are the same as the ones for the `dbtcloud_group` resource.",
+							Description: "The permission set to apply (e.g. `developer`, `analyst`, `account_admin`). See the table at the top of this page for the full list of permission codes.",
 						},
 						"project_id": resource_schema.Int64Attribute{
 							Optional:    true,
@@ -121,10 +121,10 @@ func (r *groupResource) Schema(
 							Computed:    true,
 							Default:     helper.EmptySetDefault(types.StringType),
 							Description: helper.DocString(
-								`What types of environments to apply Write permissions to. 
-								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments. 
-								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~. 
-								Not setting a value is the same as selecting ~~~all~~~. 
+								`What types of environments to apply Write permissions to.
+								Even if Write access is restricted to some environment types, the permission set will have Read access to all environments.
+								The values allowed are ~~~all~~~, ~~~development~~~, ~~~staging~~~, ~~~production~~~ and ~~~other~~~.
+								Not setting a value (or setting an empty list) means the permission set has no Write access to any environment — only Read access. To grant Write access to all environments, set this to ~~~["all"]~~~.
 								Not all permission sets support environment level write settings, only ~~~analyst~~~, ~~~database_admin~~~, ~~~developer~~~, ~~~git_admin~~~ and ~~~team_admin~~~.`,
 							),
 						},
