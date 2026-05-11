@@ -1,0 +1,3 @@
+kind: Documentation
+body: Fixed `writable_environment_categories` description on group, partial permissions, SCIM and service token resources to reflect that omitting the value grants no Write access (use `["all"]` instead). Also cleaned up a few copy-paste doc strings on `dbtcloud_group`.
+time: 2026-05-08T18:28:33.548537+03:00
