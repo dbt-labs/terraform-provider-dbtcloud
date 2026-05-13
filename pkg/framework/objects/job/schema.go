@@ -466,7 +466,7 @@ func (j *jobResource) Schema(
 			},
 			"dbt_version": resource_schema.StringAttribute{
 				Optional:    true,
-				Description: "Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions",
+				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
 			},
 			"force_node_selection": resource_schema.BoolAttribute{
 				Optional:    true,
