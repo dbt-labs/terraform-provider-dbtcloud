@@ -218,7 +218,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 ### Optional
 
 - `compare_changes_flags` (String) The model selector for checking changes in the compare changes Advanced CI feature
-- `dbt_version` (String) Version number of dbt to use in this job, usually in the format 1.2.0-latest rather than core versions
+- `dbt_version` (String) Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.
 - `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `description` (String) Description for the job
