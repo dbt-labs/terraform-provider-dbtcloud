@@ -1,3 +1,0 @@
-kind: Documentation
-body: Documented accepted values and default behavior for `dbt_version` on the `dbtcloud_job` resource (#684).
-time: 2026-05-13T12:42:11.769105+03:00
