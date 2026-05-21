@@ -408,17 +408,30 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.JobType = types.StringNull()
 	}
 
-	// Populate force_node_selection from API response
-	if createdJob.ForceNodeSelection != nil {
-		plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
-	} else {
-		// If not set in config and API doesn't return it, keep it null
-		if plan.ForceNodeSelection.IsNull() {
+	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
+	// cost_optimization_features (the API rejects them with 405). To keep plan
+	// and apply consistent, preserve whatever the user planned rather than
+	// deriving from the API response. The user's value is benign because we
+	// never actually sent it to the API. For other job types the API response
+	// is authoritative.
+	createdJobIsCIOrMerge := createdJob.JobType == JobTypeCI || createdJob.JobType == JobTypeMerge
+	if !createdJobIsCIOrMerge {
+		if createdJob.ForceNodeSelection != nil {
+			plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
+		} else if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(createdJob.ForceNodeSelection)
+	} else {
+		// CI/Merge: collapse any unknown plan values to known empty/null so the
+		// framework's plan-apply consistency check has concrete values to compare.
+		if plan.ForceNodeSelection.IsUnknown() {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		if plan.CostOptimizationFeatures.IsUnknown() {
+			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
-
-	plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(createdJob.ForceNodeSelection)
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 
@@ -633,13 +646,28 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
 
-	if retrievedJob.ForceNodeSelection != nil {
-		state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
+	// SAO fields: for CI/Merge jobs the API does not honor force_node_selection /
+	// cost_optimization_features (we never POST them for those job types), so the
+	// API value is not authoritative — preserve the existing state. On fresh
+	// imports (no prior state) collapse to known empty/null values that match
+	// what Create writes, so that ImportStateVerify round-trips cleanly. For
+	// other job types the API response is authoritative.
+	retrievedJobIsCIOrMerge := retrievedJob.JobType == JobTypeCI || retrievedJob.JobType == JobTypeMerge
+	if !retrievedJobIsCIOrMerge {
+		if retrievedJob.ForceNodeSelection != nil {
+			state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
+		} else {
+			state.ForceNodeSelection = types.BoolNull()
+		}
+		state.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(retrievedJob.ForceNodeSelection)
 	} else {
-		state.ForceNodeSelection = types.BoolNull()
+		if state.ForceNodeSelection.IsUnknown() {
+			state.ForceNodeSelection = types.BoolNull()
+		}
+		if state.CostOptimizationFeatures.IsNull() || state.CostOptimizationFeatures.IsUnknown() {
+			state.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
-
-	state.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(retrievedJob.ForceNodeSelection)
 
 	if retrievedJob.JobType != "" {
 		state.JobType = types.StringValue(retrievedJob.JobType)
@@ -925,14 +953,25 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.TimeoutSeconds = types.Int64Value(int64(updatedJob.Execution.TimeoutSeconds))
 	}
 
-	// Populate force_node_selection from API response
-	if updatedJob.ForceNodeSelection != nil {
-		plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
+	// cost_optimization_features, so preserve whatever the user planned (see the
+	// matching block in Create for the rationale).
+	updatedJobIsCIOrMerge := updatedJob.JobType == JobTypeCI || updatedJob.JobType == JobTypeMerge
+	if !updatedJobIsCIOrMerge {
+		if updatedJob.ForceNodeSelection != nil {
+			plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+		} else {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(updatedJob.ForceNodeSelection)
 	} else {
-		plan.ForceNodeSelection = types.BoolNull()
+		if plan.ForceNodeSelection.IsUnknown() {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		if plan.CostOptimizationFeatures.IsUnknown() {
+			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
-
-	plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(updatedJob.ForceNodeSelection)
 
 	// For CI/Merge jobs, preserve deferring_environment_id from the API response
 	// so it is not lost in state when the plan did not explicitly configure it.
