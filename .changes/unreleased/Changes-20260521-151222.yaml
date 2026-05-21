@@ -1,0 +1,3 @@
+kind: Changes
+body: Allow new Fusion release tracks (`fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`) as `dbt_version` on `dbtcloud_environment` and `dbtcloud_job`, alongside `latest-fusion`. The `force_node_selection` validator now treats any Fusion release track the same as `latest-fusion` (#684).
+time: 2026-05-21T15:12:22.000000+00:00

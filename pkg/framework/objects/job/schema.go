@@ -466,12 +466,12 @@ func (j *jobResource) Schema(
 			},
 			"dbt_version": resource_schema.StringAttribute{
 				Optional:    true,
-				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
+				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
 			},
 			"force_node_selection": resource_schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified.",
+				Description: "Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to a Fusion release track (e.g. `latest-fusion`), this must be set to `true` when specified.",
 				Validators: []validator.Bool{
 					job_validators.ForceNodeSelectionValidator(),
 				},

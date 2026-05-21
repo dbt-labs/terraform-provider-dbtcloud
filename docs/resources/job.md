@@ -219,13 +219,13 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 
 - `compare_changes_flags` (String) The model selector for checking changes in the compare changes Advanced CI feature
 - `cost_optimization_features` (Set of String) List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version = "latest-fusion"` and an account with State-Aware Orchestration available.
-- `dbt_version` (String) Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.
+- `dbt_version` (String) Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.
 - `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)
 - `description` (String) Description for the job
 - `errors_on_lint_failure` (Boolean) Whether the CI job should fail when a lint error is found. Only used when `run_lint` is set to `true`. Defaults to `true`.
 - `execution` (Attributes) Execution settings for the job (see [below for nested schema](#nestedatt--execution))
-- `force_node_selection` (Boolean) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to `latest-fusion`, this must be set to `true` when specified.
+- `force_node_selection` (Boolean) Whether to force node selection (SAO - Select All Optimizations) for the job. If `dbt_version` is not set to a Fusion release track (e.g. `latest-fusion`), this must be set to `true` when specified.
 - `generate_docs` (Boolean) Flag for whether the job should generate documentation
 - `is_active` (Boolean) Should always be set to true as setting it to false is the same as creating a job in a deleted state. To create/keep a job in a 'deactivated' state, check  the `triggers` config. Setting it to false essentially deletes the job. On resource creation, this field is enforced to be true.
 - `job_completion_trigger_condition` (Block List) Which other job should trigger this job when it finishes, and on which conditions (sometimes referred as 'job chaining'). (see [below for nested schema](#nestedblock--job_completion_trigger_condition))

@@ -10,12 +10,14 @@ import (
 
 type DbtVersionValidator struct{}
 
+const validDbtVersionsDescription = "`major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly` or `fusion-fallback`"
+
 func (v DbtVersionValidator) Description(ctx context.Context) string {
-	return "Validates that the dbt_version is in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, or `latest-fusion`."
+	return "Validates that the dbt_version is in the format " + validDbtVersionsDescription + "."
 }
 
 func (v DbtVersionValidator) MarkdownDescription(ctx context.Context) string {
-	return "Validates that the `dbt_version` is in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`."
+	return "Validates that the `dbt_version` is in the format " + validDbtVersionsDescription + "."
 }
 
 func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
@@ -28,7 +30,7 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	dbtVersion := req.ConfigValue.ValueString()
 
 	// Define the regex pattern for valid dbt_version formats
-	validVersionPattern := `^(compatible|extended|latest|versionless|latest-fusion|[0-9]+\.[0-9]+\.0-(latest|pre))$`
+	validVersionPattern := `^(compatible|extended|latest|versionless|latest-fusion|fusion-stable|fusion-extended|fusion-nightly|fusion-fallback|[0-9]+\.[0-9]+\.0-(latest|pre))$`
 	matched, err := regexp.MatchString(validVersionPattern, dbtVersion)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -42,7 +44,17 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	if !matched {
 		resp.Diagnostics.AddError(
 			"Invalid dbt_version Format",
-			fmt.Sprintf("The `dbt_version` must be in the format `major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. Got: %s", dbtVersion),
+			fmt.Sprintf("The `dbt_version` must be in the format "+validDbtVersionsDescription+". Got: %s", dbtVersion),
 		)
 	}
+}
+
+// IsFusionVersion reports whether the supplied dbt_version string is one of
+// the Fusion release tracks.
+func IsFusionVersion(dbtVersion string) bool {
+	switch dbtVersion {
+	case "latest-fusion", "fusion-stable", "fusion-extended", "fusion-nightly", "fusion-fallback":
+		return true
+	}
+	return false
 }
