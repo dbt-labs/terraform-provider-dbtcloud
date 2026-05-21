@@ -483,7 +483,7 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Description: "List of cost optimization features to enable for this job. Replaces the deprecated `force_node_selection`. Valid values: `node_selection`.",
+				Description: "List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version = \"latest-fusion\"` and an account with State-Aware Orchestration available.",
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,

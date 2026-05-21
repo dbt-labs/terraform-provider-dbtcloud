@@ -281,18 +281,26 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var costOptimizationFeatures []string
 	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
 		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
-		// Bridge: cost_optimization_features drives force_node_selection when not explicitly set.
-		// The API uses force_node_selection (bool) under the hood, not a cost_optimization_features array.
+		// Bridge: cost_optimization_features drives force_node_selection when the latter
+		// was not explicitly set in the plan. The dbt Cloud API stores this as the bool
+		// force_node_selection; cost_optimization_features = ["state_aware_orchestration"]
+		// is the new name for SAO and is equivalent to force_node_selection = false.
+		// See sinter/api/v2/views/jobs.py::normalize_force_node_selection_and_cost_optimization_features.
 		if forceNodeSelection == nil {
-			hasNodeSelection := false
-			for _, f := range costOptimizationFeatures {
-				if f == "node_selection" {
-					hasNodeSelection = true
-					break
-				}
-			}
-			forceNodeSelection = &hasNodeSelection
+			saoEnabled := containsString(costOptimizationFeatures, costOptimizationFeatureStateAwareOrchestration)
+			fns := !saoEnabled
+			forceNodeSelection = &fns
 		}
+	}
+
+	// CI and Merge jobs do not support SAO. Sending force_node_selection (especially
+	// force_node_selection = false) for those job types causes the dbt Cloud API to
+	// return 405 "State aware orchestration is not available for CI or Merge jobs."
+	// Skip both SAO fields at the API boundary; the bridged Terraform state for
+	// cost_optimization_features is re-derived from the API response in Read.
+	if isCIOrMergeJobAtCreate(jobType, plan.Triggers) {
+		forceNodeSelection = nil
+		costOptimizationFeatures = nil
 	}
 
 	var jobCompletionTriggerCondition map[string]any
@@ -830,15 +838,12 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			job.CostOptimizationFeatures = features
 			// Bridge: cost_optimization_features drives force_node_selection when
 			// force_node_selection is not explicitly set in the plan.
+			// cost_optimization_features = ["state_aware_orchestration"] enables SAO,
+			// which corresponds to force_node_selection = false on the API.
 			if plan.ForceNodeSelection.IsNull() {
-				hasNodeSelection := false
-				for _, f := range features {
-					if f == "node_selection" {
-						hasNodeSelection = true
-						break
-					}
-				}
-				job.ForceNodeSelection = &hasNodeSelection
+				saoEnabled := containsString(features, costOptimizationFeatureStateAwareOrchestration)
+				fns := !saoEnabled
+				job.ForceNodeSelection = &fns
 			}
 		} else {
 			job.CostOptimizationFeatures = nil
@@ -948,26 +953,54 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 }
 
-// sliceStringToTypesSet returns a types.Set of strings; an empty set for nil/empty input.
-func sliceStringToTypesSet(values []string) types.Set {
-	if len(values) == 0 {
-		return types.SetValueMust(types.StringType, []attr.Value{})
-	}
-	elems := make([]attr.Value, len(values))
-	for i, v := range values {
-		elems[i] = types.StringValue(v)
-	}
-	return types.SetValueMust(types.StringType, elems)
-}
+// costOptimizationFeatureStateAwareOrchestration is the dbt Cloud API value that, when
+// included in cost_optimization_features, enables State-Aware Orchestration (SAO).
+// It is the new-style equivalent of force_node_selection = false.
+// See sinter/common/constants/jobs.py::CostOptimizationFeature in dbt-cloud.
+const costOptimizationFeatureStateAwareOrchestration = "state_aware_orchestration"
 
-// costOptimizationFeaturesFromForceNodeSelection derives the cost_optimization_features state
-// from the API's force_node_selection bool field, since the API does not return a
-// cost_optimization_features array — it bridges through force_node_selection.
+// costOptimizationFeaturesFromForceNodeSelection derives the cost_optimization_features
+// state from the API's force_node_selection bool field. The dbt Cloud API stores SAO
+// state as force_node_selection (bool); cost_optimization_features is the new-style
+// presentation of the same state:
+//
+//   - force_node_selection = false → SAO enabled  → ["state_aware_orchestration"]
+//   - force_node_selection = true  → SAO disabled → []
+//   - force_node_selection = nil   → unknown      → []
 func costOptimizationFeaturesFromForceNodeSelection(forceNodeSelection *bool) types.Set {
-	if forceNodeSelection != nil && *forceNodeSelection {
-		return types.SetValueMust(types.StringType, []attr.Value{types.StringValue("node_selection")})
+	if forceNodeSelection != nil && !*forceNodeSelection {
+		return types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue(costOptimizationFeatureStateAwareOrchestration),
+		})
 	}
 	return types.SetValueMust(types.StringType, []attr.Value{})
+}
+
+// containsString reports whether values contains the target string.
+func containsString(values []string, target string) bool {
+	for _, v := range values {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}
+
+// isCIOrMergeJobAtCreate returns true if the to-be-created job will be classified by
+// the dbt Cloud API as a CI or Merge job. The API infers job_type from triggers when
+// it is not set explicitly, so the provider mirrors that inference here. The result is
+// used to decide whether to skip SAO fields (force_node_selection /
+// cost_optimization_features) at the API boundary, since SAO is not supported for
+// CI or Merge job types.
+func isCIOrMergeJobAtCreate(explicitJobType string, triggers *JobTriggers) bool {
+	if explicitJobType == JobTypeCI || explicitJobType == JobTypeMerge {
+		return true
+	}
+	if triggers == nil {
+		return false
+	}
+	ci := triggers.GithubWebhook.ValueBool() || triggers.GitProviderWebhook.ValueBool()
+	return ci || triggers.OnMerge.ValueBool()
 }
 
 func (j *jobResource) validateExecuteSteps(executeSteps []string) error {
