@@ -16,6 +16,7 @@ var (
 	_ resource.Resource                = &webhookResource{}
 	_ resource.ResourceWithConfigure   = &webhookResource{}
 	_ resource.ResourceWithImportState = &webhookResource{}
+	_ resource.ResourceWithModifyPlan  = &webhookResource{}
 )
 
 func WebhookResource() resource.Resource {
@@ -266,6 +267,37 @@ func (r *webhookResource) Update(
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+}
+
+func (r *webhookResource) ModifyPlan(
+	ctx context.Context,
+	req resource.ModifyPlanRequest,
+	resp *resource.ModifyPlanResponse,
+) {
+	// Skip on resource creation or deletion
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan, state WebhookResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// The dbt Cloud API reactivates an inactive webhook when its client_url
+	// changes. Mark active as unknown so Terraform accepts the post-apply value
+	// returned by the API instead of raising an inconsistent-result error.
+	if !state.Active.ValueBool() && plan.ClientURL != state.ClientURL {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("active"), types.BoolUnknown())...)
+		resp.Diagnostics.AddAttributeWarning(
+			path.Root("active"),
+			"Webhook will be reactivated",
+			"The dbt Cloud API automatically reactivates an inactive webhook when its client_url changes. "+
+				"The 'active' attribute will be set to true after apply, regardless of the configured value.",
+		)
 	}
 }
 
