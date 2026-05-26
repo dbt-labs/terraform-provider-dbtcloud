@@ -58,31 +58,38 @@ type JobCompletionTriggerCondition struct {
 }
 
 type Job struct {
-	ID                     *int                  `json:"id"`
-	AccountId              int64                 `json:"account_id"`
-	ProjectId              int                   `json:"project_id"`
-	EnvironmentId          int                   `json:"environment_id"`
-	Name                   string                `json:"name"`
-	CompareChangesFlags    string                `json:"compare_changes_flags"`
-	DbtVersion             *string               `json:"dbt_version"`
-	DeferringEnvironmentId *int                  `json:"deferring_environment_id"`
-	DeferringJobId         *int                  `json:"deferring_job_definition_id"`
-	Description            string                `json:"description"`
-	ErrorsOnLintFailure    bool                  `json:"errors_on_lint_failure"`
-	ExecuteSteps           []string              `json:"execute_steps"`
-	Execution              JobExecution          `json:"execution"`
-	ForceNodeSelection     *bool                 `json:"force_node_selection,omitempty"`
-	GenerateDocs           bool                  `json:"generate_docs"`
-	JobCompletionTrigger   *JobCompletionTrigger `json:"job_completion_trigger_condition"`
-	JobType                string                `json:"job_type,omitempty"`
-	RunCompareChanges      bool                  `json:"run_compare_changes"`
-	RunGenerateSources     bool                  `json:"run_generate_sources"`
-	RunLint                bool                  `json:"run_lint"`
-	Schedule               JobSchedule           `json:"schedule"`
-	Settings               JobSettings           `json:"settings"`
-	State                  int                   `json:"state"`
-	TriggersOnDraftPR      bool                  `json:"triggers_on_draft_pr"`
-	Triggers               JobTrigger            `json:"triggers"`
+	ID                       *int                  `json:"id"`
+	AccountId                int64                 `json:"account_id"`
+	ProjectId                int                   `json:"project_id"`
+	EnvironmentId            int                   `json:"environment_id"`
+	Name                     string                `json:"name"`
+	CompareChangesFlags      string                `json:"compare_changes_flags"`
+	// CostOptimizationFeatures is intentionally NOT serialized to the dbt Cloud API.
+	// The API stores SAO state as the bool force_node_selection; cost_optimization_features
+	// is the new-style presentation of the same state, and sending it can cause 405
+	// validation errors on Fusion accounts when invalid values are present. The provider
+	// bridges this Terraform-side attribute to force_node_selection on write and derives
+	// it back from force_node_selection on read.
+	CostOptimizationFeatures []string              `json:"-"`
+	DbtVersion               *string               `json:"dbt_version"`
+	DeferringEnvironmentId   *int                  `json:"deferring_environment_id"`
+	DeferringJobId           *int                  `json:"deferring_job_definition_id"`
+	Description              string                `json:"description"`
+	ErrorsOnLintFailure      bool                  `json:"errors_on_lint_failure"`
+	ExecuteSteps             []string              `json:"execute_steps"`
+	Execution                JobExecution          `json:"execution"`
+	ForceNodeSelection       *bool                 `json:"force_node_selection,omitempty"`
+	GenerateDocs             bool                  `json:"generate_docs"`
+	JobCompletionTrigger     *JobCompletionTrigger `json:"job_completion_trigger_condition"`
+	JobType                  string                `json:"job_type,omitempty"`
+	RunCompareChanges        bool                  `json:"run_compare_changes"`
+	RunGenerateSources       bool                  `json:"run_generate_sources"`
+	RunLint                  bool                  `json:"run_lint"`
+	Schedule                 JobSchedule           `json:"schedule"`
+	Settings                 JobSettings           `json:"settings"`
+	State                    int                   `json:"state"`
+	TriggersOnDraftPR        bool                  `json:"triggers_on_draft_pr"`
+	Triggers                 JobTrigger            `json:"triggers"`
 }
 
 type JobWithEnvironment struct {
@@ -144,6 +151,7 @@ func (c *Client) CreateJob(
 	jobType string,
 	compareChangesFlags string,
 	forceNodeSelection *bool,
+	costOptimizationFeatures []string,
 ) (*Job, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -240,27 +248,28 @@ func (c *Client) CreateJob(
 	}
 
 	newJob := Job{
-		AccountId:            c.AccountID,
-		ProjectId:            projectId,
-		EnvironmentId:        environmentId,
-		Name:                 name,
-		Description:          description,
-		ExecuteSteps:         executeSteps,
-		State:                state,
-		Triggers:             jobTriggers,
-		Settings:             jobSettings,
-		Schedule:             jobSchedule,
-		GenerateDocs:         generateDocs,
-		RunGenerateSources:   runGenerateSources,
-		Execution:            jobExecution,
-		ForceNodeSelection:   forceNodeSelection,
-		TriggersOnDraftPR:    triggersOnDraftPR,
-		JobCompletionTrigger: jobCompletionTrigger,
-		JobType:              finalJobType,
-		RunCompareChanges:    runCompareChanges,
-		RunLint:              runLint,
-		ErrorsOnLintFailure:  errorsOnLintFailure,
-		CompareChangesFlags:  compareChangesFlags,
+		AccountId:                c.AccountID,
+		ProjectId:                projectId,
+		EnvironmentId:            environmentId,
+		Name:                     name,
+		Description:              description,
+		ExecuteSteps:             executeSteps,
+		State:                    state,
+		Triggers:                 jobTriggers,
+		Settings:                 jobSettings,
+		Schedule:                 jobSchedule,
+		GenerateDocs:             generateDocs,
+		RunGenerateSources:       runGenerateSources,
+		Execution:                jobExecution,
+		ForceNodeSelection:       forceNodeSelection,
+		CostOptimizationFeatures: costOptimizationFeatures,
+		TriggersOnDraftPR:        triggersOnDraftPR,
+		JobCompletionTrigger:     jobCompletionTrigger,
+		JobType:                  finalJobType,
+		RunCompareChanges:        runCompareChanges,
+		RunLint:                  runLint,
+		ErrorsOnLintFailure:      errorsOnLintFailure,
+		CompareChangesFlags:      compareChangesFlags,
 	}
 	if dbtVersion != "" {
 		newJob.DbtVersion = &dbtVersion

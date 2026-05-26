@@ -11,6 +11,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -277,6 +278,31 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		forceNodeSelection = &fns
 	}
 
+	var costOptimizationFeatures []string
+	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+		// Bridge: cost_optimization_features drives force_node_selection when the latter
+		// was not explicitly set in the plan. The dbt Cloud API stores this as the bool
+		// force_node_selection; cost_optimization_features = ["state_aware_orchestration"]
+		// is the new name for SAO and is equivalent to force_node_selection = false.
+		// See sinter/api/v2/views/jobs.py::normalize_force_node_selection_and_cost_optimization_features.
+		if forceNodeSelection == nil {
+			saoEnabled := containsString(costOptimizationFeatures, costOptimizationFeatureStateAwareOrchestration)
+			fns := !saoEnabled
+			forceNodeSelection = &fns
+		}
+	}
+
+	// CI and Merge jobs do not support SAO. Sending force_node_selection (especially
+	// force_node_selection = false) for those job types causes the dbt Cloud API to
+	// return 405 "State aware orchestration is not available for CI or Merge jobs."
+	// Skip both SAO fields at the API boundary; the bridged Terraform state for
+	// cost_optimization_features is re-derived from the API response in Read.
+	if isCIOrMergeJobAtCreate(jobType, plan.Triggers) {
+		forceNodeSelection = nil
+		costOptimizationFeatures = nil
+	}
+
 	var jobCompletionTriggerCondition map[string]any
 
 	if len(plan.JobCompletionTriggerCondition) != 0 {
@@ -334,6 +360,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		jobType,
 		compareChangesFlags,
 		forceNodeSelection,
+		costOptimizationFeatures,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -381,13 +408,28 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.JobType = types.StringNull()
 	}
 
-	// Populate force_node_selection from API response
-	if createdJob.ForceNodeSelection != nil {
-		plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
-	} else {
-		// If not set in config and API doesn't return it, keep it null
-		if plan.ForceNodeSelection.IsNull() {
+	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
+	// cost_optimization_features (the API rejects them with 405). To keep plan
+	// and apply consistent, preserve whatever the user planned rather than
+	// deriving from the API response. The user's value is benign because we
+	// never actually sent it to the API. For other job types the API response
+	// is authoritative.
+	createdJobIsCIOrMerge := createdJob.JobType == JobTypeCI || createdJob.JobType == JobTypeMerge
+	if !createdJobIsCIOrMerge {
+		if createdJob.ForceNodeSelection != nil {
+			plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
+		} else if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 			plan.ForceNodeSelection = types.BoolNull()
+		}
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(createdJob.ForceNodeSelection)
+	} else {
+		// CI/Merge: collapse any unknown plan values to known empty/null so the
+		// framework's plan-apply consistency check has concrete values to compare.
+		if plan.ForceNodeSelection.IsUnknown() {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		if plan.CostOptimizationFeatures.IsUnknown() {
+			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
 		}
 	}
 
@@ -604,10 +646,27 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
 
-	if retrievedJob.ForceNodeSelection != nil {
-		state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
+	// SAO fields: for CI/Merge jobs the API does not honor force_node_selection /
+	// cost_optimization_features (we never POST them for those job types), so the
+	// API value is not authoritative — preserve the existing state. On fresh
+	// imports (no prior state) collapse to known empty/null values that match
+	// what Create writes, so that ImportStateVerify round-trips cleanly. For
+	// other job types the API response is authoritative.
+	retrievedJobIsCIOrMerge := retrievedJob.JobType == JobTypeCI || retrievedJob.JobType == JobTypeMerge
+	if !retrievedJobIsCIOrMerge {
+		if retrievedJob.ForceNodeSelection != nil {
+			state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
+		} else {
+			state.ForceNodeSelection = types.BoolNull()
+		}
+		state.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(retrievedJob.ForceNodeSelection)
 	} else {
-		state.ForceNodeSelection = types.BoolNull()
+		if state.ForceNodeSelection.IsUnknown() {
+			state.ForceNodeSelection = types.BoolNull()
+		}
+		if state.CostOptimizationFeatures.IsNull() || state.CostOptimizationFeatures.IsUnknown() {
+			state.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 
 	if retrievedJob.JobType != "" {
@@ -732,7 +791,11 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
-		job.DeferringEnvironmentId = nil
+		// For CI and Merge jobs, preserve the API's deferring_environment_id when the plan doesn't set it.
+		// Other job types clear it when not specified.
+		if job.JobType != JobTypeCI && job.JobType != JobTypeMerge {
+			job.DeferringEnvironmentId = nil
+		}
 	} else {
 		deferringEnvId := int(plan.DeferringEnvironmentID.ValueInt64())
 		job.DeferringEnvironmentId = &deferringEnvId
@@ -784,11 +847,35 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
-	if plan.ForceNodeSelection.IsNull() {
+	// CI and Merge jobs do not support SAO features (force_node_selection / cost_optimization_features).
+	// Sending these fields for those job types results in a 405 from the API, so we skip them.
+	isCIOrMerge := job.JobType == JobTypeCI || job.JobType == JobTypeMerge
+	if isCIOrMerge {
 		job.ForceNodeSelection = nil
+		job.CostOptimizationFeatures = nil
 	} else {
-		fns := plan.ForceNodeSelection.ValueBool()
-		job.ForceNodeSelection = &fns
+		if plan.ForceNodeSelection.IsNull() {
+			job.ForceNodeSelection = nil
+		} else {
+			fns := plan.ForceNodeSelection.ValueBool()
+			job.ForceNodeSelection = &fns
+		}
+
+		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
+			features := helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
+			job.CostOptimizationFeatures = features
+			// Bridge: cost_optimization_features drives force_node_selection when
+			// force_node_selection is not explicitly set in the plan.
+			// cost_optimization_features = ["state_aware_orchestration"] enables SAO,
+			// which corresponds to force_node_selection = false on the API.
+			if plan.ForceNodeSelection.IsNull() {
+				saoEnabled := containsString(features, costOptimizationFeatureStateAwareOrchestration)
+				fns := !saoEnabled
+				job.ForceNodeSelection = &fns
+			}
+		} else {
+			job.CostOptimizationFeatures = nil
+		}
 	}
 
 	// Handle job_type updates with validation
@@ -866,11 +953,32 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.TimeoutSeconds = types.Int64Value(int64(updatedJob.Execution.TimeoutSeconds))
 	}
 
-	// Populate force_node_selection from API response
-	if updatedJob.ForceNodeSelection != nil {
-		plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
+	// cost_optimization_features, so preserve whatever the user planned (see the
+	// matching block in Create for the rationale).
+	updatedJobIsCIOrMerge := updatedJob.JobType == JobTypeCI || updatedJob.JobType == JobTypeMerge
+	if !updatedJobIsCIOrMerge {
+		if updatedJob.ForceNodeSelection != nil {
+			plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
+		} else {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(updatedJob.ForceNodeSelection)
 	} else {
-		plan.ForceNodeSelection = types.BoolNull()
+		if plan.ForceNodeSelection.IsUnknown() {
+			plan.ForceNodeSelection = types.BoolNull()
+		}
+		if plan.CostOptimizationFeatures.IsUnknown() {
+			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
+		}
+	}
+
+	// For CI/Merge jobs, preserve deferring_environment_id from the API response
+	// so it is not lost in state when the plan did not explicitly configure it.
+	if updatedJob.DeferringEnvironmentId != nil {
+		plan.DeferringEnvironmentID = types.Int64Value(int64(*updatedJob.DeferringEnvironmentId))
+	} else if plan.DeferringEnvironmentID.IsNull() || plan.DeferringEnvironmentID.ValueInt64() == 0 {
+		plan.DeferringEnvironmentID = types.Int64Null()
 	}
 
 	updatedJobIDStr := strconv.FormatInt(jobID, 10)
@@ -882,6 +990,56 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// costOptimizationFeatureStateAwareOrchestration is the dbt Cloud API value that, when
+// included in cost_optimization_features, enables State-Aware Orchestration (SAO).
+// It is the new-style equivalent of force_node_selection = false.
+// See sinter/common/constants/jobs.py::CostOptimizationFeature in dbt-cloud.
+const costOptimizationFeatureStateAwareOrchestration = "state_aware_orchestration"
+
+// costOptimizationFeaturesFromForceNodeSelection derives the cost_optimization_features
+// state from the API's force_node_selection bool field. The dbt Cloud API stores SAO
+// state as force_node_selection (bool); cost_optimization_features is the new-style
+// presentation of the same state:
+//
+//   - force_node_selection = false → SAO enabled  → ["state_aware_orchestration"]
+//   - force_node_selection = true  → SAO disabled → []
+//   - force_node_selection = nil   → unknown      → []
+func costOptimizationFeaturesFromForceNodeSelection(forceNodeSelection *bool) types.Set {
+	if forceNodeSelection != nil && !*forceNodeSelection {
+		return types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue(costOptimizationFeatureStateAwareOrchestration),
+		})
+	}
+	return types.SetValueMust(types.StringType, []attr.Value{})
+}
+
+// containsString reports whether values contains the target string.
+func containsString(values []string, target string) bool {
+	for _, v := range values {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}
+
+// isCIOrMergeJobAtCreate returns true if the to-be-created job will be classified by
+// the dbt Cloud API as a CI or Merge job. The API infers job_type from triggers when
+// it is not set explicitly, so the provider mirrors that inference here. The result is
+// used to decide whether to skip SAO fields (force_node_selection /
+// cost_optimization_features) at the API boundary, since SAO is not supported for
+// CI or Merge job types.
+func isCIOrMergeJobAtCreate(explicitJobType string, triggers *JobTriggers) bool {
+	if explicitJobType == JobTypeCI || explicitJobType == JobTypeMerge {
+		return true
+	}
+	if triggers == nil {
+		return false
+	}
+	ci := triggers.GithubWebhook.ValueBool() || triggers.GitProviderWebhook.ValueBool()
+	return ci || triggers.OnMerge.ValueBool()
 }
 
 func (j *jobResource) validateExecuteSteps(executeSteps []string) error {

@@ -115,7 +115,8 @@ type JobResourceModel struct {
 	ExecuteSteps           []types.String `tfsdk:"execute_steps"`            // exists
 	ValidateExecuteSteps   types.Bool     `tfsdk:"validate_execute_steps"`   // opt-in validation
 	DeferringEnvironmentID types.Int64    `tfsdk:"deferring_environment_id"` // exists
-	ForceNodeSelection     types.Bool     `tfsdk:"force_node_selection"`     // exists
+	ForceNodeSelection           types.Bool `tfsdk:"force_node_selection"`            // exists
+	CostOptimizationFeatures     types.Set  `tfsdk:"cost_optimization_features"`      // replaces force_node_selection
 	Triggers               *JobTriggers   `tfsdk:"triggers"`                 // exists
 	// Settings                      *JobSettings          `tfsdk:"settings"`                 // has no of threads and target name
 	// Schedule                      *JobSchedule          `tfsdk:"schedule"`                 // has cron expression

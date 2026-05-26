@@ -218,6 +218,7 @@ An example can be found [in this GitHub issue](https://github.com/dbt-labs/terra
 ### Optional
 
 - `compare_changes_flags` (String) The model selector for checking changes in the compare changes Advanced CI feature
+- `cost_optimization_features` (Set of String) List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version = "latest-fusion"` and an account with State-Aware Orchestration available.
 - `dbt_version` (String) Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest` or `latest-fusion`. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.
 - `deferring_environment_id` (Number) Environment identifier that this job defers to (new deferring approach)
 - `deferring_job_id` (Number) Job identifier that this job defers to (legacy deferring approach)

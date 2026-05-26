@@ -937,6 +937,293 @@ func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
 	})
 }
 
+// TestAccDbtCloudJobCostOptimizationFeatures tests creating a job with
+// cost_optimization_features set (the preferred replacement for force_node_selection).
+//
+// Account requirements: the test account must either (a) have account-level SAO
+// enforcement enabled so force_node_selection is forced to false, or (b) be running
+// against an environment whose dbt_version is in FUSION_VERSIONS (currently only
+// "latest-fusion") AND have State-Aware Orchestration available. On accounts that
+// satisfy neither condition the dbt Cloud API silently rewrites force_node_selection
+// back to true, which makes Terraform see an inconsistent result after apply
+// (plan: ["state_aware_orchestration"], actual: []).
+//
+// This test is skipped by default because the default acceptance test environment
+// uses dbt_version="latest" (non-Fusion) and we cannot assume SAO enforcement.
+func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
+	t.Skip("Skipping: cost_optimization_features requires either account-level SAO enforcement or dbt_version=latest-fusion with SAO enabled. Run manually against a Fusion-capable account.")
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 1. Create job with cost_optimization_features = ["state_aware_orchestration"]
+			{
+				Config: testAccDbtCloudJobCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName, `["state_aware_orchestration"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job",
+						"cost_optimization_features.*",
+						"state_aware_orchestration",
+					),
+				),
+			},
+			// 2. Update job name while keeping cost_optimization_features stable
+			{
+				Config: testAccDbtCloudJobCostOptimizationFeaturesConfig(
+					jobNameUpdated, projectName, environmentName, `["state_aware_orchestration"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job",
+						"cost_optimization_features.*",
+						"state_aware_orchestration",
+					),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobNameUpdated),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobCIWithDeferringEnvironment tests that a CI job correctly
+// preserves deferring_environment_id after apply (Change 3 fix).
+func TestAccDbtCloudJobCIWithDeferringEnvironment(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 3. CI job with deferring_environment_id (verify it's preserved after apply)
+			{
+				Config: testAccDbtCloudJobCIWithDeferringEnvironmentConfig(
+					jobName, projectName, environmentName, "ci",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.ci_job", "deferring_environment_id"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "job_type", "ci"),
+				),
+			},
+			// Apply again to verify deferring_environment_id is stable (not nulled out on re-apply)
+			{
+				Config: testAccDbtCloudJobCIWithDeferringEnvironmentConfig(
+					jobName, projectName, environmentName, "ci",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.ci_job", "deferring_environment_id"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.ci_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+					"triggers.%",
+					"triggers.custom_branch_only",
+				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobMergeWithDeferringEnvironment tests that a Merge job correctly
+// preserves deferring_environment_id after apply (Change 3 fix).
+func TestAccDbtCloudJobMergeWithDeferringEnvironment(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 4. Merge job with deferring_environment_id
+			{
+				Config: testAccDbtCloudJobCIWithDeferringEnvironmentConfig(
+					jobName, projectName, environmentName, "merge",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttrSet("dbtcloud_job.ci_job", "deferring_environment_id"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "job_type", "merge"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.ci_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+					"triggers.%",
+					"triggers.custom_branch_only",
+				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobCIWithCostOptimizationFeatures tests that a CI job with
+// cost_optimization_features does not return a 405 error (Change 2 fix).
+func TestAccDbtCloudJobCIWithCostOptimizationFeatures(t *testing.T) {
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 5. CI job with cost_optimization_features set (should not return 405)
+			{
+				Config: testAccDbtCloudJobCIWithCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "job_type", "ci"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudJobCostOptimizationFeaturesConfig(
+	jobName, projectName, environmentName, featuresVal string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+  cost_optimization_features = %s
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, featuresVal)
+}
+
+func testAccDbtCloudJobCIWithDeferringEnvironmentConfig(
+	jobName, projectName, environmentName, jobType string,
+) string {
+	githubWebhook := "false"
+	gitProviderWebhook := "false"
+	onMerge := "false"
+	if jobType == "ci" {
+		githubWebhook = "true"
+		gitProviderWebhook = "true"
+	} else if jobType == "merge" {
+		onMerge = "true"
+	}
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "ci_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  deferring_environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt build -s state:modified+"
+  ]
+  triggers = {
+    "github_webhook": %s,
+    "git_provider_webhook": %s,
+    "schedule": false,
+    "on_merge": %s,
+  }
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, githubWebhook, gitProviderWebhook, onMerge)
+}
+
+func testAccDbtCloudJobCIWithCostOptimizationFeaturesConfig(
+	jobName, projectName, environmentName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "ci_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  job_type = "ci"
+  cost_optimization_features = ["state_aware_orchestration"]
+  execute_steps = [
+    "dbt build -s state:modified+"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+}
+
 func testAccDbtCloudJobResourceIntervalCronConfig(
 	jobName, projectName, environmentName string,
 	interval int,
