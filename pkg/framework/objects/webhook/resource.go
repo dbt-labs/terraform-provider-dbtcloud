@@ -290,15 +290,22 @@ func (r *webhookResource) ModifyPlan(
 	// The dbt Cloud API reactivates an inactive webhook when its client_url
 	// changes. Mark active as unknown so Terraform accepts the post-apply value
 	// returned by the API instead of raising an inconsistent-result error.
-	if !state.Active.ValueBool() && plan.ClientURL != state.ClientURL {
-		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("active"), types.BoolUnknown())...)
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("active"),
-			"Webhook will be reactivated",
-			"The dbt Cloud API automatically reactivates an inactive webhook when its client_url changes. "+
-				"The 'active' attribute will be set to true after apply, regardless of the configured value.",
-		)
+	if state.Active.IsNull() || state.Active.IsUnknown() || state.Active.ValueBool() {
+		return
 	}
+	if plan.ClientURL.IsNull() || plan.ClientURL.IsUnknown() {
+		return
+	}
+	if plan.ClientURL.Equal(state.ClientURL) {
+		return
+	}
+	resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("active"), types.BoolUnknown())...)
+	resp.Diagnostics.AddAttributeWarning(
+		path.Root("active"),
+		"Webhook will be reactivated",
+		"The dbt Cloud API automatically reactivates an inactive webhook when its client_url changes. "+
+			"The 'active' attribute will be set to true after apply, regardless of the configured value.",
+	)
 }
 
 func (r *webhookResource) Delete(

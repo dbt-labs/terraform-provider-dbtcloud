@@ -1,3 +1,3 @@
 kind: Changes
-body: when updating clienturl on an inactive webhook, expect input from api
+body: When `client_url` changes on an inactive webhook, accept the reactivated state returned by the dbt Cloud API.
 time: 2026-05-25T16:42:22.059809+03:00
