@@ -42,6 +42,7 @@ var (
 		"cost_management_viewer",
 		"cost_management_admin",
 		"manage_marketplace_apps",
+		"notification_manager",
 	}
 )
 
