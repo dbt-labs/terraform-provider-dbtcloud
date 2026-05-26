@@ -1,0 +1,3 @@
+kind: Fixes
+body: API client now actually retries transient HTTP failures (500, 502, 503, 504, 408, 429 and any user-configured `retriable_status_codes`). Previously `doRequestWithRetry` short-circuited every non-2xx response with an early return before the retry/backoff branch could fire, so transient `cloud.getdbt.com` 5xx responses surfaced as one-shot Terraform diagnostics on the first attempt. Network/transport-level errors are now retried as well (resolves #695).
+time: 2026-05-26T21:06:25.000000+00:00
