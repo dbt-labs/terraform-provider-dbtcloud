@@ -92,14 +92,19 @@ var modifyConfigTestStep = resource.TestStep{
 	),
 }
 
-// resurrectionDriftTestStep exercises the ModifyPlan unknown-marking branch:
-// config keeps active=false while changing client_url, so the dbt Cloud API
-// reactivates the webhook server-side. Apply must succeed (no inconsistent
-// result) and the post-apply state must show active=true. The plan stays
-// non-empty afterward because config still disagrees with the live value.
-var resurrectionDriftTestStep = resource.TestStep{
-	Config:             testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "false"),
-	ExpectNonEmptyPlan: true,
+// resurrectionPlanErrorTestStep verifies that changing client_url on an
+// inactive webhook while keeping active=false fails at plan time with a
+// clear error, because the dbt Cloud API would reactivate the webhook and
+// produce an inconsistent result.
+var resurrectionPlanErrorTestStep = resource.TestStep{
+	Config:      testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "false"),
+	ExpectError: regexp.MustCompile(`Cannot change client_url while active=false`),
+}
+
+// resurrectionConvergeTestStep is the happy path: the user opts into
+// reactivation by setting active=true alongside the client_url change.
+var resurrectionConvergeTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "true"),
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
@@ -107,20 +112,6 @@ var resurrectionDriftTestStep = resource.TestStep{
 			"client_url",
 			"https://example.com/resurrected",
 		),
-		resource.TestCheckResourceAttr(
-			"dbtcloud_webhook.test_webhook",
-			"active",
-			"true",
-		),
-	),
-}
-
-// resurrectionConvergeTestStep flips the config to match the live value
-// (active=true) so the test ends with a clean plan before ImportState runs.
-var resurrectionConvergeTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "true"),
-	Check: resource.ComposeTestCheckFunc(
-		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_webhook.test_webhook",
 			"active",
@@ -147,7 +138,7 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			basicConfigTestStep,
 			modifyConfigTestStep,
-			resurrectionDriftTestStep,
+			resurrectionPlanErrorTestStep,
 			resurrectionConvergeTestStep,
 			importStateTestStep,
 		},
