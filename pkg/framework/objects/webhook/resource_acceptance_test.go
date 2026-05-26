@@ -92,11 +92,14 @@ var modifyConfigTestStep = resource.TestStep{
 	),
 }
 
-// resurrectionConfigTestStep exercises the ModifyPlan behavior: changing
-// client_url on an inactive webhook causes the dbt Cloud API to reactivate it.
-// The plan should accept active becoming true after apply.
-var resurrectionConfigTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "true"),
+// resurrectionDriftTestStep exercises the ModifyPlan unknown-marking branch:
+// config keeps active=false while changing client_url, so the dbt Cloud API
+// reactivates the webhook server-side. Apply must succeed (no inconsistent
+// result) and the post-apply state must show active=true. The plan stays
+// non-empty afterward because config still disagrees with the live value.
+var resurrectionDriftTestStep = resource.TestStep{
+	Config:             testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "false"),
+	ExpectNonEmptyPlan: true,
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
@@ -104,6 +107,20 @@ var resurrectionConfigTestStep = resource.TestStep{
 			"client_url",
 			"https://example.com/resurrected",
 		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"active",
+			"true",
+		),
+	),
+}
+
+// resurrectionConvergeTestStep flips the config to match the live value
+// (active=true) so the test ends with a clean plan before ImportState runs.
+var resurrectionConvergeTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "true"),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_webhook.test_webhook",
 			"active",
@@ -130,7 +147,8 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			basicConfigTestStep,
 			modifyConfigTestStep,
-			resurrectionConfigTestStep,
+			resurrectionDriftTestStep,
+			resurrectionConvergeTestStep,
 			importStateTestStep,
 		},
 	})
