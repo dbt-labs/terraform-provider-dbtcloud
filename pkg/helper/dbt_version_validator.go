@@ -10,7 +10,7 @@ import (
 
 type DbtVersionValidator struct{}
 
-const validDbtVersionsDescription = "`major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly` or `fusion-fallback`"
+const validDbtVersionsDescription = "`major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, `latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly` or `fusion-fallback`"
 
 func (v DbtVersionValidator) Description(ctx context.Context) string {
 	return "Validates that the dbt_version is in the format " + validDbtVersionsDescription + "."
@@ -30,7 +30,7 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	dbtVersion := req.ConfigValue.ValueString()
 
 	// Define the regex pattern for valid dbt_version formats
-	validVersionPattern := `^(compatible|extended|latest|versionless|latest-fusion|fusion-stable|fusion-extended|fusion-nightly|fusion-fallback|[0-9]+\.[0-9]+\.0-(latest|pre))$`
+	validVersionPattern := `^(compatible|extended|latest|fallback|versionless|latest-fusion|fusion-stable|fusion-extended|fusion-nightly|fusion-fallback|[0-9]+\.[0-9]+\.0-(latest|pre))$`
 	matched, err := regexp.MatchString(validVersionPattern, dbtVersion)
 	if err != nil {
 		resp.Diagnostics.AddError(

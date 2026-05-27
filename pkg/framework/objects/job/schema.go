@@ -73,7 +73,7 @@ func getJobAttributes() map[string]schema.Attribute {
 		},
 		"dbt_version": schema.StringAttribute{
 			Computed:    true,
-			Description: "The version of dbt used for the job. If not set, the environment version will be used.",
+			Description: "The version of dbt used for the job. If not set, the environment version will be used. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`).",
 		},
 		"execute_steps": schema.ListAttribute{
 			Computed:    true,
@@ -466,7 +466,7 @@ func (j *jobResource) Schema(
 			},
 			"dbt_version": resource_schema.StringAttribute{
 				Optional:    true,
-				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
+				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
 			},
 			"force_node_selection": resource_schema.BoolAttribute{
 				Optional:    true,
@@ -483,7 +483,7 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Description: "List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version = \"latest-fusion\"` and an account with State-Aware Orchestration available.",
+				Description: "List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version` to be set to a Fusion release track (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, or `fusion-fallback`) and an account with State-Aware Orchestration available.",
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
