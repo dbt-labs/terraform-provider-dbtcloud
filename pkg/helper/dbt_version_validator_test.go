@@ -19,11 +19,11 @@ func TestDbtVersionValidator(t *testing.T) {
 	}
 
 	testCases := []testCase{
-		// Mantle (dbt Core) release tracks
+		// dbt platform release tracks (non-Fusion)
 		{name: "valid - latest", val: types.StringValue("latest")},
 		{name: "valid - compatible", val: types.StringValue("compatible")},
 		{name: "valid - extended", val: types.StringValue("extended")},
-		{name: "valid - fallback (Mantle)", val: types.StringValue("fallback")},
+		{name: "valid - fallback", val: types.StringValue("fallback")},
 
 		// Fusion release tracks
 		{name: "valid - latest-fusion (legacy alias)", val: types.StringValue("latest-fusion")},
