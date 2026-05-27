@@ -1,0 +1,3 @@
+kind: Changes
+body: Error at plan time when `client_url` changes on an inactive webhook; users must set `active = true` to acknowledge that the dbt Cloud API will reactivate it.
+time: 2026-05-25T16:42:22.059809+03:00

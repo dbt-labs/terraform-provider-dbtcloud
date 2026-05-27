@@ -16,6 +16,7 @@ var (
 	_ resource.Resource                = &webhookResource{}
 	_ resource.ResourceWithConfigure   = &webhookResource{}
 	_ resource.ResourceWithImportState = &webhookResource{}
+	_ resource.ResourceWithModifyPlan  = &webhookResource{}
 )
 
 func WebhookResource() resource.Resource {
@@ -267,6 +268,47 @@ func (r *webhookResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (r *webhookResource) ModifyPlan(
+	ctx context.Context,
+	req resource.ModifyPlanRequest,
+	resp *resource.ModifyPlanResponse,
+) {
+	// Skip on resource creation or deletion
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan, state WebhookResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// The dbt Cloud API reactivates an inactive webhook when its client_url
+	// changes, which would produce an inconsistent-result error if the plan
+	// still expects active=false. Error at plan time and instruct the user to
+	// also set active=true in their configuration.
+	if state.Active.IsNull() || state.Active.IsUnknown() || state.Active.ValueBool() {
+		return
+	}
+	if plan.ClientURL.IsNull() || plan.ClientURL.IsUnknown() {
+		return
+	}
+	if plan.ClientURL.Equal(state.ClientURL) {
+		return
+	}
+	if plan.Active.IsNull() || plan.Active.IsUnknown() || plan.Active.ValueBool() {
+		return
+	}
+	resp.Diagnostics.AddAttributeError(
+		path.Root("active"),
+		"Cannot change client_url while active=false",
+		"The dbt Cloud API automatically reactivates an inactive webhook when its client_url changes. "+
+			"Set 'active = true' in your configuration to change the client_url.",
+	)
 }
 
 func (r *webhookResource) Delete(

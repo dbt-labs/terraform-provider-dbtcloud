@@ -53,7 +53,7 @@ var basicConfigTestStep = resource.TestStep{
 }
 
 var modifyConfigTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, active),
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/test", active),
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
 		resource.TestCheckResourceAttr(
@@ -92,6 +92,34 @@ var modifyConfigTestStep = resource.TestStep{
 	),
 }
 
+// resurrectionPlanErrorTestStep verifies that changing client_url on an
+// inactive webhook while keeping active=false fails at plan time with a
+// clear error, because the dbt Cloud API would reactivate the webhook and
+// produce an inconsistent result.
+var resurrectionPlanErrorTestStep = resource.TestStep{
+	Config:      testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "false"),
+	ExpectError: regexp.MustCompile(`Cannot change client_url while active=false`),
+}
+
+// resurrectionConvergeTestStep is the happy path: the user opts into
+// reactivation by setting active=true alongside the client_url change.
+var resurrectionConvergeTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceFullConfig(webhookName2, projectName, "https://example.com/resurrected", "true"),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"client_url",
+			"https://example.com/resurrected",
+		),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"active",
+			"true",
+		),
+	),
+}
+
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 	importStateTestStep := resource.TestStep{
 		ResourceName:      "dbtcloud_webhook.test_webhook",
@@ -110,6 +138,8 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			basicConfigTestStep,
 			modifyConfigTestStep,
+			resurrectionPlanErrorTestStep,
+			resurrectionConvergeTestStep,
 			importStateTestStep,
 		},
 	})
@@ -133,7 +163,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 `, projectName, webhookName)
 }
 
-func testAccDbtCloudWebhookResourceFullConfig(webhookName, projectName, active string) string {
+func testAccDbtCloudWebhookResourceFullConfig(webhookName, projectName, clientURL, active string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -165,14 +195,14 @@ resource "dbtcloud_job" "test" {
 resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
-	client_url = "https://example.com/test"
+	client_url = "%s"
 	event_types = [
 	  "job.run.completed"
 	]
 	job_ids = [dbtcloud_job.test.id]
 	active = "%s"
   }
-`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, active)
+`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, clientURL, active)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {
