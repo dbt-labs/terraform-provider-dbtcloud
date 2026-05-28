@@ -610,18 +610,23 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	state.TriggersOnDraftPr = types.BoolValue(retrievedJob.TriggersOnDraftPR)
 	if retrievedJob.JobCompletionTrigger != nil {
-		statusesStr := make([]types.String, 0)
-		for _, status := range retrievedJob.JobCompletionTrigger.Condition.Statuses {
-			statusStr := utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string)
-			statusesStr = append(statusesStr, types.StringValue(statusStr))
-		}
+		// Only sync from API if this resource is managing job_completion_trigger_condition.
+		// If prior state had it nil, a separate dbtcloud_job_completion_trigger resource
+		// may own the trigger — leave state untouched to avoid spurious drift.
+		if len(state.JobCompletionTriggerCondition) > 0 {
+			statusesStr := make([]types.String, 0)
+			for _, status := range retrievedJob.JobCompletionTrigger.Condition.Statuses {
+				statusStr := utils.JobCompletionTriggerConditionsMappingCodeHuman[status].(string)
+				statusesStr = append(statusesStr, types.StringValue(statusStr))
+			}
 
-		state.JobCompletionTriggerCondition = []*JobCompletionTriggerCondition{
-			{
-				JobID:     types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.JobID)),
-				ProjectID: types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.ProjectID)),
-				Statuses:  statusesStr,
-			},
+			state.JobCompletionTriggerCondition = []*JobCompletionTriggerCondition{
+				{
+					JobID:     types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.JobID)),
+					ProjectID: types.Int64Value(int64(retrievedJob.JobCompletionTrigger.Condition.ProjectID)),
+					Statuses:  statusesStr,
+				},
+			}
 		}
 	} else {
 		state.JobCompletionTriggerCondition = nil

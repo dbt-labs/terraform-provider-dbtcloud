@@ -1,0 +1,3 @@
+kind: Changes
+body: Add new `dbtcloud_job_completion_trigger` resource to manage job-chaining triggers independently from `dbtcloud_job`, resolving circular dependency issues
+time: 2026-04-09T19:58:01.000000+00:00

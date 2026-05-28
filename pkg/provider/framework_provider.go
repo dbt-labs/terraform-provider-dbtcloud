@@ -38,6 +38,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/group_partial_permissions"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/ip_restrictions_rule"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job_completion_trigger"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/lineage_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
@@ -392,6 +393,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		extended_attributes.ExtendedAttributesResource,
 		teradata_credential.TeradataCredentialResource,
 		job.JobResource,
+		job_completion_trigger.JobCompletionTriggerResource,
 		project_repository.ProjectRepositoryResource,
 		environment_variable.EnvironmentVariableResource,
 		environment_variable_job_override.EnvironmentVariableJobOverrideResource,
