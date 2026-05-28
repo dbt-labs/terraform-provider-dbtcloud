@@ -525,14 +525,15 @@ func TestAccDbtCloudGlobalConnectionBigQueryUpdateV1AdapterFromV0(t *testing.T) 
 					),
 				),
 			},
-			// modify, adding optional fields
+			// modify, adding optional fields — flipping use_latest_adapter must be
+			// rejected. The ModifyPlan guard now fails the plan with a friendlier
+			// message; the runtime check at the Update path remains as a fallback.
 			{
 				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
 					connectionName,
 					jobExecutionTimeoutSeconds,
 				),
-				// expect an error
-				ExpectError: regexp.MustCompile("Changing the adapter version is not supported."),
+				ExpectError: regexp.MustCompile("Adapter version cannot be changed"),
 			},
 
 			// IMPORT
