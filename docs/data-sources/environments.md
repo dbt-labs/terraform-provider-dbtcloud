@@ -31,7 +31,7 @@ Read-Only:
 - `connection_id` (Number) A connection ID (used with Global Connections)
 - `credentials_id` (Number) Credential ID for this environment. A credential is not required for development environments, as dbt Cloud defaults to the user's credentials, but deployment environments will have this.
 - `custom_branch` (String) The custom branch name to use
-- `dbt_version` (String) Version number of dbt to use in this environment.
+- `dbt_version` (String) Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`).
 - `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)
 - `enable_model_query_history` (Boolean) Whether model query history is on
 - `environment_id` (Number) The ID of the environment

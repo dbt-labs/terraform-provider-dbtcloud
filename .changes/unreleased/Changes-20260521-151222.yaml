@@ -1,0 +1,3 @@
+kind: Changes
+body: Allow new dbt platform release tracks as `dbt_version` on `dbtcloud_environment` and `dbtcloud_job` — the Fusion tracks `fusion-stable`, `fusion-extended`, `fusion-nightly`, and `fusion-fallback` alongside `latest-fusion`, and the `fallback` release track alongside `latest`, `compatible`, and `extended`. The `force_node_selection` validator now treats any Fusion release track the same as `latest-fusion`. Data source schemas and resource docs now enumerate every accepted value (resolves #684).
+time: 2026-05-21T15:12:22.000000+00:00
