@@ -178,114 +178,172 @@ func NewClient(account_id *int64, token *string, host_url *string, maxRetries *i
 	return &c, nil
 }
 
-func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
-	var err error
+// defaultRetriableHTTPCodes lists the HTTP status codes the client retries by
+// default when the provider has not supplied an explicit retriable_status_codes
+// list. They cover the transient upstream / proxy / rate-limit failures that
+// have caused real customer apply errors and post-merge CI flakes:
+//
+//   - 408 Request Timeout
+//   - 429 Too Many Requests
+//   - 500 Internal Server Error
+//   - 502 Bad Gateway
+//   - 503 Service Unavailable
+//   - 504 Gateway Timeout
+//
+// 501 Not Implemented is intentionally excluded because it indicates a
+// permanent missing feature rather than a transient failure.
+var defaultRetriableHTTPCodes = []int{408, 429, 500, 502, 503, 504}
 
-	// This is needed in case the provider code wants to do retries but the provider config is set to disable retries
+func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
+	// Provider config may want to disable retries even when client code asks
+	// for them. Floor MaxRetries at 1 so we always make at least one attempt.
 	if c.DisableRetry || c.MaxRetries <= 0 {
 		c.MaxRetries = 1
 	}
 
 	setRequestHeaders(req, c.Token)
 
-	for i := 0; i < c.MaxRetries; i++ {
-		res, err := c.HTTPClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-
-		// Handle 404 errors - check if it's a true not found or a permissions issue
-		if res.StatusCode == 404 {
-			isResourceNotFound, apiErr, parseErr := parseAPIError(body)
-			if parseErr != nil {
-				// If we can't parse the error, return a generic 404
-				return nil, fmt.Errorf("resource-not-found (status 404): URL: %s, Response: %s", req.URL, body)
-			}
-
-			if isResourceNotFound {
-				// Check if the error message mentions permissions - this is a common pattern in dbt Cloud API
-				userMsg := strings.ToLower(apiErr.Status.UserMessage)
-				if strings.Contains(userMsg, "permission") || strings.Contains(userMsg, "proper permissions") {
-					return nil, fmt.Errorf("resource-not-found-permissions: The resource was not found, but this may be due to insufficient permissions. The API token may not have access to this resource or the environment it belongs to.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
-				}
-
-				// For GET requests or DELETE operations, this is typically a legitimate not-found
-				// (DELETE gets 404 when resource already deleted, which is fine)
-				if req.Method == "GET" || req.Method == "DELETE" {
-					return nil, fmt.Errorf("resource-not-found: %s", req.URL)
-				}
-
-				// For POST/PUT on non-permission 404s, provide additional context
-				// This helps with update/create operations that fail due to permissions
-				return nil, fmt.Errorf("resource-not-found: The resource was not found. If you are updating a resource, this may indicate insufficient permissions.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
-			}
-		}
-
-		if res.StatusCode == 400 {
-			return nil, fmt.Errorf("resource-not-found: %s", body)
-		}
-
-		// Handle permission errors (401 Unauthorized, 403 Forbidden)
-		if res.StatusCode == 401 {
-			return nil, fmt.Errorf("unauthorized: The API token does not have permission to access this resource. Status: 401, URL: %s, Response: %s", req.URL, body)
-		}
-
-		if res.StatusCode == 403 {
-			return nil, fmt.Errorf("forbidden: The API token does not have permission to perform this action. This may be due to environment-level permissions or other access restrictions. Status: 403, URL: %s, Response: %s", req.URL, body)
-		}
-
-		if res.StatusCode == 500 {
-			return nil, fmt.Errorf("internal-server-error: %s", body)
-		}
-
-		// Check for other non-2xx status codes
-		if res.StatusCode < 200 || res.StatusCode >= 300 {
-			return nil, fmt.Errorf("unexpected status code %d: %s, URL: %s", res.StatusCode, body, req.URL)
-		}
-
-		if err == nil {
+	var lastErr error
+	for attempt := 0; attempt < c.MaxRetries; attempt++ {
+		body, statusCode, attemptErr := c.attemptRequest(req)
+		if attemptErr == nil {
 			return body, nil
-		} else {
-			if isErrorRetriable(res.StatusCode, c.RetriableStatusCodes) {
-				waitDuration := time.Duration(c.RetryIntervalSeconds) * time.Second
-				// Exponential backoff
-				if i > 0 {
-					waitDuration = time.Duration(c.RetryIntervalSeconds) * time.Second * (1 << i) // Exponential backoff
-					fmt.Printf("Waiting for %v before retrying...\n", waitDuration)
-					time.Sleep(waitDuration)
-				} else {
-					// Linear backoff for the first retry
-					fmt.Printf("Waiting for %d seconds before retrying...\n", c.RetryIntervalSeconds)
-					time.Sleep(waitDuration)
-				}
-				continue
-			}
+		}
+		lastErr = attemptErr
 
-			if strings.Contains(err.Error(), "resource-not-found") {
-				return nil, err
-			}
+		attemptsRemaining := c.MaxRetries - 1 - attempt
+
+		// Transport-level failures (statusCode == 0: DNS, connection reset,
+		// timeout) and HTTP responses listed in retriable_status_codes /
+		// defaultRetriableHTTPCodes are retried with exponential backoff.
+		// Everything else surfaces immediately so callers see the same
+		// terminal error they did before this fix.
+		retriable := statusCode == 0 ||
+			isHTTPCodeRetriable(statusCode, c.RetriableStatusCodes)
+
+		if !retriable || attemptsRemaining == 0 {
+			return nil, attemptErr
 		}
 
-		return nil, err
+		waitDuration := time.Duration(c.RetryIntervalSeconds) * time.Second
+		if attempt > 0 {
+			// Exponential backoff after the first retry.
+			waitDuration = time.Duration(c.RetryIntervalSeconds) * time.Second * (1 << attempt)
+		}
+		fmt.Printf(
+			"Request to %s failed with retriable error (attempt %d/%d, status %d): %v. Waiting %v before retrying...\n",
+			req.URL, attempt+1, c.MaxRetries, statusCode, attemptErr, waitDuration,
+		)
+		time.Sleep(waitDuration)
 	}
 
-	return nil, fmt.Errorf("max retries reached for request %s: %w", req.URL, err)
+	if lastErr != nil {
+		return nil, lastErr
+	}
+	return nil, fmt.Errorf("no attempt was made for request %s", req.URL)
 }
 
-func isErrorRetriable(statusCode int, retriableStatusCodes []string) bool {
-	var retriable bool = false
-	for _, code := range retriableStatusCodes {
-		if code == fmt.Sprintf("%d", statusCode) {
-			retriable = true
-			break
+// attemptRequest performs a single HTTP attempt and returns the body on success
+// or a fully formatted terminal error on failure. The error message formats
+// here are preserved verbatim from the pre-retry-fix implementation so that
+// callers matching on substrings such as "internal-server-error:",
+// "resource-not-found", "unauthorized:", "forbidden:" or "unexpected status
+// code" continue to behave the same once retries are exhausted.
+//
+// statusCode is 0 when the request failed at the transport layer; the caller
+// in doRequestWithRetry treats those as retriable.
+func (c *Client) attemptRequest(req *http.Request) ([]byte, int, error) {
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer res.Body.Close()
+
+	body, readErr := io.ReadAll(res.Body)
+	statusCode := res.StatusCode
+
+	// Handle 404 errors - check if it's a true not found or a permissions issue
+	if statusCode == 404 {
+		isResourceNotFound, apiErr, parseErr := parseAPIError(body)
+		if parseErr != nil {
+			// If we can't parse the error, return a generic 404
+			return nil, statusCode, fmt.Errorf("resource-not-found (status 404): URL: %s, Response: %s", req.URL, body)
+		}
+
+		if isResourceNotFound {
+			// Check if the error message mentions permissions - this is a common pattern in dbt Cloud API
+			userMsg := strings.ToLower(apiErr.Status.UserMessage)
+			if strings.Contains(userMsg, "permission") || strings.Contains(userMsg, "proper permissions") {
+				return nil, statusCode, fmt.Errorf("resource-not-found-permissions: The resource was not found, but this may be due to insufficient permissions. The API token may not have access to this resource or the environment it belongs to.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
+			}
+
+			// For GET requests or DELETE operations, this is typically a legitimate not-found
+			// (DELETE gets 404 when resource already deleted, which is fine)
+			if req.Method == "GET" || req.Method == "DELETE" {
+				return nil, statusCode, fmt.Errorf("resource-not-found: %s", req.URL)
+			}
+
+			// For POST/PUT on non-permission 404s, provide additional context
+			// This helps with update/create operations that fail due to permissions
+			return nil, statusCode, fmt.Errorf("resource-not-found: The resource was not found. If you are updating a resource, this may indicate insufficient permissions.\n\nStatus: 404\nURL: %s\nMessage: %s", req.URL, apiErr.Status.UserMessage)
 		}
 	}
 
-	return retriable
+	if statusCode == 400 {
+		return nil, statusCode, fmt.Errorf("resource-not-found: %s", body)
+	}
+
+	// Handle permission errors (401 Unauthorized, 403 Forbidden)
+	if statusCode == 401 {
+		return nil, statusCode, fmt.Errorf("unauthorized: The API token does not have permission to access this resource. Status: 401, URL: %s, Response: %s", req.URL, body)
+	}
+
+	if statusCode == 403 {
+		return nil, statusCode, fmt.Errorf("forbidden: The API token does not have permission to perform this action. This may be due to environment-level permissions or other access restrictions. Status: 403, URL: %s, Response: %s", req.URL, body)
+	}
+
+	if statusCode == 500 {
+		return nil, statusCode, fmt.Errorf("internal-server-error: %s", body)
+	}
+
+	// Check for other non-2xx status codes
+	if statusCode < 200 || statusCode >= 300 {
+		return nil, statusCode, fmt.Errorf("unexpected status code %d: %s, URL: %s", statusCode, body, req.URL)
+	}
+
+	if readErr != nil {
+		return nil, statusCode, readErr
+	}
+	return body, statusCode, nil
+}
+
+// isHTTPCodeRetriable reports whether statusCode should trigger a retry. The
+// provider-supplied retriableStatusCodes take precedence; if statusCode is not
+// listed there it is also matched against defaultRetriableHTTPCodes so callers
+// that never configured retriable_status_codes still benefit from retry on
+// canonical transient errors.
+func isHTTPCodeRetriable(statusCode int, retriableStatusCodes []string) bool {
+	if statusCode == 0 {
+		return false
+	}
+	for _, code := range retriableStatusCodes {
+		if code == fmt.Sprintf("%d", statusCode) {
+			return true
+		}
+	}
+	for _, code := range defaultRetriableHTTPCodes {
+		if code == statusCode {
+			return true
+		}
+	}
+	return false
+}
+
+// isErrorRetriable is preserved for backwards compatibility with prior call
+// sites. It now defers to isHTTPCodeRetriable so the retry decision is
+// consistent across the client.
+func isErrorRetriable(statusCode int, retriableStatusCodes []string) bool {
+	return isHTTPCodeRetriable(statusCode, retriableStatusCodes)
 }
 
 func isResourceNotFoundError(body []byte) (bool, error) {
