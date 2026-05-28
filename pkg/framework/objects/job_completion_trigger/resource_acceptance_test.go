@@ -52,10 +52,9 @@ func TestAccDbtCloudJobCompletionTriggerResource(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "dbtcloud_job_completion_trigger.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"resource_metadata"},
+				ResourceName:      "dbtcloud_job_completion_trigger.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

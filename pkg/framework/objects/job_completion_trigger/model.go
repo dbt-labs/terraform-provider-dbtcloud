@@ -5,10 +5,9 @@ import (
 )
 
 type JobCompletionTriggerResourceModel struct {
-	ID             types.Int64   `tfsdk:"id"`
-	JobID          types.Int64   `tfsdk:"job_id"`
-	TriggerJobID   types.Int64   `tfsdk:"trigger_job_id"`
-	ProjectID      types.Int64   `tfsdk:"project_id"`
-	Statuses       types.Set     `tfsdk:"statuses"`
-	ResourceMetadata types.Dynamic `tfsdk:"resource_metadata"`
+	ID           types.Int64 `tfsdk:"id"`
+	JobID        types.Int64 `tfsdk:"job_id"`
+	TriggerJobID types.Int64 `tfsdk:"trigger_job_id"`
+	ProjectID    types.Int64 `tfsdk:"project_id"`
+	Statuses     types.Set   `tfsdk:"statuses"`
 }

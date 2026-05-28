@@ -37,9 +37,5 @@ var resourceSchema = resource_schema.Schema{
 			ElementType: types.StringType,
 			Description: "The set of job completion statuses that trigger the downstream job. Valid values: `success`, `error`, `canceled`.",
 		},
-		"resource_metadata": resource_schema.DynamicAttribute{
-			Optional:    true,
-			Description: "Migration identity metadata for the resource. For internal use.",
-		},
 	},
 }
