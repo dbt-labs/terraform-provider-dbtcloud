@@ -1,3 +1,0 @@
-kind: Changes
-body: Allow `notification_manager` as a `permission_set` value on `dbtcloud_group`, `dbtcloud_group_partial_permissions`, `dbtcloud_scim_group_permissions`, `dbtcloud_scim_group_partial_permissions`, and `dbtcloud_service_token` (resolves #692)
-time: 2026-05-22T17:22:53.000000+00:00
