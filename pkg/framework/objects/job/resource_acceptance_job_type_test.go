@@ -120,23 +120,30 @@ func TestValidateJobTypeChange(t *testing.T) {
 			errorSubstr: "can only be set to 'adaptive'",
 		},
 
-		// Merge job type transitions - only merge allowed
+		// Merge job type transitions - merge, scheduled, and other are all allowed in-place;
+		// transitions to CI or Adaptive are blocked (those would require replacement at the
+		// ModifyPlan level but validateJobTypeChange still guards them).
 		{
 			name:        "merge to ci - not allowed",
 			prevType:    JobTypeMerge,
 			newType:     JobTypeCI,
 			expectError: true,
-			errorSubstr: "can only be set to 'merge'",
+			errorSubstr: "cannot change job_type to 'ci'",
 		},
 		{
-			name:        "merge to scheduled - not allowed",
+			name:        "merge to scheduled - allowed in-place",
 			prevType:    JobTypeMerge,
 			newType:     JobTypeScheduled,
-			expectError: true,
-			errorSubstr: "can only be set to 'merge'",
+			expectError: false,
+		},
+		{
+			name:        "merge to other - allowed in-place",
+			prevType:    JobTypeMerge,
+			newType:     JobTypeOther,
+			expectError: false,
 		},
 
-		// Scheduled job type transitions - scheduled or other allowed
+		// Scheduled job type transitions - scheduled, other, and merge are all allowed in-place
 		{
 			name:        "scheduled to other - allowed",
 			prevType:    JobTypeScheduled,
@@ -144,21 +151,27 @@ func TestValidateJobTypeChange(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:        "scheduled to merge - allowed in-place",
+			prevType:    JobTypeScheduled,
+			newType:     JobTypeMerge,
+			expectError: false,
+		},
+		{
 			name:        "scheduled to ci - not allowed",
 			prevType:    JobTypeScheduled,
 			newType:     JobTypeCI,
 			expectError: true,
-			errorSubstr: "can only be set to 'scheduled' or 'other'",
+			errorSubstr: "cannot change job_type to 'ci'",
 		},
 		{
 			name:        "scheduled to adaptive - not allowed",
 			prevType:    JobTypeScheduled,
 			newType:     JobTypeAdaptive,
 			expectError: true,
-			errorSubstr: "can only be set to 'scheduled' or 'other'",
+			errorSubstr: "cannot change job_type to 'adaptive'",
 		},
 
-		// Other job type transitions - scheduled or other allowed
+		// Other job type transitions - scheduled, other, and merge are all allowed in-place
 		{
 			name:        "other to scheduled - allowed",
 			prevType:    JobTypeOther,
@@ -166,18 +179,24 @@ func TestValidateJobTypeChange(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:        "other to merge - allowed in-place",
+			prevType:    JobTypeOther,
+			newType:     JobTypeMerge,
+			expectError: false,
+		},
+		{
 			name:        "other to ci - not allowed",
 			prevType:    JobTypeOther,
 			newType:     JobTypeCI,
 			expectError: true,
-			errorSubstr: "can only be set to 'scheduled' or 'other'",
+			errorSubstr: "cannot change job_type to 'ci'",
 		},
 		{
 			name:        "other to adaptive - not allowed",
 			prevType:    JobTypeOther,
 			newType:     JobTypeAdaptive,
 			expectError: true,
-			errorSubstr: "can only be set to 'scheduled' or 'other'",
+			errorSubstr: "cannot change job_type to 'adaptive'",
 		},
 	}
 
@@ -228,20 +247,20 @@ func TestValidateJobTypeChange_AllTransitions(t *testing.T) {
 		JobTypeMerge: {
 			JobTypeCI:        false,
 			JobTypeMerge:     true,
-			JobTypeScheduled: false,
-			JobTypeOther:     false,
+			JobTypeScheduled: true, // in-place transition allowed
+			JobTypeOther:     true, // in-place transition allowed
 			JobTypeAdaptive:  false,
 		},
 		JobTypeScheduled: {
 			JobTypeCI:        false,
-			JobTypeMerge:     true, // merge is allowed from scheduled (not in original server code but reasonable)
+			JobTypeMerge:     true, // in-place transition allowed
 			JobTypeScheduled: true,
 			JobTypeOther:     true,
 			JobTypeAdaptive:  false,
 		},
 		JobTypeOther: {
 			JobTypeCI:        false,
-			JobTypeMerge:     true, // merge is allowed from other (not in original server code but reasonable)
+			JobTypeMerge:     true, // in-place transition allowed
 			JobTypeScheduled: true,
 			JobTypeOther:     true,
 			JobTypeAdaptive:  false,
@@ -303,5 +322,59 @@ func TestJobTypeConstants(t *testing.T) {
 		if tc.constant != tc.expected {
 			t.Errorf("expected constant to be %q, got %q", tc.expected, tc.constant)
 		}
+	}
+}
+
+func TestRequiresJobTypeReplacement(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		oldType  string
+		newType  string
+		expected bool
+	}{
+		// Same type — never requires replacement
+		{name: "ci to ci", oldType: JobTypeCI, newType: JobTypeCI, expected: false},
+		{name: "scheduled to scheduled", oldType: JobTypeScheduled, newType: JobTypeScheduled, expected: false},
+		{name: "other to other", oldType: JobTypeOther, newType: JobTypeOther, expected: false},
+		{name: "merge to merge", oldType: JobTypeMerge, newType: JobTypeMerge, expected: false},
+		{name: "adaptive to adaptive", oldType: JobTypeAdaptive, newType: JobTypeAdaptive, expected: false},
+
+		// CI transitions — always require replacement
+		{name: "ci to scheduled", oldType: JobTypeCI, newType: JobTypeScheduled, expected: true},
+		{name: "ci to other", oldType: JobTypeCI, newType: JobTypeOther, expected: true},
+		{name: "ci to merge", oldType: JobTypeCI, newType: JobTypeMerge, expected: true},
+		{name: "ci to adaptive", oldType: JobTypeCI, newType: JobTypeAdaptive, expected: true},
+		{name: "scheduled to ci", oldType: JobTypeScheduled, newType: JobTypeCI, expected: true},
+		{name: "other to ci", oldType: JobTypeOther, newType: JobTypeCI, expected: true},
+		{name: "merge to ci", oldType: JobTypeMerge, newType: JobTypeCI, expected: true},
+
+		// Adaptive transitions — always require replacement
+		{name: "adaptive to scheduled", oldType: JobTypeAdaptive, newType: JobTypeScheduled, expected: true},
+		{name: "adaptive to other", oldType: JobTypeAdaptive, newType: JobTypeOther, expected: true},
+		{name: "adaptive to merge", oldType: JobTypeAdaptive, newType: JobTypeMerge, expected: true},
+		{name: "scheduled to adaptive", oldType: JobTypeScheduled, newType: JobTypeAdaptive, expected: true},
+		{name: "other to adaptive", oldType: JobTypeOther, newType: JobTypeAdaptive, expected: true},
+		{name: "merge to adaptive", oldType: JobTypeMerge, newType: JobTypeAdaptive, expected: true},
+
+		// In-place transitions (scheduled / other / merge)
+		{name: "scheduled to other", oldType: JobTypeScheduled, newType: JobTypeOther, expected: false},
+		{name: "scheduled to merge", oldType: JobTypeScheduled, newType: JobTypeMerge, expected: false},
+		{name: "other to scheduled", oldType: JobTypeOther, newType: JobTypeScheduled, expected: false},
+		{name: "other to merge", oldType: JobTypeOther, newType: JobTypeMerge, expected: false},
+		{name: "merge to scheduled", oldType: JobTypeMerge, newType: JobTypeScheduled, expected: false},
+		{name: "merge to other", oldType: JobTypeMerge, newType: JobTypeOther, expected: false},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := requiresJobTypeReplacement(tc.oldType, tc.newType)
+			if got != tc.expected {
+				t.Errorf("requiresJobTypeReplacement(%q, %q) = %v, want %v", tc.oldType, tc.newType, got, tc.expected)
+			}
+		})
 	}
 }
