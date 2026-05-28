@@ -70,10 +70,9 @@ func getBasicConfigWithModifiedConfigTestStep(projectName, environmentName, cust
 				"deployment_type",
 				"production",
 			),
-			resource.TestCheckResourceAttr(
+			resource.TestCheckNoResourceAttr(
 				"dbtcloud_environment.test_env",
 				"connection_id",
-				"0",
 			),
 		),
 	}

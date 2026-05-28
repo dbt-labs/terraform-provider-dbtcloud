@@ -1,0 +1,3 @@
+kind: Fixes
+body: Remove `connection_id` default of `0` in `dbtcloud_environment` to prevent "inconsistent result after apply" when the API auto-assigns a connection
+time: 2026-04-09T19:58:04.000000+00:00
