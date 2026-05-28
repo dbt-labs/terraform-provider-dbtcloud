@@ -1,3 +1,0 @@
-kind: Changes
-body: Add `cost_optimization_features` Set attribute to `dbtcloud_job` as the preferred way to enable State-Aware Orchestration (SAO), replacing deprecated `force_node_selection`
-time: 2026-04-09T19:58:02.000000+00:00
