@@ -2031,3 +2031,142 @@ resource "dbtcloud_global_connection" test {
 
 `, connectionName, loginURL, database, dataTransformRunTimeout)
 }
+
+// TestAccDbtCloudGlobalConnectionBigQueryV1UpdateIssue685 covers GitHub issue #685.
+//
+// Background: the dbt Cloud PATCH endpoint for connections does NOT accept the
+// `adapter_version` field — the backend's `AccountConnectionUpdateBody` schema
+// omits it, and a backend regression test asserts a 400 with
+// "adapter_version: extra fields not permitted" if the field is sent. The
+// adapter version is therefore set at creation and immutable thereafter.
+//
+// Pre-fix behavior: when a BigQuery connection was created with
+// `use_latest_adapter = true`, every update — even one that only changed `name`
+// or `timeout_seconds` — went through `UpdateWithLatestAdapter`, which stuffed
+// `adapter_version` into the PATCH body. The API rejected it, so v1 BigQuery
+// connections were effectively immutable.
+//
+// Post-fix behavior: v0 and v1 BigQuery updates share the same PATCH call that
+// every other connection type uses (no `adapter_version` in the body), and any
+// attempt to actually change `use_latest_adapter` is rejected at plan time with
+// a clear, actionable message.
+func TestAccDbtCloudGlobalConnectionBigQueryV1UpdateIssue685(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobExecutionTimeoutSeconds := int64(1000)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: create a BigQuery v1 connection.
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+					connectionName,
+					jobExecutionTimeoutSeconds,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.use_latest_adapter",
+						"true",
+					),
+				),
+			},
+			// Step 2: rename the connection — the exact scenario from #685.
+			// Before the fix this failed with
+			// "adapter_version: extra fields not permitted".
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+					connectionName2,
+					jobExecutionTimeoutSeconds,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"name",
+						connectionName2,
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+				),
+			},
+			// Step 3: change a v1-only attribute (job_execution_timeout_seconds) to
+			// exercise the PATCH path a second time.
+			{
+				Config: testAccDbtCloudSGlobalConnectionBigQueryResourceBasicConfigWithJobExecutionTimeoutSeconds(
+					connectionName2,
+					jobExecutionTimeoutSeconds+500,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"bigquery.job_execution_timeout_seconds",
+						fmt.Sprintf("%d", jobExecutionTimeoutSeconds+500),
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+				),
+			},
+			// Step 4: intentionally flip use_latest_adapter — this must fail at
+			// plan time with the friendly ModifyPlan error, not mid-apply with a
+			// raw API error.
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryV1FlipAdapterConfig(
+					connectionName2,
+					jobExecutionTimeoutSeconds,
+				),
+				ExpectError: regexp.MustCompile("Adapter version cannot be changed"),
+			},
+		},
+	})
+}
+
+// testAccDbtCloudGlobalConnectionBigQueryV1FlipAdapterConfig is the same shape as
+// the v1 create config, but with use_latest_adapter explicitly set to false to
+// exercise the ModifyPlan guard against changing the adapter version on an
+// existing connection.
+func testAccDbtCloudGlobalConnectionBigQueryV1FlipAdapterConfig(
+	connectionName string,
+	jobExecutionTimeoutSeconds int64,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+
+    gcp_project_id              = "70403103977025"
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+    job_execution_timeout_seconds = %d
+    use_latest_adapter = false
+  }
+}
+
+`, connectionName, jobExecutionTimeoutSeconds)
+}
