@@ -258,8 +258,13 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
+	// Only send force_node_selection / cost_optimization_features when the user set a
+	// concrete value. The dbt Cloud API treats them as a coexisting pair and normalizes
+	// them server-side (cost_optimization_features takes precedence when both are sent),
+	// so the provider does not cross-derive one from the other. State is reconciled from
+	// the API response below.
 	var forceNodeSelection *bool
-	if !plan.ForceNodeSelection.IsNull() {
+	if !plan.ForceNodeSelection.IsNull() && !plan.ForceNodeSelection.IsUnknown() {
 		fns := plan.ForceNodeSelection.ValueBool()
 		forceNodeSelection = &fns
 	}
@@ -267,16 +272,6 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var costOptimizationFeatures []string
 	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
 		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
-		// Bridge: cost_optimization_features drives force_node_selection when the latter
-		// was not explicitly set in the plan. The dbt Cloud API stores this as the bool
-		// force_node_selection; cost_optimization_features = ["state_aware_orchestration"]
-		// is the new name for SAO and is equivalent to force_node_selection = false.
-		// See sinter/api/v2/views/jobs.py::normalize_force_node_selection_and_cost_optimization_features.
-		if forceNodeSelection == nil {
-			saoEnabled := containsString(costOptimizationFeatures, costOptimizationFeatureStateAwareOrchestration)
-			fns := !saoEnabled
-			forceNodeSelection = &fns
-		}
 	}
 
 	// CI and Merge jobs do not support SAO. Sending force_node_selection (especially
@@ -407,7 +402,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		} else if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
-		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(createdJob.ForceNodeSelection)
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(createdJob.CostOptimizationFeatures, createdJob.ForceNodeSelection)
 	} else {
 		// CI/Merge: collapse any unknown plan values to known empty/null so the
 		// framework's plan-apply consistency check has concrete values to compare.
@@ -650,7 +645,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		} else {
 			state.ForceNodeSelection = types.BoolNull()
 		}
-		state.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(retrievedJob.ForceNodeSelection)
+		state.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(retrievedJob.CostOptimizationFeatures, retrievedJob.ForceNodeSelection)
 	} else {
 		if state.ForceNodeSelection.IsUnknown() {
 			state.ForceNodeSelection = types.BoolNull()
@@ -845,7 +840,10 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		job.ForceNodeSelection = nil
 		job.CostOptimizationFeatures = nil
 	} else {
-		if plan.ForceNodeSelection.IsNull() {
+		// Send force_node_selection / cost_optimization_features only when the user set a
+		// concrete value; the API normalizes the pair server-side (cost_optimization_features
+		// takes precedence), so the provider does not cross-derive one from the other.
+		if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 			job.ForceNodeSelection = nil
 		} else {
 			fns := plan.ForceNodeSelection.ValueBool()
@@ -853,17 +851,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		}
 
 		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
-			features := helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
-			job.CostOptimizationFeatures = features
-			// Bridge: cost_optimization_features drives force_node_selection when
-			// force_node_selection is not explicitly set in the plan.
-			// cost_optimization_features = ["state_aware_orchestration"] enables SAO,
-			// which corresponds to force_node_selection = false on the API.
-			if plan.ForceNodeSelection.IsNull() {
-				saoEnabled := containsString(features, costOptimizationFeatureStateAwareOrchestration)
-				fns := !saoEnabled
-				job.ForceNodeSelection = &fns
-			}
+			job.CostOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
 		} else {
 			job.CostOptimizationFeatures = nil
 		}
@@ -954,7 +942,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		} else {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
-		plan.CostOptimizationFeatures = costOptimizationFeaturesFromForceNodeSelection(updatedJob.ForceNodeSelection)
+		plan.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(updatedJob.CostOptimizationFeatures, updatedJob.ForceNodeSelection)
 	} else {
 		if plan.ForceNodeSelection.IsUnknown() {
 			plan.ForceNodeSelection = types.BoolNull()
@@ -1006,14 +994,25 @@ func costOptimizationFeaturesFromForceNodeSelection(forceNodeSelection *bool) ty
 	return types.SetValueMust(types.StringType, []attr.Value{})
 }
 
-// containsString reports whether values contains the target string.
-func containsString(values []string, target string) bool {
-	for _, v := range values {
-		if v == target {
-			return true
-		}
+// costOptimizationFeaturesFromAPI builds the cost_optimization_features state from the
+// dbt Cloud API response. cost_optimization_features is now a first-class field, so when
+// the API returns it (including an empty list) it is authoritative and used verbatim.
+// Older API responses may omit the field and only return the legacy force_node_selection
+// bool; in that case we fall back to deriving the set from that bool.
+func costOptimizationFeaturesFromAPI(features []string, forceNodeSelection *bool) types.Set {
+	if features != nil {
+		return costOptimizationFeaturesSet(features)
 	}
-	return false
+	return costOptimizationFeaturesFromForceNodeSelection(forceNodeSelection)
+}
+
+// costOptimizationFeaturesSet converts a slice of feature strings into a Terraform Set.
+func costOptimizationFeaturesSet(features []string) types.Set {
+	vals := make([]attr.Value, 0, len(features))
+	for _, f := range features {
+		vals = append(vals, types.StringValue(f))
+	}
+	return types.SetValueMust(types.StringType, vals)
 }
 
 // isCIOrMergeJobAtCreate returns true if the to-be-created job will be classified by

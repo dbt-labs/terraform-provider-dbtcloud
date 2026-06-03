@@ -64,13 +64,16 @@ type Job struct {
 	EnvironmentId            int                   `json:"environment_id"`
 	Name                     string                `json:"name"`
 	CompareChangesFlags      string                `json:"compare_changes_flags"`
-	// CostOptimizationFeatures is intentionally NOT serialized to the dbt Cloud API.
-	// The API stores SAO state as the bool force_node_selection; cost_optimization_features
-	// is the new-style presentation of the same state, and sending it can cause 405
-	// validation errors on Fusion accounts when invalid values are present. The provider
-	// bridges this Terraform-side attribute to force_node_selection on write and derives
-	// it back from force_node_selection on read.
-	CostOptimizationFeatures []string              `json:"-"`
+	// CostOptimizationFeatures is a first-class field on the dbt Cloud v2 jobs API.
+	// It coexists with the legacy force_node_selection bool during a transition period;
+	// when both are sent, the API gives cost_optimization_features precedence. The
+	// provider exposes state_aware_orchestration and dbt_state (the API enum also
+	// defines efficient_testing, which is intentionally not surfaced). The API
+	// may rewrite the set on write (e.g. when dbt_state is opted in it collapses the
+	// list to ["dbt_state"]), so callers must read the value back from the response
+	// rather than assuming the request value was stored verbatim.
+	// omitempty so we never send a null/empty array for CI/Merge jobs, which reject it.
+	CostOptimizationFeatures []string              `json:"cost_optimization_features,omitempty"`
 	DbtVersion               *string               `json:"dbt_version"`
 	DeferringEnvironmentId   *int                  `json:"deferring_environment_id"`
 	DeferringJobId           *int                  `json:"deferring_job_definition_id"`

@@ -483,7 +483,10 @@ func (j *jobResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Description: "List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). Requires `dbt_version` to be set to a Fusion release track (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, or `fusion-fallback`) and an account with State-Aware Orchestration available.",
+				Description: "List of cost optimization features enabled for this job. Replaces the deprecated `force_node_selection`. Valid values: `state_aware_orchestration` and `dbt_state`. When `state_aware_orchestration` is included, SAO is enabled (equivalent to `force_node_selection = false`); when empty or unset, SAO is disabled (equivalent to `force_node_selection = true`). `dbt_state` enables dbt State (the migration path from Select All Optimizations) and, because the dbt platform API gives it precedence, it must be the only feature in the set. SAO requires `dbt_version` to be set to a Fusion release track (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, or `fusion-fallback`) and an account with State-Aware Orchestration available; `dbt_state` is environment-independent but requires the account to have dbt State enabled. Neither feature is supported on CI or Merge jobs.",
+				Validators: []validator.Set{
+					job_validators.CostOptimizationFeaturesValidator(),
+				},
 			},
 			"execute_steps": resource_schema.ListAttribute{
 				Required:    true,
