@@ -202,26 +202,6 @@ func (c *GlobalConnectionClient[T]) createGlobalConnection(
 	return &resp.Data, nil
 }
 
-func (c *GlobalConnectionClient[T]) UpdateWithLatestAdapter(
-	connectionID int64,
-	common GlobalConnectionCommon,
-	config T,
-	av string,
-) (*GlobalConnectionCommon, *T, error) {
-
-	buffer := new(bytes.Buffer)
-	enc := json.NewEncoder(buffer)
-
-	payload := globalConnectionPayload[T]{
-		GlobalConnectionCommon: common,
-		AccountID:              int64(c.AccountID),
-		AdapterVersion:         &av,
-		Config:                 config,
-	}
-
-	return updateGlobalConnection(enc, payload, c, connectionID, buffer)
-}
-
 func (c *GlobalConnectionClient[T]) Update(
 	connectionID int64,
 	common GlobalConnectionCommon,

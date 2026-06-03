@@ -94,6 +94,25 @@ func (r globalConnectionResource) ModifyPlan(
 		}
 	}
 
+	// dbt Cloud does not allow changing the adapter version of an existing connection
+	// (the PATCH endpoint rejects `adapter_version`). Surface this at plan time with a
+	// clear, actionable message so the user sees it before `terraform apply` starts
+	// mutating other attributes. The Update path retains a defensive runtime check.
+	if plan.BigQueryConfig != nil && state.BigQueryConfig != nil &&
+		plan.BigQueryConfig.UseLatestAdapter.ValueBool() != state.BigQueryConfig.UseLatestAdapter.ValueBool() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("bigquery").AtName("use_latest_adapter"),
+			"Adapter version cannot be changed on an existing connection",
+			"dbt Cloud does not support changing the BigQuery adapter version "+
+				"(`use_latest_adapter`) on an existing global connection. To switch between "+
+				"the legacy (bigquery_v0) and latest (bigquery_v1) adapter, recreate the "+
+				"connection — for example, run `terraform apply -replace=<resource address>` "+
+				"(see https://developer.hashicorp.com/terraform/cli/commands/plan#replace-address). "+
+				"Note that recreating the connection will issue a new connection ID, so any "+
+				"resources referencing it will also be updated.",
+		)
+	}
+
 }
 
 func (r *globalConnectionResource) Read(
@@ -1014,34 +1033,27 @@ func (r *globalConnectionResource) Update(
 			}
 		}
 
-		var updateCommon *dbt_cloud.GlobalConnectionCommon
-		var err error
+		// The dbt Cloud PATCH endpoint does not accept `adapter_version` — the field
+		// is absent from `AccountConnectionUpdateBody` and a backend regression test
+		// (sinter `test_account_connections.py::test__patch__cannot_set_adapter_version`)
+		// guarantees `400: adapter_version: extra fields not permitted`. The resource
+		// layer also blocks adapter version changes upstream (ModifyPlan + the runtime
+		// check below), so v0 and v1 share the same PATCH call here.
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
 
-		// at this point we have updated the adapter version in the plan, so use it
 		var adapterVersion string
-		if !plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
-			updateCommon, _, err = c.Update(
-				state.ID.ValueInt64(),
-				globalConfigChanges,
-				warehouseConfigChanges,
-			)
-			if err != nil {
-				resp.Diagnostics.AddError("Error updating global connection", err.Error())
-				return
-			}
-			adapterVersion = warehouseConfigChanges.AdapterVersion()
-		} else {
-			updateCommon, _, err = c.UpdateWithLatestAdapter(
-				state.ID.ValueInt64(),
-				globalConfigChanges,
-				warehouseConfigChanges,
-				warehouseConfigChanges.LatestAdapterVersion(),
-			)
-			if err != nil {
-				resp.Diagnostics.AddError("Error updating global connection", err.Error())
-				return
-			}
+		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() {
 			adapterVersion = warehouseConfigChanges.LatestAdapterVersion()
+		} else {
+			adapterVersion = warehouseConfigChanges.AdapterVersion()
 		}
 
 		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
