@@ -13,7 +13,7 @@ terraform {
 provider "dbtcloud" {}
 
 variable "dbt_version" {
-  description = "dbt version for the environment. Use a Fusion track (e.g. latest-fusion) so both SAO and dbt State work."
+  description = "dbt version for the environment. A Fusion track (e.g. latest-fusion) is required for SAO; dbt State is environment-independent and works on any non-pinned (Mantle) version."
   type        = string
   default     = "latest-fusion"
 }

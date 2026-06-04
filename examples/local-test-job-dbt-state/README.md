@@ -23,9 +23,11 @@ provider_installation {
 }
 ```
 
-Point it at the directory containing the built binary. With `dev_overrides` you
-do **not** run `terraform init` — Terraform warns that overrides are in effect,
-which is expected.
+Point it at the directory containing the built binary. With `dev_overrides` in
+effect you can skip `terraform init` and run `terraform plan`/`apply` directly —
+Terraform prints a warning that the override is active, which is expected. (Do
+not run `terraform init`: it would try to install the provider from the registry
+and fail, since this build isn't published there.)
 
 ## 2. Set credentials
 

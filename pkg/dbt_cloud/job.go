@@ -72,8 +72,11 @@ type Job struct {
 	// may rewrite the set on write (e.g. when dbt_state is opted in it collapses the
 	// list to ["dbt_state"]), so callers must read the value back from the response
 	// rather than assuming the request value was stored verbatim.
-	// omitempty so we never send a null/empty array for CI/Merge jobs, which reject it.
-	CostOptimizationFeatures []string              `json:"cost_optimization_features,omitempty"`
+	// No omitempty: an explicit empty slice ([]) must be sent so users can clear
+	// features (cost_optimization_features = []). CI/Merge paths set this to nil
+	// (serialized as null, treated by the API as "absent"); the API only rejects a
+	// non-empty state-tracking set on CI/Merge jobs.
+	CostOptimizationFeatures []string              `json:"cost_optimization_features"`
 	DbtVersion               *string               `json:"dbt_version"`
 	DeferringEnvironmentId   *int                  `json:"deferring_environment_id"`
 	DeferringJobId           *int                  `json:"deferring_job_definition_id"`
