@@ -947,9 +947,6 @@ func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
 // satisfy neither condition the dbt Cloud API silently rewrites force_node_selection
 // back to true, which makes Terraform see an inconsistent result after apply
 // (plan: ["state_aware_orchestration"], actual: []).
-//
-// It is gated behind DBT_CLOUD_ACC_TEST_SAO_ENABLED so it only runs against an
-// account where SAO is available, and skips otherwise.
 func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 	// SAO requires an account entitled to State-Aware Orchestration (the
 	// orc-2664-sao-beta flag) running on a Fusion dbt_version in a
