@@ -1,0 +1,3 @@
+kind: Changes
+body: Support dbt State on `dbtcloud_job` by adding `dbt_state` as an accepted `cost_optimization_features` value. `cost_optimization_features` is now sent to and read back from the dbt platform API as a first-class field instead of being bridged through `force_node_selection`, so the full feature set round-trips correctly. Because the API gives `dbt_state` precedence and collapses the set to `["dbt_state"]`, the provider validates that `dbt_state`, when set, is the only feature in the set.
+time: 2026-06-02T00:00:00.000000-00:00

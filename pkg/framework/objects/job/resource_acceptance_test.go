@@ -947,11 +947,15 @@ func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
 // satisfy neither condition the dbt Cloud API silently rewrites force_node_selection
 // back to true, which makes Terraform see an inconsistent result after apply
 // (plan: ["state_aware_orchestration"], actual: []).
-//
-// This test is skipped by default because the default acceptance test environment
-// uses dbt_version="latest" (non-Fusion) and we cannot assume SAO enforcement.
 func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
-	t.Skip("Skipping: cost_optimization_features requires either account-level SAO enforcement or dbt_version=latest-fusion with SAO enabled. Run manually against a Fusion-capable account.")
+	// SAO requires an account entitled to State-Aware Orchestration (the
+	// orc-2664-sao-beta flag) running on a Fusion dbt_version in a
+	// staging/production environment. The CI account does not have it, so the API
+	// silently rewrites the value, producing an "inconsistent result after apply".
+	// Skip in CI; run locally against an SAO-enabled account.
+	if acctest_config.IsCI() {
+		t.Skip("Skipping in CI: requires an account with State-Aware Orchestration enabled.")
+	}
 
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -975,6 +979,9 @@ func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 						"cost_optimization_features.*",
 						"state_aware_orchestration",
 					),
+					// force_node_selection is not set in config; the API derives it from
+					// cost_optimization_features (SAO present => force_node_selection = false).
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "force_node_selection", "false"),
 				),
 			},
 			// 2. Update job name while keeping cost_optimization_features stable
@@ -988,6 +995,83 @@ func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 						"dbtcloud_job.test_job",
 						"cost_optimization_features.*",
 						"state_aware_orchestration",
+					),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "force_node_selection", "false"),
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobNameUpdated),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_job.test_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobDbtStateCostOptimizationFeature tests creating a job with
+// cost_optimization_features = ["dbt_state"], the migration path from Select All
+// Optimizations (SAO) to dbt State.
+//
+// Account requirements: the test account must have dbt State enabled (the
+// ORC_3638_ENABLE_DBT_STATE feature flag). Unlike SAO, dbt_state is
+// environment-independent and does not require a Fusion dbt_version or a
+// staging/production environment, but it is not supported on CI or Merge jobs.
+//
+// The dbt platform API gives dbt_state precedence and collapses the set to
+// ["dbt_state"], so the provider rejects mixing it with other features at plan
+// time. It is gated behind DBT_CLOUD_ACC_TEST_DBT_STATE_ENABLED so it only runs
+// against an account where dbt State is available, and skips otherwise.
+func TestAccDbtCloudJobDbtStateCostOptimizationFeature(t *testing.T) {
+	// dbt State requires an account entitled to dbt State (a non-Team plan) with
+	// the ORC-3638-enable-dbt-state flag on. The CI account does not have it, so
+	// the API rewrites the value, producing an "inconsistent result after apply".
+	// Skip in CI; run locally against a dbt State-enabled account.
+	if acctest_config.IsCI() {
+		t.Skip("Skipping in CI: requires an account with dbt State enabled.")
+	}
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 1. Create job with cost_optimization_features = ["dbt_state"]
+			{
+				Config: testAccDbtCloudJobCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName, `["dbt_state"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job",
+						"cost_optimization_features.*",
+						"dbt_state",
+					),
+					// dbt_state implies SAO is on (force_node_selection = false)
+					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "force_node_selection", "false"),
+				),
+			},
+			// 2. Update job name while keeping cost_optimization_features stable
+			{
+				Config: testAccDbtCloudJobCostOptimizationFeaturesConfig(
+					jobNameUpdated, projectName, environmentName, `["dbt_state"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job",
+						"cost_optimization_features.*",
+						"dbt_state",
 					),
 					resource.TestCheckResourceAttr("dbtcloud_job.test_job", "name", jobNameUpdated),
 				),
