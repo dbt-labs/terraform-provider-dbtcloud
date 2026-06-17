@@ -74,6 +74,32 @@ func validateJobTypeChange(prevJobType, newJobType string) error {
 	return nil
 }
 
+// isSoftJobType reports whether a job_type is one of the interchangeable labels
+// the dbt platform API derives from the schedule trigger rather than a value the
+// user can enforce. `scheduled` and `other` are the same job from the API's
+// perspective: a job with an active schedule trigger is `scheduled`, otherwise
+// `other`.
+func isSoftJobType(t string) bool {
+	return t == JobTypeScheduled || t == JobTypeOther
+}
+
+// reconcileJobType keeps plan/state consistent for the scheduled<->other pair.
+// Because the API derives those two labels from the schedule trigger and flips
+// between them freely, an explicit value cannot be enforced. When both the
+// desired (configured/prior) value and the API value fall in that soft pair, we
+// preserve the desired label to avoid a "Provider produced inconsistent result
+// after apply" error (and perpetual diffs on read). For ci/merge/adaptive the
+// API value is authoritative.
+func reconcileJobType(desired types.String, apiValue string) types.String {
+	if !desired.IsNull() && isSoftJobType(desired.ValueString()) && isSoftJobType(apiValue) {
+		return desired
+	}
+	if apiValue != "" {
+		return types.StringValue(apiValue)
+	}
+	return types.StringNull()
+}
+
 func (j *jobResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if !req.Plan.Raw.IsNull() {
 		var plan JobResourceModel
@@ -383,11 +409,7 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		plan.TimeoutSeconds = types.Int64Value(int64(createdJob.Execution.TimeoutSeconds))
 	}
 
-	if createdJob.JobType != "" {
-		plan.JobType = types.StringValue(createdJob.JobType)
-	} else {
-		plan.JobType = types.StringNull()
-	}
+	plan.JobType = reconcileJobType(plan.JobType, createdJob.JobType)
 
 	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
 	// cost_optimization_features (the API rejects them with 405). To keep plan
@@ -655,11 +677,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		}
 	}
 
-	if retrievedJob.JobType != "" {
-		state.JobType = types.StringValue(retrievedJob.JobType)
-	} else {
-		state.JobType = types.StringNull()
-	}
+	state.JobType = reconcileJobType(state.JobType, retrievedJob.JobType)
 
 	if state.SelfDeferring.IsNull() {
 		state.SelfDeferring = types.BoolValue(selfDeferring)
@@ -914,11 +932,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	if updatedJob.JobType != "" {
-		plan.JobType = types.StringValue(updatedJob.JobType)
-	} else {
-		plan.JobType = types.StringNull()
-	}
+	plan.JobType = reconcileJobType(plan.JobType, updatedJob.JobType)
 
 	// Populate execution block only if user configured it, otherwise keep it nil to avoid state drift
 	if plan.Execution != nil {
