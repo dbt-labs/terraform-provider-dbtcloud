@@ -617,7 +617,7 @@ func (j *jobResource) Schema(
 			"job_type": resource_schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Can be used to enforce the job type betwen `ci`, `merge` and `scheduled`. Without this value the job type is inferred from the triggers configured",
+				Description: "The job type, inferred by the dbt platform from the configured triggers: `ci` (git provider webhook), `merge` (on-merge), or `scheduled`/`other` otherwise. Setting it explicitly only meaningfully distinguishes `ci`/`merge`/`adaptive`; `scheduled` and `other` are derived from whether a schedule trigger is active and cannot be enforced.",
 			},
 
 			// todo add these after
