@@ -125,8 +125,8 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString(""),
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"private_key", "private_key_passphrase"}},
-				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("password_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "password_wo"},
 			},
 		},
 		"password_wo": resource_schema.StringAttribute{
@@ -149,8 +149,8 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 			Description: "The private key for the Snowflake account. Consider using `private_key_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
-				stringvalidator.ConflictsWith(path.MatchRoot("private_key_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("private_key_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("private_key_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "private_key_wo"},
 			},
 		},
 		"private_key_wo": resource_schema.StringAttribute{
@@ -173,8 +173,8 @@ var SnowflakeCredentialResourceSchema = resource_schema.Schema{
 			Description: "The passphrase for the private key. Consider using `private_key_passphrase_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
 				snowflake_credential.ConflictValidator{ConflictingFields: []string{"password"}},
-				stringvalidator.ConflictsWith(path.MatchRoot("private_key_passphrase_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("private_key_passphrase_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("private_key_passphrase_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "private_key_passphrase_wo"},
 			},
 		},
 		"private_key_passphrase_wo": resource_schema.StringAttribute{
