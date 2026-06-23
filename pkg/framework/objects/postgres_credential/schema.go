@@ -112,8 +112,8 @@ var PostgresResourceSchema = resource_schema.Schema{
 			Sensitive:   true,
 			Description: "Password for Postgres/Redshift/AlloyDB. Consider using `password_wo` instead, which is not stored in state.",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("password_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "password_wo"},
 			},
 		},
 		"password_wo": resource_schema.StringAttribute{
@@ -121,7 +121,7 @@ var PostgresResourceSchema = resource_schema.Schema{
 			WriteOnly:   true,
 			Description: "Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("password")),
 			},
 		},
 		"password_wo_version": resource_schema.Int64Attribute{

@@ -58,8 +58,8 @@ var RedshiftResourceSchema = resource_schema.Schema{
 			Computed:    true,
 			Default:     stringdefault.StaticString(""),
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("password_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("password_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "password_wo"},
 			},
 		},
 		"password_wo": resource_schema.StringAttribute{
@@ -67,7 +67,7 @@ var RedshiftResourceSchema = resource_schema.Schema{
 			WriteOnly:   true,
 			Description: "Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("password")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("password")),
 			},
 		},
 		"password_wo_version": resource_schema.Int64Attribute{

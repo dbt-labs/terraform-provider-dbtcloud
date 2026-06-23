@@ -88,8 +88,8 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			Optional:    true,
 			Sensitive:   true,
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("token_wo")),
-				stringvalidator.PreferWriteOnlyAttribute(path.MatchRoot("token_wo")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("token_wo")),
+				helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "token_wo"},
 			},
 		},
 		"token_wo": resource_schema.StringAttribute{
@@ -97,7 +97,7 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			WriteOnly:   true,
 			Description: "Write-only alternative to `token`. The value is not stored in state. Requires `token_wo_version` to trigger updates.",
 			Validators: []validator.String{
-				stringvalidator.ConflictsWith(path.MatchRoot("token")),
+				stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("token")),
 			},
 		},
 		"token_wo_version": resource_schema.Int64Attribute{
@@ -121,11 +121,11 @@ var DatabricksResourceSchema = resource_schema.Schema{
 			},
 		},
 		"adapter_type": resource_schema.StringAttribute{
-			Description: "The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
-			Optional:    true,
-			Computed:    true,
+			Description:        "The type of the adapter. 'spark' is deprecated, but still supported for backwards compatibility. For Spark, please use the spark_credential resource. Optional only when semantic_layer_credential is set to true; otherwise, this field is required.",
+			Optional:           true,
+			Computed:           true,
 			DeprecationMessage: "This field is deprecated and will be removed in a future release. Semantic Layer spark credentials are not supported yet, only databricks is supported.",
-			Default:     stringdefault.StaticString("databricks"),
+			Default:            stringdefault.StaticString("databricks"),
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},
