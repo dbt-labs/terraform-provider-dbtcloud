@@ -712,6 +712,18 @@ func readGeneric(
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
+		}
+
 		// Teradata settings
 		state.TeradataConfig.Host = types.StringPointerValue(teradataCfg.Host)
 		state.TeradataConfig.Port = types.StringPointerValue(teradataCfg.Port)

@@ -59,7 +59,7 @@ func (r *globalConnectionResource) Schema(
 			},
 			"oauth_configuration_id": resource_schema.Int64Attribute{
 				Optional:    true,
-				Description: "External OAuth configuration ID (only Snowflake for now)",
+				Description: "External OAuth configuration ID. Supported for all connection types.",
 			},
 			"bigquery": resource_schema.SingleNestedAttribute{
 				Optional: true,
