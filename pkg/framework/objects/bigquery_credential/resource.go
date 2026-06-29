@@ -91,6 +91,9 @@ func (r *bigqueryCredentialResource) Create(
 	projectID := int(plan.ProjectID.ValueInt64())
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
+	authType := plan.AuthType.ValueString()
+	workloadPoolProviderPath := plan.WorkloadPoolProviderPath.ValueString()
+	serviceAccountImpersonationURL := plan.ServiceAccountImpersonationURL.ValueString()
 
 	// Auto-detect adapter version from the connection if connection_id is provided
 	var adapterVersion string
@@ -115,6 +118,9 @@ func (r *bigqueryCredentialResource) Create(
 		dataset,
 		numThreads,
 		adapterVersion,
+		authType,
+		workloadPoolProviderPath,
+		serviceAccountImpersonationURL,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -174,6 +180,22 @@ func (r *bigqueryCredentialResource) Read(
 	// Use helper methods to get dataset and threads from the correct location (v0 vs v1)
 	state.Dataset = types.StringValue(credential.GetDataset())
 	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
+	// WIF fields (v1 only; null when not set to avoid perpetual diffs)
+	if v := credential.GetAuthType(); v != "" {
+		state.AuthType = types.StringValue(v)
+	} else {
+		state.AuthType = types.StringNull()
+	}
+	if v := credential.GetWorkloadPoolProviderPath(); v != "" {
+		state.WorkloadPoolProviderPath = types.StringValue(v)
+	} else {
+		state.WorkloadPoolProviderPath = types.StringNull()
+	}
+	if v := credential.GetServiceAccountImpersonationURL(); v != "" {
+		state.ServiceAccountImpersonationURL = types.StringValue(v)
+	} else {
+		state.ServiceAccountImpersonationURL = types.StringNull()
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
