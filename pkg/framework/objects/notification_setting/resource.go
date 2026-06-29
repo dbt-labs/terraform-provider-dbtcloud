@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -126,6 +127,15 @@ func (r *notificationSettingResource) Delete(
 	}
 
 	if err := r.client.DeleteNotificationSetting(state.ID.ValueInt64()); err != nil {
+		// The notification-settings DELETE removes the integration but can come
+		// back as a 404-style response (e.g. "resource-not-found" or
+		// "resource-not-found-permissions") when the row is already gone. Treat
+		// not-found as success and let the resource drop from state instead of
+		// failing the destroy — otherwise an already-completed delete turns CI
+		// runs red. Mirrors the databricks_credential delete path.
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting notification setting", err.Error())
 		return
 	}
