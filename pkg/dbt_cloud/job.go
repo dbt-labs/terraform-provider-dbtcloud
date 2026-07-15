@@ -58,12 +58,12 @@ type JobCompletionTriggerCondition struct {
 }
 
 type Job struct {
-	ID                       *int                  `json:"id"`
-	AccountId                int64                 `json:"account_id"`
-	ProjectId                int                   `json:"project_id"`
-	EnvironmentId            int                   `json:"environment_id"`
-	Name                     string                `json:"name"`
-	CompareChangesFlags      string                `json:"compare_changes_flags"`
+	ID                  *int   `json:"id"`
+	AccountId           int64  `json:"account_id"`
+	ProjectId           int    `json:"project_id"`
+	EnvironmentId       int    `json:"environment_id"`
+	Name                string `json:"name"`
+	CompareChangesFlags string `json:"compare_changes_flags"`
 	// CostOptimizationFeatures is a first-class field on the dbt Cloud v2 jobs API.
 	// It coexists with the legacy force_node_selection bool during a transition period;
 	// when both are sent, the API gives cost_optimization_features precedence. The
@@ -73,9 +73,8 @@ type Job struct {
 	// list to ["dbt_state"]), so callers must read the value back from the response
 	// rather than assuming the request value was stored verbatim.
 	// No omitempty: an explicit empty slice ([]) must be sent so users can clear
-	// features (cost_optimization_features = []). CI/Merge paths set this to nil
-	// (serialized as null, treated by the API as "absent"); the API only rejects a
-	// non-empty state-tracking set on CI/Merge jobs.
+	// dbt_state. CI/Merge paths retain nil when the field is unset and omit legacy
+	// SAO, but send [] and the exclusive ["dbt_state"] first-class feature set.
 	CostOptimizationFeatures []string              `json:"cost_optimization_features"`
 	DbtVersion               *string               `json:"dbt_version"`
 	DeferringEnvironmentId   *int                  `json:"deferring_environment_id"`
