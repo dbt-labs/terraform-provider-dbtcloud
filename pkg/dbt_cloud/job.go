@@ -73,9 +73,8 @@ type Job struct {
 	// list to ["dbt_state"]), so callers must read the value back from the response
 	// rather than assuming the request value was stored verbatim.
 	// No omitempty: an explicit empty slice ([]) must be sent so users can clear
-	// features (cost_optimization_features = []). CI/Merge paths set this to nil
-	// (serialized as null, treated by the API as "absent"); the API only rejects a
-	// non-empty state-tracking set on CI/Merge jobs.
+	// dbt_state. CI/Merge paths retain nil when the field is unset and omit legacy
+	// SAO, but send [] and the exclusive ["dbt_state"] first-class feature set.
 	CostOptimizationFeatures []string              `json:"cost_optimization_features"`
 	DbtVersion               *string               `json:"dbt_version"`
 	DeferringEnvironmentId   *int                  `json:"deferring_environment_id"`

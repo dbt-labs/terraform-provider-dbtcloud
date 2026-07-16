@@ -284,31 +284,14 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	compareChangesFlags := plan.CompareChangesFlags.ValueString()
 
-	// Only send force_node_selection / cost_optimization_features when the user set a
-	// concrete value. The dbt Cloud API treats them as a coexisting pair and normalizes
-	// them server-side (cost_optimization_features takes precedence when both are sent),
-	// so the provider does not cross-derive one from the other. State is reconciled from
-	// the API response below.
-	var forceNodeSelection *bool
-	if !plan.ForceNodeSelection.IsNull() && !plan.ForceNodeSelection.IsUnknown() {
-		fns := plan.ForceNodeSelection.ValueBool()
-		forceNodeSelection = &fns
-	}
-
-	var costOptimizationFeatures []string
-	if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
-		costOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
-	}
-
-	// CI and Merge jobs do not support SAO. Sending force_node_selection (especially
-	// force_node_selection = false) for those job types causes the dbt Cloud API to
-	// return 405 "State aware orchestration is not available for CI or Merge jobs."
-	// Skip both SAO fields at the API boundary; the bridged Terraform state for
-	// cost_optimization_features is re-derived from the API response in Read.
-	if isCIOrMergeJobAtCreate(jobType, plan.Triggers) {
-		forceNodeSelection = nil
-		costOptimizationFeatures = nil
-	}
+	// The API treats force_node_selection and cost_optimization_features as a
+	// coexisting pair. CI/Merge jobs still reject legacy SAO, but support the
+	// first-class dbt_state feature and an explicit empty list to clear it.
+	forceNodeSelection, costOptimizationFeatures := filterSAOFieldsForCIOrMerge(
+		isCIOrMergeJobAtCreate(jobType, plan.Triggers),
+		forceNodeSelectionFromPlan(plan.ForceNodeSelection),
+		costOptimizationFeaturesFromPlan(plan.CostOptimizationFeatures),
+	)
 
 	var jobCompletionTriggerCondition map[string]any
 
@@ -411,30 +394,26 @@ func (j *jobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	plan.JobType = reconcileJobType(plan.JobType, createdJob.JobType)
 
-	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
-	// cost_optimization_features (the API rejects them with 405). To keep plan
-	// and apply consistent, preserve whatever the user planned rather than
-	// deriving from the API response. The user's value is benign because we
-	// never actually sent it to the API. For other job types the API response
-	// is authoritative.
-	createdJobIsCIOrMerge := createdJob.JobType == JobTypeCI || createdJob.JobType == JobTypeMerge
+	// The dbt State CI/Merge path is API-authoritative: an omitted/rejected
+	// dbt_state response becomes empty so Terraform can show the mismatch. Only
+	// legacy SAO-on-CI retains the historical plan-preservation compatibility.
+	createdJobIsCIOrMerge := isCIOrMergeJobType(createdJob.JobType)
 	if !createdJobIsCIOrMerge {
 		if createdJob.ForceNodeSelection != nil {
 			plan.ForceNodeSelection = types.BoolValue(*createdJob.ForceNodeSelection)
 		} else if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
-		plan.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(createdJob.CostOptimizationFeatures, createdJob.ForceNodeSelection)
-	} else {
-		// CI/Merge: collapse any unknown plan values to known empty/null so the
-		// framework's plan-apply consistency check has concrete values to compare.
-		if plan.ForceNodeSelection.IsUnknown() {
-			plan.ForceNodeSelection = types.BoolNull()
-		}
-		if plan.CostOptimizationFeatures.IsUnknown() {
-			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
-		}
+	} else if plan.ForceNodeSelection.IsUnknown() {
+		plan.ForceNodeSelection = types.BoolNull()
 	}
+	plan.CostOptimizationFeatures = reconcileCostOptimizationFeatures(
+		createdJob.JobType,
+		plan.CostOptimizationFeatures,
+		types.SetNull(types.StringType),
+		createdJob.ForceNodeSelection,
+		createdJob.CostOptimizationFeatures,
+	)
 
 	jobIDStr := strconv.FormatInt(int64(*createdJob.ID), 10)
 
@@ -478,6 +457,11 @@ func (j *jobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	job.State = dbt_cloud.STATE_DELETED
+	job.ForceNodeSelection, job.CostOptimizationFeatures = filterSAOFieldsForCIOrMerge(
+		isCIOrMergeJobType(job.JobType),
+		job.ForceNodeSelection,
+		job.CostOptimizationFeatures,
+	)
 	_, err = j.client.UpdateJob(jobIDStr, *job)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", "Unable to delete job: "+err.Error())
@@ -654,28 +638,26 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.RunLint = types.BoolValue(retrievedJob.RunLint)
 	state.ErrorsOnLintFailure = types.BoolValue(retrievedJob.ErrorsOnLintFailure)
 
-	// SAO fields: for CI/Merge jobs the API does not honor force_node_selection /
-	// cost_optimization_features (we never POST them for those job types), so the
-	// API value is not authoritative — preserve the existing state. On fresh
-	// imports (no prior state) collapse to known empty/null values that match
-	// what Create writes, so that ImportStateVerify round-trips cleanly. For
-	// other job types the API response is authoritative.
-	retrievedJobIsCIOrMerge := retrievedJob.JobType == JobTypeCI || retrievedJob.JobType == JobTypeMerge
+	// Use the same CI/Merge discriminator as Create and Update. dbt_state is
+	// API-authoritative even when the response is omitted or empty; legacy SAO
+	// preserves state when its intentionally suppressed response is empty.
+	retrievedJobIsCIOrMerge := isCIOrMergeJobType(retrievedJob.JobType)
 	if !retrievedJobIsCIOrMerge {
 		if retrievedJob.ForceNodeSelection != nil {
 			state.ForceNodeSelection = types.BoolValue(*retrievedJob.ForceNodeSelection)
 		} else {
 			state.ForceNodeSelection = types.BoolNull()
 		}
-		state.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(retrievedJob.CostOptimizationFeatures, retrievedJob.ForceNodeSelection)
-	} else {
-		if state.ForceNodeSelection.IsUnknown() {
-			state.ForceNodeSelection = types.BoolNull()
-		}
-		if state.CostOptimizationFeatures.IsNull() || state.CostOptimizationFeatures.IsUnknown() {
-			state.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
-		}
+	} else if state.ForceNodeSelection.IsUnknown() {
+		state.ForceNodeSelection = types.BoolNull()
 	}
+	state.CostOptimizationFeatures = reconcileCostOptimizationFeatures(
+		retrievedJob.JobType,
+		state.CostOptimizationFeatures,
+		state.CostOptimizationFeatures,
+		retrievedJob.ForceNodeSelection,
+		retrievedJob.CostOptimizationFeatures,
+	)
 
 	state.JobType = reconcileJobType(state.JobType, retrievedJob.JobType)
 
@@ -851,30 +833,6 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.ErrorsOnLintFailure = plan.ErrorsOnLintFailure.ValueBool()
 	job.CompareChangesFlags = plan.CompareChangesFlags.ValueString()
 
-	// CI and Merge jobs do not support SAO features (force_node_selection / cost_optimization_features).
-	// Sending these fields for those job types results in a 405 from the API, so we skip them.
-	isCIOrMerge := job.JobType == JobTypeCI || job.JobType == JobTypeMerge
-	if isCIOrMerge {
-		job.ForceNodeSelection = nil
-		job.CostOptimizationFeatures = nil
-	} else {
-		// Send force_node_selection / cost_optimization_features only when the user set a
-		// concrete value; the API normalizes the pair server-side (cost_optimization_features
-		// takes precedence), so the provider does not cross-derive one from the other.
-		if plan.ForceNodeSelection.IsNull() || plan.ForceNodeSelection.IsUnknown() {
-			job.ForceNodeSelection = nil
-		} else {
-			fns := plan.ForceNodeSelection.ValueBool()
-			job.ForceNodeSelection = &fns
-		}
-
-		if !plan.CostOptimizationFeatures.IsNull() && !plan.CostOptimizationFeatures.IsUnknown() {
-			job.CostOptimizationFeatures = helper.StringSetToStringSlice(plan.CostOptimizationFeatures)
-		} else {
-			job.CostOptimizationFeatures = nil
-		}
-	}
-
 	// Handle job_type updates with validation
 	// Only validate and set if the plan has an explicit non-empty job_type value
 	if !plan.JobType.IsNull() && plan.JobType.ValueString() != "" {
@@ -892,6 +850,15 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 		job.JobType = newJobType
 	}
+
+	// CI/Merge requests never send force_node_selection. They continue to omit
+	// non-empty SAO sets to avoid the 405, while dbt_state and an explicit empty
+	// set are first-class API values that must be sent unchanged.
+	job.ForceNodeSelection, job.CostOptimizationFeatures = filterSAOFieldsForCIOrMerge(
+		isCIOrMergeJobAtCreate(job.JobType, plan.Triggers),
+		forceNodeSelectionFromPlan(plan.ForceNodeSelection),
+		costOptimizationFeaturesForUpdate(plan.CostOptimizationFeatures, job.CostOptimizationFeatures),
+	)
 
 	// Capture what's changing for better error messages
 	oldEnvID := state.EnvironmentID.ValueInt64()
@@ -946,25 +913,25 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		plan.TimeoutSeconds = types.Int64Value(int64(updatedJob.Execution.TimeoutSeconds))
 	}
 
-	// SAO fields: for CI/Merge jobs we never POST force_node_selection or
-	// cost_optimization_features, so preserve whatever the user planned (see the
-	// matching block in Create for the rationale).
-	updatedJobIsCIOrMerge := updatedJob.JobType == JobTypeCI || updatedJob.JobType == JobTypeMerge
+	// Use the same API-authoritative dbt State and legacy-SAO compatibility
+	// reconciliation as Create and Read.
+	updatedJobIsCIOrMerge := isCIOrMergeJobType(updatedJob.JobType)
 	if !updatedJobIsCIOrMerge {
 		if updatedJob.ForceNodeSelection != nil {
 			plan.ForceNodeSelection = types.BoolValue(*updatedJob.ForceNodeSelection)
 		} else {
 			plan.ForceNodeSelection = types.BoolNull()
 		}
-		plan.CostOptimizationFeatures = costOptimizationFeaturesFromAPI(updatedJob.CostOptimizationFeatures, updatedJob.ForceNodeSelection)
-	} else {
-		if plan.ForceNodeSelection.IsUnknown() {
-			plan.ForceNodeSelection = types.BoolNull()
-		}
-		if plan.CostOptimizationFeatures.IsUnknown() {
-			plan.CostOptimizationFeatures = types.SetValueMust(types.StringType, []attr.Value{})
-		}
+	} else if plan.ForceNodeSelection.IsUnknown() {
+		plan.ForceNodeSelection = types.BoolNull()
 	}
+	plan.CostOptimizationFeatures = reconcileCostOptimizationFeatures(
+		updatedJob.JobType,
+		plan.CostOptimizationFeatures,
+		state.CostOptimizationFeatures,
+		updatedJob.ForceNodeSelection,
+		updatedJob.CostOptimizationFeatures,
+	)
 
 	// For CI/Merge jobs, preserve deferring_environment_id from the API response
 	// so it is not lost in state when the plan did not explicitly configure it.
@@ -985,11 +952,133 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 }
 
-// costOptimizationFeatureStateAwareOrchestration is the dbt Cloud API value that, when
-// included in cost_optimization_features, enables State-Aware Orchestration (SAO).
-// It is the new-style equivalent of force_node_selection = false.
-// See sinter/common/constants/jobs.py::CostOptimizationFeature in dbt-cloud.
-const costOptimizationFeatureStateAwareOrchestration = "state_aware_orchestration"
+// Cost optimization feature values exposed by the provider. The dbt Cloud API
+// also defines efficient_testing, which remains intentionally unsupported here.
+const (
+	costOptimizationFeatureStateAwareOrchestration = "state_aware_orchestration"
+	costOptimizationFeatureDbtState                = "dbt_state"
+)
+
+func isCIOrMergeJobType(jobType string) bool {
+	return jobType == JobTypeCI || jobType == JobTypeMerge
+}
+
+func forceNodeSelectionFromPlan(forceNodeSelection types.Bool) *bool {
+	if forceNodeSelection.IsNull() || forceNodeSelection.IsUnknown() {
+		return nil
+	}
+
+	value := forceNodeSelection.ValueBool()
+	return &value
+}
+
+func costOptimizationFeaturesFromPlan(features types.Set) []string {
+	if features.IsNull() || features.IsUnknown() {
+		return nil
+	}
+	return helper.StringSetToStringSlice(features)
+}
+
+// costOptimizationFeaturesForUpdate preserves the current API value when an
+// Optional+Computed plan is unknown. Known plans, including an explicit empty
+// set, remain user-authoritative.
+func costOptimizationFeaturesForUpdate(features types.Set, apiFeatures []string) []string {
+	if features.IsUnknown() {
+		return apiFeatures
+	}
+	return costOptimizationFeaturesFromPlan(features)
+}
+
+// filterSAOFieldsForCIOrMerge applies the API-boundary rules shared by Create,
+// Update, and Delete. CI/Merge jobs always omit legacy force_node_selection. A
+// non-empty legacy SAO set remains omitted to prevent the known 405, while the
+// first-class dbt_state set and an explicit empty slice are sent unchanged.
+func filterSAOFieldsForCIOrMerge(isCIOrMerge bool, forceNodeSelection *bool, features []string) (*bool, []string) {
+	if !isCIOrMerge {
+		return forceNodeSelection, features
+	}
+	return nil, filterCostOptimizationFeaturesForCIOrMerge(features)
+}
+
+func filterCostOptimizationFeaturesForCIOrMerge(features []string) []string {
+	if features == nil || len(features) == 0 || isExclusiveDbtState(features) {
+		return features
+	}
+	return nil
+}
+
+func isExclusiveDbtState(features []string) bool {
+	return len(features) == 1 && features[0] == costOptimizationFeatureDbtState
+}
+
+func costOptimizationFeaturesContain(features types.Set, feature string) bool {
+	if features.IsNull() || features.IsUnknown() {
+		return false
+	}
+	for _, value := range features.Elements() {
+		if value.(types.String).ValueString() == feature {
+			return true
+		}
+	}
+	return false
+}
+
+// shouldUseAPICostOptimizationFeaturesForCIOrMerge is the shared
+// reconciliation discriminator for Create, Read, and Update. A non-empty
+// first-class response is authoritative, as is a dbt_state request or prior
+// state; an omitted or empty response for dbt_state must become empty so
+// Terraform can detect a rejected request rather than retain a false desired
+// value. Legacy SAO is different: CI/Merge intentionally suppresses it at the
+// API boundary, so an omitted or empty response preserves known Terraform
+// state for backward compatibility.
+func shouldUseAPICostOptimizationFeaturesForCIOrMerge(desired, prior types.Set, apiFeatures []string) bool {
+	return len(apiFeatures) > 0 ||
+		costOptimizationFeaturesContain(desired, costOptimizationFeatureDbtState) ||
+		costOptimizationFeaturesContain(prior, costOptimizationFeatureDbtState)
+}
+
+func hasLegacySAOOnCI(desiredFeatures, priorFeatures types.Set) bool {
+	return costOptimizationFeaturesContain(desiredFeatures, costOptimizationFeatureStateAwareOrchestration) ||
+		costOptimizationFeaturesContain(priorFeatures, costOptimizationFeatureStateAwareOrchestration)
+}
+
+func preferredKnownCostOptimizationFeatures(desired, prior types.Set) types.Set {
+	if !desired.IsNull() && !desired.IsUnknown() {
+		return desired
+	}
+	if !prior.IsNull() && !prior.IsUnknown() {
+		return prior
+	}
+	return costOptimizationFeaturesSet(nil)
+}
+
+// reconcileCostOptimizationFeatures centralizes lifecycle reconciliation for
+// Create, Read, and Update. Non-CI/Merge jobs retain the legacy
+// force_node_selection fallback. CI/Merge jobs use the first-class field
+// whenever dbt_state is involved or a non-empty first-class value is returned
+// by the API; only the unsupported legacy SAO path preserves plan/prior state
+// for compatibility when the response omits the field or returns an empty list.
+func reconcileCostOptimizationFeatures(
+	jobType string,
+	desiredFeatures, priorFeatures types.Set,
+	apiForceNodeSelection *bool, apiFeatures []string,
+) types.Set {
+	if !isCIOrMergeJobType(jobType) {
+		return costOptimizationFeaturesFromAPI(apiFeatures, apiForceNodeSelection)
+	}
+
+	apiAuthoritative := shouldUseAPICostOptimizationFeaturesForCIOrMerge(desiredFeatures, priorFeatures, apiFeatures)
+	preserveLegacySAO := !apiAuthoritative && hasLegacySAOOnCI(desiredFeatures, priorFeatures)
+
+	if preserveLegacySAO {
+		return preferredKnownCostOptimizationFeatures(desiredFeatures, priorFeatures)
+	}
+
+	// An omitted or empty dbt_state response intentionally becomes an empty set.
+	// Never fall back to force_node_selection here: that legacy bridge could
+	// incorrectly invent state_aware_orchestration.
+	return costOptimizationFeaturesSet(apiFeatures)
+}
 
 // costOptimizationFeaturesFromForceNodeSelection derives the cost_optimization_features
 // state from the API's force_node_selection bool field. The dbt Cloud API stores SAO
@@ -1029,14 +1118,13 @@ func costOptimizationFeaturesSet(features []string) types.Set {
 	return types.SetValueMust(types.StringType, vals)
 }
 
-// isCIOrMergeJobAtCreate returns true if the to-be-created job will be classified by
-// the dbt Cloud API as a CI or Merge job. The API infers job_type from triggers when
-// it is not set explicitly, so the provider mirrors that inference here. The result is
-// used to decide whether to skip SAO fields (force_node_selection /
-// cost_optimization_features) at the API boundary, since SAO is not supported for
-// CI or Merge job types.
+// isCIOrMergeJobAtCreate returns true if the job represented by its explicit type and
+// triggers will be classified by the dbt Cloud API as a CI or Merge job. The API infers
+// job_type from triggers when it is not set explicitly, so the provider mirrors that
+// inference for both Create and Update. The result decides whether to filter SAO fields
+// (force_node_selection / cost_optimization_features) at the API boundary.
 func isCIOrMergeJobAtCreate(explicitJobType string, triggers *JobTriggers) bool {
-	if explicitJobType == JobTypeCI || explicitJobType == JobTypeMerge {
+	if isCIOrMergeJobType(explicitJobType) {
 		return true
 	}
 	if triggers == nil {

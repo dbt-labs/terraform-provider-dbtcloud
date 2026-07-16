@@ -770,6 +770,65 @@ func testAccCheckDbtCloudJobExists(resource string) resource.TestCheckFunc {
 	}
 }
 
+func testAccCheckDbtCloudJobHasDbtState(resource string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		rs, ok := state.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("not found: %s", resource)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no record ID is set")
+		}
+
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("issue getting the client: %w", err)
+		}
+		remoteJob, err := apiClient.GetJob(rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error fetching job %s: %w", rs.Primary.ID, err)
+		}
+		if len(remoteJob.CostOptimizationFeatures) != 1 || remoteJob.CostOptimizationFeatures[0] != "dbt_state" {
+			return fmt.Errorf("remote job cost_optimization_features = %#v, want [\"dbt_state\"]", remoteJob.CostOptimizationFeatures)
+		}
+		return nil
+	}
+}
+
+func testAccCheckDbtCloudJobHasNoCostOptimizationFeatures(resource string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		rs, ok := state.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("not found: %s", resource)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no record ID is set")
+		}
+
+		apiClient, err := acctest_helper.SharedClient()
+		if err != nil {
+			return fmt.Errorf("issue getting the client: %w", err)
+		}
+		remoteJob, err := apiClient.GetJob(rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error fetching job %s: %w", rs.Primary.ID, err)
+		}
+		if len(remoteJob.CostOptimizationFeatures) != 0 {
+			return fmt.Errorf("remote job cost_optimization_features = %#v, want []", remoteJob.CostOptimizationFeatures)
+		}
+		return nil
+	}
+}
+
+func skipDbtStateAcceptanceTest(t *testing.T) {
+	t.Helper()
+	// The shared CI acceptance account is not entitled to dbt State. Run these
+	// tests locally only with an account that has the dbt State feature enabled.
+	if acctest_config.IsCI() {
+		t.Skip("Skipping in CI: requires an account with dbt State enabled.")
+	}
+}
+
 func testAccCheckDbtCloudJobDestroy(s *terraform.State) error {
 	apiClient, err := acctest_helper.SharedClient()
 	if err != nil {
@@ -1020,20 +1079,14 @@ func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 // Account requirements: the test account must have dbt State enabled (the
 // ORC_3638_ENABLE_DBT_STATE feature flag). Unlike SAO, dbt_state is
 // environment-independent and does not require a Fusion dbt_version or a
-// staging/production environment, but it is not supported on CI or Merge jobs.
+// staging/production environment; it is also supported on CI and Merge jobs.
 //
 // The dbt platform API gives dbt_state precedence and collapses the set to
 // ["dbt_state"], so the provider rejects mixing it with other features at plan
-// time. It is gated behind DBT_CLOUD_ACC_TEST_DBT_STATE_ENABLED so it only runs
-// against an account where dbt State is available, and skips otherwise.
+// time. It shares the dbt State acceptance-test entitlement gate, so it only
+// runs against an account where dbt State is available.
 func TestAccDbtCloudJobDbtStateCostOptimizationFeature(t *testing.T) {
-	// dbt State requires an account entitled to dbt State (a non-Team plan) with
-	// the ORC-3638-enable-dbt-state flag on. The CI account does not have it, so
-	// the API rewrites the value, producing an "inconsistent result after apply".
-	// Skip in CI; run locally against a dbt State-enabled account.
-	if acctest_config.IsCI() {
-		t.Skip("Skipping in CI: requires an account with dbt State enabled.")
-	}
+	skipDbtStateAcceptanceTest(t)
 
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
@@ -1084,6 +1137,87 @@ func TestAccDbtCloudJobDbtStateCostOptimizationFeature(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"validate_execute_steps",
 				},
+			},
+		},
+	})
+}
+
+// TestAccDbtCloudJobCIWithDbtStateCostOptimizationFeature reproduces #715:
+// a github_webhook-triggered CI job must persist dbt_state through Create,
+// unrelated Update, and an Import/Read refresh. The remote checks prove the
+// provider sent dbt_state rather than merely retaining Terraform's planned set.
+func TestAccDbtCloudJobCIWithDbtStateCostOptimizationFeature(t *testing.T) {
+	skipDbtStateAcceptanceTest(t)
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudJobCIWithDbtStateConfig(
+					jobName, projectName, environmentName, `["dbt_state"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "job_type", "ci"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.ci_job",
+						"cost_optimization_features.*",
+						"dbt_state",
+					),
+					testAccCheckDbtCloudJobHasDbtState("dbtcloud_job.ci_job"),
+				),
+			},
+			// Rename only: dbt_state must remain on the remote job during an unrelated update.
+			{
+				Config: testAccDbtCloudJobCIWithDbtStateConfig(
+					jobNameUpdated, projectName, environmentName, `["dbt_state"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "name", jobNameUpdated),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.ci_job",
+						"cost_optimization_features.*",
+						"dbt_state",
+					),
+					testAccCheckDbtCloudJobHasDbtState("dbtcloud_job.ci_job"),
+				),
+			},
+			// IMPORT / REFRESH: ImportStateVerify invokes Read with no prior feature state.
+			{
+				ResourceName:      "dbtcloud_job.ci_job",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.ci_job",
+						"cost_optimization_features.*",
+						"dbt_state",
+					),
+					testAccCheckDbtCloudJobHasDbtState("dbtcloud_job.ci_job"),
+				),
+			},
+			// Explicit clear: CI supports [] as a first-class dbt_state update.
+			{
+				Config: testAccDbtCloudJobCIWithDbtStateConfig(
+					jobNameUpdated, projectName, environmentName, `[]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "0"),
+					testAccCheckDbtCloudJobHasNoCostOptimizationFeatures("dbtcloud_job.ci_job"),
+				),
 			},
 		},
 	})
@@ -1175,10 +1309,12 @@ func TestAccDbtCloudJobMergeWithDeferringEnvironment(t *testing.T) {
 	})
 }
 
-// TestAccDbtCloudJobCIWithCostOptimizationFeatures tests that a CI job with
-// cost_optimization_features does not return a 405 error (Change 2 fix).
+// TestAccDbtCloudJobCIWithCostOptimizationFeatures verifies that legacy SAO
+// remains in Terraform state for a CI job even though it is intentionally
+// suppressed at the API boundary to avoid a 405 response.
 func TestAccDbtCloudJobCIWithCostOptimizationFeatures(t *testing.T) {
 	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	jobNameUpdated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
@@ -1187,7 +1323,7 @@ func TestAccDbtCloudJobCIWithCostOptimizationFeatures(t *testing.T) {
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
 		Steps: []resource.TestStep{
-			// 5. CI job with cost_optimization_features set (should not return 405)
+			// Create: legacy SAO is retained in Terraform state without sending it to CI.
 			{
 				Config: testAccDbtCloudJobCIWithCostOptimizationFeaturesConfig(
 					jobName, projectName, environmentName,
@@ -1195,6 +1331,28 @@ func TestAccDbtCloudJobCIWithCostOptimizationFeatures(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
 					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "job_type", "ci"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.ci_job",
+						"cost_optimization_features.*",
+						"state_aware_orchestration",
+					),
+				),
+			},
+			// Rename only: legacy SAO must remain in Terraform state on an unrelated update.
+			{
+				Config: testAccDbtCloudJobCIWithCostOptimizationFeaturesConfig(
+					jobNameUpdated, projectName, environmentName,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.ci_job"),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "name", jobNameUpdated),
+					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.ci_job",
+						"cost_optimization_features.*",
+						"state_aware_orchestration",
+					),
 				),
 			},
 		},
@@ -1306,6 +1464,38 @@ resource "dbtcloud_job" "ci_job" {
   }
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
+}
+
+func testAccDbtCloudJobCIWithDbtStateConfig(
+	jobName, projectName, environmentName, featuresVal string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "ci_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  cost_optimization_features = %s
+  execute_steps = [
+    "dbt build -s state:modified+"
+  ]
+  triggers = {
+    "github_webhook": true,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, featuresVal)
 }
 
 func testAccDbtCloudJobResourceIntervalCronConfig(
