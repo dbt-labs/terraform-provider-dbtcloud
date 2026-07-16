@@ -58,12 +58,12 @@ type JobCompletionTriggerCondition struct {
 }
 
 type Job struct {
-	ID                  *int   `json:"id"`
-	AccountId           int64  `json:"account_id"`
-	ProjectId           int    `json:"project_id"`
-	EnvironmentId       int    `json:"environment_id"`
-	Name                string `json:"name"`
-	CompareChangesFlags string `json:"compare_changes_flags"`
+	ID                       *int                  `json:"id"`
+	AccountId                int64                 `json:"account_id"`
+	ProjectId                int                   `json:"project_id"`
+	EnvironmentId            int                   `json:"environment_id"`
+	Name                     string                `json:"name"`
+	CompareChangesFlags      string                `json:"compare_changes_flags"`
 	// CostOptimizationFeatures is a first-class field on the dbt Cloud v2 jobs API.
 	// It coexists with the legacy force_node_selection bool during a transition period;
 	// when both are sent, the API gives cost_optimization_features precedence. The

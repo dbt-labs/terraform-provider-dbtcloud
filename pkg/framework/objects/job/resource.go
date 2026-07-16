@@ -857,7 +857,7 @@ func (j *jobResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	job.ForceNodeSelection, job.CostOptimizationFeatures = filterSAOFieldsForCIOrMerge(
 		isCIOrMergeJobAtCreate(job.JobType, plan.Triggers),
 		forceNodeSelectionFromPlan(plan.ForceNodeSelection),
-		costOptimizationFeaturesFromPlan(plan.CostOptimizationFeatures),
+		costOptimizationFeaturesForUpdate(plan.CostOptimizationFeatures, job.CostOptimizationFeatures),
 	)
 
 	// Capture what's changing for better error messages
@@ -977,6 +977,16 @@ func costOptimizationFeaturesFromPlan(features types.Set) []string {
 		return nil
 	}
 	return helper.StringSetToStringSlice(features)
+}
+
+// costOptimizationFeaturesForUpdate preserves the current API value when an
+// Optional+Computed plan is unknown. Known plans, including an explicit empty
+// set, remain user-authoritative.
+func costOptimizationFeaturesForUpdate(features types.Set, apiFeatures []string) []string {
+	if features.IsUnknown() {
+		return apiFeatures
+	}
+	return costOptimizationFeaturesFromPlan(features)
 }
 
 // filterSAOFieldsForCIOrMerge applies the API-boundary rules shared by Create,

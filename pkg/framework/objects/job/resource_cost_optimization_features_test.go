@@ -61,6 +61,55 @@ func TestFilterCostOptimizationFeaturesForCIOrMerge(t *testing.T) {
 	}
 }
 
+func TestCostOptimizationFeaturesForUpdate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		plan        types.Set
+		apiFeatures []string
+		want        []string
+	}{
+		{
+			name:        "unknown plan preserves API features",
+			plan:        types.SetUnknown(types.StringType),
+			apiFeatures: []string{costOptimizationFeatureDbtState},
+			want:        []string{costOptimizationFeatureDbtState},
+		},
+		{
+			name:        "unknown plan preserves explicit API empty set",
+			plan:        types.SetUnknown(types.StringType),
+			apiFeatures: []string{},
+			want:        []string{},
+		},
+		{
+			name: "null plan remains unset",
+			plan: types.SetNull(types.StringType),
+			want: nil,
+		},
+		{
+			name: "known empty plan remains an explicit clear",
+			plan: costOptimizationFeatureSet(),
+			want: []string{},
+		},
+		{
+			name:        "known plan overrides API features",
+			plan:        costOptimizationFeatureSet(costOptimizationFeatureDbtState),
+			apiFeatures: []string{},
+			want:        []string{costOptimizationFeatureDbtState},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := costOptimizationFeaturesForUpdate(tt.plan, tt.apiFeatures)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("costOptimizationFeaturesForUpdate(%s, %#v) = %#v, want %#v", tt.plan.String(), tt.apiFeatures, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestReconcileCostOptimizationFeaturesForCIOrMerge(t *testing.T) {
 	t.Parallel()
 
