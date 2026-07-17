@@ -1,3 +1,0 @@
-kind: Fixes
-body: Preserve and reconcile `dbt_state` cost optimization features for CI and Merge jobs while continuing to omit unsupported State-Aware Orchestration (#715).
-time: 2026-07-15T00:00:00-07:00
