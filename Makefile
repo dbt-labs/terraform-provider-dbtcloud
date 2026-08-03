@@ -21,9 +21,9 @@ test: deps
 	go test -mod=readonly -count=1 ./...
 
 test-acceptance: deps
-	# -p 3: acceptance tests share a single live dbt Cloud test account, so
+	# -p 2: acceptance tests share a single live dbt Cloud test account, so
 	# running many packages concurrently causes rate-limiting/timeouts against it.
-	TF_ACC=1 go test -v -mod=readonly -count=1 -p 3 -parallel 1 ./...
+	TF_ACC=1 go test -v -mod=readonly -count=1 -p 2 -parallel 1 ./...
 
 check-docs: doc
 	git diff --exit-code -- docs
