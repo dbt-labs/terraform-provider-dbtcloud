@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: Reduce acceptance test package parallelism (-p 5 to -p 2) to cut concurrent load against the single shared dbt Cloud test account, and give the CI retry step more headroom (timeout_minutes 20 to 35) to match
+time: 2026-08-03T17:10:24.69185+03:00
