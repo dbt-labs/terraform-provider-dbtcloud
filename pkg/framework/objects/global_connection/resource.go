@@ -876,7 +876,9 @@ func (r *globalConnectionResource) Update(
 		if plan.BigQueryConfig.GCPProjectID != state.BigQueryConfig.GCPProjectID {
 			warehouseConfigChanges.ProjectID = plan.BigQueryConfig.GCPProjectID.ValueStringPointer()
 		}
-		if plan.BigQueryConfig.TimeoutSeconds != state.BigQueryConfig.TimeoutSeconds {
+		// timeout_seconds is a bigquery_v0-only field; the API rejects it for bigquery_v1
+		if !plan.BigQueryConfig.UseLatestAdapter.ValueBool() &&
+			plan.BigQueryConfig.TimeoutSeconds != state.BigQueryConfig.TimeoutSeconds {
 			warehouseConfigChanges.TimeoutSeconds = plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer()
 		}
 		if plan.BigQueryConfig.JobExecutionTimeoutSeconds != state.BigQueryConfig.JobExecutionTimeoutSeconds {
