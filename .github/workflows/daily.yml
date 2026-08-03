@@ -29,8 +29,19 @@ jobs:
       - name: Run unit tests
         run: make test
 
-      - name: Run acceptance tests
-        run: make test-acceptance
+      # test-acceptance hits the live dbt Cloud test account over the network.
+      # Measured failure rate is ~2-3% of individual tests per run, almost
+      # entirely single transient timeouts/502s against cloud.getdbt.com, not
+      # a hard outage (95%+ of tests pass in every failing run). Retrying the
+      # whole suite once clears these without masking a real regression: a
+      # genuine code-caused failure reproduces deterministically on retry.
+      - name: Run acceptance tests (with retry for transient dbt Cloud API errors)
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: make test-acceptance
         env:
           DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
