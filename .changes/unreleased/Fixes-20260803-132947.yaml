@@ -1,0 +1,3 @@
+kind: Fixes
+body: 'Fix import/refresh of `bigquery_v1` `dbtcloud_global_connection` resources: `use_latest_adapter` is now derived from the API''s adapter version instead of being left unset, avoiding a false "Adapter version cannot be changed" error, and `timeout_seconds` (a `bigquery_v0`-only field) is no longer sent on update for `bigquery_v1` connections (#709).'
+time: 2026-08-03T13:29:47.27689+03:00
