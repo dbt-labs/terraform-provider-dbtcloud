@@ -86,19 +86,38 @@ func main() {
 		age time.Duration
 	}
 
+	dateLayouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02T15:04:05.999999",
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04:05.999999",
+		"2006-01-02 15:04:05Z07:00",
+	}
+
 	var all []aged
 	var unparsed int
+	var sampleRaw string
 	for _, p := range projects {
-		createdAt, err := time.Parse(time.RFC3339, p.CreatedAt)
-		if err != nil {
-			// fall back to a couple of formats the API has used historically
-			createdAt, err = time.Parse("2006-01-02T15:04:05.999999", p.CreatedAt)
+		var createdAt time.Time
+		var err error = fmt.Errorf("no layouts tried")
+		for _, layout := range dateLayouts {
+			createdAt, err = time.Parse(layout, p.CreatedAt)
+			if err == nil {
+				break
+			}
 		}
 		if err != nil {
 			unparsed++
+			if sampleRaw == "" && p.CreatedAt != "" {
+				sampleRaw = p.CreatedAt
+			}
 			continue
 		}
 		all = append(all, aged{p, now.Sub(createdAt.UTC())})
+	}
+	if unparsed > 0 && sampleRaw != "" {
+		fmt.Fprintf(os.Stderr, "sample unparsed created_at value: %q\n", sampleRaw)
 	}
 
 	sort.Slice(all, func(i, j int) bool { return all[i].age > all[j].age })

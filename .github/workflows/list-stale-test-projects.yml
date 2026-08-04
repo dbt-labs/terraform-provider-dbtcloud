@@ -39,7 +39,10 @@ jobs:
           go-version: '>=1.17.0'
 
       - name: List projects older than min_age
-        run: go run ./tools/list-stale-projects -min-age="${{ github.event.inputs.min_age || '1h' }}" | tee -a "$GITHUB_STEP_SUMMARY"
+        shell: bash
+        run: |
+          set -o pipefail
+          go run ./tools/list-stale-projects -min-age="${{ github.event.inputs.min_age || '1h' }}" | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
