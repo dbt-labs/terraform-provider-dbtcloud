@@ -46,7 +46,13 @@ func main() {
 		os.Exit(1)
 	}
 	token := mustEnv("DBT_CLOUD_TOKEN")
-	hostURL := mustEnv("DBT_CLOUD_HOST_URL")
+	// Matches acctest_helper.SharedClient()'s fallback: DBT_CLOUD_HOST_URL
+	// isn't actually set as a secret anywhere in this repo, so the existing
+	// acceptance-test workflows already rely on this default too.
+	hostURL := os.Getenv("DBT_CLOUD_HOST_URL")
+	if hostURL == "" {
+		hostURL = "https://cloud.getdbt.com/api"
+	}
 
 	maxRetries := 3
 	retryInterval := 10
