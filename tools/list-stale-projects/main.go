@@ -85,6 +85,16 @@ func main() {
 		}
 	}
 
+	if users, err := client.GetUsers(); err == nil {
+		fmt.Printf("Users on this account (%d):\n", len(users))
+		for _, u := range users {
+			fmt.Printf("  id=%d email=%s\n", u.ID, u.Email)
+		}
+		fmt.Println()
+	} else {
+		fmt.Fprintf(os.Stderr, "failed to list account users: %v\n", err)
+	}
+
 	projects, err := client.GetAllProjects("")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to list projects: %v\n", err)
