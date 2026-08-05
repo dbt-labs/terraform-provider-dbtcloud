@@ -13,6 +13,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -71,6 +72,17 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to build client: %v\n", err)
 		os.Exit(1)
+	}
+
+	if body, err := client.GetEndpoint(client.BuildV2URL(dbt_cloud.ResourceAccounts)); err == nil {
+		var ar dbt_cloud.AuthResponse
+		if err := json.Unmarshal(body, &ar); err == nil {
+			for _, acct := range ar.Data {
+				if acct.Id == accountID {
+					fmt.Printf("Account: %q (plan=%s, state=%d)\n\n", acct.Name, acct.Plan, acct.State)
+				}
+			}
+		}
 	}
 
 	projects, err := client.GetAllProjects("")
