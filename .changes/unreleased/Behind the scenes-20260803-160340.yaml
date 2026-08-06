@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: 'Reduce CI flakiness: retry the acceptance-test suite once on transient dbt Cloud API errors (~2-3% of tests hit single timeouts/502s per run against the shared test account), and fix `acctest_helper.SharedClient()` to use the same retry policy as the main provider client instead of `DisableRetry: true`, which made every acceptance test''s exists/destroy verification call single-shot with zero tolerance for a transient blip.'
+time: 2026-08-03T16:03:40.069232+03:00

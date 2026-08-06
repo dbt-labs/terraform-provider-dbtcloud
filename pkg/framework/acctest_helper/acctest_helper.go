@@ -36,11 +36,12 @@ func SharedClient() (*dbt_cloud.Client, error) {
 		panic(fmt.Sprintf("failed to parse serverURL: %s, error: %v", hostURL, err))
 	}
 	client := dbt_cloud.Client{
-		HTTPClient:   &http.Client{Timeout: 30 * time.Second},
-		HostURL:      parsedURL,
-		Token:        token,
-		AccountID:    accountID,
-		DisableRetry: true,
+		HTTPClient:           &http.Client{Timeout: 30 * time.Second},
+		HostURL:              parsedURL,
+		Token:                token,
+		AccountID:            accountID,
+		MaxRetries:           3,
+		RetryIntervalSeconds: 10,
 	}
 
 	return &client, nil

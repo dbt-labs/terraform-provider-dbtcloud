@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: provider client now supports a DBT_CLOUD_TIMEOUT_SECONDS environment variable override for the request timeout (still defaults to 30s, still overridable via the timeout_seconds provider argument)
+time: 2026-08-06T09:00:00.000000+03:00

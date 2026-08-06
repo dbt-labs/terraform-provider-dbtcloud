@@ -1,0 +1,3 @@
+kind: Fixes
+body: 'Set an explicit 30m -timeout on test-acceptance so Go''s default 10m per-package timeout stops silently orphaning live dbt Cloud resources: a timeout panic skips resource.Test''s registered destroy cleanup entirely, unlike a normal test failure'
+time: 2026-08-05T15:14:31.478213+03:00
