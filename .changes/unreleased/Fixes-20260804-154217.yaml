@@ -1,0 +1,3 @@
+kind: Fixes
+body: environment resource's Read now treats a 404 (already deleted) as success instead of failing terraform plan/destroy, matching the existing Delete behavior
+time: 2026-08-04T15:42:17.000000+03:00
