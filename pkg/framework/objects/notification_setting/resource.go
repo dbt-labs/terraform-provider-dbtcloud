@@ -126,6 +126,10 @@ func (r *notificationSettingResource) Delete(
 	}
 
 	if err := r.client.DeleteNotificationSetting(state.ID.ValueInt64()); err != nil {
+		// If the resource is already deleted (404), treat as success
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "notification setting") {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting notification setting", err.Error())
 		return
 	}
