@@ -283,6 +283,11 @@ func (p *dbtCloudProvider) Configure(
 	skipCredentialsValidation := config.SkipCredentialsValidation.ValueBool()
 
 	timeoutSeconds := 30
+	if v := os.Getenv("DBT_CLOUD_TIMEOUT_SECONDS"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil {
+			timeoutSeconds = parsed
+		}
+	}
 	if !config.TimeoutSeconds.IsNull() {
 		timeoutSeconds = int(config.TimeoutSeconds.ValueInt64())
 	}

@@ -120,6 +120,12 @@ jobs:
           DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           DBT_CLOUD_HOST_URL: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
+          # CI-only: cloud.getdbt.com occasionally takes >30s (the provider's
+          # default) to respond to this shared test account, unrelated to any
+          # backend incident (checked Datadog latency + incidents - both
+          # normal). Give the provider's own HTTP client more room here
+          # instead of lowering it for every real user via the default.
+          DBT_CLOUD_TIMEOUT_SECONDS: "60"
           DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION: ${{ secrets.DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION }}
           DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT: ${{ secrets.DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT }}
           DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE: ${{ secrets.DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE }}
