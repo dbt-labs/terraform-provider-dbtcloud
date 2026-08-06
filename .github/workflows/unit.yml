@@ -126,6 +126,12 @@ jobs:
           # normal). Give the provider's own HTTP client more room here
           # instead of lowering it for every real user via the default.
           DBT_CLOUD_TIMEOUT_SECONDS: "60"
+          # CI-only: log analysis of recent runs showed the 2nd retry (3rd
+          # attempt) never once rescued a live API call that the 1st retry
+          # didn't already fix - it only added ~50s of dead time per
+          # occurrence. Cut to 2 attempts here without touching the default
+          # for real users, who may see different conditions.
+          DBT_CLOUD_MAX_RETRIES: "2"
           DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION: ${{ secrets.DBT_ACCEPTANCE_TEST_LINEAGE_INTEGRATION }}
           DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT: ${{ secrets.DBT_ACCEPTANCE_TEST_SNOWFLAKE_ACCOUNT }}
           DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE: ${{ secrets.DBT_ACCEPTANCE_TEST_SNOWFLAKE_DATABASE }}

@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: provider client now supports a DBT_CLOUD_MAX_RETRIES environment variable override (still defaults to 3, still overridable via the max_retries provider argument)
+time: 2026-08-06T10:00:00.000000+03:00

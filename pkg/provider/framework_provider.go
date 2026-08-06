@@ -249,6 +249,11 @@ func (p *dbtCloudProvider) Configure(
 		return
 	}
 	maxRetries := 3
+	if v := os.Getenv("DBT_CLOUD_MAX_RETRIES"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil {
+			maxRetries = parsed
+		}
+	}
 	if !config.MaxRetries.IsNull() {
 		maxRetries = int(config.MaxRetries.ValueInt64())
 	}
