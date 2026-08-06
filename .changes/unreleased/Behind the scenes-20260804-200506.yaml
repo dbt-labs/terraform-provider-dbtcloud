@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: Add a read-only, workflow_dispatch-only diagnostic to list projects in the live acceptance-test account by age, to find orphaned test fixtures left behind by failed destroy steps
+time: 2026-08-04T20:05:06.198725+03:00
