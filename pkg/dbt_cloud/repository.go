@@ -190,6 +190,14 @@ func (c *Client) UpdateRepository(
 	// we need to remove the GitLab project ID for updates
 	repository.GitlabProjectID = nil
 
+	// The Azure DevOps fields are create-only (RequiresReplace in the schema) and
+	// are only accepted by the collection-create endpoint. The detail/update
+	// endpoint rejects them as unexpected properties ("Additional properties are
+	// not allowed"), so we strip them from update payloads.
+	repository.AzureActiveDirectoryProjectID = nil
+	repository.AzureActiveDirectoryRepositoryID = nil
+	repository.AzureBypassWebhookRegistrationFailure = nil
+
 	repositoryData, err := json.Marshal(repository)
 	if err != nil {
 		return nil, err
