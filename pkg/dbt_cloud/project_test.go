@@ -2,6 +2,9 @@ package dbt_cloud_test
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
@@ -182,4 +185,89 @@ func TestIsValidSubdirectory(t *testing.T) {
 			assert.Equal(t, tt.err, err)
 		})
 	}
+}
+
+// newProjectTestClient builds a Client pointed at the given httptest.Server,
+// mirroring the acceptance-test client setup but with retries/timeouts
+// zeroed out so unit tests never block on backoff.
+func newProjectTestClient(t *testing.T, serverURL string) *dbt_cloud.Client {
+	t.Helper()
+
+	accountID := int64(123)
+	token := "test_token"
+	maxRetries := 0
+	retryInterval := 0
+	timeout := 5
+
+	c, err := dbt_cloud.NewClient(
+		&accountID,
+		&token,
+		&serverURL,
+		&maxRetries,
+		&retryInterval,
+		nil,
+		true, // skipCredentialsValidation
+		&timeout,
+	)
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	return c
+}
+
+// TestUpdateProject_DeleteSkipsSubdirectoryValidation locks in a fix for a bug
+// where UpdateProject validated DbtProjectSubdirectory even on a soft-delete
+// (State = STATE_DELETED). Since deleting a project never changes that field,
+// a legacy project whose subdirectory predates today's validation rules (e.g.
+// a leading "/") could never be destroyed via terraform destroy or the API -
+// UpdateProject returned a client-side validation error before the request
+// was ever sent. Observed in production against the "Terraform TEST"
+// acceptance-test account: several "Test Project" entries with
+// dbt_project_subdirectory="/dbt" were permanently stuck, e.g.
+//
+//	FAILED to delete project 452153 (Test Project): project subdirectory path should not start with a slash: "/dbt"
+func TestUpdateProject_DeleteSkipsSubdirectoryValidation(t *testing.T) {
+	invalidSubdirectory := "/dbt"
+
+	t.Run("delete with legacy-invalid subdirectory succeeds", func(t *testing.T) {
+		var requests atomic.Int32
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"data":{},"status":{"code":200}}`))
+		}))
+		defer srv.Close()
+
+		client := newProjectTestClient(t, srv.URL)
+		project := dbt_cloud.Project{
+			DbtProjectSubdirectory: &invalidSubdirectory,
+			State:                  dbt_cloud.STATE_DELETED,
+		}
+
+		_, err := client.UpdateProject("123", project)
+
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), requests.Load(), "expected the delete request to actually reach the API")
+	})
+
+	t.Run("non-delete update with the same invalid subdirectory is still rejected", func(t *testing.T) {
+		var requests atomic.Int32
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"data":{},"status":{"code":200}}`))
+		}))
+		defer srv.Close()
+
+		client := newProjectTestClient(t, srv.URL)
+		project := dbt_cloud.Project{
+			DbtProjectSubdirectory: &invalidSubdirectory,
+			State:                  0,
+		}
+
+		_, err := client.UpdateProject("123", project)
+
+		assert.Error(t, err)
+		assert.Equal(t, int32(0), requests.Load(), "invalid subdirectory should be rejected client-side before any request is sent")
+	})
 }
