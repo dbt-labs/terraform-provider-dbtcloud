@@ -1,0 +1,3 @@
+kind: Documentation
+body: 'Update the resource relationships guide: split the diagram, which had drifted out of date, into four diagrams by area (account & access, connections & credentials, project & environment, jobs & orchestration)'
+time: 2026-08-21T14:17:05.32503+02:00
