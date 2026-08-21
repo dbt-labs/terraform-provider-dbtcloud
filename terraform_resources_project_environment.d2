@@ -32,9 +32,6 @@ classes: {
   }
 }
 
-job: "job (see Jobs & orchestration diagram)" {
-  class: external
-}
 global_connection: "global_connection (see Connections & credentials diagram)" {
   class: external
 }
@@ -63,7 +60,6 @@ repository
 azure_dev_ops_project: azure_dev_ops_project (data source)
 azure_dev_ops_repository: azure_dev_ops_repository (data source)
 lineage_integration
-project_artefacts
 profile
 model_notifications
 
@@ -87,10 +83,6 @@ environment -- partial_environment_variable
 environment -- extended_attributes
 environment -- semantic_layer_configuration
 model_notifications -- environment
-
-project -- project_artefacts
-project_artefacts -- job: docs job
-project_artefacts -- job: freshness job
 
 project -- profile
 profile -- global_connection {
