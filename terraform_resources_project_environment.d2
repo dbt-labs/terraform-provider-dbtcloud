@@ -38,6 +38,9 @@ global_connection: "global_connection (see Connections & credentials diagram)" {
 credential: "credential (see Connections & credentials diagram)" {
   class: external
 }
+job: "job (see Jobs & orchestration diagram)" {
+  class: external
+}
 
 project: {
   style: {
@@ -83,6 +86,7 @@ environment -- partial_environment_variable
 environment -- extended_attributes
 environment -- semantic_layer_configuration
 model_notifications -- environment
+environment -- job
 
 project -- profile
 profile -- global_connection {
