@@ -66,16 +66,22 @@ func (r *databricksSemanticLayerCredentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan DatabricksSLCredentialModel
+	var plan, config DatabricksSLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	token := helper.ResolveWriteOnlyString(config.Credential.TokenWo, plan.Credential.Token)
 
 	values := map[string]interface{}{
 		"catalog": plan.Credential.Catalog.ValueString(),
-		"token":   plan.Credential.Token.ValueString(),
+		"token":   token,
 	}
 
 	createdCredential, err := r.client.CreateSemanticLayerCredential(
@@ -130,9 +136,13 @@ func (r *databricksSemanticLayerCredentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state DatabricksSLCredentialModel
+	var plan, state, config DatabricksSLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -152,9 +162,10 @@ func (r *databricksSemanticLayerCredentialResource) Update(
 		return
 	}
 
+	token := helper.ResolveWriteOnlyString(config.Credential.TokenWo, plan.Credential.Token)
 	values := map[string]interface{}{
 		"catalog": plan.Credential.Catalog.ValueString(),
-		"token":   plan.Credential.Token.ValueString(),
+		"token":   token,
 	}
 
 	credential.Values = values
@@ -173,14 +184,10 @@ func (r *databricksSemanticLayerCredentialResource) Update(
 	}
 
 	state.ID = types.Int64Value(int64(*credential.ID))
+	state.Configuration = plan.Configuration
+	state.Credential = plan.Credential
 	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
-
-	//update config fields
-	state.Configuration.Name = types.StringValue(credential.Name)
-
-	//update credential fields
-	state.Credential.Catalog = types.StringValue(credential.Values["catalog"].(string))
-	state.Credential.Token = types.StringValue(credential.Values["token"].(string))
+	state.Credential.ID = types.StringValue(fmt.Sprintf("%d", *credential.ID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
