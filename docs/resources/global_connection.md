@@ -190,7 +190,7 @@ resource "dbtcloud_global_connection" "teradata" {
 - `bigquery` (Attributes) (see [below for nested schema](#nestedatt--bigquery))
 - `databricks` (Attributes) Databricks connection configuration (see [below for nested schema](#nestedatt--databricks))
 - `fabric` (Attributes) Microsoft Fabric connection configuration. (see [below for nested schema](#nestedatt--fabric))
-- `oauth_configuration_id` (Number) External OAuth configuration ID (only Snowflake for now)
+- `oauth_configuration_id` (Number) External OAuth configuration ID. Supported for all connection types.
 - `postgres` (Attributes) PostgreSQL connection configuration. (see [below for nested schema](#nestedatt--postgres))
 - `private_link_endpoint_id` (String) Private Link Endpoint ID. This ID can be found using the `privatelink_endpoint` data source
 - `redshift` (Attributes) Redshift connection configuration (see [below for nested schema](#nestedatt--redshift))

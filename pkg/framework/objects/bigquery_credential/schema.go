@@ -59,6 +59,27 @@ var BigQueryResourceSchema = resource_schema.Schema{
 				int64planmodifier.RequiresReplace(),
 			},
 		},
+		"auth_type": resource_schema.StringAttribute{
+			Optional:    true,
+			Description: "The authentication method for the BigQuery credential. Supported values: `service-account-json`, `oauth-secrets`, `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+		},
+		"workload_pool_provider_path": resource_schema.StringAttribute{
+			Optional:    true,
+			Description: "The fully specified resource name of the workload pool provider, required when `auth_type` is `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+		},
+		"service_account_impersonation_url": resource_schema.StringAttribute{
+			Optional:    true,
+			Description: "The URL for the service account impersonation request, used when `auth_type` is `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.RequiresReplace(),
+			},
+		},
 	},
 }
 
@@ -88,6 +109,18 @@ var datasourceSchema = datasource_schema.Schema{
 		"num_threads": datasource_schema.Int64Attribute{
 			Computed:    true,
 			Description: "Number of threads to use",
+		},
+		"auth_type": datasource_schema.StringAttribute{
+			Computed:    true,
+			Description: "The authentication method for the BigQuery credential",
+		},
+		"workload_pool_provider_path": datasource_schema.StringAttribute{
+			Computed:    true,
+			Description: "The fully specified resource name of the workload pool provider",
+		},
+		"service_account_impersonation_url": datasource_schema.StringAttribute{
+			Computed:    true,
+			Description: "The URL for the service account impersonation request",
 		},
 	},
 }

@@ -100,7 +100,23 @@ func (d *bigqueryCredentialDataSource) Read(
 	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
 	state.IsActive = types.BoolValue(credential.State == dbt_cloud.STATE_ACTIVE)
 	state.ProjectID = types.Int64Value(int64(credential.Project_Id))
-
+	// WIF fields (v1 only; null when not set)
+	if v := credential.GetAuthType(); v != "" {
+		state.AuthType = types.StringValue(v)
+	} else {
+		state.AuthType = types.StringNull()
+	}
+	if v := credential.GetWorkloadPoolProviderPath(); v != "" {
+		state.WorkloadPoolProviderPath = types.StringValue(v)
+	} else {
+		state.WorkloadPoolProviderPath = types.StringNull()
+	}
+	if v := credential.GetServiceAccountImpersonationURL(); v != "" {
+		state.ServiceAccountImpersonationURL = types.StringValue(v)
+	} else {
+		state.ServiceAccountImpersonationURL = types.StringNull()
+	}
+	
 	// Set state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

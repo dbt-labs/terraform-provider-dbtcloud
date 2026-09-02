@@ -40,8 +40,11 @@ resource "dbtcloud_bigquery_credential" "my_credential_v1" {
 
 ### Optional
 
+- `auth_type` (String) The authentication method for the BigQuery credential. Supported values: `service-account-json`, `oauth-secrets`, `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).
 - `connection_id` (Number) The ID of the global connection to use for this credential. When provided, the credential will automatically use the correct adapter version based on the connection's configuration (e.g., bigquery_v1 for connections with use_latest_adapter=true).
 - `is_active` (Boolean) Whether the BigQuery credential is active
+- `service_account_impersonation_url` (String) The URL for the service account impersonation request, used when `auth_type` is `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).
+- `workload_pool_provider_path` (String) The fully specified resource name of the workload pool provider, required when `auth_type` is `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).
 
 ### Read-Only
 

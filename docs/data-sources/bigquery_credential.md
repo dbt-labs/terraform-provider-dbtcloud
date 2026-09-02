@@ -22,7 +22,10 @@ Bigquery credential data source
 
 ### Read-Only
 
+- `auth_type` (String) The authentication method for the BigQuery credential
 - `dataset` (String) Default dataset name
 - `id` (String) The ID of this data source. Contains the project ID and the credential ID.
 - `is_active` (Boolean) Whether the BigQuery credential is active
 - `num_threads` (Number) Number of threads to use
+- `service_account_impersonation_url` (String) The URL for the service account impersonation request
+- `workload_pool_provider_path` (String) The fully specified resource name of the workload pool provider
