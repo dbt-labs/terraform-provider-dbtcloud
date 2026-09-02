@@ -16,6 +16,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// the OAuth configuration client ID has to be unique across the account
 	oAuthConfigurationClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -2219,6 +2220,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
 					"bigquery.application_secret",
 					"bigquery.application_id",
 					"bigquery.use_latest_adapter",
+					"bigquery.timeout_seconds",
 					"bigquery.deployment_env_auth_type",
 				},
 			},
