@@ -2,6 +2,7 @@ package bigquery_credential
 
 import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -62,6 +63,9 @@ var BigQueryResourceSchema = resource_schema.Schema{
 		"auth_type": resource_schema.StringAttribute{
 			Optional:    true,
 			Description: "The authentication method for the BigQuery credential. Supported values: `service-account-json`, `oauth-secrets`, `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).",
+			Validators: []validator.String{
+				stringvalidator.OneOf(AuthTypes...),
+			},
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},

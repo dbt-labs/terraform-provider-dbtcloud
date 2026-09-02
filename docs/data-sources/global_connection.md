@@ -103,6 +103,7 @@ Read-Only:
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `impersonate_service_account` (String) Service Account to impersonate when running queries
 - `job_creation_timeout_seconds` (Number) Maximum timeout for the job creation step
+- `job_execution_timeout_seconds` (Number) Timeout in seconds for job execution, used by the bigquery_v1 adapter
 - `job_retry_deadline_seconds` (Number) Total number of seconds to wait while retrying the same query
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
@@ -113,6 +114,7 @@ Read-Only:
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries
 - `token_uri` (String) Token URI for the Service Account
+- `use_latest_adapter` (Boolean) Whether the connection uses the latest bigquery_v1 adapter (used for BQ WIF)
 
 
 <a id="nestedatt--databricks"></a>
