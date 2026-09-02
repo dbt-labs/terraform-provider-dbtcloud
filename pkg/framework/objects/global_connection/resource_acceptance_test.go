@@ -2175,3 +2175,109 @@ resource dbtcloud_global_connection test {
 
 `, connectionName, jobExecutionTimeoutSeconds)
 }
+
+// TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration tests that
+// oauth_configuration_id can be set on a BigQuery connection, is read back from the API
+// and can be removed again.
+func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with oauth_configuration_id
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+					connectionName,
+					true,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttrPair(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+						"dbtcloud_oauth_configuration.test",
+						"id",
+					),
+				),
+			},
+			// IMPORT, to check that oauth_configuration_id is read back
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.use_latest_adapter",
+					"bigquery.deployment_env_auth_type",
+				},
+			},
+			// modify, removing oauth_configuration_id
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+					connectionName,
+					false,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+	connectionName string,
+	withOAuthConfiguration bool,
+) string {
+	oauthConfigurationID := ""
+	if withOAuthConfiguration {
+		oauthConfigurationID = "oauth_configuration_id = dbtcloud_oauth_configuration.test.id"
+	}
+
+	return fmt.Sprintf(`
+
+resource dbtcloud_oauth_configuration test {
+  type = "entra"
+  name = "OAuth config"
+  client_secret = "secret"
+  client_id = "myid2"
+  redirect_uri = "http://example.com"
+  token_url = "http://example.com"
+  authorize_url = "http://example.com"
+  application_id_uri = "app-uri"
+}
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+  %s
+
+  bigquery = {
+    gcp_project_id              = "my-gcp-project-id"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+    deployment_env_auth_type    = "external-oauth-wif"
+    use_latest_adapter          = true
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName, oauthConfigurationID)
+}

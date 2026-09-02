@@ -1,7 +1,13 @@
 package bigquery_credential
 
+const (
+	AuthTypeServiceAccountJSON = "service-account-json"
+	AuthTypeOAuthSecrets       = "oauth-secrets"
+	AuthTypeExternalOAuthWIF   = "external-oauth-wif"
+)
+
 var AuthTypes = []string{
-	"service-account-json",
-	"oauth-secrets",
-	"external-oauth-wif",
+	AuthTypeServiceAccountJSON,
+	AuthTypeOAuthSecrets,
+	AuthTypeExternalOAuthWIF,
 }

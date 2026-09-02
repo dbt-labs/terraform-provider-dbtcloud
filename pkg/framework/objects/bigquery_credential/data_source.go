@@ -116,7 +116,7 @@ func (d *bigqueryCredentialDataSource) Read(
 	} else {
 		state.ServiceAccountImpersonationURL = types.StringNull()
 	}
-	
+
 	// Set state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

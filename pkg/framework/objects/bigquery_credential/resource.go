@@ -15,9 +15,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &bigqueryCredentialResource{}
-	_ resource.ResourceWithConfigure   = &bigqueryCredentialResource{}
-	_ resource.ResourceWithImportState = &bigqueryCredentialResource{}
+	_ resource.Resource                   = &bigqueryCredentialResource{}
+	_ resource.ResourceWithConfigure      = &bigqueryCredentialResource{}
+	_ resource.ResourceWithImportState    = &bigqueryCredentialResource{}
+	_ resource.ResourceWithValidateConfig = &bigqueryCredentialResource{}
 )
 
 // BigqueryCredentialResource is a helper function to simplify the provider implementation.
@@ -71,6 +72,31 @@ func (r *bigqueryCredentialResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = BigQueryResourceSchema
+}
+
+// ValidateConfig checks the cross-field requirements of the WIF authentication method.
+func (r *bigqueryCredentialResource) ValidateConfig(
+	ctx context.Context,
+	req resource.ValidateConfigRequest,
+	resp *resource.ValidateConfigResponse,
+) {
+	var config BigqueryCredentialResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.AuthType.ValueString() == AuthTypeExternalOAuthWIF &&
+		config.WorkloadPoolProviderPath.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("workload_pool_provider_path"),
+			"Missing Required Field for External OAuth WIF",
+			fmt.Sprintf(
+				"When auth_type is '%s', the field 'workload_pool_provider_path' must be specified.",
+				AuthTypeExternalOAuthWIF,
+			),
+		)
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state.
