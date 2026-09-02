@@ -2181,6 +2181,8 @@ resource dbtcloud_global_connection test {
 // and can be removed again.
 func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
 	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// the OAuth client ID has to be unique across the account
+	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -2190,6 +2192,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
 			{
 				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
 					connectionName,
+					oAuthClientID,
 					true,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -2223,6 +2226,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
 			{
 				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
 					connectionName,
+					oAuthClientID,
 					false,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -2238,6 +2242,7 @@ func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
 
 func testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
 	connectionName string,
+	oAuthClientID string,
 	withOAuthConfiguration bool,
 ) string {
 	oauthConfigurationID := ""
@@ -2249,9 +2254,9 @@ func testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
 
 resource dbtcloud_oauth_configuration test {
   type = "entra"
-  name = "OAuth config"
+  name = "OAuth config %s"
   client_secret = "secret"
-  client_id = "myid2"
+  client_id = "%s"
   redirect_uri = "http://example.com"
   token_url = "http://example.com"
   authorize_url = "http://example.com"
@@ -2279,5 +2284,5 @@ resource dbtcloud_global_connection test {
   }
 }
 
-`, connectionName, oauthConfigurationID)
+`, oAuthClientID, oAuthClientID, connectionName, oauthConfigurationID)
 }

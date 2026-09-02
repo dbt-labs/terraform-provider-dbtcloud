@@ -159,6 +159,9 @@ func (r *bigqueryCredentialResource) Create(
 	// Map response body to schema and populate computed values
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, *credential.ID))
 	plan.CredentialID = types.Int64Value(int64(*credential.ID))
+	if plan.AuthType.IsUnknown() {
+		plan.AuthType = optionalString(credential.GetAuthType())
+	}
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -207,22 +210,10 @@ func (r *bigqueryCredentialResource) Read(
 	state.Dataset = types.StringValue(credential.GetDataset())
 	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
 
-	// WIF fields (v1 only; null when not set to avoid perpetual diffs)
-	if v := credential.GetAuthType(); v != "" {
-		state.AuthType = types.StringValue(v)
-	} else {
-		state.AuthType = types.StringNull()
-	}
-	if v := credential.GetWorkloadPoolProviderPath(); v != "" {
-		state.WorkloadPoolProviderPath = types.StringValue(v)
-	} else {
-		state.WorkloadPoolProviderPath = types.StringNull()
-	}
-	if v := credential.GetServiceAccountImpersonationURL(); v != "" {
-		state.ServiceAccountImpersonationURL = types.StringValue(v)
-	} else {
-		state.ServiceAccountImpersonationURL = types.StringNull()
-	}
+	// WIF fields, v1 only
+	state.AuthType = optionalString(credential.GetAuthType())
+	state.WorkloadPoolProviderPath = optionalString(credential.GetWorkloadPoolProviderPath())
+	state.ServiceAccountImpersonationURL = optionalString(credential.GetServiceAccountImpersonationURL())
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)

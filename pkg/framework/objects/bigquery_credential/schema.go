@@ -74,14 +74,17 @@ var BigQueryResourceSchema = resource_schema.Schema{
 func resourceAttributes() map[string]resource_schema.Attribute {
 	attributes := maps.Clone(SemanticLayerAttributes)
 
+	// Computed because the API defaults it to `service-account-json` for v1 credentials
 	attributes["auth_type"] = resource_schema.StringAttribute{
 		Optional:    true,
+		Computed:    true,
 		Description: "The authentication method for the BigQuery credential. Supported values: `service-account-json`, `oauth-secrets`, `external-oauth-wif`. Only applicable for v1 credentials (when `connection_id` is set).",
 		Validators: []validator.String{
 			stringvalidator.OneOf(AuthTypes...),
 			stringvalidator.AlsoRequires(path.MatchRoot("connection_id")),
 		},
 		PlanModifiers: []planmodifier.String{
+			stringplanmodifier.UseStateForUnknown(),
 			stringplanmodifier.RequiresReplace(),
 		},
 	}
