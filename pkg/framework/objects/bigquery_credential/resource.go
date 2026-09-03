@@ -136,6 +136,30 @@ func (r *bigqueryCredentialResource) Create(
 		adapterVersion = connection.Data.AdapterVersion
 	}
 
+	// A connection_id on its own doesn't guarantee the v1 adapter, and the WIF fields don't
+	// exist on v0 credentials
+	latestAdapterVersion := dbt_cloud.BigQueryConfig{}.LatestAdapterVersion()
+	if adapterVersion != latestAdapterVersion {
+		for _, field := range wifFields(plan) {
+			if field.value.IsNull() || field.value.IsUnknown() {
+				continue
+			}
+			resp.Diagnostics.AddAttributeError(
+				path.Root(field.name),
+				"Unsupported Field for the Connection Adapter",
+				fmt.Sprintf(
+					"The field '%s' is only supported for %s credentials, but the connection uses '%s'. Set `use_latest_adapter = true` on the connection to use it.",
+					field.name,
+					latestAdapterVersion,
+					adapterVersion,
+				),
+			)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Create new credential
 	credential, err := r.client.CreateBigQueryCredential(
 		projectID,

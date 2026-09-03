@@ -416,3 +416,63 @@ resource "dbtcloud_bigquery_credential" "test_credential_invalid" {
 }
 `, projectName, dataset, credentialFields)
 }
+
+// TestAccDbtCloudBigQueryCredentialResourceWIFOnV0Connection tests that the v1-only fields
+// are rejected when connection_id points to a connection using the legacy adapter.
+func TestAccDbtCloudBigQueryCredentialResourceWIFOnV0Connection(t *testing.T) {
+	projectNameV0 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	datasetV0 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionNameV0 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudBigQueryCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudBigQueryCredentialResourceWIFOnV0ConnectionConfig(
+					projectNameV0,
+					datasetV0,
+					connectionNameV0,
+				),
+				ExpectError: regexp.MustCompile("only supported for bigquery_v1 credentials"),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudBigQueryCredentialResourceWIFOnV0ConnectionConfig(
+	projectName, dataset, connectionName string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "test_connection" {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id              = "test-gcp-project"
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "test@test-gcp-project.iam.gserviceaccount.com"
+    client_id                   = "123456789"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/test"
+  }
+}
+
+resource "dbtcloud_bigquery_credential" "test_credential_v0" {
+  is_active                   = true
+  project_id                  = dbtcloud_project.test_project.id
+  dataset                     = "%s"
+  num_threads                 = 4
+  connection_id               = dbtcloud_global_connection.test_connection.id
+  auth_type                   = "external-oauth-wif"
+  workload_pool_provider_path = "projects/123456/locations/global/workloadIdentityPools/test-pool/providers/test-provider"
+}
+`, projectName, connectionName, dataset)
+}

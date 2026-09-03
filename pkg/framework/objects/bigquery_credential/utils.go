@@ -22,3 +22,17 @@ func optionalString(value string) types.String {
 	}
 	return types.StringValue(value)
 }
+
+type wifField struct {
+	name  string
+	value types.String
+}
+
+// wifFields returns the v1-only WIF attributes, in schema order
+func wifFields(model BigqueryCredentialResourceModel) []wifField {
+	return []wifField{
+		{"auth_type", model.AuthType},
+		{"workload_pool_provider_path", model.WorkloadPoolProviderPath},
+		{"service_account_impersonation_url", model.ServiceAccountImpersonationURL},
+	}
+}
