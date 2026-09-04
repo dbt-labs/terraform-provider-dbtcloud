@@ -2,11 +2,14 @@ package dbt_cloud
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 // newRetryTestClient builds a Client pointed at the provided httptest.Server
@@ -333,5 +336,100 @@ func TestIsErrorRetriable_BackwardsCompatible(t *testing.T) {
 			t.Errorf("isErrorRetriable(%d, %v) = %v, isHTTPCodeRetriable = %v",
 				tc.statusCode, tc.configured, got, want)
 		}
+	}
+}
+
+// TestDoRequestWithRetry_RewindsRequestBodyOnRetry verifies that a write whose
+// first attempt is abandoned client-side (the dbt Cloud API stalling past
+// timeout_seconds, which is what makes acceptance tests flake) is retried with
+// the same payload. The retry loop reuses a single *http.Request whose body the
+// first attempt already consumed, so without rewinding via GetBody the retry
+// fails with "ContentLength=N with Body length 0" and can never succeed.
+func TestDoRequestWithRetry_RewindsRequestBodyOnRetry(t *testing.T) {
+	const payload = `{"name":"my-project","account_id":123}`
+
+	var attempts atomic.Int32
+	var mu sync.Mutex
+	receivedBodies := []string{}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("reading request body: %v", err)
+		}
+		mu.Lock()
+		receivedBodies = append(receivedBodies, string(body))
+		mu.Unlock()
+
+		if attempts.Add(1) == 1 {
+			// Stall past the client timeout, so the first attempt is cancelled
+			// after the body has already been written.
+			time.Sleep(time.Second)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer srv.Close()
+
+	c := newRetryTestClient(t, srv.URL, 3, nil)
+	c.HTTPClient.Timeout = 300 * time.Millisecond
+
+	req, err := http.NewRequest(http.MethodPost, srv.URL+"/v3/projects/", strings.NewReader(payload))
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		t.Fatalf("expected success after retrying the write, got: %v", err)
+	}
+	if string(body) != `{"ok":true}` {
+		t.Fatalf("unexpected body: %s", body)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(receivedBodies) != 2 {
+		t.Fatalf("expected 2 attempts to reach the server, got %d", len(receivedBodies))
+	}
+	for i, received := range receivedBodies {
+		if received != payload {
+			t.Errorf("attempt %d sent %q, want %q", i+1, received, payload)
+		}
+	}
+}
+
+// TestDoRequestWithRetry_DoesNotRetryNonRewindableBody verifies that a request
+// whose body cannot be rewound is not retried, since resending it would mean
+// sending an empty payload.
+func TestDoRequestWithRetry_DoesNotRetryNonRewindableBody(t *testing.T) {
+	var attempts atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts.Add(1)
+		http.Error(w, "transient", http.StatusServiceUnavailable)
+	}))
+	defer srv.Close()
+
+	c := newRetryTestClient(t, srv.URL, 3, nil)
+	// io.NopCloser hides the underlying reader type, so http.NewRequest cannot
+	// populate GetBody.
+	req, err := http.NewRequest(
+		http.MethodPost,
+		srv.URL+"/v3/projects/",
+		io.NopCloser(strings.NewReader(`{"name":"my-project"}`)),
+	)
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+	if req.GetBody != nil {
+		t.Fatal("expected a request without GetBody for this test")
+	}
+
+	if _, err := c.doRequestWithRetry(req); err == nil {
+		t.Fatal("expected the 503 to surface as an error")
+	}
+	if got := attempts.Load(); got != 1 {
+		t.Fatalf("expected exactly 1 attempt for a non-rewindable body, got %d", got)
 	}
 }

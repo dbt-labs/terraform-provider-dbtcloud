@@ -1,7 +1,13 @@
 package dbt_cloud
 
 import (
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -398,4 +404,83 @@ func TestNewClientValidation(t *testing.T) {
 // Helper function for creating string pointers
 func stringPtr(s string) *string {
 	return &s
+}
+
+// TestNewHTTPClientReusesConnections holds a batch of requests open at once, then sends
+// the same batch again. Every connection from the first batch has to be reused, otherwise
+// a Terraform run issuing parallel API calls re-dials and re-handshakes TLS for most of
+// them, which is what http.DefaultTransport's limit of 2 idle connections per host does.
+func TestNewHTTPClientReusesConnections(t *testing.T) {
+	const concurrency = 10
+
+	type batch struct {
+		arrived atomic.Int32
+		allHere chan struct{}
+		release chan struct{}
+	}
+	var current atomic.Pointer[batch]
+	var connectionsOpened atomic.Int32
+
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b := current.Load()
+		if int(b.arrived.Add(1)) == concurrency {
+			close(b.allHere)
+		}
+		<-b.release
+		w.WriteHeader(http.StatusOK)
+	}))
+	srv.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+		if state == http.StateNew {
+			connectionsOpened.Add(1)
+		}
+	}
+	srv.Start()
+	defer srv.Close()
+
+	client := NewHTTPClient(30)
+
+	transport, ok := client.Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("expected an *http.Transport, got %T", client.Transport)
+	}
+	if transport.MaxIdleConnsPerHost < concurrency {
+		t.Errorf(
+			"MaxIdleConnsPerHost is %d, too low to keep %d parallel connections",
+			transport.MaxIdleConnsPerHost,
+			concurrency,
+		)
+	}
+
+	for round := 1; round <= 2; round++ {
+		b := &batch{allHere: make(chan struct{}), release: make(chan struct{})}
+		current.Store(b)
+
+		var wg sync.WaitGroup
+		for range concurrency {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				resp, err := client.Get(srv.URL)
+				if err != nil {
+					t.Errorf("round %d request: %v", round, err)
+					return
+				}
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
+			}()
+		}
+
+		<-b.allHere // all requests are in flight, so each holds its own connection
+		close(b.release)
+		wg.Wait()
+	}
+
+	if got := connectionsOpened.Load(); got > concurrency {
+		t.Errorf(
+			"opened %d connections for 2 batches of %d requests, want no more than %d",
+			got,
+			concurrency,
+			concurrency,
+		)
+	}
 }

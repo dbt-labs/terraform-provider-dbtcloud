@@ -16,6 +16,8 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// the OAuth configuration client ID has to be unique across the account
+	oAuthConfigurationClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -27,6 +29,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName,
 					oAuthClientID,
 					oAuthClientSecret,
+					oAuthConfigurationClientID,
 				),
 				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
 				Check: resource.ComposeTestCheckFunc(
@@ -50,6 +53,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
 					connectionName,
+					oAuthConfigurationClientID,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -78,6 +82,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName2,
 					oAuthClientID,
 					oAuthClientSecret,
+					oAuthConfigurationClientID,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -112,15 +117,15 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceBasicConfig(
-	connectionName, oAuthClientID, oAuthClientSecret string,
+	connectionName, oAuthClientID, oAuthClientSecret, oAuthConfigurationClientID string,
 ) string {
 	return fmt.Sprintf(`
 
 resource dbtcloud_oauth_configuration test {
   type = "entra"
-  name = "OAuth config"
+  name = "OAuth config %s"
   client_secret = "secret"
-  client_id = "myid2"
+  client_id = "%s"
   redirect_uri = "http://example.com"
   token_url = "http://example.com"
   authorize_url = "http://example.com"
@@ -142,19 +147,19 @@ resource dbtcloud_global_connection test {
   }
 }
 
-`, connectionName, oAuthClientID, oAuthClientSecret)
+`, oAuthConfigurationClientID, oAuthConfigurationClientID, connectionName, oAuthClientID, oAuthClientSecret)
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
-	connectionName string,
+	connectionName, oAuthConfigurationClientID string,
 ) string {
 	return fmt.Sprintf(`
 
 resource dbtcloud_oauth_configuration test {
   type = "entra"
-  name = "OAuth config"
+  name = "OAuth config %s"
   client_secret = "secret"
-  client_id = "myid2"
+  client_id = "%s"
   redirect_uri = "http://example.com"
   token_url = "http://example.com"
   authorize_url = "http://example.com"
@@ -177,7 +182,7 @@ resource dbtcloud_global_connection test {
 	role = "role"
   }
 }
-`, connectionName)
+`, oAuthConfigurationClientID, oAuthConfigurationClientID, connectionName)
 }
 
 func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {

@@ -147,3 +147,32 @@ func (c *Client) DeleteOpenAIIntegration(integrationID int64) error {
 	_, err = c.doRequestWithRetry(req)
 	return err
 }
+
+// GetAllOpenAIIntegrations lists the OpenAI integrations of the account. The API allows
+// one per account, so this returns at most one entry.
+func (c *Client) GetAllOpenAIIntegrations() ([]OpenAIIntegration, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"%s/v3/accounts/%s/integrations/open-ai/",
+			c.HostURL,
+			strconv.FormatInt(c.AccountID, 10),
+		),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := OpenAIIntegrationListResponse{}
+	if err = json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	return resp.Data, nil
+}

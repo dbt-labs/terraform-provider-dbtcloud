@@ -15,7 +15,10 @@ import (
 // an openai key type: create, update (key rotation), import, destroy.
 func TestAccDbtCloudOpenAIIntegrationResource_OpenAI(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+			sweepOpenAIIntegrations(t)
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudOpenAIIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -74,7 +77,10 @@ func TestAccDbtCloudOpenAIIntegrationResource_OpenAI(t *testing.T) {
 // sensitive key_value attribute (for older Terraform versions).
 func TestAccDbtCloudOpenAIIntegrationResource_KeyValue(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+			sweepOpenAIIntegrations(t)
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudOpenAIIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -120,7 +126,10 @@ func TestAccDbtCloudOpenAIIntegrationResource_KeyValue(t *testing.T) {
 // key type including all required Azure-specific fields.
 func TestAccDbtCloudOpenAIIntegrationResource_AzureOpenAI(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+			sweepOpenAIIntegrations(t)
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudOpenAIIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -191,7 +200,10 @@ func TestAccDbtCloudOpenAIIntegrationResource_AzureOpenAI(t *testing.T) {
 // key_type from openai to azure_openai in place.
 func TestAccDbtCloudOpenAIIntegrationResource_KeyTypeSwitch(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+			sweepOpenAIIntegrations(t)
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudOpenAIIntegrationDestroy,
 		Steps: []resource.TestStep{
@@ -230,6 +242,7 @@ func TestAccDbtCloudOpenAIIntegrationResource_KeyTypeSwitch(t *testing.T) {
 // ValidateConfig correctly rejects invalid configurations.
 func TestAccDbtCloudOpenAIIntegrationResource_ValidationErrors(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
+		// every step fails in config validation, so this one never reaches the API
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -373,4 +386,36 @@ resource "dbtcloud_openai_integration" "test" {
   key_value_wo_version = 1
 }
 `
+}
+
+// sweepOpenAIIntegrations deletes integrations left behind by an earlier run. The API
+// allows one per account, so a leftover makes every create in this file fail on the
+// account_id unique constraint - which the API reports as a 500 - until it is removed.
+// A run that crashes or whose destroy step fails leaves exactly that behind, so the
+// failure repeats on every later run.
+func sweepOpenAIIntegrations(t *testing.T) {
+	t.Helper()
+
+	client, err := acctest_helper.SharedClient()
+	if err != nil {
+		t.Fatalf("Issue getting the client: %s", err)
+	}
+
+	integrations, err := client.GetAllOpenAIIntegrations()
+	if err != nil {
+		// Best effort: the test below reports the real failure if a leftover is blocking it.
+		t.Logf("could not list the existing OpenAI integrations: %s", err)
+		return
+	}
+
+	for _, integration := range integrations {
+		if integration.ID == nil {
+			continue
+		}
+		if err := client.DeleteOpenAIIntegration(*integration.ID); err != nil {
+			t.Logf("could not delete the leftover OpenAI integration %d: %s", *integration.ID, err)
+			continue
+		}
+		t.Logf("deleted OpenAI integration %d left behind by an earlier run", *integration.ID)
+	}
 }

@@ -3,12 +3,10 @@ package acctest_helper
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/provider"
@@ -18,6 +16,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	helperTestResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+)
+
+// The check functions below run through SharedClient, which had retries disabled: a
+// single dropped or slow response made CheckDestroy report a resource as still
+// existing. Retry them the same way the provider does.
+const (
+	acceptanceMaxRetries           = 3
+	acceptanceRetryIntervalSeconds = 10
 )
 
 func SharedClient() (*dbt_cloud.Client, error) {
@@ -35,12 +41,14 @@ func SharedClient() (*dbt_cloud.Client, error) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to parse serverURL: %s, error: %v", hostURL, err))
 	}
+
 	client := dbt_cloud.Client{
-		HTTPClient:   &http.Client{Timeout: 30 * time.Second},
-		HostURL:      parsedURL,
-		Token:        token,
-		AccountID:    accountID,
-		DisableRetry: true,
+		HTTPClient:           dbt_cloud.NewHTTPClient(dbt_cloud.DefaultTimeoutSeconds),
+		MaxRetries:           acceptanceMaxRetries,
+		RetryIntervalSeconds: acceptanceRetryIntervalSeconds,
+		HostURL:              parsedURL,
+		Token:                token,
+		AccountID:            accountID,
 	}
 
 	return &client, nil

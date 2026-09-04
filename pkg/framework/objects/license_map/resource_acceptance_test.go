@@ -1,10 +1,14 @@
 package license_map_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -18,7 +22,10 @@ func TestAccDbtCloudLicenseMapResource(t *testing.T) {
 	groupName2 := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		PreCheck: func() {
+			acctest_helper.TestAccPreCheck(t)
+			sweepLicenseMaps(t, "developer")
+		},
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudLicenseMapDestroy,
 		Steps: []resource.TestStep{
@@ -145,4 +152,49 @@ func testAccCheckDbtCloudLicenseMapDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+// licenseMapListResponse mirrors the list endpoint. The client's GetAllLicenseMaps goes
+// through the paginated helper, which calls log.Fatal on a request error and would take
+// the whole test binary down; this sweep reads the single page directly instead.
+type licenseMapListResponse struct {
+	Data []dbt_cloud.LicenseMap `json:"data"`
+}
+
+// sweepLicenseMaps deletes license maps left behind by an earlier run. The API allows one
+// per license type per account, so a leftover makes every create for that type fail with
+// "License map must be unique" until it is removed.
+func sweepLicenseMaps(t *testing.T, licenseTypes ...string) {
+	t.Helper()
+
+	client, err := acctest_helper.SharedClient()
+	if err != nil {
+		t.Fatalf("Issue getting the client: %s", err)
+	}
+
+	body, err := client.GetEndpoint(
+		fmt.Sprintf("%s/v3/accounts/%d/license-maps/", client.HostURL, client.AccountID),
+	)
+	if err != nil {
+		// Best effort: the test below reports the real failure if a leftover is blocking it.
+		t.Logf("could not list the existing license maps: %s", err)
+		return
+	}
+
+	response := licenseMapListResponse{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		t.Logf("could not read the existing license maps: %s", err)
+		return
+	}
+
+	for _, licenseMap := range response.Data {
+		if licenseMap.ID == nil || !slices.Contains(licenseTypes, licenseMap.LicenseType) {
+			continue
+		}
+		if err := client.DestroyLicenseMap(*licenseMap.ID); err != nil {
+			t.Logf("could not delete the leftover license map %d: %s", *licenseMap.ID, err)
+			continue
+		}
+		t.Logf("deleted license map %d left behind by an earlier run", *licenseMap.ID)
+	}
 }

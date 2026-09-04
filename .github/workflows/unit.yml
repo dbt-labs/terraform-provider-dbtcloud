@@ -56,10 +56,15 @@ jobs:
   unit:
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-ci')"
     needs: check-changie
-    runs-on: ubuntu-latest
+    # Depot runners are on AWS, same region as the dbt Cloud API the acceptance tests
+    # call, which avoids the cross-cloud network path GitHub-hosted runners take
+    runs-on: depot-ubuntu-24.04
+    # a hung API call must not hold a runner for the 6h GitHub default
+    timeout-minutes: 120
     environment: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'cloud-tests' || '' }}
     concurrency:
-      group: ${{ github.workflow }}-${{ matrix.target == 'test-acceptance' || github.ref }}
+      # acceptance tests share one account with daily.yml, so they run one at a time
+      group: ${{ matrix.target == 'test-acceptance' && 'acceptance-tests' || format('{0}-{1}', github.workflow, github.ref) }}
       cancel-in-progress: false 
     strategy:
       matrix:

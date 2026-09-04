@@ -2,6 +2,7 @@ package dbt_cloud
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -115,6 +116,28 @@ type APIError struct {
 	} `json:"status"`
 }
 
+// DefaultTimeoutSeconds is the HTTP client timeout used when the timeout_seconds
+// provider attribute is not set.
+const DefaultTimeoutSeconds = 30
+
+// maxIdleConns caps the connections kept for reuse. http.DefaultTransport keeps only
+// 2 idle connections per host, so a Terraform run issuing API calls in parallel has to
+// dial and complete a new TLS handshake for most of them. Keeping them instead removes
+// that churn.
+const maxIdleConns = 100
+
+// NewHTTPClient builds the HTTP client used for every dbt Cloud API call.
+func NewHTTPClient(timeoutSeconds int) *http.Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConns = maxIdleConns
+	transport.MaxIdleConnsPerHost = maxIdleConns
+
+	return &http.Client{
+		Timeout:   time.Duration(timeoutSeconds) * time.Second,
+		Transport: transport,
+	}
+}
+
 // NewClient -
 func NewClient(account_id *int64, token *string, host_url *string, maxRetries *int, retryIntervalSeconds *int, retriableStatusCodes []string, skipCredentialsValidation bool, timeoutSeconds *int) (*Client, error) {
 
@@ -129,7 +152,7 @@ func NewClient(account_id *int64, token *string, host_url *string, maxRetries *i
 	}
 
 	c := Client{
-		HTTPClient:           &http.Client{Timeout: time.Duration(*timeoutSeconds) * time.Second},
+		HTTPClient:           NewHTTPClient(*timeoutSeconds),
 		HostURL:              parsedURL,
 		Token:                *token,
 		AccountID:            *account_id,
@@ -203,8 +226,25 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 
 	setRequestHeaders(req, c.Token)
 
+	// The first attempt consumes the request body, so a retry can only send the same
+	// payload again if the body can be rewound. http.NewRequest populates GetBody for
+	// the in-memory readers this client uses; without it a retry would send an empty
+	// body, so those requests are not retried at all.
+	bodyCanBeRewound := req.Body == nil || req.GetBody != nil
+
 	var lastErr error
 	for attempt := 0; attempt < c.MaxRetries; attempt++ {
+		if attempt > 0 && req.Body != nil {
+			rewoundBody, rewindErr := req.GetBody()
+			if rewindErr != nil {
+				return nil, errors.Join(
+					lastErr,
+					fmt.Errorf("could not rewind the request body to retry: %w", rewindErr),
+				)
+			}
+			req.Body = rewoundBody
+		}
+
 		body, statusCode, attemptErr := c.attemptRequest(req)
 		if attemptErr == nil {
 			return body, nil
@@ -218,8 +258,9 @@ func (c *Client) doRequestWithRetry(req *http.Request) ([]byte, error) {
 		// defaultRetriableHTTPCodes are retried with exponential backoff.
 		// Everything else surfaces immediately so callers see the same
 		// terminal error they did before this fix.
-		retriable := statusCode == 0 ||
-			isHTTPCodeRetriable(statusCode, c.RetriableStatusCodes)
+		retriable := bodyCanBeRewound &&
+			(statusCode == 0 ||
+				isHTTPCodeRetriable(statusCode, c.RetriableStatusCodes))
 
 		if !retriable || attemptsRemaining == 0 {
 			return nil, attemptErr
