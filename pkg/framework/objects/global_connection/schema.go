@@ -59,7 +59,7 @@ func (r *globalConnectionResource) Schema(
 			},
 			"oauth_configuration_id": resource_schema.Int64Attribute{
 				Optional:    true,
-				Description: "External OAuth configuration ID (only Snowflake for now)",
+				Description: "External OAuth configuration ID. Supported for all connection types.",
 			},
 			"bigquery": resource_schema.SingleNestedAttribute{
 				Optional: true,
@@ -689,6 +689,10 @@ func (r *globalConnectionDataSource) Schema(
 						Computed:    true,
 						Description: "Timeout in seconds for queries",
 					},
+					"job_execution_timeout_seconds": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "Timeout in seconds for job execution, used by the bigquery_v1 adapter",
+					},
 					"private_key_id": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Private Key ID for the Service Account",
@@ -780,6 +784,10 @@ func (r *globalConnectionDataSource) Schema(
 						Computed:    true,
 						ElementType: types.StringType,
 						Description: "OAuth scopes for the BigQuery connection",
+					},
+					"use_latest_adapter": datasource_schema.BoolAttribute{
+						Computed:    true,
+						Description: "Whether the connection uses the latest bigquery_v1 adapter (used for BQ WIF)",
 					},
 					"deployment_env_auth_type": datasource_schema.StringAttribute{
 						Computed:    true,

@@ -6,6 +6,20 @@ import (
 
 // BigqueryCredentialResourceModel is the model for the resource
 type BigqueryCredentialResourceModel struct {
+	ID                             types.String `tfsdk:"id"`
+	CredentialID                   types.Int64  `tfsdk:"credential_id"`
+	ProjectID                      types.Int64  `tfsdk:"project_id"`
+	IsActive                       types.Bool   `tfsdk:"is_active"`
+	Dataset                        types.String `tfsdk:"dataset"`
+	NumThreads                     types.Int64  `tfsdk:"num_threads"`
+	ConnectionID                   types.Int64  `tfsdk:"connection_id"`
+	AuthType                       types.String `tfsdk:"auth_type"`
+	WorkloadPoolProviderPath       types.String `tfsdk:"workload_pool_provider_path"`
+	ServiceAccountImpersonationURL types.String `tfsdk:"service_account_impersonation_url"`
+}
+
+// SemanticLayerCredentialModel is the model matching SemanticLayerAttributes
+type SemanticLayerCredentialModel struct {
 	ID           types.String `tfsdk:"id"`
 	CredentialID types.Int64  `tfsdk:"credential_id"`
 	ProjectID    types.Int64  `tfsdk:"project_id"`
@@ -17,10 +31,13 @@ type BigqueryCredentialResourceModel struct {
 
 // BigqueryCredentialDataSourceModel is the model for the data source
 type BigqueryCredentialDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	CredentialID types.Int64  `tfsdk:"credential_id"`
-	ProjectID    types.Int64  `tfsdk:"project_id"`
-	IsActive     types.Bool   `tfsdk:"is_active"`
-	Dataset      types.String `tfsdk:"dataset"`
-	NumThreads   types.Int64  `tfsdk:"num_threads"`
+	ID                             types.String `tfsdk:"id"`
+	CredentialID                   types.Int64  `tfsdk:"credential_id"`
+	ProjectID                      types.Int64  `tfsdk:"project_id"`
+	IsActive                       types.Bool   `tfsdk:"is_active"`
+	Dataset                        types.String `tfsdk:"dataset"`
+	NumThreads                     types.Int64  `tfsdk:"num_threads"`
+	AuthType                       types.String `tfsdk:"auth_type"`
+	WorkloadPoolProviderPath       types.String `tfsdk:"workload_pool_provider_path"`
+	ServiceAccountImpersonationURL types.String `tfsdk:"service_account_impersonation_url"`
 }
