@@ -16,7 +16,10 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 |Account Viewer | account_viewer|
 |Admin | admin|
 |Analyst | analyst|
+|Analyst Read | analyst_read|
 |Billing Admin | billing_admin|
+|Cost Insights Admin | cost_insights_admin|
+|Cost Insights Viewer | cost_insights_viewer|
 |Cost Management viewer | cost_management_viewer|
 |Cost Management admin | cost_management_admin|
 |Database Admin | database_admin|
@@ -24,6 +27,7 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 |Fusion Admin | fusion_admin|
 |Git Admin | git_admin|
 |Job Admin | job_admin|
+|Job Creator | job_creator|
 |Job Runner | job_runner|
 |Job Viewer | job_viewer|
 |Manage marketplace apps | manage_marketplace_apps|
@@ -33,6 +37,7 @@ The mapping of permission names [from the docs](https://docs.getdbt.com/docs/clo
 |Owner | owner|
 |Project Creator | project_creator|
 |Read-Only | readonly|
+|SCIM Only | scim_only|
 |Security Admin | security_admin|
 |Semantic Layer Only | semantic_layer_only|
 |Stakeholder | stakeholder|
