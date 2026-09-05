@@ -61,6 +61,9 @@ func (r *environmentResource) Read(
 
 	environment, err := r.client.GetEnvironment(projectID, environmentID)
 	if err != nil {
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "environment") {
+			return
+		}
 		resp.Diagnostics.AddError("Error getting the environment", err.Error())
 		return
 	}
@@ -382,6 +385,10 @@ func (r *environmentResource) Delete(
 		environmentID,
 	)
 	if err != nil {
+		// If the resource is already deleted (404), treat as success
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "environment") {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting environment", err.Error())
 		return
 	}
