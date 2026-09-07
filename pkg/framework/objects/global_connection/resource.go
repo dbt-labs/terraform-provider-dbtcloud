@@ -48,11 +48,6 @@ func (r globalConnectionResource) ConfigValidators(ctx context.Context) []resour
 
 	return []resource.ConfigValidator{
 		resourcevalidator.ExactlyOneOf(warehouseValidators...),
-		// BigQuery doesn't support Private Link today
-		resourcevalidator.Conflicting(
-			path.MatchRoot("bigquery"),
-			path.MatchRoot("private_link_endpoint_id"),
-		),
 		// BigQuery auth type validation
 		validators.BigQueryAuthValidator{},
 	}

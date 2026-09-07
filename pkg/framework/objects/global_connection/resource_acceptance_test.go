@@ -2288,3 +2288,44 @@ resource dbtcloud_global_connection test {
 
 `, oAuthClientID, oAuthClientID, connectionName, oauthConfigurationID)
 }
+
+func TestAccDbtCloudGlobalConnectionBigQueryPrivateLink(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryPrivateLinkConfig(
+					connectionName,
+				),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryPrivateLinkConfig(connectionName string) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name                     = "%s"
+  private_link_endpoint_id = "1beb9010-9d1f-4ac4-a1b5-1e4a1f4bb1e0"
+
+  bigquery = {
+    gcp_project_id              = "my-gcp-project-id"
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName)
+}
