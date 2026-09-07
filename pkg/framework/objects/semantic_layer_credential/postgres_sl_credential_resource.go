@@ -68,18 +68,19 @@ func (r *postgresSemanticLayerCredentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan PostgresSLCredentialModel
+	var plan, config PostgresSLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	projectID := plan.Credential.ProjectID.ValueInt64()
-	password := ""
-	if plan.Credential.Password.ValueStringPointer() != nil {
-		password = *plan.Credential.Password.ValueStringPointer()
-	}
+	password := helper.ResolveWriteOnlyString(config.Credential.PasswordWo, plan.Credential.Password)
 
 	values := map[string]interface{}{
 		"username": plan.Credential.Username.ValueString(),
@@ -140,10 +141,14 @@ func (r *postgresSemanticLayerCredentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state PostgresSLCredentialModel
+	var plan, state, config PostgresSLCredentialModel
 
 	// Read plan and state values into the models
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -165,9 +170,10 @@ func (r *postgresSemanticLayerCredentialResource) Update(
 	}
 
 	//add credential fields to values map
+	password := helper.ResolveWriteOnlyString(config.Credential.PasswordWo, plan.Credential.Password)
 	values := map[string]interface{}{
 		"username": plan.Credential.Username.ValueString(),
-		"password": plan.Credential.Password.ValueString(),
+		"password": password,
 	}
 
 	credential.Name = plan.Configuration.Name.ValueString()
@@ -187,14 +193,10 @@ func (r *postgresSemanticLayerCredentialResource) Update(
 	}
 
 	state.ID = types.Int64Value(int64(*credential.ID))
+	state.Configuration = plan.Configuration
+	state.Credential = plan.Credential
 	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
-
-	//update config fields
-	state.Configuration.Name = types.StringValue(credential.Name)
-
-	//update credential fields
-	state.Credential.Password = getStringFromMap(credential.Values, "password")
-	state.Credential.Username = getStringFromMap(credential.Values, "username")
+	state.Credential.ID = types.StringValue(fmt.Sprintf("%d", *credential.ID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
