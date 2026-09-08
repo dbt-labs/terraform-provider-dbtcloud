@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
@@ -10,6 +11,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// notificationErrorDetail augments a create/update error with actionable
+// guidance for notification_type 5 (Slack V2). That type is only accepted when
+// the account-level Slack integration is enabled on the account; when it is
+// not, the API rejects the write with a not-found response, which is otherwise
+// confusing on a create or an in-place type change.
+func notificationErrorDetail(notificationType int64, err error) string {
+	detail := "Error: " + err.Error()
+	if notificationType == 5 && strings.Contains(err.Error(), "resource-not-found") {
+		detail += "\n\nnotification_type = 5 uses the account-level Slack (V2) integration. " +
+			"A not-found response here usually means the Slack (V2) integration is not enabled for this account. " +
+			"Confirm the account-level Slack integration is configured before using notification_type = 5."
+	}
+	return detail
+}
 
 var (
 	_ resource.Resource                   = &notificationResource{}
@@ -56,13 +72,11 @@ func (r *notificationResource) ValidateConfig(
 		)
 	}
 
-	if data.NotificationType == types.Int64Value(2) &&
-		data.SlackChannelID.IsNull() &&
-		data.SlackChannelName.IsNull() {
+	if data.NotificationType == types.Int64Value(2) && data.SlackChannelID.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("notification_type"),
 			"Notification type is not compatible with the other attributes",
-			"Notification type 2 requires a Slack channel ID and Slack channel name.",
+			"Notification type 2 requires a Slack channel ID.",
 		)
 	}
 
@@ -71,6 +85,14 @@ func (r *notificationResource) ValidateConfig(
 			path.Root("notification_type"),
 			"Notification type is not compatible with the other attributes",
 			"Notification type 4 requires an external email.",
+		)
+	}
+
+	if data.NotificationType == types.Int64Value(5) && data.SlackChannelID.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("notification_type"),
+			"Notification type is not compatible with the other attributes",
+			"Notification type 5 (Slack V2) requires a Slack channel ID.",
 		)
 	}
 }
@@ -176,7 +198,7 @@ func (r *notificationResource) Create(
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create notification",
-			"Error: "+err.Error(),
+			notificationErrorDetail(data.NotificationType.ValueInt64(), err),
 		)
 		return
 	}
@@ -275,7 +297,10 @@ func (r *notificationResource) Update(
 	// Update the notification
 	_, err := r.client.UpdateNotification(state.ID.ValueString(), notification)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating notification", err.Error())
+		resp.Diagnostics.AddError(
+			"Error updating notification",
+			notificationErrorDetail(state.NotificationType.ValueInt64(), err),
+		)
 		return
 	}
 

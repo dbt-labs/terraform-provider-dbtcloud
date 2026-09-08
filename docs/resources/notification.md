@@ -44,7 +44,7 @@ resource "dbtcloud_notification" "prod_job_external_notification" {
   external_email = "my_email@mail.com"
 }
 
-// and finally, we can set up Slack notifications
+// we can set up Slack notifications using the legacy, per-user Slack integration
 resource "dbtcloud_notification" "prod_job_slack_notifications" {
   // we need the ID of the user that set up the Slack Integration to properly send notifications
   user_id    = 200
@@ -52,6 +52,18 @@ resource "dbtcloud_notification" "prod_job_slack_notifications" {
   on_cancel  = [dbtcloud_job.prod_job.id]
   // the Type 2 is used for Slack notifications
   notification_type  = 2
+  slack_channel_id   = "C12345ABCDE"
+  slack_channel_name = "#my-awesome-channel"
+}
+
+// or we can use the account-level Slack (V2) integration set up via OAuth
+resource "dbtcloud_notification" "prod_job_slack_v2_notifications" {
+  // user_id is still required with account-level Slack, same as V1
+  user_id    = 200
+  on_failure = [23456, 56788]
+  on_cancel  = [dbtcloud_job.prod_job.id]
+  // the Type 5 is used for Slack notifications via the account-level (V2) integration
+  notification_type  = 5
   slack_channel_id   = "C12345ABCDE"
   slack_channel_name = "#my-awesome-channel"
 }
@@ -67,7 +79,7 @@ resource "dbtcloud_notification" "prod_job_slack_notifications" {
 ### Optional
 
 - `external_email` (String) The external email to receive the notification
-- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`)
+- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel (legacy, uses the per-user Slack integration of `user_id`): requires `slack_channel_id` ; 4 = external email: requires setting an `external_email` ; 5 = Slack channel using the account-level Slack (V2) integration: requires `slack_channel_id`, and the account-level Slack integration must be enabled on the account)
 - `on_cancel` (Set of Number) List of job IDs to trigger the webhook on cancel
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success

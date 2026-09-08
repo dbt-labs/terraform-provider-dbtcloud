@@ -82,7 +82,7 @@ resource "dbtcloud_partial_notification" "prod_job_slack_notifications" {
 ### Optional
 
 - `external_email` (String) The external email to receive the notification [global, used as identifier]
-- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`) [global, used as identifier]
+- `notification_type` (Number) Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel (legacy, uses the per-user Slack integration of `user_id`): requires `slack_channel_id` ; 4 = external email: requires setting an `external_email` ; 5 = Slack channel using the account-level Slack (V2) integration: requires `slack_channel_id`, and the account-level Slack integration must be enabled on the account) [global, used as identifier]
 - `on_cancel` (Set of Number) List of job IDs to trigger the webhook on cancel. Those will be added/removed when config is added/removed.
 - `on_failure` (Set of Number) List of job IDs to trigger the webhook on failure Those will be added/removed when config is added/removed.
 - `on_success` (Set of Number) List of job IDs to trigger the webhook on success Those will be added/removed when config is added/removed.

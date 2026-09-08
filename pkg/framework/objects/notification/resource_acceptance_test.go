@@ -167,6 +167,34 @@ func TestAccDbtCloudNotificationResource(t *testing.T) {
 	})
 }
 
+// TestAccDbtCloudNotificationResourceValidation exercises the config-time
+// validation for notification_type. These steps fail during plan (ValidateConfig),
+// so they do not require the account-level Slack integration to be configured
+// and never hit the create API.
+func TestAccDbtCloudNotificationResourceValidation(t *testing.T) {
+	userID := acctest_config.AcceptanceTestConfig.DbtCloudUserId
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// type 5 without a Slack channel is rejected by ValidateConfig
+				Config: fmt.Sprintf(`
+resource "dbtcloud_notification" "test_notification_slack_v2_invalid" {
+	user_id           = %d
+	on_failure        = [12345]
+	notification_type = 5
+}
+`, userID),
+				ExpectError: regexp.MustCompile(
+					`Notification type 5 \(Slack V2\) requires a Slack channel ID`,
+				),
+			},
+		},
+	})
+}
+
 func testAccDbtCloudNotificationResourceBasicConfig(projectName string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_notification_project" {

@@ -77,7 +77,7 @@ func (r *notificationResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     int64default.StaticInt64(1),
-				Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`)",
+				Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel (legacy, uses the per-user Slack integration of `user_id`): requires `slack_channel_id` ; 4 = external email: requires setting an `external_email` ; 5 = Slack channel using the account-level Slack (V2) integration: requires `slack_channel_id`, and the account-level Slack integration must be enabled on the account)",
 			},
 			"external_email": schema.StringAttribute{
 				Optional:    true,
