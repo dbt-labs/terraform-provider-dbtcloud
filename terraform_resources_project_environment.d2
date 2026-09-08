@@ -1,0 +1,111 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+  }
+}
+
+*.style.font-size: 22
+*.*.style.font-size: 22
+
+title: |md
+  # Project & environment setup
+| {near: top-center}
+
+version_note: "dbt Cloud Terraform provider resources · v1.12.5 · 3 of 4" {
+  near: top-right
+  style: {
+    font-size: 14
+    stroke: transparent
+    fill: transparent
+  }
+}
+
+direction: right
+
+classes: {
+  external: {
+    style: {
+      stroke-dash: 2
+      stroke: "#888888"
+      fill: "#EEEEEE"
+    }
+  }
+}
+
+global_connection: "global_connection (see Connections & credentials diagram)" {
+  class: external
+}
+credential: "credential (see Connections & credentials diagram)" {
+  class: external
+}
+job: "job (see Jobs & orchestration diagram)" {
+  class: external
+}
+
+project: {
+  style: {
+    fill: "#ACE1AF"
+    stroke: green
+  }
+}
+environment: {
+  style: {
+    fill: "#ACE1AF"
+    stroke: green
+  }
+}
+environment_variable
+partial_environment_variable
+extended_attributes
+semantic_layer_configuration
+project_repository
+repository
+azure_dev_ops_project: azure_dev_ops_project (data source)
+azure_dev_ops_repository: azure_dev_ops_repository (data source)
+lineage_integration
+profile
+model_notifications
+
+project -- environment
+project -- project_repository
+lineage_integration -- project
+project_repository -- repository
+repository -- azure_dev_ops_project {
+  style: {
+    stroke-dash: 3
+  }
+}
+repository -- azure_dev_ops_repository {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+environment -- environment_variable
+environment -- partial_environment_variable
+environment -- extended_attributes
+environment -- semantic_layer_configuration
+model_notifications -- environment
+environment -- job
+
+project -- profile
+profile -- global_connection {
+  style: {
+    stroke-dash: 3
+  }
+}
+profile -- credential {
+  style: {
+    stroke-dash: 3
+  }
+}
+profile -- extended_attributes {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+(project -- *)[*].style.stroke: green
+(* -- project)[*].style.stroke: green
+(environment -- *)[*].style.stroke: green
+(* -- environment)[*].style.stroke: green
