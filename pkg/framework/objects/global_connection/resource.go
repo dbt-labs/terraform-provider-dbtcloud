@@ -351,6 +351,11 @@ func (r *globalConnectionResource) Create(
 		if !plan.DatabricksConfig.ClientSecret.IsNull() {
 			databricksCfg.ClientSecret.Set(plan.DatabricksConfig.ClientSecret.ValueString())
 		}
+		if len(plan.DatabricksConfig.Scopes) > 0 {
+			databricksCfg.Scopes.Set(
+				helper.TypesStringSliceToStringSlice(plan.DatabricksConfig.Scopes),
+			)
+		}
 
 		commonResp, _, err := c.Create(commonCfg, databricksCfg)
 
@@ -1090,6 +1095,17 @@ func (r *globalConnectionResource) Update(
 				warehouseConfigChanges.ClientSecret.SetNull()
 			} else {
 				warehouseConfigChanges.ClientSecret.Set(plan.DatabricksConfig.ClientSecret.ValueString())
+			}
+		}
+
+		left, right := lo.Difference(plan.DatabricksConfig.Scopes, state.DatabricksConfig.Scopes)
+		if len(left) > 0 || len(right) > 0 {
+			if len(plan.DatabricksConfig.Scopes) == 0 {
+				warehouseConfigChanges.Scopes.SetNull()
+			} else {
+				warehouseConfigChanges.Scopes.Set(
+					helper.TypesStringSliceToStringSlice(plan.DatabricksConfig.Scopes),
+				)
 			}
 		}
 

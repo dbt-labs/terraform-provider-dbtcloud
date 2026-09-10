@@ -127,6 +127,7 @@ Read-Only:
 - `client_secret` (String) Required to enable Databricks OAuth authentication for IDE developers.
 - `host` (String) The hostname of the Databricks cluster or SQL warehouse.
 - `http_path` (String) The HTTP path of the Databricks cluster or SQL warehouse.
+- `scopes` (Set of String) OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).
 
 
 <a id="nestedatt--fabric"></a>

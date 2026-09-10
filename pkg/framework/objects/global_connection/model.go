@@ -208,9 +208,10 @@ type DatabricksConfig struct {
 	Host     types.String `tfsdk:"host"`
 	HTTPPath types.String `tfsdk:"http_path"`
 	// nullable
-	Catalog      types.String `tfsdk:"catalog"`
-	ClientID     types.String `tfsdk:"client_id"`
-	ClientSecret types.String `tfsdk:"client_secret"`
+	Catalog      types.String   `tfsdk:"catalog"`
+	ClientID     types.String   `tfsdk:"client_id"`
+	ClientSecret types.String   `tfsdk:"client_secret"`
+	Scopes       []types.String `tfsdk:"scopes"`
 }
 
 type RedshiftConfig struct {

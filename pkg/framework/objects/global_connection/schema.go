@@ -273,6 +273,11 @@ func (r *globalConnectionResource) Schema(
 						Optional:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
 					},
+					"scopes": resource_schema.SetAttribute{
+						Optional:    true,
+						ElementType: types.StringType,
+						Description: "OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).",
+					},
 				},
 			},
 			"redshift": resource_schema.SingleNestedAttribute{
@@ -860,6 +865,11 @@ func (r *globalConnectionDataSource) Schema(
 					"client_secret": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
+					},
+					"scopes": datasource_schema.SetAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+						Description: "OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).",
 					},
 				},
 			},

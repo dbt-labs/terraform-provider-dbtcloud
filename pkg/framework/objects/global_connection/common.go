@@ -266,6 +266,14 @@ func readGeneric(
 			state.DatabricksConfig.Catalog = types.StringNull()
 		}
 
+		if !databricksCfg.Scopes.IsNull() {
+			state.DatabricksConfig.Scopes = helper.SliceStringToSliceTypesString(
+				databricksCfg.Scopes.MustGet(),
+			)
+		} else {
+			state.DatabricksConfig.Scopes = nil
+		}
+
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
 		// sensitive fields: ClientID, ClientSecret
 

@@ -297,6 +297,7 @@ Optional:
 - `catalog` (String) Catalog name if Unity Catalog is enabled in your Databricks workspace.
 - `client_id` (String) Required to enable Databricks OAuth authentication for IDE developers.
 - `client_secret` (String) Required to enable Databricks OAuth authentication for IDE developers.
+- `scopes` (Set of String) OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).
 
 
 <a id="nestedatt--fabric"></a>
