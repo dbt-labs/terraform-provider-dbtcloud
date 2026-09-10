@@ -1,0 +1,3 @@
+kind: Changes
+body: add scopes to databricks nested schema in global_connection resource
+time: 2026-09-10T12:53:40.147198-05:00

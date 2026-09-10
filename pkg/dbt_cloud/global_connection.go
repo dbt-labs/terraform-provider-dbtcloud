@@ -448,11 +448,12 @@ func (BigQueryConfig) AdapterVersion() string {
 }
 
 type DatabricksConfig struct {
-	Host         *string                   `json:"host,omitempty"`
-	HTTPPath     *string                   `json:"http_path,omitempty"`
-	Catalog      nullable.Nullable[string] `json:"catalog,omitempty"`
-	ClientID     nullable.Nullable[string] `json:"client_id,omitempty"`
-	ClientSecret nullable.Nullable[string] `json:"client_secret,omitempty"`
+	Host         *string                     `json:"host,omitempty"`
+	HTTPPath     *string                     `json:"http_path,omitempty"`
+	Catalog      nullable.Nullable[string]   `json:"catalog,omitempty"`
+	ClientID     nullable.Nullable[string]   `json:"client_id,omitempty"`
+	ClientSecret nullable.Nullable[string]   `json:"client_secret,omitempty"`
+	Scopes       nullable.Nullable[[]string] `json:"scopes,omitempty"`
 }
 
 func (DatabricksConfig) AdapterVersion() string {
