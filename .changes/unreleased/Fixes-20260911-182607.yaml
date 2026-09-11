@@ -1,0 +1,3 @@
+kind: Fixes
+body: Fix bigquery_credential Update() to actually send auth_type, workload_pool_provider_path, and service_account_impersonation_url changes to the API instead of only writing them into state
+time: 2026-09-11T18:26:07.907686-03:00

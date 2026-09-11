@@ -274,7 +274,24 @@ func (r *bigqueryCredentialResource) Update(
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
-	if (state.Dataset.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+	datasetOrThreadsChanged := (state.Dataset.ValueString() != dataset) ||
+		(state.NumThreads.ValueInt64() != int64(numThreads))
+
+	// WIF fields (auth_type, workload_pool_provider_path, service_account_impersonation_url)
+	// currently carry RequiresReplace plan modifiers, so a direct change to them goes through
+	// Create/Delete rather than here. Still check for a diff so this call also re-asserts them
+	// whenever dataset/threads changes give us a reason to hit the API, instead of only ever
+	// pushing dataset/threads like before.
+	wifChanged := false
+	planWIF, stateWIF := wifFields(plan), wifFields(state)
+	for i := range planWIF {
+		if !planWIF[i].value.Equal(stateWIF[i].value) {
+			wifChanged = true
+			break
+		}
+	}
+
+	if datasetOrThreadsChanged || wifChanged {
 		credential, err := r.client.GetBigQueryCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -291,6 +308,30 @@ func (r *bigqueryCredentialResource) Update(
 			credential.Threads = numThreads
 		}
 
+		// v1 (adapter-based) credentials keep dataset/threads/auth fields inside
+		// credential_details, so rebuild it from the full plan the same way Create() does.
+		// Building it fresh from the plan (rather than patching individual keys) means we
+		// never send auth_type/workload_pool_provider_path/service_account_impersonation_url
+		// as a partial subset, so the credential can't land in a combination that
+		// ValidateConfig would have rejected (e.g. external-oauth-wif without a pool path).
+		if credential.AdapterVersion != "" {
+			credentialDetails, err := dbt_cloud.GenerateBigQueryCredentialDetails(
+				dataset,
+				numThreads,
+				plan.AuthType.ValueString(),
+				plan.WorkloadPoolProviderPath.ValueString(),
+				plan.ServiceAccountImpersonationURL.ValueString(),
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error updating Bigquery credential",
+					"Could not generate credential details: "+err.Error(),
+				)
+				return
+			}
+			credential.CredentialDetails = &credentialDetails
+		}
+
 		_, err = r.client.UpdateBigQueryCredential(
 			projectID,
 			credentialID,
@@ -301,6 +342,7 @@ func (r *bigqueryCredentialResource) Update(
 				"Error updating Bigquery credential",
 				"Could not update Bigquery credential, unexpected error: "+err.Error(),
 			)
+			return
 		}
 	}
 
