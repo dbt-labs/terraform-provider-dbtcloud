@@ -673,6 +673,7 @@ resource dbtcloud_global_connection test {
     application_secret          = "oauth_secret_id"
     timeout_seconds 			= 1000
 
+    api_endpoint                 = "bigquery.example.com"
     dataproc_cluster_name        = "dataproc"
     dataproc_region              = "region"
     execution_project            = "project"
@@ -2316,6 +2317,7 @@ resource dbtcloud_global_connection test {
 
   bigquery = {
     gcp_project_id              = "my-gcp-project-id"
+    api_endpoint                = "bigquery-psc.example.com"
     private_key_id              = "placeholder"
     private_key                 = "placeholder"
     client_email                = "placeholder@example.com"

@@ -209,6 +209,12 @@ func readGeneric(
 			state.BigQueryConfig.DataprocClusterName = types.StringNull()
 		}
 
+		if !bigqueryCfg.ApiEndpoint.IsNull() {
+			state.BigQueryConfig.ApiEndpoint = types.StringValue(bigqueryCfg.ApiEndpoint.MustGet())
+		} else {
+			state.BigQueryConfig.ApiEndpoint = types.StringNull()
+		}
+
 		// Only update DeploymentEnvAuthType if the API returns a value
 		// Otherwise, preserve the existing state value (which may have the schema default)
 		if bigqueryCfg.DeploymentEnvAuthType.IsSpecified() && !bigqueryCfg.DeploymentEnvAuthType.IsNull() {

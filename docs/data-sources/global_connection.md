@@ -89,6 +89,7 @@ Required:
 
 Read-Only:
 
+- `api_endpoint` (String) The BigQuery API endpoint the connection uses, without the scheme
 - `application_id` (String, Sensitive) OAuth Client ID
 - `application_secret` (String, Sensitive) OAuth Client Secret
 - `auth_provider_x509_cert_url` (String) Auth Provider X509 Cert URL for the Service Account
