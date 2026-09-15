@@ -274,7 +274,16 @@ func (r *bigqueryCredentialResource) Update(
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
-	if (state.Dataset.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+	datasetOrThreadsChanged := (state.Dataset.ValueString() != dataset) ||
+		(state.NumThreads.ValueInt64() != int64(numThreads))
+
+	// WIF fields carry RequiresReplace, so direct edits go through Create/Delete; still
+	// re-assert them here whenever a dataset/threads change hits the API anyway.
+	wifChanged := !plan.AuthType.Equal(state.AuthType) ||
+		!plan.WorkloadPoolProviderPath.Equal(state.WorkloadPoolProviderPath) ||
+		!plan.ServiceAccountImpersonationURL.Equal(state.ServiceAccountImpersonationURL)
+
+	if datasetOrThreadsChanged || wifChanged {
 		credential, err := r.client.GetBigQueryCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -291,6 +300,26 @@ func (r *bigqueryCredentialResource) Update(
 			credential.Threads = numThreads
 		}
 
+		// Rebuild credential_details from the full plan, like Create() does, so WIF
+		// fields are never sent as a partial (and possibly invalid) subset.
+		if credential.AdapterVersion != "" {
+			credentialDetails, err := dbt_cloud.GenerateBigQueryCredentialDetails(
+				dataset,
+				numThreads,
+				plan.AuthType.ValueString(),
+				plan.WorkloadPoolProviderPath.ValueString(),
+				plan.ServiceAccountImpersonationURL.ValueString(),
+			)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error updating Bigquery credential",
+					"Could not generate credential details: "+err.Error(),
+				)
+				return
+			}
+			credential.CredentialDetails = &credentialDetails
+		}
+
 		_, err = r.client.UpdateBigQueryCredential(
 			projectID,
 			credentialID,
@@ -301,6 +330,7 @@ func (r *bigqueryCredentialResource) Update(
 				"Error updating Bigquery credential",
 				"Could not update Bigquery credential, unexpected error: "+err.Error(),
 			)
+			return
 		}
 	}
 
