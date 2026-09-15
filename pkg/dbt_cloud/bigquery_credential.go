@@ -78,6 +78,15 @@ func (c *BigQueryCredential) GetServiceAccountImpersonationURL() string {
 	return ""
 }
 
+// BigQueryCredentialGlobConnPatch is used for updating credentials with the new adapter
+// format (bigquery_v1). The update endpoint only accepts credential_details for those
+// credentials and merges it field by field.
+type BigQueryCredentialGlobConnPatch struct {
+	ID                int                      `json:"id"`
+	Threads           int                      `json:"threads"`
+	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
+}
+
 // BigQueryCredentialGlobConn is used for creating credentials with the new adapter format (bigquery_v1)
 type BigQueryCredentialGlobConn struct {
 	ID                *int                     `json:"id,omitempty"`
@@ -282,6 +291,48 @@ func GenerateBigQueryCredentialDetails(
 		Fields:      fields,
 		Field_Order: []string{},
 	}, nil
+}
+
+// UpdateBigQueryCredentialGlobConn updates a bigquery_v1 credential. Those credentials
+// keep the dataset and the threads in credential_details, so sending them at the top level
+// like the legacy format does has no effect and is rejected by the API.
+func (c *Client) UpdateBigQueryCredentialGlobConn(
+	projectId int,
+	credentialId int,
+	bigQueryCredential BigQueryCredentialGlobConnPatch,
+) (*BigQueryCredential, error) {
+	requestData, err := json.Marshal(bigQueryCredential)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(
+		"PATCH",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(requestData)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	BigQueryCredentialResponse := BigQueryCredentialResponse{}
+	err = json.Unmarshal(body, &BigQueryCredentialResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BigQueryCredentialResponse.Data, nil
 }
 
 func (c *Client) UpdateBigQueryCredential(

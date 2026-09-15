@@ -133,6 +133,7 @@ func testAccCheckDbtCloudBigQueryCredentialDestroy(s *terraform.State) error {
 func TestAccDbtCloudBigQueryCredentialResourceWithConnectionID(t *testing.T) {
 	projectNameV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	datasetV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	datasetV1Updated := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	connectionNameV1 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -158,6 +159,25 @@ func TestAccDbtCloudBigQueryCredentialResourceWithConnectionID(t *testing.T) {
 					resource.TestCheckResourceAttrSet(
 						"dbtcloud_bigquery_credential.test_credential_v1",
 						"connection_id",
+					),
+				),
+			},
+			// v1 credentials keep the dataset in credential_details, so they need a
+			// different update payload than the legacy ones
+			{
+				Config: testAccDbtCloudBigQueryCredentialResourceWithConnectionIDConfig(
+					projectNameV1,
+					datasetV1Updated,
+					connectionNameV1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudBigQueryCredentialExists(
+						"dbtcloud_bigquery_credential.test_credential_v1",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_bigquery_credential.test_credential_v1",
+						"dataset",
+						datasetV1Updated,
 					),
 				),
 			},

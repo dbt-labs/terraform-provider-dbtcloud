@@ -2,6 +2,9 @@ package bigquery_credential
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
+// adapterCredentialType is the credential type the API returns for v1 credentials
+const adapterCredentialType = "adapter"
+
 const (
 	AuthTypeServiceAccountJSON = "service-account-json"
 	AuthTypeOAuthSecrets       = "oauth-secrets"
