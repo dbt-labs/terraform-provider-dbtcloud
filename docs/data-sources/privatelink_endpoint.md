@@ -37,7 +37,7 @@ data "dbtcloud_privatelink_endpoint" "test_with_name_and_url" {
 ### Optional
 
 - `name` (String) Given descriptive name for the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)
-- `private_link_endpoint_url` (String) URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource). Computed when only the name is provided, so that it can be used as the hostname of a connection.
+- `private_link_endpoint_url` (String) URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource). The data source always returns this value, so a lookup by name alone can supply the hostname of a connection.
 - `type` (String) Type of the PrivateLink Endpoint
 
 ### Read-Only
