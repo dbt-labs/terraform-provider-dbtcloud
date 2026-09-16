@@ -58,6 +58,52 @@ resource "dbtcloud_global_connection" "bigquery" {
   }
 }
 
+// BigQuery connection with Native OAuth for development environments.
+// application_id and application_secret are the client ID and secret of the OAuth
+// application. Each developer then authorizes the application in dbt.
+resource "dbtcloud_global_connection" "bigquery_native_oauth" {
+  name = "My BigQuery Native OAuth connection"
+  bigquery = {
+    gcp_project_id     = "my-gcp-project-id"
+    application_id     = "my-oauth-client-id"
+    application_secret = "my-oauth-client-secret"
+
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+  }
+}
+
+// BigQuery connection over Private Service Connect.
+// api_endpoint routes the traffic to the endpoint. private_link_endpoint_id records
+// which endpoint the connection uses. Set both fields.
+data "dbtcloud_privatelink_endpoint" "bigquery_psc" {
+  name = "My BigQuery PSC endpoint"
+}
+
+resource "dbtcloud_global_connection" "bigquery_private_link" {
+  name                     = "My BigQuery PrivateLink connection"
+  private_link_endpoint_id = data.dbtcloud_privatelink_endpoint.bigquery_psc.id
+  bigquery = {
+    gcp_project_id = "my-gcp-project-id"
+    api_endpoint   = data.dbtcloud_privatelink_endpoint.bigquery_psc.private_link_endpoint_url
+
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+  }
+}
+
 // BigQuery connection with External OAuth (Workload Identity Federation)
 // TODO: Currently the API still requires service account fields even with external-oauth-wif
 resource "dbtcloud_global_connection" "bigquery_wif" {
@@ -256,8 +302,9 @@ Required:
 
 Optional:
 
-- `application_id` (String, Sensitive) OAuth Client ID. Required when using 'external-oauth-wif' authentication.
-- `application_secret` (String, Sensitive) OAuth Client Secret. Required when using 'external-oauth-wif' authentication.
+- `api_endpoint` (String) The BigQuery API endpoint to connect to, without the scheme. Set this to the hostname of a Private Service Connect endpoint to route traffic over Private Link. `private_link_endpoint_id` only records which endpoint the connection is meant to use, so both fields need to be set.
+- `application_id` (String, Sensitive) Client ID of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. This is not the `client_id` of the service account keyfile. The API never returns this value, so the provider cannot detect changes made outside of Terraform.
+- `application_secret` (String, Sensitive) Client secret of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. The API never returns this value, so the provider cannot detect changes made outside of Terraform.
 - `auth_provider_x509_cert_url` (String) Auth Provider X509 Cert URL for the Service Account. Required when using 'service-account-json' authentication.
 - `auth_uri` (String) Auth URI for the Service Account. Required when using 'service-account-json' authentication.
 - `client_email` (String) Service Account email. Required when using 'service-account-json' authentication.

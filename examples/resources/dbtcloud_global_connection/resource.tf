@@ -40,6 +40,52 @@ resource "dbtcloud_global_connection" "bigquery" {
   }
 }
 
+// BigQuery connection with Native OAuth for development environments.
+// application_id and application_secret are the client ID and secret of the OAuth
+// application. Each developer then authorizes the application in dbt.
+resource "dbtcloud_global_connection" "bigquery_native_oauth" {
+  name = "My BigQuery Native OAuth connection"
+  bigquery = {
+    gcp_project_id     = "my-gcp-project-id"
+    application_id     = "my-oauth-client-id"
+    application_secret = "my-oauth-client-secret"
+
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+  }
+}
+
+// BigQuery connection over Private Service Connect.
+// api_endpoint routes the traffic to the endpoint. private_link_endpoint_id records
+// which endpoint the connection uses. Set both fields.
+data "dbtcloud_privatelink_endpoint" "bigquery_psc" {
+  name = "My BigQuery PSC endpoint"
+}
+
+resource "dbtcloud_global_connection" "bigquery_private_link" {
+  name                     = "My BigQuery PrivateLink connection"
+  private_link_endpoint_id = data.dbtcloud_privatelink_endpoint.bigquery_psc.id
+  bigquery = {
+    gcp_project_id = "my-gcp-project-id"
+    api_endpoint   = data.dbtcloud_privatelink_endpoint.bigquery_psc.private_link_endpoint_url
+
+    private_key_id              = "my-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+  }
+}
+
 // BigQuery connection with External OAuth (Workload Identity Federation)
 // TODO: Currently the API still requires service account fields even with external-oauth-wif
 resource "dbtcloud_global_connection" "bigquery_wif" {

@@ -265,6 +265,9 @@ func (r *globalConnectionResource) Create(
 				plan.BigQueryConfig.DataprocClusterName.ValueString(),
 			)
 		}
+		if !plan.BigQueryConfig.ApiEndpoint.IsNull() {
+			bigqueryCfg.ApiEndpoint.Set(plan.BigQueryConfig.ApiEndpoint.ValueString())
+		}
 		// Only send deployment_env_auth_type for v1 adapter (use_latest_adapter = true)
 		// The v0 (legacy) adapter does not support this field - fixes GitHub issue #612
 		if plan.BigQueryConfig.UseLatestAdapter.ValueBool() && !plan.BigQueryConfig.DeploymentEnvAuthType.IsNull() {
@@ -1012,6 +1015,13 @@ func (r *globalConnectionResource) Update(
 				warehouseConfigChanges.DataprocClusterName.Set(
 					plan.BigQueryConfig.DataprocClusterName.ValueString(),
 				)
+			}
+		}
+		if plan.BigQueryConfig.ApiEndpoint != state.BigQueryConfig.ApiEndpoint {
+			if plan.BigQueryConfig.ApiEndpoint.IsNull() {
+				warehouseConfigChanges.ApiEndpoint.SetNull()
+			} else {
+				warehouseConfigChanges.ApiEndpoint.Set(plan.BigQueryConfig.ApiEndpoint.ValueString())
 			}
 		}
 		// Only send deployment_env_auth_type for v1 adapter (use_latest_adapter = true)

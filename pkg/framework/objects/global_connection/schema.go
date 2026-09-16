@@ -150,12 +150,12 @@ func (r *globalConnectionResource) Schema(
 					},
 					"application_id": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client ID. Required when using 'external-oauth-wif' authentication.",
+						Description: "Client ID of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. This is not the `client_id` of the service account keyfile. The API never returns this value, so the provider cannot detect changes made outside of Terraform.",
 						Sensitive:   true,
 					},
 					"application_secret": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client Secret. Required when using 'external-oauth-wif' authentication.",
+						Description: "Client secret of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. The API never returns this value, so the provider cannot detect changes made outside of Terraform.",
 						Sensitive:   true,
 					},
 					"gcs_bucket": resource_schema.StringAttribute{
@@ -169,6 +169,11 @@ func (r *globalConnectionResource) Schema(
 					"dataproc_cluster_name": resource_schema.StringAttribute{
 						Optional:    true,
 						Description: "Dataproc cluster name for PySpark workloads",
+					},
+					"api_endpoint": resource_schema.StringAttribute{
+						Optional: true,
+						Description: "The BigQuery API endpoint to connect to, without the scheme. Set this to the hostname of a Private Service Connect endpoint to route traffic over Private Link. " +
+							"`private_link_endpoint_id` only records which endpoint the connection is meant to use, so both fields need to be set.",
 					},
 					"scopes": resource_schema.SetAttribute{
 						Optional:    true,
@@ -779,6 +784,10 @@ func (r *globalConnectionDataSource) Schema(
 					"dataproc_cluster_name": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Dataproc cluster name for PySpark workloads",
+					},
+					"api_endpoint": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The BigQuery API endpoint the connection uses, without the scheme",
 					},
 					"scopes": datasource_schema.SetAttribute{
 						Computed:    true,

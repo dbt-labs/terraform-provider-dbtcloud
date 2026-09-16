@@ -435,6 +435,7 @@ type BigQueryConfig struct {
 	GcsBucket                  nullable.Nullable[string] `json:"gcs_bucket,omitempty"`
 	DataprocRegion             nullable.Nullable[string] `json:"dataproc_region,omitempty"`
 	DataprocClusterName        nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
+	ApiEndpoint                nullable.Nullable[string] `json:"api_endpoint,omitempty"`
 	Scopes                     []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
 	DeploymentEnvAuthType      nullable.Nullable[string] `json:"deployment_env_auth_type,omitempty"`
 }
