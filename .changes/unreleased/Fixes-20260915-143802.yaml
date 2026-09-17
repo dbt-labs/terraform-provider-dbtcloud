@@ -1,3 +1,0 @@
-kind: Fixes
-body: fix dataset and threads updates on bigquery credentials using the latest adapter
-time: 2026-09-15T14:38:02.895733+03:00

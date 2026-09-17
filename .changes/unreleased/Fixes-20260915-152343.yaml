@@ -1,3 +1,0 @@
-kind: Fixes
-body: add api_endpoint to bigquery global connections, needed for private service connect
-time: 2026-09-15T15:23:43.692723+03:00
