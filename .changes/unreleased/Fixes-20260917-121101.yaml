@@ -1,0 +1,3 @@
+kind: Fixes
+body: stop the perpetual diff on environments that set deployment_type to an empty string
+time: 2026-09-17T12:11:01.100343+03:00
