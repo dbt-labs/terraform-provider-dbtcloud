@@ -294,9 +294,9 @@ func GenerateBigQueryCredentialDetails(
 	}, nil
 }
 
-// UpdateBigQueryCredentialGlobConn updates a bigquery_v1 credential. Those credentials
-// keep the dataset and the threads in credential_details, so sending them at the top level
-// like the legacy format does has no effect and is rejected by the API.
+// UpdateBigQueryCredentialGlobConn updates an adapter-backed BigQuery credential.
+// These credentials keep dataset and threads in credential_details; the top-level
+// threads value is also sent to keep the API's duplicate credential value synchronized.
 func (c *Client) UpdateBigQueryCredentialGlobConn(
 	projectId int,
 	credentialId int,
