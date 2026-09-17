@@ -83,7 +83,15 @@ func (r *environmentResource) Read(
 	if environment.Custom_Branch != nil {
 		state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
 	}
-	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	// A generic environment has no deployment type, and the API returns null for it.
+	// An empty string in state means the same thing, so it is kept as it is. Otherwise a
+	// config that sets deployment_type = "" drifts to null on every read, and the plan
+	// that follows never converges.
+	if environment.DeploymentType != nil {
+		state.DeploymentType = types.StringValue(*environment.DeploymentType)
+	} else if state.DeploymentType.ValueString() != "" {
+		state.DeploymentType = types.StringNull()
+	}
 	if environment.ExtendedAttributesID != nil {
 		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
 	} else {

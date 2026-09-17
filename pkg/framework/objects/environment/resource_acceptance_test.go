@@ -587,3 +587,73 @@ resource "dbtcloud_environment" "test_env" {
 }
 `, projectName, environmentName)
 }
+
+// A generic environment has no deployment type. The config says deployment_type = "",
+// the API returns null, and both mean the same thing, so the plan after each apply has
+// to be empty. The read used to replace the empty string with null, which made every
+// following plan try to set it back, and the update never converged.
+func TestAccDbtCloudEnvironmentResourceEmptyDeploymentType(t *testing.T) {
+	envName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, `deployment_type = ""`,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "deployment_type", "",
+				),
+			},
+			// a real value still round trips
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, `deployment_type = "staging"`,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "deployment_type", "staging",
+				),
+			},
+			// and clearing it again converges
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, `deployment_type = ""`,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "deployment_type", "",
+				),
+			},
+			// leaving the attribute out keeps it null
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, ``,
+				),
+				Check: resource.TestCheckNoResourceAttr(
+					"dbtcloud_environment.test_env", "deployment_type",
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+	projectName, environmentName, deploymentType string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_environment" "test_env" {
+  name        = "%s"
+  type        = "deployment"
+  dbt_version = "%s"
+  project_id  = dbtcloud_project.test_project.id
+  %s
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, deploymentType)
+}
