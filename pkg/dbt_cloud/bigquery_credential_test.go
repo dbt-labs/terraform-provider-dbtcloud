@@ -9,9 +9,11 @@ import (
 )
 
 // TestUpdateBigQueryCredentialGlobConn_SendsDatasetInCredentialDetails checks the payload
-// shape of a v1 credential update. The API validates the whole body against the
-// credential_details schema when credential_details is missing, which rejects every
-// top-level field, and it keeps the dataset in credential_details rather than in `schema`.
+// shape of a v1 credential update. Those credentials keep the dataset in
+// credential_details rather than in `schema`, and the endpoint rejects the other
+// top-level fields of the full credential object. threads is the exception: the
+// credential keeps its own copy of it, which only gets refreshed when the payload
+// carries threads at the top level too.
 func TestUpdateBigQueryCredentialGlobConn_SendsDatasetInCredentialDetails(t *testing.T) {
 	var gotMethod, gotPath string
 	var gotBody map[string]any
@@ -49,7 +51,6 @@ func TestUpdateBigQueryCredentialGlobConn_SendsDatasetInCredentialDetails(t *tes
 	}
 
 	credential, err := c.UpdateBigQueryCredentialGlobConn(7, 42, BigQueryCredentialGlobConnPatch{
-		ID:                42,
 		Threads:           8,
 		CredentialDetails: credentialDetails,
 	})
@@ -71,6 +72,7 @@ func TestUpdateBigQueryCredentialGlobConn_SendsDatasetInCredentialDetails(t *tes
 	for _, field := range []string{
 		"account_id",
 		"adapter_version",
+		"id",
 		"project_id",
 		"schema",
 		"state",
@@ -80,6 +82,12 @@ func TestUpdateBigQueryCredentialGlobConn_SendsDatasetInCredentialDetails(t *tes
 		if _, found := gotBody[field]; found {
 			t.Errorf("%s should not be sent for a v1 credential update", field)
 		}
+	}
+
+	// threads is kept on the credential as well as in credential_details, and the copy
+	// on the credential goes stale when the payload leaves it out
+	if got := gotBody["threads"]; got != float64(8) {
+		t.Errorf("expected threads to be sent at the top level, got %v", got)
 	}
 
 	fields, ok := gotBody["credential_details"].(map[string]any)

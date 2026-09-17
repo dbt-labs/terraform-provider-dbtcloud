@@ -79,10 +79,11 @@ func (c *BigQueryCredential) GetServiceAccountImpersonationURL() string {
 }
 
 // BigQueryCredentialGlobConnPatch is used for updating credentials with the new adapter
-// format (bigquery_v1). The update endpoint only accepts credential_details for those
-// credentials and merges it field by field.
+// format (bigquery_v1). Those credentials keep their settings in credential_details,
+// which the endpoint merges field by field. threads is also stored on the credential
+// itself, and the endpoint only refreshes that copy when the payload carries it, so it
+// is sent at the top level as well to keep the two in step.
 type BigQueryCredentialGlobConnPatch struct {
-	ID                int                      `json:"id"`
 	Threads           int                      `json:"threads"`
 	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }

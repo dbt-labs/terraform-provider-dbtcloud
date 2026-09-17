@@ -315,7 +315,6 @@ func (r *bigqueryCredentialResource) Update(
 				projectID,
 				credentialID,
 				dbt_cloud.BigQueryCredentialGlobConnPatch{
-					ID:                credentialID,
 					Threads:           numThreads,
 					CredentialDetails: credentialDetails,
 				},
