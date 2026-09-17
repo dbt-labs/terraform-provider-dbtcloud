@@ -235,7 +235,8 @@ func TestBigQueryCredentialUpdate_SendsWIFFieldChanges(t *testing.T) {
 				},
 				"status": {"code": 200, "is_success": true}
 			}`, credentialID, accountID, projectID)
-		case http.MethodPost:
+		// v1 credentials are updated with a credential_details patch
+		case http.MethodPatch:
 			updateCalls++
 			body, err := io.ReadAll(r.Body)
 			if err != nil {

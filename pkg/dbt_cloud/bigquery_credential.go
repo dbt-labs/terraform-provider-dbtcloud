@@ -78,6 +78,16 @@ func (c *BigQueryCredential) GetServiceAccountImpersonationURL() string {
 	return ""
 }
 
+// BigQueryCredentialGlobConnPatch is used for updating credentials with the new adapter
+// format (bigquery_v1). Those credentials keep their settings in credential_details,
+// which the endpoint merges field by field. threads is also stored on the credential
+// itself, and the endpoint only refreshes that copy when the payload carries it, so it
+// is sent at the top level as well to keep the two in step.
+type BigQueryCredentialGlobConnPatch struct {
+	Threads           int                      `json:"threads"`
+	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
+}
+
 // BigQueryCredentialGlobConn is used for creating credentials with the new adapter format (bigquery_v1)
 type BigQueryCredentialGlobConn struct {
 	ID                *int                     `json:"id,omitempty"`
@@ -282,6 +292,48 @@ func GenerateBigQueryCredentialDetails(
 		Fields:      fields,
 		Field_Order: []string{},
 	}, nil
+}
+
+// UpdateBigQueryCredentialGlobConn updates an adapter-backed BigQuery credential.
+// These credentials keep dataset and threads in credential_details; the top-level
+// threads value is also sent to keep the API's duplicate credential value synchronized.
+func (c *Client) UpdateBigQueryCredentialGlobConn(
+	projectId int,
+	credentialId int,
+	bigQueryCredential BigQueryCredentialGlobConnPatch,
+) (*BigQueryCredential, error) {
+	requestData, err := json.Marshal(bigQueryCredential)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(
+		"PATCH",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(requestData)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	BigQueryCredentialResponse := BigQueryCredentialResponse{}
+	err = json.Unmarshal(body, &BigQueryCredentialResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BigQueryCredentialResponse.Data, nil
 }
 
 func (c *Client) UpdateBigQueryCredential(

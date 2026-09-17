@@ -293,38 +293,46 @@ func (r *bigqueryCredentialResource) Update(
 			return
 		}
 
-		if state.Dataset.ValueString() != dataset {
-			credential.Dataset = dataset
-		}
-		if state.NumThreads.ValueInt64() != int64(numThreads) {
-			credential.Threads = numThreads
-		}
-
-		// Rebuild credential_details from the full plan, like Create() does, so WIF
-		// fields are never sent as a partial (and possibly invalid) subset.
-		if credential.AdapterVersion != "" {
-			credentialDetails, err := dbt_cloud.GenerateBigQueryCredentialDetails(
+		if credential.Type == adapterCredentialType {
+			// Rebuild credential_details from the full plan, like Create() does, so WIF
+			// fields are never sent as a partial (and possibly invalid) subset.
+			credentialDetails, detailsErr := dbt_cloud.GenerateBigQueryCredentialDetails(
 				dataset,
 				numThreads,
 				plan.AuthType.ValueString(),
 				plan.WorkloadPoolProviderPath.ValueString(),
 				plan.ServiceAccountImpersonationURL.ValueString(),
 			)
-			if err != nil {
+			if detailsErr != nil {
 				resp.Diagnostics.AddError(
 					"Error updating Bigquery credential",
-					"Could not generate credential details: "+err.Error(),
+					"Could not generate credential details: "+detailsErr.Error(),
 				)
 				return
 			}
-			credential.CredentialDetails = &credentialDetails
-		}
 
-		_, err = r.client.UpdateBigQueryCredential(
-			projectID,
-			credentialID,
-			*credential,
-		)
+			_, err = r.client.UpdateBigQueryCredentialGlobConn(
+				projectID,
+				credentialID,
+				dbt_cloud.BigQueryCredentialGlobConnPatch{
+					Threads:           numThreads,
+					CredentialDetails: credentialDetails,
+				},
+			)
+		} else {
+			if state.Dataset.ValueString() != dataset {
+				credential.Dataset = dataset
+			}
+			if state.NumThreads.ValueInt64() != int64(numThreads) {
+				credential.Threads = numThreads
+			}
+
+			_, err = r.client.UpdateBigQueryCredential(
+				projectID,
+				credentialID,
+				*credential,
+			)
+		}
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error updating Bigquery credential",
