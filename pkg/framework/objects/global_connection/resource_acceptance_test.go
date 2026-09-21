@@ -851,6 +851,10 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes",
+					),
 				),
 			},
 			// modify, adding optional fields
@@ -875,6 +879,21 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.#",
+						"2",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.*",
+						"sql",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.*",
+						"offline_access",
+					),
 				),
 			},
 			// modify, removing optional fields to check PATCH when we remove fields
@@ -896,6 +915,10 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"dbtcloud_global_connection.test",
 						"is_ssh_tunnel_enabled",
 						"false",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes",
 					),
 				),
 			},
@@ -949,6 +972,7 @@ resource dbtcloud_global_connection test {
 	// catalog = "dbt_catalog"
 	client_id = "%s"
 	client_secret = "%s"
+	scopes = ["sql", "offline_access"]
   }
 }
 `, connectionName, oAuthClientID, oAuthClientSecret)
