@@ -66,7 +66,7 @@ resource "dbtcloud_account_add_on" "wizard_with_ai_features" {
 - `can_activate` (Boolean) Whether the account can start paid use of this product now
 - `can_trial` (Boolean) Whether the account can start a trial of this product now
 - `id` (String) The add-on product, which is also the import ID
-- `state` (String) The lifecycle state of the add-on: `TRIAL`, `ACTIVE`, `CANCELLED` or `EXPIRED`. A trial moves to `EXPIRED` on its own when it ends, so the value can change without a change to the configuration. To use a product again after it ends, replace the resource
+- `state` (String) The lifecycle state of the add-on: `TRIAL`, `ACTIVE`, `CANCELLED` or `EXPIRED`. A trial moves to `EXPIRED` on its own when it ends, so the value can change without a change to the configuration. The plan stays empty in that case, and the provider raises a warning instead, because the state is read-only. To use a product again after it ends, replace the resource
 - `trial_consumed` (Boolean) Whether the account has used its one trial of this product
 - `trial_ends_at` (String) When the trial ends
 - `trial_started_at` (String) When the trial started

@@ -83,7 +83,9 @@ func (r *accountAddOnResource) Schema(
 				Description: "The lifecycle state of the add-on: `TRIAL`, `ACTIVE`, " +
 					"`CANCELLED` or `EXPIRED`. A trial moves to `EXPIRED` on its own when it " +
 					"ends, so the value can change without a change to the configuration. " +
-					"To use a product again after it ends, replace the resource",
+					"The plan stays empty in that case, and the provider raises a warning " +
+					"instead, because the state is read-only. To use a product again after " +
+					"it ends, replace the resource",
 			},
 			"trial_started_at": resource_schema.StringAttribute{
 				Computed:    true,

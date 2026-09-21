@@ -206,8 +206,41 @@ func (r *accountAddOnResource) Read(
 		return
 	}
 
+	// A trial ends on its own, and the product can also be cancelled elsewhere.
+	// Neither changes the configuration, so the plan stays empty and the customer
+	// would otherwise never hear that the product stopped.
+	if warning := notLiveWarning(product, model.State.ValueString()); warning != "" {
+		resp.Diagnostics.AddWarning(
+			fmt.Sprintf("The %s add-on is no longer active", product),
+			warning,
+		)
+	}
+
 	model.Activation = state.Activation
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+// notLiveWarning returns the text to show for an add-on that the account no longer
+// holds, or an empty string while the product is still live.
+func notLiveWarning(product string, state string) string {
+	switch state {
+	case dbt_cloud.AddOnStateExpired:
+		return fmt.Sprintf(
+			"The trial of %s has ended, and the account can no longer use the product. "+
+				"The configuration still holds the add-on, and the plan stays empty, because "+
+				"the state of an add-on is read-only. Replace the resource to start paid use, "+
+				"or remove it from the configuration.",
+			product,
+		)
+	case dbt_cloud.AddOnStateCancelled:
+		return fmt.Sprintf(
+			"%s is cancelled, and the account can no longer use the product. The "+
+				"configuration still holds the add-on. Replace the resource to turn the "+
+				"product on again, or remove it from the configuration.",
+			product,
+		)
+	}
+	return ""
 }
 
 func (r *accountAddOnResource) Update(
