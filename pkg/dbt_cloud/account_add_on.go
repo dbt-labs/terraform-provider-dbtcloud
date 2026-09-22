@@ -7,21 +7,6 @@ import (
 	"strings"
 )
 
-// Add-on products that can be activated on an account.
-const (
-	AddOnProductWizard = "wizard"
-	AddOnProductState  = "state"
-)
-
-// Lifecycle states an add-on can be in. An account that has never activated or
-// trialled a product has no state at all.
-const (
-	AddOnStateTrial     = "TRIAL"
-	AddOnStateActive    = "ACTIVE"
-	AddOnStateCancelled = "CANCELLED"
-	AddOnStateExpired   = "EXPIRED"
-)
-
 // AccountAddOn is the status of one add-on product on an account.
 type AccountAddOn struct {
 	Product        string  `json:"product"`
@@ -49,19 +34,9 @@ type accountAddOnListResponse struct {
 	Status ResponseStatus       `json:"status"`
 }
 
-type accountAddOnResponse struct {
-	Data   AccountAddOn   `json:"data"`
-	Status ResponseStatus `json:"status"`
-}
-
 type accountAddOnSpendLimitResponse struct {
 	Data   AccountAddOnSpendLimit `json:"data"`
 	Status ResponseStatus         `json:"status"`
-}
-
-// The field carries a meaningful null, so it must not be omitted when empty.
-type accountAddOnSpendLimitRequest struct {
-	SpendLimitNanodollars *int64 `json:"spend_limit_nanodollars"`
 }
 
 // addOnURL builds the add-on URL for the account. The add-on paths carry no
@@ -95,7 +70,7 @@ func (c *Client) GetAccountAddOns() ([]AccountAddOn, error) {
 }
 
 // GetAccountAddOn returns the entry for one product, or nil when the account
-// cannot use that product. A product the account has simply never activated is
+// cannot use that product. A product the account has simply never turned on is
 // still listed, with no state, so a nil result means something different: the
 // product is turned off for the account.
 func (c *Client) GetAccountAddOn(product string) (*AccountAddOn, error) {
@@ -114,47 +89,6 @@ func (c *Client) GetAccountAddOn(product string) (*AccountAddOn, error) {
 	return nil, nil
 }
 
-func (c *Client) postAddOnAction(product string, action string) (*AccountAddOn, error) {
-	req, err := http.NewRequest(
-		"POST",
-		c.addOnURL(product, action),
-		strings.NewReader("{}"),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := c.doRequestWithRetry(req)
-	if err != nil {
-		return nil, err
-	}
-
-	response := accountAddOnResponse{}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, err
-	}
-
-	return &response.Data, nil
-}
-
-// ActivateAccountAddOn starts paid use of an add-on product. The call has no
-// effect when the product is active already.
-func (c *Client) ActivateAccountAddOn(product string) (*AccountAddOn, error) {
-	return c.postAddOnAction(product, "activate")
-}
-
-// StartAccountAddOnTrial starts the trial of an add-on product. An account gets
-// one trial for each product.
-func (c *Client) StartAccountAddOnTrial(product string) (*AccountAddOn, error) {
-	return c.postAddOnAction(product, "start-trial")
-}
-
-// CancelAccountAddOn cancels an add-on product. The call has no effect when the
-// product is cancelled already.
-func (c *Client) CancelAccountAddOn(product string) (*AccountAddOn, error) {
-	return c.postAddOnAction(product, "cancel")
-}
-
 // GetAccountAddOnSpendLimit returns the spend limit in nanodollars, or nil when
 // no limit is set. The endpoint answers 404 when the product has no trial and no
 // active subscription to configure, which is reported as no limit.
@@ -169,36 +103,6 @@ func (c *Client) GetAccountAddOnSpendLimit(product string) (*int64, error) {
 		if strings.HasPrefix(err.Error(), "resource-not-found") {
 			return nil, nil
 		}
-		return nil, err
-	}
-
-	response := accountAddOnSpendLimitResponse{}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, err
-	}
-
-	return response.Data.SpendLimitNanodollars, nil
-}
-
-// SetAccountAddOnSpendLimit sets the spend limit in nanodollars. A nil limit
-// removes the limit.
-func (c *Client) SetAccountAddOnSpendLimit(product string, limit *int64) (*int64, error) {
-	requestData, err := json.Marshal(accountAddOnSpendLimitRequest{SpendLimitNanodollars: limit})
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(
-		"PUT",
-		c.addOnURL(product, "spend-limit"),
-		strings.NewReader(string(requestData)),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := c.doRequestWithRetry(req)
-	if err != nil {
 		return nil, err
 	}
 

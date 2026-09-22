@@ -30,6 +30,20 @@ func (d *accountAddOnDataSource) Metadata(
 	resp.TypeName = req.ProviderTypeName + "_account_add_on"
 }
 
+// productUnavailableError is raised when the account cannot use the product at all.
+// The endpoint leaves such a product out of its response, so there is nothing to
+// read. This is not the same as a product the account has never turned on, which is
+// still listed, with no state.
+func productUnavailableError(product string) (string, string) {
+	return "Add-on product not available",
+		fmt.Sprintf(
+			"The account cannot use the %q add-on, so its state cannot be read. "+
+				"`wizard` needs the AI features of the account to be turned on, which "+
+				"`dbtcloud_account_features` manages.",
+			product,
+		)
+}
+
 // addOnDataSourceModel maps one add-on, and reads its spend limit when the account
 // holds the product. A product with no state has no spend limit to read.
 func addOnDataSourceModel(

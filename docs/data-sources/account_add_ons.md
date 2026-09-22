@@ -3,12 +3,15 @@
 page_title: "dbtcloud_account_add_ons Data Source - dbtcloud"
 subcategory: ""
 description: |-
-  Retrieve the state of every usage-based add-on product the account can use. A product that is turned off for the account is not in the list.
+  Retrieve the state of every usage-based add-on product the account can use, such as dbt Wizard and dbt State.
+  ~> The token needs the billing permission of the account. A product that is turned off for the account is not in the list.
 ---
 
 # dbtcloud_account_add_ons (Data Source)
 
-Retrieve the state of every usage-based add-on product the account can use. A product that is turned off for the account is not in the list.
+Retrieve the state of every usage-based add-on product the account can use, such as dbt Wizard and dbt State.
+
+~> The token needs the billing permission of the account. A product that is turned off for the account is not in the list.
 
 ## Example Usage
 
@@ -36,8 +39,8 @@ Read-Only:
 - `can_trial` (Boolean) Whether the account can start a trial of this product now
 - `id` (String) The add-on product
 - `product` (String) The add-on product
-- `spend_limit_nanodollars` (Number) The spend limit for the add-on, in nanodollars. 1 USD is 1,000,000,000 nanodollars. Leave it out for no limit. The limit works differently for each product. For `wizard` it stops usage: the account can no longer use the product once it reaches the limit, and the limit can not be set below the amount already spent in the current billing period. For `state` nothing is stopped, and the limit only raises a usage alert.
-- `state` (String) The lifecycle state of the add-on: `TRIAL`, `ACTIVE`, `CANCELLED` or `EXPIRED`. Empty when the account has never used the product
+- `spend_limit_nanodollars` (Number) The spend limit set for the add-on, in nanodollars. 1 USD is 1,000,000,000 nanodollars. Empty when no limit is set. The limit works differently for each product. For `wizard` it stops usage: the account can no longer use the product once it reaches the limit. For `state` nothing is stopped, and the limit only raises a usage alert. Change the limit in the dbt platform, because this provider only reads it.
+- `state` (String) The lifecycle state of the add-on: `TRIAL`, `ACTIVE`, `CANCELLED` or `EXPIRED`. Empty when the account has never turned the product on. A trial moves to `EXPIRED` on its own when it ends
 - `trial_consumed` (Boolean) Whether the account has used its one trial of this product
 - `trial_ends_at` (String) When the trial ends
 - `trial_started_at` (String) When the trial started

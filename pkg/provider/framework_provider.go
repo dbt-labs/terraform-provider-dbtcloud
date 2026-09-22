@@ -354,7 +354,6 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		auth_provider.AuthProviderResource,
-		account_add_on.AccountAddOnResource,
 		account_features.AccountFeaturesResource,
 		athena_credential.NewAthenaCredentialResource,
 		azure_ad_application.AzureADApplicationResource,
