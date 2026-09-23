@@ -1,3 +1,0 @@
-kind: Fixes
-body: stop the inconsistent result error when cost_optimization_features is added to or removed from an existing job
-time: 2026-09-23T11:47:24.216889+03:00

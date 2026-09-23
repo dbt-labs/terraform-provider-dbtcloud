@@ -1,3 +1,0 @@
-kind: Changes
-body: add the dbtcloud_account_add_on and dbtcloud_account_add_ons data sources, to read the state of the dbt Wizard and dbt State add-ons
-time: 2026-09-21T11:33:38.018825+03:00
