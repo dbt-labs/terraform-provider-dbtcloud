@@ -476,7 +476,7 @@ func (j *jobResource) Schema(
 					job_validators.ForceNodeSelectionValidator(),
 				},
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
+					job_validators.UseUnknownWhenCostOptimizationFeaturesChange{},
 				},
 			},
 			"cost_optimization_features": resource_schema.SetAttribute{

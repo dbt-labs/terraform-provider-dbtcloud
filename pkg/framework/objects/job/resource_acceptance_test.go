@@ -1733,3 +1733,107 @@ resource "dbtcloud_job" "test_job" {
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName)
 }
+
+// TestAccDbtCloudJobAddDbtStateToExistingJob reproduces issue #751. A job that
+// has no cost optimization features carries force_node_selection = true. Adding
+// dbt_state to it makes the API set force_node_selection to false, because the
+// API gives the feature set precedence. The plan used to hold the old true,
+// which made the apply fail with "Provider produced inconsistent result after
+// apply" even though the job itself was updated correctly.
+//
+// Each step also asserts an empty plan afterwards, so a value that no longer
+// settles is caught as well.
+func TestAccDbtCloudJobAddDbtStateToExistingJob(t *testing.T) {
+	skipDbtStateAcceptanceTest(t)
+
+	jobName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	environmentName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudJobDestroy,
+		Steps: []resource.TestStep{
+			// 1. A job with no cost optimization features at all
+			{
+				Config: testAccDbtCloudJobOptionalCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName, "",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job", "force_node_selection", "true",
+					),
+				),
+			},
+			// 2. Turn dbt State on. The API moves force_node_selection to false.
+			{
+				Config: testAccDbtCloudJobOptionalCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName,
+					`cost_optimization_features = ["dbt_state"]`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_job.test_job", "cost_optimization_features.*", "dbt_state",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job", "force_node_selection", "false",
+					),
+				),
+			},
+			// 3. Turn it off again, which moves force_node_selection back to true.
+			{
+				Config: testAccDbtCloudJobOptionalCostOptimizationFeaturesConfig(
+					jobName, projectName, environmentName,
+					`cost_optimization_features = []`,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudJobExists("dbtcloud_job.test_job"),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job", "cost_optimization_features.#", "0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_job.test_job", "force_node_selection", "true",
+					),
+				),
+			},
+		},
+	})
+}
+
+// testAccDbtCloudJobOptionalCostOptimizationFeaturesConfig builds a job whose
+// cost_optimization_features line can be left out entirely, which is what a
+// configuration looks like before the feature is turned on.
+func testAccDbtCloudJobOptionalCostOptimizationFeaturesConfig(
+	jobName, projectName, environmentName, costOptimizationLine string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_job_project" {
+    name = "%s"
+}
+
+resource "dbtcloud_environment" "test_job_environment" {
+    project_id = dbtcloud_project.test_job_project.id
+    name = "%s"
+    dbt_version = "%s"
+    type = "deployment"
+}
+
+resource "dbtcloud_job" "test_job" {
+  name        = "%s"
+  project_id = dbtcloud_project.test_job_project.id
+  environment_id = dbtcloud_environment.test_job_environment.environment_id
+  execute_steps = [
+    "dbt test"
+  ]
+  triggers = {
+    "github_webhook": false,
+    "git_provider_webhook": false,
+    "schedule": false,
+  }
+  %s
+}
+`, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, jobName, costOptimizationLine)
+}
