@@ -1,0 +1,104 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+  }
+}
+
+*.style.font-size: 22
+*.*.style.font-size: 22
+
+title: |md
+  # Account & access
+| {near: top-center}
+
+version_note: "dbt Cloud Terraform provider resources · v1.12.5 · 1 of 4" {
+  near: top-right
+  style: {
+    font-size: 14
+    stroke: transparent
+    fill: transparent
+  }
+}
+
+direction: right
+
+classes: {
+  external: {
+    style: {
+      stroke-dash: 2
+      stroke: "#888888"
+      fill: "#EEEEEE"
+    }
+  }
+}
+
+project: "project (see Project & environment diagram)" {
+  class: external
+}
+
+group: {
+  style: {
+    fill: "#ACE1AF"
+    stroke: green
+  }
+}
+group_partial_permissions
+service_token
+user_groups
+group_users: group_users (data source)
+user: user (data source)
+scim_group_permissions
+scim_group_partial_permissions
+
+account_level_settings: "Account level settings" {
+  account_features
+  ip_restrictions_rule
+  license_map
+  partial_license_map
+  auth_provider
+  azure_ad_application
+  openai_integration
+  scim_config
+  scim_config_token
+}
+account_level_settings.style.fill-pattern: dots
+
+account_level_settings.scim_config_token -- account_level_settings.scim_config: issues tokens for {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+group -- project
+group_partial_permissions -- project
+scim_group_permissions -- project
+scim_group_partial_permissions -- project
+scim_group_permissions -- group
+scim_group_partial_permissions -- group
+user_groups -- group
+user_groups -- group_partial_permissions
+
+user -- user_groups {
+  style: {
+    stroke-dash: 3
+  }
+}
+user -- group_users {
+  style: {
+    stroke-dash: 3
+  }
+}
+group_users -- group {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+service_token -- project: can scope to {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+(group -- *)[*].style.stroke: green
+(* -- group)[*].style.stroke: green
