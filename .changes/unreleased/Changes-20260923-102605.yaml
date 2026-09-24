@@ -1,0 +1,3 @@
+kind: Documentation
+body: rename the `fusion_admin` permission label to "v2 Migration Admin" in the group and service token docs, matching the dbt platform UI (the permission code stays `fusion_admin`)
+time: 2026-09-23T10:26:05.000000+03:00
