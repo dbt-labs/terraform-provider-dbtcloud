@@ -22,6 +22,48 @@ func RepositoryResource() resource.Resource {
 	return &repositoryResource{}
 }
 
+// decideGitlabProjectIDToSend returns the GitLab project ID to send to the API on
+// create. The API only expects a GitLab project ID when the repository is being
+// connected via a GitLab deploy token; sending it for other clone strategies is
+// rejected/ignored by the API and causes drift.
+func decideGitlabProjectIDToSend(gitCloneStrategy string, plannedGitlabProjectID int) int {
+	if gitCloneStrategy == "deploy_token" {
+		return plannedGitlabProjectID
+	}
+	return 0
+}
+
+// decideCreateGitCloneStrategy decides whether to adopt the git_clone_strategy
+// returned by the API after create, or keep the planned value. The API only
+// authoritatively normalises the strategy once a GitHub App installation is
+// actually attached to the repository.
+func decideCreateGitCloneStrategy(
+	apiGitCloneStrategy string,
+	apiGithubInstallationID *int,
+	plannedGitCloneStrategy string,
+) string {
+	if apiGithubInstallationID != nil && *apiGithubInstallationID != 0 {
+		return apiGitCloneStrategy
+	}
+	return plannedGitCloneStrategy
+}
+
+// decideGitCloneStrategyDriftGuard prevents the API's "github_app" value from
+// overwriting the prior (state or planned) git_clone_strategy when there is no
+// GitHub App installation actually attached to the repository. Without this guard,
+// the API's spurious "github_app" value produces permanent Terraform drift.
+func decideGitCloneStrategyDriftGuard(
+	apiGitCloneStrategy string,
+	apiGithubInstallationID *int,
+	priorGitCloneStrategy string,
+) string {
+	hasInstallation := apiGithubInstallationID != nil && *apiGithubInstallationID != 0
+	if apiGitCloneStrategy == "github_app" && !hasInstallation {
+		return priorGitCloneStrategy
+	}
+	return apiGitCloneStrategy
+}
+
 type repositoryResource struct {
 	client *dbt_cloud.Client
 }
@@ -59,16 +101,13 @@ func (r *repositoryResource) Create(
 	gitCloneStrategy := plan.GitCloneStrategy.ValueString()
 	pullRequestURLTemplate := plan.PullRequestURLTemplate.ValueString()
 
-	var gitlabProjectID int
 	var githubInstallationID int
 	var privateLinkEndpointID string
 	var azureProjectID string
 	var azureRepositoryID string
 	var azureBypassWebhookRegistrationFailure bool
 
-	if !plan.GitlabProjectID.IsNull() {
-		gitlabProjectID = int(plan.GitlabProjectID.ValueInt64())
-	}
+	gitlabProjectID := decideGitlabProjectIDToSend(gitCloneStrategy, int(plan.GitlabProjectID.ValueInt64()))
 
 	if !plan.GithubInstallationID.IsNull() {
 		githubInstallationID = int(plan.GithubInstallationID.ValueInt64())
@@ -136,7 +175,9 @@ func (r *repositoryResource) Create(
 	plan.IsActive = types.BoolValue(repository.State == dbt_cloud.STATE_ACTIVE)
 	plan.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	plan.RemoteURL = types.StringValue(repository.RemoteUrl)
-	plan.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	plan.GitCloneStrategy = types.StringValue(
+		decideCreateGitCloneStrategy(repository.GitCloneStrategy, repository.GithubInstallationID, gitCloneStrategy),
+	)
 
 	if repository.RepositoryCredentialsID != nil {
 		plan.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))
@@ -252,7 +293,13 @@ func (r *repositoryResource) Read(
 	state.ProjectID = types.Int64Value(int64(repository.ProjectID))
 	state.RepositoryID = types.Int64Value(int64(*repository.ID))
 	state.RemoteURL = types.StringValue(repository.RemoteUrl)
-	state.GitCloneStrategy = types.StringValue(repository.GitCloneStrategy)
+	state.GitCloneStrategy = types.StringValue(
+		decideGitCloneStrategyDriftGuard(
+			repository.GitCloneStrategy,
+			repository.GithubInstallationID,
+			state.GitCloneStrategy.ValueString(),
+		),
+	)
 
 	if repository.RepositoryCredentialsID != nil {
 		state.RepositoryCredentialsID = types.Int64Value(int64(*repository.RepositoryCredentialsID))
@@ -377,7 +424,13 @@ func (r *repositoryResource) Update(
 	state.ProjectID = types.Int64Value(int64(updatedRepository.ProjectID))
 	state.RepositoryID = types.Int64Value(int64(*updatedRepository.ID))
 	state.RemoteURL = types.StringValue(updatedRepository.RemoteUrl)
-	state.GitCloneStrategy = types.StringValue(updatedRepository.GitCloneStrategy)
+	state.GitCloneStrategy = types.StringValue(
+		decideGitCloneStrategyDriftGuard(
+			updatedRepository.GitCloneStrategy,
+			updatedRepository.GithubInstallationID,
+			plan.GitCloneStrategy.ValueString(),
+		),
+	)
 
 	if updatedRepository.RepositoryCredentialsID != nil {
 		state.RepositoryCredentialsID = types.Int64Value(int64(*updatedRepository.RepositoryCredentialsID))
