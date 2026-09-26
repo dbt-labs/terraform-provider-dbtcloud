@@ -6,7 +6,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/samber/lo"
 )
 
 type ServiceTokenResourceModel struct {
@@ -59,11 +58,7 @@ func ConvertServiceTokenPermissionModelToData(
 		if !permission.WritableEnvironmentCategories.IsUnknown() {
 			writableEnvs := make([]dbt_cloud.EnvironmentCategory, 0, len(permission.WritableEnvironmentCategories.Elements()))
 			allDiags.Append(permission.WritableEnvironmentCategories.ElementsAs(ctx, &writableEnvs, false)...)
-
-			// small hack to avoid sending all environments if all is present
-			if !lo.Contains(writableEnvs, dbt_cloud.EnvironmentCategory_All) {
-				permissionRequest.WritableEnvs = writableEnvs
-			}
+			permissionRequest.WritableEnvs = writableEnvs
 		}
 
 	}
@@ -88,10 +83,6 @@ func ConvertServiceTokenPermissionDataToModel(
 			permissionsModel.ProjectID = types.Int64Null()
 		} else {
 			permissionsModel.ProjectID = types.Int64Value(int64(permission.ProjectID))
-		}
-
-		if len(permission.WritableEnvs) == 0 {
-			permission.WritableEnvs = []dbt_cloud.EnvironmentCategory{dbt_cloud.EnvironmentCategory_All}
 		}
 
 		writableEnvs, diags := types.SetValueFrom(
