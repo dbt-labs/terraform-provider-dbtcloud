@@ -128,6 +128,15 @@ var mappingAdapterDetails = map[string]ConfigDetails{
 			return nil
 		},
 	},
+	"clickhouse": {
+		EmptyConfigName: ClickhouseConfig{},
+		IsEmptyConfig: func(model *GlobalConnectionResourceModel) bool {
+			return model.ClickhouseConfig == nil
+		},
+		GetSSHTunnelConfig: func(model *GlobalConnectionResourceModel) *SSHTunnelConfig {
+			return nil
+		},
+	},
 }
 
 var supportedGlobalConfigTypes = lo.Keys(mappingAdapterDetails)
@@ -151,6 +160,7 @@ type GlobalConnectionResourceModel struct {
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
 	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
 	SalesforceConfig      *SalesforceConfig  `tfsdk:"salesforce"`
+	ClickhouseConfig      *ClickhouseConfig  `tfsdk:"clickhouse"`
 }
 
 type SSHTunnelConfig struct {
@@ -297,6 +307,12 @@ type SalesforceConfig struct {
 	LoginURL                types.String `tfsdk:"login_url"`
 	Database                types.String `tfsdk:"database"`
 	DataTransformRunTimeout types.Int64  `tfsdk:"data_transform_run_timeout"`
+}
+
+type ClickhouseConfig struct {
+	Host     types.String `tfsdk:"host"`
+	Port     types.Int64  `tfsdk:"port"`
+	Database types.String `tfsdk:"database"`
 }
 
 type GlobalConnectionsDatasourceModel struct {

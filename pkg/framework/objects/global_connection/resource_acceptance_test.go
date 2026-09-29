@@ -2063,6 +2063,116 @@ resource "dbtcloud_global_connection" test {
 `, connectionName, loginURL, database, dataTransformRunTimeout)
 }
 
+func TestAccDbtCloudGlobalConnectionClickhouseResource(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create
+			{
+				Config: testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+					connectionName,
+					"my-clickhouse-server.com",
+					8443,
+					"default",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"clickhouse_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.host",
+						"my-clickhouse-server.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.port",
+						"8443",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.database",
+						"default",
+					),
+				),
+			},
+			// modify
+			{
+				Config: testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+					connectionName2,
+					"my-other-clickhouse-server.com",
+					9440,
+					"my_database",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"clickhouse_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.host",
+						"my-other-clickhouse-server.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.port",
+						"9440",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.database",
+						"my_database",
+					),
+				),
+			},
+			// import
+			{
+				ResourceName:            "dbtcloud_global_connection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+	connectionName string,
+	host string,
+	port int,
+	database string,
+) string {
+	return fmt.Sprintf(`
+
+resource "dbtcloud_global_connection" test {
+  name = "%s"
+
+  clickhouse = {
+    host     = "%s"
+    port     = %d
+    database = "%s"
+  }
+}
+
+`, connectionName, host, port, database)
+}
+
 // TestAccDbtCloudGlobalConnectionBigQueryV1UpdateIssue685 covers GitHub issue #685.
 //
 // Background: the dbt Cloud PATCH endpoint for connections does NOT accept the

@@ -782,6 +782,41 @@ func readGeneric(
 		state.SalesforceConfig.Database = types.StringPointerValue(salesforceCfg.Database)
 		state.SalesforceConfig.DataTransformRunTimeout = types.Int64PointerValue(salesforceCfg.DataTransformRunTimeout)
 
+	case state.ClickhouseConfig != nil || strings.HasPrefix(adapter, "clickhouse_"):
+		if state.ClickhouseConfig == nil {
+			state.ClickhouseConfig = &ClickhouseConfig{}
+		}
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ClickhouseConfig](client)
+		common, clickhouseCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				return nil, "removeFromState", nil
+			}
+			return nil, "", err
+		}
+
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(clickhouseCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
+		}
+
+		state.ClickhouseConfig.Host = types.StringPointerValue(clickhouseCfg.Host)
+		state.ClickhouseConfig.Port = types.Int64PointerValue(clickhouseCfg.Port)
+		state.ClickhouseConfig.Database = types.StringPointerValue(clickhouseCfg.Database)
+
 	default:
 		panic("Unknown connection type")
 	}

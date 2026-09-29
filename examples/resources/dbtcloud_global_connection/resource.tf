@@ -202,3 +202,13 @@ resource "dbtcloud_global_connection" "teradata" {
     retries = 3
   }
 }
+
+resource "dbtcloud_global_connection" "clickhouse" {
+  name = "My ClickHouse connection"
+  clickhouse = {
+    host = "my-clickhouse-server.com"
+    // optional fields
+    port     = 8443
+    database = "default"
+  }
+}

@@ -583,3 +583,13 @@ type SalesforceConfig struct {
 func (SalesforceConfig) AdapterVersion() string {
 	return "salesforce_v0"
 }
+
+type ClickhouseConfig struct {
+	Host     *string `json:"host,omitempty"`
+	Port     *int64  `json:"port,omitempty"`
+	Database *string `json:"database,omitempty"`
+}
+
+func (ClickhouseConfig) AdapterVersion() string {
+	return "clickhouse_v0"
+}
