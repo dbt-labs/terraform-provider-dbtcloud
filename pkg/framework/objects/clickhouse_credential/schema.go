@@ -6,7 +6,6 @@ import (
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -111,10 +110,12 @@ var ClickhouseResourceSchema = resource_schema.Schema{
 			Default:     stringdefault.StaticString("default"),
 		},
 		"threads": resource_schema.Int64Attribute{
-			Description: "The number of threads to use for dbt operations",
+			Description: "The number of threads to use for dbt operations.",
 			Optional:    true,
 			Computed:    true,
-			Default:     int64default.StaticInt64(4),
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.UseStateForUnknown(),
+			},
 		},
 	},
 }

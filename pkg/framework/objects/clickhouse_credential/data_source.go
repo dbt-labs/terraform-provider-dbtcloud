@@ -98,7 +98,7 @@ func (d *clickhouseCredentialDataSource) Read(
 	config.User = types.StringValue(credential.UnencryptedCredentialDetails.User)
 	config.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
 	config.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
-	config.Threads = types.Int64Value(int64(credential.UnencryptedCredentialDetails.Threads))
+	config.Threads = threadsInt64Value(credential.UnencryptedCredentialDetails.Threads)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }

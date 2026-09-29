@@ -91,7 +91,7 @@ func (r *clickhouseCredentialResource) Create(
 	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	schema := plan.Schema.ValueString()
 	targetName := plan.TargetName.ValueString()
-	threads := int(plan.Threads.ValueInt64())
+	threads := threadsPointer(plan.Threads)
 
 	credential, err := r.client.CreateClickhouseCredential(
 		projectID,
@@ -111,6 +111,7 @@ func (r *clickhouseCredentialResource) Create(
 
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, *credential.ID))
 	plan.CredentialID = types.Int64Value(int64(*credential.ID))
+	plan.Threads = threadsInt64Value(threads)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -144,7 +145,7 @@ func (r *clickhouseCredentialResource) Read(
 	state.User = types.StringValue(credential.UnencryptedCredentialDetails.User)
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
 	state.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
-	state.Threads = types.Int64Value(int64(credential.UnencryptedCredentialDetails.Threads))
+	state.Threads = threadsInt64Value(credential.UnencryptedCredentialDetails.Threads)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -179,7 +180,7 @@ func (r *clickhouseCredentialResource) Update(
 		password,
 		plan.Schema.ValueString(),
 		plan.TargetName.ValueString(),
-		int(plan.Threads.ValueInt64()),
+		threadsPointer(plan.Threads),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -314,6 +315,25 @@ func (r *clickhouseCredentialResource) ImportState(
 	resp.Diagnostics.Append(resp.State.SetAttribute(
 		ctx,
 		path.Root("threads"),
-		credential.UnencryptedCredentialDetails.Threads,
+		threadsInt64Value(credential.UnencryptedCredentialDetails.Threads),
 	)...)
+}
+
+// threadsPointer converts a possibly-null/unknown Terraform Int64 into a *int,
+// so an unset `threads` is sent to the API as null instead of defaulting to 0.
+func threadsPointer(v types.Int64) *int {
+	if v.IsNull() || v.IsUnknown() {
+		return nil
+	}
+	t := int(v.ValueInt64())
+	return &t
+}
+
+// threadsInt64Value converts the API's nullable threads back into a Terraform
+// Int64, preserving null when the API has no value set.
+func threadsInt64Value(threads *int) types.Int64 {
+	if threads == nil {
+		return types.Int64Null()
+	}
+	return types.Int64Value(int64(*threads))
 }

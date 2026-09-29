@@ -16,7 +16,7 @@ type ClickhouseUnencryptedCredentialDetails struct {
 	User       string `json:"user"`
 	Schema     string `json:"schema"`
 	TargetName string `json:"target_name"`
-	Threads    int    `json:"threads"`
+	Threads    *int   `json:"threads"`
 }
 
 type ClickhouseCredential struct {
@@ -88,7 +88,7 @@ func (c *Client) CreateClickhouseCredential(
 	password string,
 	schema string,
 	targetName string,
-	threads int,
+	threads *int,
 ) (*ClickhouseCredential, error) {
 
 	credentialDetails, err := GenerateClickhouseCredentialDetails(
@@ -102,13 +102,20 @@ func (c *Client) CreateClickhouseCredential(
 		return nil, err
 	}
 
+	// The API requires the top-level "threads" property to be a real integer
+	// on create (it rejects both a missing key and an explicit null)
+	topLevelThreads := 4
+	if threads != nil {
+		topLevelThreads = *threads
+	}
+
 	newClickhouseCredential := ClickhouseCredentialGlobConn{
 		AccountID:         c.AccountID,
 		ProjectID:         projectID,
 		Type:              "adapter",
 		AdapterVersion:    "clickhouse_v0",
 		State:             STATE_ACTIVE,
-		Threads:           threads,
+		Threads:           topLevelThreads,
 		CredentialDetails: credentialDetails,
 	}
 
@@ -189,7 +196,7 @@ func GenerateClickhouseCredentialDetails(
 	password string,
 	schema string,
 	targetName string,
-	threads int,
+	threads *int,
 ) (AdapterCredentialDetails, error) {
 	// we load the raw JSON to make it easier to update if the schema changes in the future
 	defaultConfig := `{
@@ -268,12 +275,17 @@ func GenerateClickhouseCredentialDetails(
 		return clickhouseCredentialDetailsDefault, err
 	}
 
+	var threadsValue interface{}
+	if threads != nil {
+		threadsValue = *threads
+	}
+
 	fieldMapping := map[string]interface{}{
 		"user":        user,
 		"password":    password,
 		"schema":      schema,
 		"target_name": targetName,
-		"threads":     threads,
+		"threads":     threadsValue,
 	}
 
 	clickhouseCredentialFields := map[string]AdapterCredentialField{}

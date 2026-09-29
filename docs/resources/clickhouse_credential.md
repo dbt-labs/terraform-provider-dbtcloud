@@ -58,7 +58,7 @@ resource "dbtcloud_clickhouse_credential" "my_clickhouse_cred_wo" {
 - `password_wo` (String) Write-only alternative to `password`. The value is not stored in state. Requires `password_wo_version` to trigger updates.
 - `password_wo_version` (Number) Version number for `password_wo`. Increment this value to trigger an update of the password when using `password_wo`.
 - `target_name` (String) Target name
-- `threads` (Number) The number of threads to use for dbt operations
+- `threads` (Number) The number of threads to use for dbt operations.
 
 ### Read-Only
 

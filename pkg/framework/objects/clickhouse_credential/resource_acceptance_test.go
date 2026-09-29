@@ -50,10 +50,11 @@ func TestAccDbtCloudClickhouseCredentialResource(t *testing.T) {
 						"target_name",
 						"default",
 					),
-					resource.TestCheckResourceAttr(
+					// threads is left unset in the config, so it should stay
+					// null rather than defaulting to a fixed value.
+					resource.TestCheckNoResourceAttr(
 						"dbtcloud_clickhouse_credential.test_credential",
 						"threads",
-						"4",
 					),
 				),
 			},
@@ -73,6 +74,26 @@ func TestAccDbtCloudClickhouseCredentialResource(t *testing.T) {
 						"dbtcloud_clickhouse_credential.test_credential",
 						"user",
 						user2,
+					),
+				),
+			},
+			// Update testing - explicitly setting threads should round-trip
+			{
+				Config: testAccDbtCloudClickhouseCredentialResourceConfigWithThreads(
+					projectName,
+					connectionName,
+					user2,
+					password,
+					8,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudClickhouseCredentialExists(
+						"dbtcloud_clickhouse_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_clickhouse_credential.test_credential",
+						"threads",
+						"8",
 					),
 				),
 			},
@@ -111,6 +132,33 @@ resource "dbtcloud_clickhouse_credential" "test_credential" {
   password   = "%s"
 }
 `, projectName, connectionName, user, password)
+}
+
+func testAccDbtCloudClickhouseCredentialResourceConfigWithThreads(
+	projectName, connectionName, user, password string, threads int,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_global_connection" "clickhouse" {
+  name = "%s"
+  clickhouse = {
+    host     = "example.com"
+    port     = 8443
+    database = "default"
+  }
+}
+
+resource "dbtcloud_clickhouse_credential" "test_credential" {
+  project_id = dbtcloud_project.test_project.id
+  schema     = "my_schema"
+  user       = "%s"
+  password   = "%s"
+  threads    = %d
+}
+`, projectName, connectionName, user, password, threads)
 }
 
 func testAccCheckDbtCloudClickhouseCredentialExists(resourceName string) resource.TestCheckFunc {

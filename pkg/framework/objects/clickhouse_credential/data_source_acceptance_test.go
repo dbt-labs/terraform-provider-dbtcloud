@@ -54,9 +54,10 @@ func TestAccDbtCloudClickhouseCredentialDataSource(t *testing.T) {
 						"data.dbtcloud_clickhouse_credential.test",
 						"target_name",
 					),
-					resource.TestCheckResourceAttrSet(
+					resource.TestCheckResourceAttr(
 						"data.dbtcloud_clickhouse_credential.test",
 						"threads",
+						"4",
 					),
 				),
 			},
@@ -89,6 +90,7 @@ resource "dbtcloud_clickhouse_credential" "test" {
   schema     = "my_schema"
   user       = "%s"
   password   = "%s"
+  threads    = 4
 }
 
 resource "dbtcloud_environment" "prod" {
