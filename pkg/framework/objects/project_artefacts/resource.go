@@ -79,6 +79,7 @@ func (p *projectArtefactsResource) Create(ctx context.Context, req resource.Crea
 		project.FreshnessJobId = nil
 	}
 
+	project.ConnectionID = nil
 	if _, err := p.client.UpdateProject(projectIDString, *project); err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to update project",
@@ -116,6 +117,7 @@ func (p *projectArtefactsResource) Delete(ctx context.Context, req resource.Dele
 
 	project.FreshnessJobId = nil
 	project.DocsJobId = nil
+	project.ConnectionID = nil
 
 	_, err = p.client.UpdateProject(projectIDString, *project)
 	if err != nil {
@@ -210,6 +212,7 @@ func (p *projectArtefactsResource) Update(ctx context.Context, req resource.Upda
 		}
 	}
 
+	project.ConnectionID = nil
 	project, err = p.client.UpdateProject(projectIDString, *project)
 
 	if err != nil {
