@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ resource.Resource                = &semanticLayerConfigurationResource{}
-	_ resource.ResourceWithConfigure   = &semanticLayerConfigurationResource{}
+	_ resource.Resource              = &semanticLayerConfigurationResource{}
+	_ resource.ResourceWithConfigure = &semanticLayerConfigurationResource{}
 )
 
 func SemanticLayerConfigurationResource() resource.Resource {
@@ -124,6 +124,8 @@ func (r *semanticLayerConfigurationResource) Create(
 
 	// Update Project with Semantic Layer configuration ID
 	project.SemanticLayerConfigID = &createdConfig.ID
+	// Prevent cascading connection ID to all environments (Issue #362, #516)
+	project.ConnectionID = nil
 	_, err = r.client.UpdateProject(strconv.FormatInt(projectID, 10), *project)
 	if err != nil {
 		resp.Diagnostics.AddError(

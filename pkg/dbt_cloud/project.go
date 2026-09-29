@@ -213,6 +213,12 @@ func (c *Client) CreateProject(
 }
 
 func (c *Client) UpdateProject(projectID string, project Project) (*Project, error) {
+	// Connection ID must always be excluded from project updates.
+	// With the introduction of global connections, if a connection ID is passed in this update request,
+	// the dbt Cloud API cascades that connection ID to all environments in the project and overrides any
+	// existing environment connection IDs (Issue #362, Issue #516).
+	project.ConnectionID = nil
+
 	// Skip subdirectory validation for delete operations (STATE_DELETED): we're not
 	// changing this field, and legacy projects can carry a value (e.g. a leading "/")
 	// that predates today's validation rules, which would otherwise make the project
