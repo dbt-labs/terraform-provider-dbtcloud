@@ -204,8 +204,21 @@ func (r *clickhouseCredentialResource) Update(
 		return
 	}
 
+	credential, err := r.client.GetClickhouseCredential(projectID, credentialID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading back ClickHouse credential after update",
+			err.Error(),
+		)
+		return
+	}
+
 	plan.ID = state.ID
 	plan.CredentialID = state.CredentialID
+	plan.User = types.StringValue(credential.UnencryptedCredentialDetails.User)
+	plan.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+	plan.TargetName = types.StringValue(credential.UnencryptedCredentialDetails.TargetName)
+	plan.Threads = threadsInt64Value(credential.UnencryptedCredentialDetails.Threads)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

@@ -125,7 +125,7 @@ Read-Only:
 Read-Only:
 
 - `database` (String) The database to connect to for this connection.
-- `host` (String) The ClickHouse server hostname.
+- `host` (String) The ClickHouse Cloud endpoint URL.
 - `port` (Number) The port to connect to for this connection.
 
 

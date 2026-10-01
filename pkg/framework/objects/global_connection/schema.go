@@ -1223,7 +1223,7 @@ func (r *globalConnectionDataSource) Schema(
 				Attributes: map[string]datasource_schema.Attribute{
 					"host": datasource_schema.StringAttribute{
 						Computed:    true,
-						Description: "The ClickHouse server hostname.",
+						Description: "The ClickHouse Cloud endpoint URL.",
 					},
 					"port": datasource_schema.Int64Attribute{
 						Computed:    true,
