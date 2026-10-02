@@ -709,6 +709,27 @@ func (r *globalConnectionResource) Create(
 		plan.AdapterVersion = types.StringValue(salesforceCfg.AdapterVersion())
 		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
 
+	case plan.ClickhouseConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ClickhouseConfig](r.client)
+
+		clickhouseCfg := dbt_cloud.ClickhouseConfig{
+			Host:     plan.ClickhouseConfig.Host.ValueStringPointer(),
+			Port:     plan.ClickhouseConfig.Port.ValueInt64Pointer(),
+			Database: plan.ClickhouseConfig.Database.ValueStringPointer(),
+		}
+
+		commonResp, _, err := c.Create(commonCfg, clickhouseCfg)
+
+		if err != nil {
+			resp.Diagnostics.AddError("Error creating the connection", err.Error())
+			return
+		}
+
+		plan.ID = types.Int64PointerValue(commonResp.ID)
+		plan.AdapterVersion = types.StringValue(clickhouseCfg.AdapterVersion())
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(commonResp.IsSshTunnelEnabled)
+
 	default:
 		panic("Unknown connection type")
 	}
@@ -1600,6 +1621,46 @@ func (r *globalConnectionResource) Update(
 
 			if plan.SalesforceConfig.DataTransformRunTimeout != state.SalesforceConfig.DataTransformRunTimeout {
 				warehouseConfigChanges.DataTransformRunTimeout = plan.SalesforceConfig.DataTransformRunTimeout.ValueInt64Pointer()
+			}
+		}
+
+		updateCommon, _, err := c.Update(
+			state.ID.ValueInt64(),
+			globalConfigChanges,
+			warehouseConfigChanges,
+		)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating global connection", err.Error())
+			return
+		}
+
+		// we set the computed values, no need to do it for ID as we use a PlanModifier with UseStateForUnknown()
+		plan.IsSshTunnelEnabled = types.BoolPointerValue(updateCommon.IsSshTunnelEnabled)
+		plan.AdapterVersion = types.StringValue(warehouseConfigChanges.AdapterVersion())
+
+	case plan.ClickhouseConfig != nil:
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ClickhouseConfig](r.client)
+
+		warehouseConfigChanges := dbt_cloud.ClickhouseConfig{}
+
+		// ClickHouse specific ones
+		// Check if state.ClickhouseConfig is nil (e.g., when changing connection types)
+		if state.ClickhouseConfig == nil {
+			warehouseConfigChanges.Host = plan.ClickhouseConfig.Host.ValueStringPointer()
+			warehouseConfigChanges.Port = plan.ClickhouseConfig.Port.ValueInt64Pointer()
+			warehouseConfigChanges.Database = plan.ClickhouseConfig.Database.ValueStringPointer()
+		} else {
+			if plan.ClickhouseConfig.Host != state.ClickhouseConfig.Host {
+				warehouseConfigChanges.Host = plan.ClickhouseConfig.Host.ValueStringPointer()
+			}
+
+			if plan.ClickhouseConfig.Port != state.ClickhouseConfig.Port {
+				warehouseConfigChanges.Port = plan.ClickhouseConfig.Port.ValueInt64Pointer()
+			}
+
+			if plan.ClickhouseConfig.Database != state.ClickhouseConfig.Database {
+				warehouseConfigChanges.Database = plan.ClickhouseConfig.Database.ValueStringPointer()
 			}
 		}
 

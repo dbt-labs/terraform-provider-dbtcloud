@@ -653,6 +653,28 @@ func (r *globalConnectionResource) Schema(
 					},
 				},
 			},
+			"clickhouse": resource_schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "ClickHouse connection configuration.",
+				Attributes: map[string]resource_schema.Attribute{
+					"host": resource_schema.StringAttribute{
+						Required:    true,
+						Description: "The ClickHouse Cloud endpoint URL.",
+					},
+					"port": resource_schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     int64default.StaticInt64(8443),
+						Description: "The port to connect to for this connection. Default=8443",
+					},
+					"database": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("default"),
+						Description: "The database to connect to for this connection. Default=default",
+					},
+				},
+			},
 		},
 	}
 }
@@ -1192,6 +1214,24 @@ func (r *globalConnectionDataSource) Schema(
 					"data_transform_run_timeout": datasource_schema.Int64Attribute{
 						Computed:    true,
 						Description: "Timeout in seconds for data transformation runs.",
+					},
+				},
+			},
+			"clickhouse": datasource_schema.SingleNestedAttribute{
+				Computed:    true,
+				Description: "ClickHouse connection configuration.",
+				Attributes: map[string]datasource_schema.Attribute{
+					"host": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The ClickHouse Cloud endpoint URL.",
+					},
+					"port": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The port to connect to for this connection.",
+					},
+					"database": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The database to connect to for this connection.",
 					},
 				},
 			},

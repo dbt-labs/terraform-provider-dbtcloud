@@ -31,6 +31,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/clickhouse_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/connection_catalog_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
@@ -348,6 +349,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		runs.RunsDataSource,
 		synapse_credential.SynapseCredentialDataSource,
 		salesforce_credential.SalesforceCredentialDataSource,
+		clickhouse_credential.ClickhouseCredentialDataSource,
 	}
 }
 
@@ -387,6 +389,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		redshift_credential.RedshiftCredentialResource,
 		postgres_credential.PostgresCredentialResource,
 		fabric_credential.FabricCredentialResource,
+		clickhouse_credential.ClickhouseCredentialResource,
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,

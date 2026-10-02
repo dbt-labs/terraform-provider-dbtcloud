@@ -31,6 +31,7 @@ data dbtcloud_global_connection my_connection {
 - `apache_spark` (Attributes) Apache Spark connection configuration. (see [below for nested schema](#nestedatt--apache_spark))
 - `athena` (Attributes) Athena connection configuration. (see [below for nested schema](#nestedatt--athena))
 - `bigquery` (Attributes) (see [below for nested schema](#nestedatt--bigquery))
+- `clickhouse` (Attributes) ClickHouse connection configuration. (see [below for nested schema](#nestedatt--clickhouse))
 - `databricks` (Attributes) Databricks connection configuration (see [below for nested schema](#nestedatt--databricks))
 - `fabric` (Attributes) Microsoft Fabric connection configuration. (see [below for nested schema](#nestedatt--fabric))
 - `is_ssh_tunnel_enabled` (Boolean) Whether the connection can use an SSH tunnel
@@ -116,6 +117,16 @@ Read-Only:
 - `timeout_seconds` (Number) Timeout in seconds for queries
 - `token_uri` (String) Token URI for the Service Account
 - `use_latest_adapter` (Boolean) Whether the connection uses the latest bigquery_v1 adapter (used for BQ WIF)
+
+
+<a id="nestedatt--clickhouse"></a>
+### Nested Schema for `clickhouse`
+
+Read-Only:
+
+- `database` (String) The database to connect to for this connection.
+- `host` (String) The ClickHouse Cloud endpoint URL.
+- `port` (Number) The port to connect to for this connection.
 
 
 <a id="nestedatt--databricks"></a>
