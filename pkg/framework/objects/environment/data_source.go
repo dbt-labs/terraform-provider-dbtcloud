@@ -67,6 +67,7 @@ func (d *environmentDataSource) Read(
 		helper.IntPointerToInt64Pointer(environment.ExtendedAttributesID),
 	)
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+	state.EnableDbtState = types.BoolPointerValue(environment.EnableDbtState)
 	state.PrimaryProfileID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.PrimaryProfileID),
 	)

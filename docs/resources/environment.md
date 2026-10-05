@@ -74,6 +74,7 @@ resource "dbtcloud_environment" "profiled_environment" {
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided
 - `deployment_type` (String) The type of environment. Only valid for environments of type 'deployment' and for now can only be 'production', 'staging' or left empty for generic environments
+- `enable_dbt_state` (Boolean) Whether to enable dbt State in this environment. A job inherits it with `cost_optimization_features = ["inherit_environment"]`.
 - `enable_model_query_history` (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `is_active` (Boolean) Whether the environment is active

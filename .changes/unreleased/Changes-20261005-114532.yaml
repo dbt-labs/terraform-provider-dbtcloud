@@ -1,0 +1,3 @@
+kind: Changes
+body: add enable_dbt_state to dbtcloud_environment, and inherit_environment as a dbtcloud_job cost_optimization_features value
+time: 2026-10-05T11:45:32.992533+03:00

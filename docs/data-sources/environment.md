@@ -27,6 +27,7 @@ Retrieve data for a single environment
 - `custom_branch` (String) The custom branch name to use
 - `dbt_version` (String) Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`).
 - `deployment_type` (String) The type of deployment environment (currently 'production', 'staging' or empty)
+- `enable_dbt_state` (Boolean) Whether dbt State is on for this environment
 - `enable_model_query_history` (Boolean) Whether model query history is on
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `name` (String) The name of the environment
