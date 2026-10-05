@@ -240,6 +240,7 @@ func (r *partialNotificationResource) Create(
 		// we only update if something global, but not part of the ID is different or if something partial needs to be added
 		if plan.State == types.Int64Value(int64(fullNotification.State)) &&
 			plan.UserID == types.Int64Value(int64(fullNotification.UserId)) &&
+			plan.SlackChannelName.Equal(types.StringPointerValue(fullNotification.SlackChannelName)) &&
 			len(missingOnCancel) == 0 &&
 			len(missingOnFailure) == 0 &&
 			len(missingOnWarning) == 0 &&
@@ -446,6 +447,7 @@ func (r *partialNotificationResource) Update(
 	// we check if there are changes to be sent, both global and local
 	if plan.UserID != state.UserID ||
 		plan.State != state.State ||
+		!plan.SlackChannelName.Equal(state.SlackChannelName) ||
 		len(deletedOnCancel) > 0 ||
 		len(newOnCancel) > 0 ||
 		len(deletedOnFailure) > 0 ||

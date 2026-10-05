@@ -35,6 +35,13 @@ func matchPartial(
 		)) {
 			return false
 		}
+	case 5:
+		// slack notification via the account-level app, unique per channel ID
+		if !(notificationModel.SlackChannelID == types.StringPointerValue(
+			notificationResponse.SlackChannelID,
+		)) {
+			return false
+		}
 	case 4:
 		// external notification
 		if !(notificationModel.ExternalEmail == types.StringPointerValue(

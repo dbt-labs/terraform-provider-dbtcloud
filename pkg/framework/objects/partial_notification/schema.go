@@ -94,7 +94,7 @@ func (r *partialNotificationResource) Schema(
 				Optional:    true,
 				Computed:    true,
 				Default:     int64default.StaticInt64(1),
-				Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email`) [global, used as identifier]",
+				Description: "Type of notification (1 = dbt Cloud user email (default): does not require an external_email ; 2 = Slack channel: requires `slack_channel_id` and `slack_channel_name` ; 4 = external email: requires setting an `external_email` ; 5 = Slack channel via the account-level Slack app: requires `slack_channel_id` and `slack_channel_name`) [global, used as identifier]",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
 				},
@@ -124,14 +124,29 @@ func (r *partialNotificationResource) Schema(
 			},
 			"slack_channel_name": schema.StringAttribute{
 				Optional:    true,
-				Description: "The name of the slack channel [global, used as identifier]",
+				Description: "The name of the slack channel [global, used as identifier for `notification_type` 2; updated in place for `notification_type` 5]",
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(path.MatchRoot("external_email")),
 				},
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.RequiresReplaceIf(
+						slackChannelNameRequiresReplace,
+						"Requires replacement unless notification_type is 5.",
+						"Requires replacement unless `notification_type` is 5.",
+					),
 				},
 			},
 		},
 	}
+}
+
+// Slack V2 (type 5) notifications are identified by channel ID only, so a name change is an in-place update.
+func slackChannelNameRequiresReplace(
+	ctx context.Context,
+	req planmodifier.StringRequest,
+	resp *stringplanmodifier.RequiresReplaceIfFuncResponse,
+) {
+	var notificationType types.Int64
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("notification_type"), &notificationType)...)
+	resp.RequiresReplace = notificationType.ValueInt64() != 5
 }
