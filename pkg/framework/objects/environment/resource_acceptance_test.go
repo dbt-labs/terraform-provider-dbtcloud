@@ -657,3 +657,43 @@ resource "dbtcloud_environment" "test_env" {
 }
 `, projectName, environmentName, acctest_config.DBT_CLOUD_VERSION, deploymentType)
 }
+
+// TestAccDbtCloudEnvironmentResourceEnableDbtState covers enable_dbt_state on and
+// off. The off step is the one that matters: the flag has to be sent when it goes
+// back to false, otherwise the API keeps the old value.
+func TestAccDbtCloudEnvironmentResourceEnableDbtState(t *testing.T) {
+	envName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, `enable_dbt_state = true`,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "enable_dbt_state", "true",
+				),
+			},
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, `enable_dbt_state = false`,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "enable_dbt_state", "false",
+				),
+			},
+			{
+				Config: testAccDbtCloudEnvironmentResourceDeploymentTypeConfig(
+					projectName, envName, ``,
+				),
+				Check: resource.TestCheckResourceAttr(
+					"dbtcloud_environment.test_env", "enable_dbt_state", "false",
+				),
+			},
+		},
+	})
+}

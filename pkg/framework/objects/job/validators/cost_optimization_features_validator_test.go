@@ -34,6 +34,13 @@ func TestCostOptimizationFeaturesValidator(t *testing.T) {
 		"dbt_state + sao is rejected":     {value: setOf("dbt_state", "state_aware_orchestration"), expectError: true},
 		"efficient_testing rejected":      {value: setOf("efficient_testing"), expectError: true},
 		"invalid value rejected":          {value: setOf("bogus_feature"), expectError: true},
+		"inherit_environment alone":       {value: setOf("inherit_environment"), expectError: false},
+		"inherit_environment + sao is rejected": {
+			value: setOf("inherit_environment", "state_aware_orchestration"), expectError: true,
+		},
+		"inherit_environment + dbt_state is rejected": {
+			value: setOf("inherit_environment", "dbt_state"), expectError: true,
+		},
 	}
 
 	for name, tc := range tests {
