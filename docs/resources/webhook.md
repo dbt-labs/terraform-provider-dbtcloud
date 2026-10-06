@@ -34,14 +34,14 @@ resource "dbtcloud_webhook" "test_webhook" {
 ### Required
 
 - `client_url` (String) Webhooks Client URL
-- `event_types` (List of String) Webhooks Event Types
+- `event_types` (Set of String) Webhooks Event Types
 - `name` (String) Webhooks Name
 
 ### Optional
 
 - `active` (Boolean) Webhooks active flag
 - `description` (String) Webhooks Description
-- `job_ids` (List of Number) List of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs
+- `job_ids` (Set of Number) Set of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs
 
 ### Read-Only
 

@@ -144,6 +144,27 @@ func TypesListInt64SliceToInt64Slice(list types.List) []int64 {
 	return result
 }
 
+func SliceStringToTypesSetInt64Value(slice []string) (types.Set, diag.Diagnostics) {
+	if len(slice) == 0 {
+		return types.SetNull(types.Int64Type), diag.Diagnostics{}
+	}
+	attrValues := make([]attr.Value, len(slice))
+	for i, v := range slice {
+		val, _ := strconv.Atoi(v)
+		attrValues[i] = types.Int64Value(int64(val))
+	}
+	return types.SetValue(types.Int64Type, attrValues)
+}
+
+func TypesSetInt64ToInt64Slice(set types.Set) []int64 {
+	elements := set.Elements()
+	result := make([]int64, len(elements))
+	for i, v := range elements {
+		result[i] = v.(types.Int64).ValueInt64()
+	}
+	return result
+}
+
 func TypesListStringToStringSlice(list types.List) []string {
 	elements := list.Elements()
 	result := make([]string, len(elements))
@@ -159,6 +180,14 @@ func SliceStringToTypesListStringValue(slice []string) (types.List, diag.Diagnos
 		attrValues[i] = types.StringValue(v)
 	}
 	return types.ListValue(types.StringType, attrValues)
+}
+
+func SliceStringToTypesSetStringValue(slice []string) (types.Set, diag.Diagnostics) {
+	attrValues := make([]attr.Value, len(slice))
+	for i, v := range slice {
+		attrValues[i] = types.StringValue(v)
+	}
+	return types.SetValue(types.StringType, attrValues)
 }
 
 func SliceStringToSliceInt64(slice []string) []int64 {

@@ -90,13 +90,13 @@ var resourceSchema = resource_schema.Schema{
 			Description: "Webhooks Client URL",
 			Required:    true,
 		},
-		"event_types": resource_schema.ListAttribute{
+		"event_types": resource_schema.SetAttribute{
 			Description: "Webhooks Event Types",
 			ElementType: types.StringType,
 			Required:    true,
 		},
-		"job_ids": resource_schema.ListAttribute{
-			Description: "List of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs",
+		"job_ids": resource_schema.SetAttribute{
+			Description: "Set of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs",
 			ElementType: types.Int64Type,
 			Optional:    true,
 		},
