@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -120,6 +121,42 @@ var resurrectionConvergeTestStep = resource.TestStep{
 	),
 }
 
+// twoJobsTestStep and reorderedJobsTestStep check that job_ids ignores order: the
+// dbt Cloud API does not return job IDs in the order they were sent, and listing the
+// same jobs in a different order must not plan an update.
+var twoJobsTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName2, projectName, "[dbtcloud_job.test.id, dbtcloud_job.test_2.id]"),
+	Check: resource.ComposeTestCheckFunc(
+		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"job_ids.#",
+			"2",
+		),
+		resource.TestCheckTypeSetElemAttrPair(
+			"dbtcloud_webhook.test_webhook",
+			"job_ids.*",
+			"dbtcloud_job.test",
+			"id",
+		),
+		resource.TestCheckTypeSetElemAttrPair(
+			"dbtcloud_webhook.test_webhook",
+			"job_ids.*",
+			"dbtcloud_job.test_2",
+			"id",
+		),
+	),
+}
+
+var reorderedJobsTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName2, projectName, "[dbtcloud_job.test_2.id, dbtcloud_job.test.id]"),
+	ConfigPlanChecks: resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectEmptyPlan(),
+		},
+	},
+}
+
 func TestAccDbtCloudWebhookResource(t *testing.T) {
 	importStateTestStep := resource.TestStep{
 		ResourceName:      "dbtcloud_webhook.test_webhook",
@@ -140,10 +177,32 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 			modifyConfigTestStep,
 			resurrectionPlanErrorTestStep,
 			resurrectionConvergeTestStep,
+			twoJobsTestStep,
+			reorderedJobsTestStep,
 			importStateTestStep,
 		},
 	})
 
+}
+
+// TestAccDbtCloudWebhookResourceUpgradeFromList checks that state saved while job_ids
+// was a list (v1.12.10 and earlier) is read by the current provider without planning
+// any change.
+func TestAccDbtCloudWebhookResourceUpgradeFromList(t *testing.T) {
+	upgradeWebhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	upgradeProjectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+	step := resource.TestStep{
+		Config: testAccDbtCloudWebhookResourceFullConfig(upgradeWebhookName, upgradeProjectName, "https://example.com", "true"),
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acctest_helper.TestAccPreCheck(t) },
+		CheckDestroy: testAccCheckDbtCloudWebhookDestroy,
+		Steps: []resource.TestStep{
+			acctest_helper.MakeExternalProviderTestStep(step, "1.12.10"),
+			acctest_helper.MakeCurrentProviderNoOpTestStep(step),
+		},
+	})
 }
 
 func testAccDbtCloudWebhookResourceBasicConfig(webhookName, projectName string) string {
@@ -203,6 +262,66 @@ resource "dbtcloud_webhook" "test_webhook" {
 	active = "%s"
   }
 `, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, clientURL, active)
+}
+
+func testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName, projectName, jobIDs string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name        = "%s"
+}
+resource "dbtcloud_environment" "test_environment" {
+	dbt_version   = "%s"
+	name          = "test"
+	project_id    = dbtcloud_project.test_project.id
+	type          = "deployment"
+  }
+resource "dbtcloud_job" "test" {
+	environment_id = dbtcloud_environment.test_environment.environment_id
+	execute_steps = [
+	  "dbt test"
+	]
+	generate_docs        = false
+	is_active            = true
+	name                 = "Test"
+	num_threads          = 64
+	project_id           = dbtcloud_project.test_project.id
+	run_generate_sources = false
+	target_name          = "default"
+	triggers = {
+	  "github_webhook" : false,
+	  "git_provider_webhook" : false,
+	  "schedule" : false
+	}
+  }
+resource "dbtcloud_job" "test_2" {
+	environment_id = dbtcloud_environment.test_environment.environment_id
+	execute_steps = [
+	  "dbt build"
+	]
+	generate_docs        = false
+	is_active            = true
+	name                 = "Test 2"
+	num_threads          = 64
+	project_id           = dbtcloud_project.test_project.id
+	run_generate_sources = false
+	target_name          = "default"
+	triggers = {
+	  "github_webhook" : false,
+	  "git_provider_webhook" : false,
+	  "schedule" : false
+	}
+  }
+resource "dbtcloud_webhook" "test_webhook" {
+	name = "%s"
+	description = "My webhook"
+	client_url = "https://example.com/resurrected"
+	event_types = [
+	  "job.run.completed"
+	]
+	job_ids = %s
+	active = true
+  }
+`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, jobIDs)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {

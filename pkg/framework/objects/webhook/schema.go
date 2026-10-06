@@ -95,8 +95,8 @@ var resourceSchema = resource_schema.Schema{
 			ElementType: types.StringType,
 			Required:    true,
 		},
-		"job_ids": resource_schema.ListAttribute{
-			Description: "List of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs",
+		"job_ids": resource_schema.SetAttribute{
+			Description: "Set of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs",
 			ElementType: types.Int64Type,
 			Optional:    true,
 		},

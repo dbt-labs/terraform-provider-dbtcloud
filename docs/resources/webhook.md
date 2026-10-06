@@ -41,7 +41,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 
 - `active` (Boolean) Webhooks active flag
 - `description` (String) Webhooks Description
-- `job_ids` (List of Number) List of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs
+- `job_ids` (Set of Number) Set of job IDs to trigger the webhook. When null or empty, the webhook will trigger on all jobs
 
 ### Read-Only
 

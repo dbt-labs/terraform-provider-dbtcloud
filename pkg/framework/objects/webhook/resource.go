@@ -59,7 +59,7 @@ func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *db
 	if diags.HasError() {
 		return diags
 	}
-	resourceModel.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(retrievedWebhook.JobIds))
+	resourceModel.JobIDs, diags = helper.SliceStringToTypesSetInt64Value([]string(retrievedWebhook.JobIds))
 	if diags.HasError() {
 		return diags
 	}
@@ -138,7 +138,7 @@ func (r *webhookResource) Create(
 	description := plan.Description.ValueString()
 	clientUrl := plan.ClientURL.ValueString()
 	eventTypes := plan.EventTypes
-	jobIds := helper.TypesListInt64SliceToInt64Slice(plan.JobIDs)
+	jobIds := helper.TypesSetInt64ToInt64Slice(plan.JobIDs)
 	active := plan.Active.ValueBool()
 
 	nonTypedEventTypes := helper.TypesListStringToStringSlice(eventTypes)
@@ -164,7 +164,7 @@ func (r *webhookResource) Create(
 	plan.ID = types.StringValue(createdWebhook.WebhookId)
 	plan.WebhookID = types.StringValue(createdWebhook.WebhookId)
 
-	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(createdWebhook.JobIds))
+	plan.JobIDs, diags = helper.SliceStringToTypesSetInt64Value([]string(createdWebhook.JobIds))
 	if diags.HasError() {
 		return
 	}
@@ -214,7 +214,7 @@ func (r *webhookResource) Update(
 	var descriptionChanged = (plan.Description != state.Description)
 	var clientUrlChanged = (plan.ClientURL != state.ClientURL)
 	var eventTypesChanged = !reflect.DeepEqual(plan.EventTypes, state.EventTypes)
-	var jobIdsChanged = !reflect.DeepEqual(plan.JobIDs, state.JobIDs)
+	var jobIdsChanged = !plan.JobIDs.Equal(state.JobIDs)
 	var activeChanged = !reflect.DeepEqual(plan.Active, state.Active)
 
 	if nameChanged || descriptionChanged || clientUrlChanged || eventTypesChanged || jobIdsChanged || activeChanged {
@@ -234,7 +234,7 @@ func (r *webhookResource) Update(
 			Description: helper.TernaryOperator(descriptionChanged, plan.Description.ValueString(), retrievedWebhook.Description),
 			ClientUrl:   helper.TernaryOperator(clientUrlChanged, plan.ClientURL.ValueString(), retrievedWebhook.ClientUrl),
 			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.TypesListStringToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
-			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesListInt64SliceToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64([]string(retrievedWebhook.JobIds))),
+			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesSetInt64ToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64([]string(retrievedWebhook.JobIds))),
 			Active:      helper.TernaryOperator(activeChanged, plan.Active.ValueBool(), retrievedWebhook.Active),
 		}
 

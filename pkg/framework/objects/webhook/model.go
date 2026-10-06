@@ -24,7 +24,7 @@ type WebhookResourceModel struct {
 	Description       types.String `tfsdk:"description"`
 	ClientURL         types.String `tfsdk:"client_url"`
 	EventTypes        types.List   `tfsdk:"event_types"`
-	JobIDs            types.List   `tfsdk:"job_ids"`
+	JobIDs            types.Set    `tfsdk:"job_ids"`
 	Active            types.Bool   `tfsdk:"active"`
 	HmacSecret        types.String `tfsdk:"hmac_secret"`
 	HTTPStatusCode    types.String `tfsdk:"http_status_code"`

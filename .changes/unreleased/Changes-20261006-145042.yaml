@@ -1,0 +1,3 @@
+kind: Changes
+body: '`dbtcloud_webhook.job_ids` is now a set instead of a list, so the order of job IDs no longer matters. This fixes "Provider produced inconsistent result after apply" errors when the dbt Cloud API returns the job IDs in a different order than configured. Existing configurations and state work unchanged; expressions that index into the attribute, such as `dbtcloud_webhook.example.job_ids[0]`, need to wrap it in `tolist()`'
+time: 2026-10-06T14:50:42.000000+02:00
