@@ -90,7 +90,7 @@ var resourceSchema = resource_schema.Schema{
 			Description: "Webhooks Client URL",
 			Required:    true,
 		},
-		"event_types": resource_schema.ListAttribute{
+		"event_types": resource_schema.SetAttribute{
 			Description: "Webhooks Event Types",
 			ElementType: types.StringType,
 			Required:    true,

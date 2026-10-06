@@ -182,6 +182,14 @@ func SliceStringToTypesListStringValue(slice []string) (types.List, diag.Diagnos
 	return types.ListValue(types.StringType, attrValues)
 }
 
+func SliceStringToTypesSetStringValue(slice []string) (types.Set, diag.Diagnostics) {
+	attrValues := make([]attr.Value, len(slice))
+	for i, v := range slice {
+		attrValues[i] = types.StringValue(v)
+	}
+	return types.SetValue(types.StringType, attrValues)
+}
+
 func SliceStringToSliceInt64(slice []string) []int64 {
 	result := make([]int64, len(slice))
 	for i, v := range slice {

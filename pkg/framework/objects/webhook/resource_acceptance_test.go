@@ -121,13 +121,23 @@ var resurrectionConvergeTestStep = resource.TestStep{
 	),
 }
 
-// twoJobsTestStep and reorderedJobsTestStep check that job_ids ignores order: the
-// dbt Cloud API does not return job IDs in the order they were sent, and listing the
-// same jobs in a different order must not plan an update.
+// twoJobsTestStep and reorderedTestStep check that job_ids and event_types ignore order:
+// the dbt Cloud API does not return them in the order they were sent, and listing the
+// same values in a different order must not plan an update.
 var twoJobsTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName2, projectName, "[dbtcloud_job.test.id, dbtcloud_job.test_2.id]"),
+	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(
+		webhookName2,
+		projectName,
+		`["job.run.completed", "job.run.errored"]`,
+		"[dbtcloud_job.test.id, dbtcloud_job.test_2.id]",
+	),
 	Check: resource.ComposeTestCheckFunc(
 		testAccCheckDbtCloudWebhookExists("dbtcloud_webhook.test_webhook"),
+		resource.TestCheckResourceAttr(
+			"dbtcloud_webhook.test_webhook",
+			"event_types.#",
+			"2",
+		),
 		resource.TestCheckResourceAttr(
 			"dbtcloud_webhook.test_webhook",
 			"job_ids.#",
@@ -148,8 +158,13 @@ var twoJobsTestStep = resource.TestStep{
 	),
 }
 
-var reorderedJobsTestStep = resource.TestStep{
-	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName2, projectName, "[dbtcloud_job.test_2.id, dbtcloud_job.test.id]"),
+var reorderedTestStep = resource.TestStep{
+	Config: testAccDbtCloudWebhookResourceTwoJobsConfig(
+		webhookName2,
+		projectName,
+		`["job.run.errored", "job.run.completed"]`,
+		"[dbtcloud_job.test_2.id, dbtcloud_job.test.id]",
+	),
 	ConfigPlanChecks: resource.ConfigPlanChecks{
 		PreApply: []plancheck.PlanCheck{
 			plancheck.ExpectEmptyPlan(),
@@ -178,15 +193,15 @@ func TestAccDbtCloudWebhookResource(t *testing.T) {
 			resurrectionPlanErrorTestStep,
 			resurrectionConvergeTestStep,
 			twoJobsTestStep,
-			reorderedJobsTestStep,
+			reorderedTestStep,
 			importStateTestStep,
 		},
 	})
 
 }
 
-// TestAccDbtCloudWebhookResourceUpgradeFromList checks that state saved while job_ids
-// was a list (v1.12.10 and earlier) is read by the current provider without planning
+// TestAccDbtCloudWebhookResourceUpgradeFromList checks that state saved while job_ids and
+// event_types were lists (v1.12.10 and earlier) is read by the current provider without planning
 // any change.
 func TestAccDbtCloudWebhookResourceUpgradeFromList(t *testing.T) {
 	upgradeWebhookName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
@@ -264,7 +279,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 `, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, clientURL, active)
 }
 
-func testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName, projectName, jobIDs string) string {
+func testAccDbtCloudWebhookResourceTwoJobsConfig(webhookName, projectName, eventTypes, jobIDs string) string {
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name        = "%s"
@@ -315,13 +330,11 @@ resource "dbtcloud_webhook" "test_webhook" {
 	name = "%s"
 	description = "My webhook"
 	client_url = "https://example.com/resurrected"
-	event_types = [
-	  "job.run.completed"
-	]
+	event_types = %s
 	job_ids = %s
 	active = true
   }
-`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, jobIDs)
+`, projectName, acctest_config.DBT_CLOUD_VERSION, webhookName, eventTypes, jobIDs)
 }
 
 func testAccCheckDbtCloudWebhookExists(resource string) resource.TestCheckFunc {

@@ -54,7 +54,7 @@ func readWebhookToWebhookResourceModel(ctx context.Context, retrievedWebhook *db
 	resourceModel.ClientURL = types.StringValue(retrievedWebhook.ClientUrl)
 
 	var diags diag.Diagnostics
-	resourceModel.EventTypes, diags = helper.SliceStringToTypesListStringValue(retrievedWebhook.EventTypes)
+	resourceModel.EventTypes, diags = helper.SliceStringToTypesSetStringValue(retrievedWebhook.EventTypes)
 
 	if diags.HasError() {
 		return diags
@@ -141,7 +141,7 @@ func (r *webhookResource) Create(
 	jobIds := helper.TypesSetInt64ToInt64Slice(plan.JobIDs)
 	active := plan.Active.ValueBool()
 
-	nonTypedEventTypes := helper.TypesListStringToStringSlice(eventTypes)
+	nonTypedEventTypes := helper.StringSetToStringSlice(eventTypes)
 
 	createdWebhook, err := r.client.CreateWebhook(
 		webhookId,
@@ -213,7 +213,7 @@ func (r *webhookResource) Update(
 	var nameChanged = (plan.Name != state.Name)
 	var descriptionChanged = (plan.Description != state.Description)
 	var clientUrlChanged = (plan.ClientURL != state.ClientURL)
-	var eventTypesChanged = !reflect.DeepEqual(plan.EventTypes, state.EventTypes)
+	var eventTypesChanged = !plan.EventTypes.Equal(state.EventTypes)
 	var jobIdsChanged = !plan.JobIDs.Equal(state.JobIDs)
 	var activeChanged = !reflect.DeepEqual(plan.Active, state.Active)
 
@@ -233,7 +233,7 @@ func (r *webhookResource) Update(
 			Name:        helper.TernaryOperator(nameChanged, plan.Name.ValueString(), retrievedWebhook.Name),
 			Description: helper.TernaryOperator(descriptionChanged, plan.Description.ValueString(), retrievedWebhook.Description),
 			ClientUrl:   helper.TernaryOperator(clientUrlChanged, plan.ClientURL.ValueString(), retrievedWebhook.ClientUrl),
-			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.TypesListStringToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
+			EventTypes:  helper.TernaryOperator(eventTypesChanged, helper.StringSetToStringSlice(plan.EventTypes), retrievedWebhook.EventTypes),
 			JobIds:      helper.TernaryOperator(jobIdsChanged, helper.TypesSetInt64ToInt64Slice(plan.JobIDs), helper.SliceStringToSliceInt64([]string(retrievedWebhook.JobIds))),
 			Active:      helper.TernaryOperator(activeChanged, plan.Active.ValueBool(), retrievedWebhook.Active),
 		}

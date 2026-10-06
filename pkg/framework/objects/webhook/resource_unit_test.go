@@ -45,10 +45,20 @@ func newWebhookTestClient(t *testing.T, serverURL string) *dbt_cloud.Client {
 }
 
 // reorderingWebhookAPI fakes the dbt Cloud webhook endpoints. The API does not return
-// job_ids in the order they were sent, so this fake stores them reversed.
+// job_ids or event_types in the order they were sent, so this fake stores them reversed.
 type reorderingWebhookAPI struct {
-	storedJobIDs []int64
-	sentJobIDs   []int64
+	storedJobIDs     []int64
+	storedEventTypes []string
+	sentJobIDs       []int64
+	sentEventTypes   []string
+}
+
+func reversed[T any](values []T) []T {
+	result := make([]T, len(values))
+	for i, v := range values {
+		result[len(values)-1-i] = v
+	}
+	return result
 }
 
 func (a *reorderingWebhookAPI) serve(t *testing.T) *httptest.Server {
@@ -65,10 +75,9 @@ func (a *reorderingWebhookAPI) serve(t *testing.T) *httptest.Server {
 				t.Fatalf("decoding request body: %v", err)
 			}
 			a.sentJobIDs = body.JobIds
-			a.storedJobIDs = make([]int64, len(body.JobIds))
-			for i, id := range body.JobIds {
-				a.storedJobIDs[len(body.JobIds)-1-i] = id
-			}
+			a.sentEventTypes = body.EventTypes
+			a.storedJobIDs = reversed(body.JobIds)
+			a.storedEventTypes = reversed(body.EventTypes)
 		case r.Method == http.MethodGet && r.URL.Path == webhookPath:
 		default:
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
@@ -86,7 +95,7 @@ func (a *reorderingWebhookAPI) serve(t *testing.T) *httptest.Server {
 				"id":                 testWebhookID,
 				"name":               "test",
 				"client_url":         "https://example.com",
-				"event_types":        []string{"job.run.completed"},
+				"event_types":        a.storedEventTypes,
 				"job_ids":            jobIDs,
 				"active":             true,
 				"hmac_secret":        "secret",
@@ -128,14 +137,22 @@ func jobIDSet(ids ...int64) types.Set {
 	return types.SetValueMust(types.Int64Type, values)
 }
 
-func existingWebhookModel(jobIDs types.Set) webhook.WebhookResourceModel {
+func eventTypeSet(eventTypes ...string) types.Set {
+	values := make([]attr.Value, len(eventTypes))
+	for i, eventType := range eventTypes {
+		values[i] = types.StringValue(eventType)
+	}
+	return types.SetValueMust(types.StringType, values)
+}
+
+func existingWebhookModel(eventTypes, jobIDs types.Set) webhook.WebhookResourceModel {
 	return webhook.WebhookResourceModel{
 		ID:                types.StringValue(testWebhookID),
 		WebhookID:         types.StringValue(testWebhookID),
 		Name:              types.StringValue("test"),
 		Description:       types.StringValue(""),
 		ClientURL:         types.StringValue("https://example.com"),
-		EventTypes:        types.ListValueMust(types.StringType, []attr.Value{types.StringValue("job.run.completed")}),
+		EventTypes:        eventTypes,
 		JobIDs:            jobIDs,
 		Active:            types.BoolValue(true),
 		HmacSecret:        types.StringValue("secret"),
@@ -144,18 +161,27 @@ func existingWebhookModel(jobIDs types.Set) webhook.WebhookResourceModel {
 	}
 }
 
-func assertSentJobIDs(t *testing.T, api *reorderingWebhookAPI, want types.Set) {
+func assertSent(t *testing.T, api *reorderingWebhookAPI, want webhook.WebhookResourceModel) {
 	t.Helper()
-	sent := make([]attr.Value, len(api.sentJobIDs))
-	for i, id := range api.sentJobIDs {
-		sent[i] = types.Int64Value(id)
+	if got := jobIDSet(api.sentJobIDs...); !got.Equal(want.JobIDs) {
+		t.Errorf("job IDs sent to the API: got %s, want %s", got, want.JobIDs)
 	}
-	if got := types.SetValueMust(types.Int64Type, sent); !got.Equal(want) {
-		t.Errorf("job IDs sent to the API: got %s, want %s", got, want)
+	if got := eventTypeSet(api.sentEventTypes...); !got.Equal(want.EventTypes) {
+		t.Errorf("event types sent to the API: got %s, want %s", got, want.EventTypes)
 	}
 }
 
-func TestWebhookResource_CreateWithReorderedJobIDs(t *testing.T) {
+func assertStateMatchesPlan(t *testing.T, got, planned webhook.WebhookResourceModel) {
+	t.Helper()
+	if !got.JobIDs.Equal(planned.JobIDs) {
+		t.Errorf("job_ids in state: got %s, want %s", got.JobIDs, planned.JobIDs)
+	}
+	if !got.EventTypes.Equal(planned.EventTypes) {
+		t.Errorf("event_types in state: got %s, want %s", got.EventTypes, planned.EventTypes)
+	}
+}
+
+func TestWebhookResource_CreateWithReorderedLists(t *testing.T) {
 	ctx := context.Background()
 	api := &reorderingWebhookAPI{}
 	srv := api.serve(t)
@@ -163,7 +189,7 @@ func TestWebhookResource_CreateWithReorderedJobIDs(t *testing.T) {
 	r := configuredWebhookResource(t, srv.URL)
 	schema := webhookSchema(t)
 
-	planned := existingWebhookModel(jobIDSet(1, 2, 3))
+	planned := existingWebhookModel(eventTypeSet("job.run.completed", "job.run.errored"), jobIDSet(1, 2, 3))
 	planned.ID = types.StringUnknown()
 	planned.WebhookID = types.StringUnknown()
 	planned.HmacSecret = types.StringUnknown()
@@ -184,22 +210,20 @@ func TestWebhookResource_CreateWithReorderedJobIDs(t *testing.T) {
 	if diags := resp.State.Get(ctx, &got); diags.HasError() {
 		t.Fatalf("reading state: %v", diags.Errors())
 	}
-	if !got.JobIDs.Equal(planned.JobIDs) {
-		t.Errorf("job_ids in state: got %s, want %s", got.JobIDs, planned.JobIDs)
-	}
-	assertSentJobIDs(t, api, planned.JobIDs)
+	assertStateMatchesPlan(t, got, planned)
+	assertSent(t, api, planned)
 }
 
-func TestWebhookResource_UpdateWithReorderedJobIDs(t *testing.T) {
+func TestWebhookResource_UpdateWithReorderedLists(t *testing.T) {
 	ctx := context.Background()
-	api := &reorderingWebhookAPI{storedJobIDs: []int64{2, 1}}
+	api := &reorderingWebhookAPI{storedJobIDs: []int64{2, 1}, storedEventTypes: []string{"job.run.completed"}}
 	srv := api.serve(t)
 	defer srv.Close()
 	r := configuredWebhookResource(t, srv.URL)
 	schema := webhookSchema(t)
 
-	prior := existingWebhookModel(jobIDSet(1, 2))
-	planned := existingWebhookModel(jobIDSet(1, 2, 3))
+	prior := existingWebhookModel(eventTypeSet("job.run.completed"), jobIDSet(1, 2))
+	planned := existingWebhookModel(eventTypeSet("job.run.completed", "job.run.started", "job.run.errored"), jobIDSet(1, 2, 3))
 	state := tfsdk.State{Schema: schema}
 	if diags := state.Set(ctx, &prior); diags.HasError() {
 		t.Fatalf("building state: %v", diags.Errors())
@@ -219,14 +243,12 @@ func TestWebhookResource_UpdateWithReorderedJobIDs(t *testing.T) {
 	if diags := resp.State.Get(ctx, &got); diags.HasError() {
 		t.Fatalf("reading state: %v", diags.Errors())
 	}
-	if !got.JobIDs.Equal(planned.JobIDs) {
-		t.Errorf("job_ids in state: got %s, want %s", got.JobIDs, planned.JobIDs)
-	}
-	assertSentJobIDs(t, api, planned.JobIDs)
+	assertStateMatchesPlan(t, got, planned)
+	assertSent(t, api, planned)
 }
 
-// State saved by provider versions that declared job_ids as a list must load into
-// the set schema without a state upgrader.
+// State saved by provider versions that declared job_ids and event_types as lists must
+// load into the set schema without a state upgrader.
 func TestWebhookResource_UpgradeStateFromList(t *testing.T) {
 	ctx := context.Background()
 	schema := webhookSchema(t)
@@ -242,7 +264,7 @@ func TestWebhookResource_UpgradeStateFromList(t *testing.T) {
 				"name": "test",
 				"description": "",
 				"client_url": "https://example.com",
-				"event_types": ["job.run.completed"],
+				"event_types": ["job.run.started", "job.run.completed"],
 				"job_ids": [3, 1, 2],
 				"active": true,
 				"hmac_secret": "secret",
@@ -271,5 +293,8 @@ func TestWebhookResource_UpgradeStateFromList(t *testing.T) {
 	}
 	if want := jobIDSet(1, 2, 3); !got.JobIDs.Equal(want) {
 		t.Errorf("job_ids after upgrade: got %s, want %s", got.JobIDs, want)
+	}
+	if want := eventTypeSet("job.run.completed", "job.run.started"); !got.EventTypes.Equal(want) {
+		t.Errorf("event_types after upgrade: got %s, want %s", got.EventTypes, want)
 	}
 }

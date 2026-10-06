@@ -34,7 +34,7 @@ resource "dbtcloud_webhook" "test_webhook" {
 ### Required
 
 - `client_url` (String) Webhooks Client URL
-- `event_types` (List of String) Webhooks Event Types
+- `event_types` (Set of String) Webhooks Event Types
 - `name` (String) Webhooks Name
 
 ### Optional
