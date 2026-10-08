@@ -27,6 +27,20 @@ func EmptySetDefault(elemType attr.Type) defaults.Set {
 // ResolveWriteOnlyString returns the write-only value if set, otherwise falls
 // back to the regular attribute value. Use this to resolve _wo / non-_wo pairs
 // in resource Create and Update methods.
+//
+// Things to know when using write-only (_wo) attributes:
+//   - Write-only values are null in the plan and in the state, they only exist in
+//     the config. Pass the value read from req.Config as writeOnlyValue, reading it
+//     from req.Plan silently resolves to an empty string.
+//   - Terraform never stores the value, so changes are detected with a companion
+//     _wo_version attribute. Compare the versions between state and plan to decide
+//     whether the secret has to be sent again, not the _wo value.
+//   - Set the state from the plan and not from the API response, which does not
+//     contain secrets. Keep the _wo attribute null and carry the version over.
+//   - Validators on these attributes must use relative paths, as the schemas can be
+//     nested (see PreferWriteOnlyAttributeValidator).
+//
+// More details in .agents/skills/write-only-attributes/SKILL.md.
 func ResolveWriteOnlyString(writeOnlyValue, regularValue types.String) string {
 	if !writeOnlyValue.IsNull() {
 		return writeOnlyValue.ValueString()
