@@ -23,6 +23,7 @@ func testBigQueryAuthValidatorSchema() resource_schema.Schema {
 					"application_secret":          resource_schema.StringAttribute{Optional: true},
 					"private_key_id":              resource_schema.StringAttribute{Optional: true},
 					"private_key":                 resource_schema.StringAttribute{Optional: true},
+					"private_key_wo":              resource_schema.StringAttribute{Optional: true, WriteOnly: true},
 					"client_email":                resource_schema.StringAttribute{Optional: true},
 					"client_id":                   resource_schema.StringAttribute{Optional: true},
 					"auth_uri":                    resource_schema.StringAttribute{Optional: true},
@@ -42,6 +43,7 @@ func bigqueryAttributeTypes() map[string]tftypes.Type {
 		"application_secret":          tftypes.String,
 		"private_key_id":              tftypes.String,
 		"private_key":                 tftypes.String,
+		"private_key_wo":              tftypes.String,
 		"client_email":                tftypes.String,
 		"client_id":                   tftypes.String,
 		"auth_uri":                    tftypes.String,
@@ -64,6 +66,12 @@ func strNull() tftypes.Value {
 }
 
 func bigqueryObject(values map[string]tftypes.Value) tftypes.Value {
+	// attributes not listed by the test default to null
+	for name := range bigqueryAttributeTypes() {
+		if _, ok := values[name]; !ok {
+			values[name] = strNull()
+		}
+	}
 	return tftypes.NewValue(
 		tftypes.Object{AttributeTypes: bigqueryAttributeTypes()},
 		values,
@@ -195,5 +203,42 @@ func TestBigQueryAuthValidator_AllKnownNoError_ServiceAccountJSON(t *testing.T) 
 	resp := runBigQueryAuthValidator(t, configWithBigQuery(bq))
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("expected no errors, got: %s", resp.Diagnostics.Errors())
+	}
+}
+
+func TestBigQueryAuthValidator_PrivateKeyWoNoError_ServiceAccountJSON(t *testing.T) {
+	t.Parallel()
+	bq := bigqueryObject(map[string]tftypes.Value{
+		"deployment_env_auth_type":    strKnown("service-account-json"),
+		"private_key_id":              strKnown("pkid"),
+		"private_key_wo":              strKnown("key"),
+		"client_email":                strKnown("svc@project.iam.gserviceaccount.com"),
+		"client_id":                   strKnown("123"),
+		"auth_uri":                    strKnown("https://accounts.google.com/o/oauth2/auth"),
+		"token_uri":                   strKnown("https://oauth2.googleapis.com/token"),
+		"auth_provider_x509_cert_url": strKnown("https://www.googleapis.com/oauth2/v1/certs"),
+		"client_x509_cert_url":        strKnown("https://www.googleapis.com/robot/v1/metadata/x509/x"),
+	})
+	resp := runBigQueryAuthValidator(t, configWithBigQuery(bq))
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no errors when private_key_wo is set, got: %s", resp.Diagnostics.Errors())
+	}
+}
+
+func TestBigQueryAuthValidator_NoPrivateKeyNorWoError_ServiceAccountJSON(t *testing.T) {
+	t.Parallel()
+	bq := bigqueryObject(map[string]tftypes.Value{
+		"deployment_env_auth_type":    strKnown("service-account-json"),
+		"private_key_id":              strKnown("pkid"),
+		"client_email":                strKnown("svc@project.iam.gserviceaccount.com"),
+		"client_id":                   strKnown("123"),
+		"auth_uri":                    strKnown("https://accounts.google.com/o/oauth2/auth"),
+		"token_uri":                   strKnown("https://oauth2.googleapis.com/token"),
+		"auth_provider_x509_cert_url": strKnown("https://www.googleapis.com/oauth2/v1/certs"),
+		"client_x509_cert_url":        strKnown("https://www.googleapis.com/robot/v1/metadata/x509/x"),
+	})
+	resp := runBigQueryAuthValidator(t, configWithBigQuery(bq))
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when neither private_key nor private_key_wo is set")
 	}
 }

@@ -96,6 +96,15 @@ func (v BigQueryAuthValidator) ValidateResource(
 			return
 		}
 
+		// private_key can be provided through its write-only alternative
+		if field == "private_key" && fieldValue.IsNull() {
+			diags = req.Config.GetAttribute(ctx, path.Root("bigquery").AtName("private_key_wo"), &fieldValue)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+		}
+
 		if fieldValue.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("bigquery").AtName(field),

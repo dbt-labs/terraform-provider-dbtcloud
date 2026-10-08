@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
@@ -341,6 +342,59 @@ func TestAccDbtCloudGlobalConnectionBigQueryCreateV1Adapter(t *testing.T) {
 		},
 	})
 
+}
+
+// write-only attributes require Terraform >= 1.11
+func TestAccDbtCloudGlobalConnectionBigQueryPrivateKeyWriteOnly(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	privateKey := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	privateKey2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0),
+		},
+		Steps: []resource.TestStep{
+			// create with the write-only private key
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryPrivateKeyWriteOnlyConfig(
+					connectionName, privateKey, 1,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("dbtcloud_global_connection.test", "id"),
+					// the key must never reach the state
+					resource.TestCheckNoResourceAttr("dbtcloud_global_connection.test", "bigquery.private_key_wo"),
+					resource.TestCheckNoResourceAttr("dbtcloud_global_connection.test", "bigquery.private_key"),
+					resource.TestCheckResourceAttr("dbtcloud_global_connection.test", "bigquery.private_key_wo_version", "1"),
+				),
+			},
+			// rotate the key by bumping the version
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryPrivateKeyWriteOnlyConfig(
+					connectionName, privateKey2, 2,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr("dbtcloud_global_connection.test", "bigquery.private_key_wo"),
+					resource.TestCheckResourceAttr("dbtcloud_global_connection.test", "bigquery.private_key_wo_version", "2"),
+				),
+			},
+			// IMPORT
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.private_key",
+					"bigquery.private_key_wo_version",
+					"bigquery.deployment_env_auth_type",
+				},
+			},
+		},
+	})
 }
 
 func TestAccDbtCloudGlobalConnectionBigQueryExternalOAuthWIF(t *testing.T) {
@@ -2464,4 +2518,35 @@ resource dbtcloud_global_connection test {
 }
 
 `, connectionName)
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryPrivateKeyWriteOnlyConfig(
+	connectionName string,
+	privateKeyWo string,
+	privateKeyWoVersion int,
+) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+
+  bigquery = {
+
+    gcp_project_id              = "my-gcp-project-id"
+    private_key_id              = "my-private-key-id"
+    private_key_wo              = "%s"
+    private_key_wo_version      = %d
+    client_email                = "my_client_email"
+    client_id                   = "my_client_id"
+    auth_uri                    = "my_auth_uri"
+    token_uri                   = "my_token_uri"
+    auth_provider_x509_cert_url = "my_auth_provider_x509_cert_url"
+    client_x509_cert_url        = "my_client_x509_cert_url"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+
+  }
+}
+
+`, connectionName, privateKeyWo, privateKeyWoVersion)
 }

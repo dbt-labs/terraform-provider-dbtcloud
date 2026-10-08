@@ -143,9 +143,11 @@ func (r *globalConnectionResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan GlobalConnectionResourceModel
+	var plan, config GlobalConnectionResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	// write-only attributes are only available in the config, not in the plan
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -203,7 +205,7 @@ func (r *globalConnectionResource) Create(
 			ProjectID:               plan.BigQueryConfig.GCPProjectID.ValueStringPointer(),
 			TimeoutSeconds:          plan.BigQueryConfig.TimeoutSeconds.ValueInt64Pointer(),
 			PrivateKeyID:            plan.BigQueryConfig.PrivateKeyID.ValueStringPointer(),
-			PrivateKey:              plan.BigQueryConfig.PrivateKey.ValueStringPointer(),
+			PrivateKey:              resolveBigQueryPrivateKey(config.BigQueryConfig.PrivateKeyWo, plan.BigQueryConfig.PrivateKey),
 			ClientEmail:             plan.BigQueryConfig.ClientEmail.ValueStringPointer(),
 			ClientID:                plan.BigQueryConfig.ClientID.ValueStringPointer(),
 			AuthURI:                 plan.BigQueryConfig.AuthURI.ValueStringPointer(),
@@ -307,6 +309,7 @@ func (r *globalConnectionResource) Create(
 
 		// preserve sensitive fields from the plan
 		newState.BigQueryConfig.PrivateKey = plan.BigQueryConfig.PrivateKey
+		newState.BigQueryConfig.PrivateKeyWoVersion = plan.BigQueryConfig.PrivateKeyWoVersion
 		newState.BigQueryConfig.ApplicationID = plan.BigQueryConfig.ApplicationID
 		newState.BigQueryConfig.ApplicationSecret = plan.BigQueryConfig.ApplicationSecret
 		newState.AdapterVersion = types.StringValue(adapterVersion)
@@ -791,10 +794,12 @@ func (r *globalConnectionResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state GlobalConnectionResourceModel
+	var plan, state, config GlobalConnectionResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	// write-only attributes are only available in the config, not in the plan
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -913,8 +918,12 @@ func (r *globalConnectionResource) Update(
 		if plan.BigQueryConfig.PrivateKeyID != state.BigQueryConfig.PrivateKeyID {
 			warehouseConfigChanges.PrivateKeyID = plan.BigQueryConfig.PrivateKeyID.ValueStringPointer()
 		}
-		if plan.BigQueryConfig.PrivateKey != state.BigQueryConfig.PrivateKey {
-			warehouseConfigChanges.PrivateKey = plan.BigQueryConfig.PrivateKey.ValueStringPointer()
+		if plan.BigQueryConfig.PrivateKey != state.BigQueryConfig.PrivateKey ||
+			plan.BigQueryConfig.PrivateKeyWoVersion != state.BigQueryConfig.PrivateKeyWoVersion {
+			warehouseConfigChanges.PrivateKey = resolveBigQueryPrivateKey(
+				config.BigQueryConfig.PrivateKeyWo,
+				plan.BigQueryConfig.PrivateKey,
+			)
 		}
 		if plan.BigQueryConfig.ClientEmail != state.BigQueryConfig.ClientEmail {
 			warehouseConfigChanges.ClientEmail = plan.BigQueryConfig.ClientEmail.ValueStringPointer()
@@ -1809,4 +1818,13 @@ func (r *globalConnectionResource) handleSSHTunnelUpdates(
 		}
 	}
 	return sshTunnelPlan, nil
+}
+
+// resolveBigQueryPrivateKey returns the write-only private key when set, otherwise the
+// regular one. It stays nil when neither is set so that nothing is sent to the API.
+func resolveBigQueryPrivateKey(writeOnly, regular types.String) *string {
+	if !writeOnly.IsNull() {
+		return writeOnly.ValueStringPointer()
+	}
+	return regular.ValueStringPointer()
 }
