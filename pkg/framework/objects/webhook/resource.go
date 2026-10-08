@@ -107,7 +107,9 @@ func (r *webhookResource) Read(
 		return
 	}
 
+	priorJobIDs := state.JobIDs
 	diags = readWebhookToWebhookResourceModel(ctx, retrievedWebhook, &state)
+	state.JobIDs = preserveJobIDOrder(priorJobIDs, state.JobIDs)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -164,10 +166,12 @@ func (r *webhookResource) Create(
 	plan.ID = types.StringValue(createdWebhook.WebhookId)
 	plan.WebhookID = types.StringValue(createdWebhook.WebhookId)
 
+	plannedJobIDs := plan.JobIDs
 	plan.JobIDs, diags = helper.SliceStringToTypesListInt64Value([]string(createdWebhook.JobIds))
 	if diags.HasError() {
 		return
 	}
+	plan.JobIDs = preserveJobIDOrder(plannedJobIDs, plan.JobIDs)
 	// Hmac is always present in create ops
 	plan.HmacSecret = types.StringValue(*createdWebhook.HmacSecret)
 
@@ -257,6 +261,7 @@ func (r *webhookResource) Update(
 			return
 		}
 		diags = readWebhookToWebhookResourceModel(ctx, postUpdateRetrievedWebhook, &state)
+		state.JobIDs = preserveJobIDOrder(plan.JobIDs, state.JobIDs)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -351,4 +356,37 @@ func (r *webhookResource) Configure(
 		return
 	}
 	r.client = req.ProviderData.(*dbt_cloud.Client)
+}
+
+// preserveJobIDOrder keeps the order the configuration asked for. job_ids is a
+// list, and the API does not return the ids in the order they were sent, so a
+// plain read-back reports a change that no configuration can settle. The order
+// from the API is used only when the ids themselves differ.
+func preserveJobIDOrder(desired, fromAPI types.List) types.List {
+	if desired.IsNull() || desired.IsUnknown() {
+		return fromAPI
+	}
+	if sameJobIDs(desired, fromAPI) {
+		return desired
+	}
+	return fromAPI
+}
+
+func sameJobIDs(a, b types.List) bool {
+	if len(a.Elements()) != len(b.Elements()) {
+		return false
+	}
+	counts := map[string]int{}
+	for _, element := range a.Elements() {
+		counts[element.String()]++
+	}
+	for _, element := range b.Elements() {
+		counts[element.String()]--
+	}
+	for _, count := range counts {
+		if count != 0 {
+			return false
+		}
+	}
+	return true
 }
