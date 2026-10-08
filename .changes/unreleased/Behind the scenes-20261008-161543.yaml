@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: run the write-only credential acceptance tests, which were skipped for a Terraform version requirement that CI has met for some time
+time: 2026-10-08T16:15:43.96703+03:00

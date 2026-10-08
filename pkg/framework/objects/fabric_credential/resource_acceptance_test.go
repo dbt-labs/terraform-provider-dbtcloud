@@ -184,7 +184,6 @@ resource "dbtcloud_fabric_credential" "test_credential" {
 }
 
 func TestAccDbtCloudFabricCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	user := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))

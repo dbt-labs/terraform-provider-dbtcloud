@@ -128,7 +128,6 @@ func testAccCheckDbtCloudTeradataCredentialExists(resource string) resource.Test
 }
 
 func TestAccDbtCloudTeradataCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	schema := "test_schema"
