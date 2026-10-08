@@ -254,10 +254,8 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 	state.Type = types.StringValue(credential.Type)
 	state.TargetName = types.StringValue(credential.Target_Name)
 
-	// Do not read the password value from the API to avoid refresh differences, keep it as it is in the state
-	if state.Password.IsNull() {
-		state.Password = types.StringValue("")
-	}
+	// The password is not read back from the API, so whatever is in state stays.
+	// A configuration using password_wo leaves it null, and it has to stay null.
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

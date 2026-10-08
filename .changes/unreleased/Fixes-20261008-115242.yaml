@@ -1,0 +1,3 @@
+kind: Fixes
+body: stop dbtcloud_postgres_credential planning an update on every run when password_wo is used
+time: 2026-10-08T11:52:42.139721+03:00
