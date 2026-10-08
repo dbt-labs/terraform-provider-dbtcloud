@@ -35,6 +35,7 @@ type Environment struct {
 	ExtendedAttributesID         *int                 `json:"extended_attributes_id,omitempty"`
 	ConnectionID                 *int                 `json:"connection_id,omitempty"`
 	EnableModelQueryHistory      bool                 `json:"enable_model_query_history,omitempty"`
+	EnableDbtState               *bool                `json:"enable_dbt_state,omitempty"`
 	PrimaryProfileID             *int                 `json:"primary_profile_id,omitempty"`
 }
 
@@ -83,6 +84,7 @@ func (c *Client) CreateEnvironment(
 	connectionID int,
 	enableModelQueryHistory bool,
 	primaryProfileID int,
+	enableDbtState *bool,
 ) (*Environment, error) {
 	state := STATE_ACTIVE
 	if !isActive {
@@ -98,6 +100,7 @@ func (c *Client) CreateEnvironment(
 		Type:                    type_,
 		Use_Custom_Branch:       useCustomBranch,
 		EnableModelQueryHistory: enableModelQueryHistory,
+		EnableDbtState:          enableDbtState,
 	}
 	if credentialId != 0 {
 		newEnvironment.Credential_Id = &credentialId

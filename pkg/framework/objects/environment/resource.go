@@ -83,13 +83,22 @@ func (r *environmentResource) Read(
 	if environment.Custom_Branch != nil {
 		state.CustomBranch = types.StringPointerValue(environment.Custom_Branch)
 	}
-	state.DeploymentType = types.StringPointerValue(environment.DeploymentType)
+	// A generic environment has no deployment type, and the API returns null for it.
+	// An empty string in state means the same thing, so it is kept as it is. Otherwise a
+	// config that sets deployment_type = "" drifts to null on every read, and the plan
+	// that follows never converges.
+	if environment.DeploymentType != nil {
+		state.DeploymentType = types.StringValue(*environment.DeploymentType)
+	} else if state.DeploymentType.ValueString() != "" {
+		state.DeploymentType = types.StringNull()
+	}
 	if environment.ExtendedAttributesID != nil {
 		state.ExtendedAttributesID = types.Int64Value(int64(*environment.ExtendedAttributesID))
 	} else {
 		state.ExtendedAttributesID = types.Int64Null()
 	}
 	state.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+	state.EnableDbtState = types.BoolPointerValue(environment.EnableDbtState)
 	state.ConnectionID = connectionIDFromAPI(environment.ConnectionID)
 	if environment.Credential_Id != nil {
 		state.CredentialID = types.Int64Value(int64(*environment.Credential_Id))
@@ -134,6 +143,12 @@ func (r *environmentResource) Create(
 		deploymentType = types.StringNull().ValueString()
 	}
 
+	var enableDbtState *bool
+	if !plan.EnableDbtState.IsNull() && !plan.EnableDbtState.IsUnknown() {
+		value := plan.EnableDbtState.ValueBool()
+		enableDbtState = &value
+	}
+
 	environment, err := r.client.CreateEnvironment(
 		plan.IsActive.ValueBool(),
 		int(plan.ProjectID.ValueInt64()),
@@ -148,6 +163,7 @@ func (r *environmentResource) Create(
 		int(plan.ConnectionID.ValueInt64()),
 		plan.EnableModelQueryHistory.ValueBool(),
 		int(plan.PrimaryProfileID.ValueInt64()),
+		enableDbtState,
 	)
 
 	if err != nil {
@@ -190,6 +206,7 @@ func (r *environmentResource) Create(
 		plan.ExtendedAttributesID = types.Int64Null()
 	}
 	plan.EnableModelQueryHistory = types.BoolValue(environment.EnableModelQueryHistory)
+	plan.EnableDbtState = types.BoolPointerValue(environment.EnableDbtState)
 	plan.ConnectionID = connectionIDFromAPI(environment.ConnectionID)
 	plan.CredentialID = types.Int64PointerValue(
 		helper.IntPointerToInt64Pointer(environment.Credential_Id),
@@ -301,6 +318,11 @@ func (r *environmentResource) Update(
 			connID := int(plan.ConnectionID.ValueInt64())
 			envToUpdate.ConnectionID = &connID
 		}
+	}
+
+	if plan.EnableDbtState.ValueBool() != state.EnableDbtState.ValueBool() {
+		enableDbtState := plan.EnableDbtState.ValueBool()
+		envToUpdate.EnableDbtState = &enableDbtState
 	}
 
 	if plan.EnableModelQueryHistory.ValueBool() != state.EnableModelQueryHistory.ValueBool() {

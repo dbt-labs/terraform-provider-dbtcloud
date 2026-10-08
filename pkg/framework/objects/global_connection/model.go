@@ -128,6 +128,15 @@ var mappingAdapterDetails = map[string]ConfigDetails{
 			return nil
 		},
 	},
+	"clickhouse": {
+		EmptyConfigName: ClickhouseConfig{},
+		IsEmptyConfig: func(model *GlobalConnectionResourceModel) bool {
+			return model.ClickhouseConfig == nil
+		},
+		GetSSHTunnelConfig: func(model *GlobalConnectionResourceModel) *SSHTunnelConfig {
+			return nil
+		},
+	},
 }
 
 var supportedGlobalConfigTypes = lo.Keys(mappingAdapterDetails)
@@ -151,6 +160,7 @@ type GlobalConnectionResourceModel struct {
 	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
 	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
 	SalesforceConfig      *SalesforceConfig  `tfsdk:"salesforce"`
+	ClickhouseConfig      *ClickhouseConfig  `tfsdk:"clickhouse"`
 }
 
 type SSHTunnelConfig struct {
@@ -187,6 +197,7 @@ type BigQueryConfig struct {
 	GcsBucket                  types.String `tfsdk:"gcs_bucket"`
 	DataprocRegion             types.String `tfsdk:"dataproc_region"`
 	DataprocClusterName        types.String `tfsdk:"dataproc_cluster_name"`
+	ApiEndpoint                types.String `tfsdk:"api_endpoint"`
 	UseLatestAdapter           types.Bool   `tfsdk:"use_latest_adapter"`
 	JobExecutionTimeoutSeconds types.Int64  `tfsdk:"job_execution_timeout_seconds"`
 	DeploymentEnvAuthType      types.String `tfsdk:"deployment_env_auth_type"`
@@ -208,9 +219,10 @@ type DatabricksConfig struct {
 	Host     types.String `tfsdk:"host"`
 	HTTPPath types.String `tfsdk:"http_path"`
 	// nullable
-	Catalog      types.String `tfsdk:"catalog"`
-	ClientID     types.String `tfsdk:"client_id"`
-	ClientSecret types.String `tfsdk:"client_secret"`
+	Catalog      types.String   `tfsdk:"catalog"`
+	ClientID     types.String   `tfsdk:"client_id"`
+	ClientSecret types.String   `tfsdk:"client_secret"`
+	Scopes       []types.String `tfsdk:"scopes"`
 }
 
 type RedshiftConfig struct {
@@ -295,6 +307,12 @@ type SalesforceConfig struct {
 	LoginURL                types.String `tfsdk:"login_url"`
 	Database                types.String `tfsdk:"database"`
 	DataTransformRunTimeout types.Int64  `tfsdk:"data_transform_run_timeout"`
+}
+
+type ClickhouseConfig struct {
+	Host     types.String `tfsdk:"host"`
+	Port     types.Int64  `tfsdk:"port"`
+	Database types.String `tfsdk:"database"`
 }
 
 type GlobalConnectionsDatasourceModel struct {

@@ -16,6 +16,8 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	oAuthClientSecret := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// the OAuth configuration client ID has to be unique across the account
+	oAuthConfigurationClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
@@ -27,6 +29,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName,
 					oAuthClientID,
 					oAuthClientSecret,
+					oAuthConfigurationClientID,
 				),
 				// we check the computed values, for the other ones the test suite already checks that the plan and state are the same
 				Check: resource.ComposeTestCheckFunc(
@@ -50,6 +53,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 			{
 				Config: testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
 					connectionName,
+					oAuthConfigurationClientID,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -78,6 +82,7 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 					connectionName2,
 					oAuthClientID,
 					oAuthClientSecret,
+					oAuthConfigurationClientID,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
@@ -112,15 +117,15 @@ func TestAccDbtCloudGlobalConnectionSnowflakeResource(t *testing.T) {
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceBasicConfig(
-	connectionName, oAuthClientID, oAuthClientSecret string,
+	connectionName, oAuthClientID, oAuthClientSecret, oAuthConfigurationClientID string,
 ) string {
 	return fmt.Sprintf(`
 
 resource dbtcloud_oauth_configuration test {
   type = "entra"
-  name = "OAuth config"
+  name = "OAuth config %s"
   client_secret = "secret"
-  client_id = "myid2"
+  client_id = "%s"
   redirect_uri = "http://example.com"
   token_url = "http://example.com"
   authorize_url = "http://example.com"
@@ -142,19 +147,19 @@ resource dbtcloud_global_connection test {
   }
 }
 
-`, connectionName, oAuthClientID, oAuthClientSecret)
+`, oAuthConfigurationClientID, oAuthConfigurationClientID, connectionName, oAuthClientID, oAuthClientSecret)
 }
 
 func testAccDbtCloudSGlobalConnectionSnowflakeResourceFullConfig(
-	connectionName string,
+	connectionName, oAuthConfigurationClientID string,
 ) string {
 	return fmt.Sprintf(`
 
 resource dbtcloud_oauth_configuration test {
   type = "entra"
-  name = "OAuth config"
+  name = "OAuth config %s"
   client_secret = "secret"
-  client_id = "myid2"
+  client_id = "%s"
   redirect_uri = "http://example.com"
   token_url = "http://example.com"
   authorize_url = "http://example.com"
@@ -177,7 +182,7 @@ resource dbtcloud_global_connection test {
 	role = "role"
   }
 }
-`, connectionName)
+`, oAuthConfigurationClientID, oAuthConfigurationClientID, connectionName)
 }
 
 func TestAccDbtCloudGlobalConnectionBigQueryResource(t *testing.T) {
@@ -668,6 +673,7 @@ resource dbtcloud_global_connection test {
     application_secret          = "oauth_secret_id"
     timeout_seconds 			= 1000
 
+    api_endpoint                 = "bigquery.example.com"
     dataproc_cluster_name        = "dataproc"
     dataproc_region              = "region"
     execution_project            = "project"
@@ -845,6 +851,10 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes",
+					),
 				),
 			},
 			// modify, adding optional fields
@@ -869,6 +879,21 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"is_ssh_tunnel_enabled",
 						"false",
 					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.#",
+						"2",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.*",
+						"sql",
+					),
+					resource.TestCheckTypeSetElemAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes.*",
+						"offline_access",
+					),
 				),
 			},
 			// modify, removing optional fields to check PATCH when we remove fields
@@ -890,6 +915,10 @@ func TestAccDbtCloudGlobalConnectionDatabricksResource(t *testing.T) {
 						"dbtcloud_global_connection.test",
 						"is_ssh_tunnel_enabled",
 						"false",
+					),
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"databricks.scopes",
 					),
 				),
 			},
@@ -943,6 +972,7 @@ resource dbtcloud_global_connection test {
 	// catalog = "dbt_catalog"
 	client_id = "%s"
 	client_secret = "%s"
+	scopes = ["sql", "offline_access"]
   }
 }
 `, connectionName, oAuthClientID, oAuthClientSecret)
@@ -2033,6 +2063,116 @@ resource "dbtcloud_global_connection" test {
 `, connectionName, loginURL, database, dataTransformRunTimeout)
 }
 
+func TestAccDbtCloudGlobalConnectionClickhouseResource(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	connectionName2 := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create
+			{
+				Config: testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+					connectionName,
+					"my-clickhouse-server.com",
+					8443,
+					"default",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"clickhouse_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.host",
+						"my-clickhouse-server.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.port",
+						"8443",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.database",
+						"default",
+					),
+				),
+			},
+			// modify
+			{
+				Config: testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+					connectionName2,
+					"my-other-clickhouse-server.com",
+					9440,
+					"my_database",
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"dbtcloud_global_connection.test",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"clickhouse_v0",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.host",
+						"my-other-clickhouse-server.com",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.port",
+						"9440",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"clickhouse.database",
+						"my_database",
+					),
+				),
+			},
+			// import
+			{
+				ResourceName:            "dbtcloud_global_connection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionClickhouseResourceConfig(
+	connectionName string,
+	host string,
+	port int,
+	database string,
+) string {
+	return fmt.Sprintf(`
+
+resource "dbtcloud_global_connection" test {
+  name = "%s"
+
+  clickhouse = {
+    host     = "%s"
+    port     = %d
+    database = "%s"
+  }
+}
+
+`, connectionName, host, port, database)
+}
+
 // TestAccDbtCloudGlobalConnectionBigQueryV1UpdateIssue685 covers GitHub issue #685.
 //
 // Background: the dbt Cloud PATCH endpoint for connections does NOT accept the
@@ -2170,4 +2310,158 @@ resource dbtcloud_global_connection test {
 }
 
 `, connectionName, jobExecutionTimeoutSeconds)
+}
+
+// TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration tests that
+// oauth_configuration_id can be set on a BigQuery connection, is read back from the API
+// and can be removed again.
+func TestAccDbtCloudGlobalConnectionBigQueryOAuthConfiguration(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	// the OAuth client ID has to be unique across the account
+	oAuthClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// create with oauth_configuration_id
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+					connectionName,
+					oAuthClientID,
+					true,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"dbtcloud_global_connection.test",
+						"adapter_version",
+						"bigquery_v1",
+					),
+					resource.TestCheckResourceAttrPair(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+						"dbtcloud_oauth_configuration.test",
+						"id",
+					),
+				),
+			},
+			// IMPORT, to check that oauth_configuration_id is read back
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"bigquery.private_key",
+					"bigquery.application_secret",
+					"bigquery.application_id",
+					"bigquery.use_latest_adapter",
+					"bigquery.timeout_seconds",
+					"bigquery.deployment_env_auth_type",
+				},
+			},
+			// modify, removing oauth_configuration_id
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+					connectionName,
+					oAuthClientID,
+					false,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+					),
+				),
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryOAuthConfigurationConfig(
+	connectionName string,
+	oAuthClientID string,
+	withOAuthConfiguration bool,
+) string {
+	oauthConfigurationID := ""
+	if withOAuthConfiguration {
+		oauthConfigurationID = "oauth_configuration_id = dbtcloud_oauth_configuration.test.id"
+	}
+
+	return fmt.Sprintf(`
+
+resource dbtcloud_oauth_configuration test {
+  type = "entra"
+  name = "OAuth config %s"
+  client_secret = "secret"
+  client_id = "%s"
+  redirect_uri = "http://example.com"
+  token_url = "http://example.com"
+  authorize_url = "http://example.com"
+  application_id_uri = "app-uri"
+}
+
+resource dbtcloud_global_connection test {
+  name = "%s"
+  %s
+
+  bigquery = {
+    gcp_project_id              = "my-gcp-project-id"
+    application_id              = "oauth_application_id"
+    application_secret          = "oauth_secret_id"
+    deployment_env_auth_type    = "external-oauth-wif"
+    use_latest_adapter          = true
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, oAuthClientID, oAuthClientID, connectionName, oauthConfigurationID)
+}
+
+func TestAccDbtCloudGlobalConnectionBigQueryPrivateLink(t *testing.T) {
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudGlobalConnectionBigQueryPrivateLinkConfig(
+					connectionName,
+				),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionBigQueryPrivateLinkConfig(connectionName string) string {
+	return fmt.Sprintf(`
+
+resource dbtcloud_global_connection test {
+  name                     = "%s"
+  private_link_endpoint_id = "1beb9010-9d1f-4ac4-a1b5-1e4a1f4bb1e0"
+
+  bigquery = {
+    gcp_project_id              = "my-gcp-project-id"
+    api_endpoint                = "bigquery-psc.example.com"
+    private_key_id              = "placeholder"
+    private_key                 = "placeholder"
+    client_email                = "placeholder@example.com"
+    client_id                   = "placeholder"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/placeholder"
+  }
+}
+
+`, connectionName)
 }

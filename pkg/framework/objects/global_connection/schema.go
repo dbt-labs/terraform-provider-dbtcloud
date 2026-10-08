@@ -59,7 +59,7 @@ func (r *globalConnectionResource) Schema(
 			},
 			"oauth_configuration_id": resource_schema.Int64Attribute{
 				Optional:    true,
-				Description: "External OAuth configuration ID (only Snowflake for now)",
+				Description: "External OAuth configuration ID. Supported for all connection types.",
 			},
 			"bigquery": resource_schema.SingleNestedAttribute{
 				Optional: true,
@@ -150,12 +150,12 @@ func (r *globalConnectionResource) Schema(
 					},
 					"application_id": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client ID. Required when using 'external-oauth-wif' authentication.",
+						Description: "Client ID of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. This is not the `client_id` of the service account keyfile. The API never returns this value, so the provider cannot detect changes made outside of Terraform.",
 						Sensitive:   true,
 					},
 					"application_secret": resource_schema.StringAttribute{
 						Optional:    true,
-						Description: "OAuth Client Secret. Required when using 'external-oauth-wif' authentication.",
+						Description: "Client secret of the OAuth application used for Native OAuth in development environments. Also required when `deployment_env_auth_type` is `external-oauth-wif`. The API never returns this value, so the provider cannot detect changes made outside of Terraform.",
 						Sensitive:   true,
 					},
 					"gcs_bucket": resource_schema.StringAttribute{
@@ -169,6 +169,11 @@ func (r *globalConnectionResource) Schema(
 					"dataproc_cluster_name": resource_schema.StringAttribute{
 						Optional:    true,
 						Description: "Dataproc cluster name for PySpark workloads",
+					},
+					"api_endpoint": resource_schema.StringAttribute{
+						Optional: true,
+						Description: "The BigQuery API endpoint to connect to, without the scheme. Set this to the hostname of a Private Service Connect endpoint to route traffic over Private Link. " +
+							"`private_link_endpoint_id` only records which endpoint the connection is meant to use, so both fields need to be set.",
 					},
 					"scopes": resource_schema.SetAttribute{
 						Optional:    true,
@@ -272,6 +277,11 @@ func (r *globalConnectionResource) Schema(
 					"client_secret": resource_schema.StringAttribute{
 						Optional:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
+					},
+					"scopes": resource_schema.SetAttribute{
+						Optional:    true,
+						ElementType: types.StringType,
+						Description: "OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).",
 					},
 				},
 			},
@@ -643,6 +653,28 @@ func (r *globalConnectionResource) Schema(
 					},
 				},
 			},
+			"clickhouse": resource_schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "ClickHouse connection configuration.",
+				Attributes: map[string]resource_schema.Attribute{
+					"host": resource_schema.StringAttribute{
+						Required:    true,
+						Description: "The ClickHouse Cloud endpoint URL.",
+					},
+					"port": resource_schema.Int64Attribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     int64default.StaticInt64(8443),
+						Description: "The port to connect to for this connection. Default=8443",
+					},
+					"database": resource_schema.StringAttribute{
+						Optional:    true,
+						Computed:    true,
+						Default:     stringdefault.StaticString("default"),
+						Description: "The database to connect to for this connection. Default=default",
+					},
+				},
+			},
 		},
 	}
 }
@@ -688,6 +720,10 @@ func (r *globalConnectionDataSource) Schema(
 					"timeout_seconds": datasource_schema.Int64Attribute{
 						Computed:    true,
 						Description: "Timeout in seconds for queries",
+					},
+					"job_execution_timeout_seconds": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "Timeout in seconds for job execution, used by the bigquery_v1 adapter",
 					},
 					"private_key_id": datasource_schema.StringAttribute{
 						Computed:    true,
@@ -776,10 +812,18 @@ func (r *globalConnectionDataSource) Schema(
 						Computed:    true,
 						Description: "Dataproc cluster name for PySpark workloads",
 					},
+					"api_endpoint": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The BigQuery API endpoint the connection uses, without the scheme",
+					},
 					"scopes": datasource_schema.SetAttribute{
 						Computed:    true,
 						ElementType: types.StringType,
 						Description: "OAuth scopes for the BigQuery connection",
+					},
+					"use_latest_adapter": datasource_schema.BoolAttribute{
+						Computed:    true,
+						Description: "Whether the connection uses the latest bigquery_v1 adapter (used for BQ WIF)",
 					},
 					"deployment_env_auth_type": datasource_schema.StringAttribute{
 						Computed:    true,
@@ -852,6 +896,11 @@ func (r *globalConnectionDataSource) Schema(
 					"client_secret": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Required to enable Databricks OAuth authentication for IDE developers.",
+					},
+					"scopes": datasource_schema.SetAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+						Description: "OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).",
 					},
 				},
 			},
@@ -1165,6 +1214,24 @@ func (r *globalConnectionDataSource) Schema(
 					"data_transform_run_timeout": datasource_schema.Int64Attribute{
 						Computed:    true,
 						Description: "Timeout in seconds for data transformation runs.",
+					},
+				},
+			},
+			"clickhouse": datasource_schema.SingleNestedAttribute{
+				Computed:    true,
+				Description: "ClickHouse connection configuration.",
+				Attributes: map[string]datasource_schema.Attribute{
+					"host": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The ClickHouse Cloud endpoint URL.",
+					},
+					"port": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "The port to connect to for this connection.",
+					},
+					"database": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "The database to connect to for this connection.",
 					},
 				},
 			},

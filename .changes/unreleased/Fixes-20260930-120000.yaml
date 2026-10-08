@@ -1,0 +1,3 @@
+kind: Fixes
+body: '`dbtcloud_partial_notification` with `notification_type = 5` (Slack V2) now updates `slack_channel_name` in place instead of destroying and re-creating the notification, since Slack V2 notifications are identified by `slack_channel_id` only'
+time: 2026-09-30T12:00:00.000000-05:00

@@ -68,7 +68,7 @@ var bigquery_sl_credential_resource_schema = resource_schema.Schema{
 		"credential": resource_schema.SingleNestedAttribute{
 			Required:    true,
 			Description: "BigQuery credential details, but used in the context of the Semantic Layer.",
-			Attributes:  bigquery_credential.BigQueryResourceSchema.Attributes,
+			Attributes:  bigquery_credential.SemanticLayerAttributes,
 		},
 
 		"private_key_id": resource_schema.StringAttribute{

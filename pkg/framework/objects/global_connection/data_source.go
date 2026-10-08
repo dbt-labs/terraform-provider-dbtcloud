@@ -5,6 +5,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var (
@@ -62,6 +63,14 @@ func (d *globalConnectionDataSource) Read(
 		)
 		resp.State.RemoveResource(ctx)
 		return
+	}
+
+	// readGeneric can't infer this one: the API only reports the adapter version, so
+	// the resource carries `use_latest_adapter` over from its own state instead
+	if newState.BigQueryConfig != nil {
+		newState.BigQueryConfig.UseLatestAdapter = types.BoolValue(
+			globalConnectionResponse.Data.AdapterVersion == dbt_cloud.BigQueryConfig{}.LatestAdapterVersion(),
+		)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)

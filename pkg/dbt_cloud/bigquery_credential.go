@@ -14,8 +14,11 @@ type BigQueryCredentialResponse struct {
 
 // BigQueryUnencryptedCredentialDetails contains the readable credential values for v1 credentials
 type BigQueryUnencryptedCredentialDetails struct {
-	Schema  string `json:"schema"`
-	Threads int    `json:"threads"`
+	Schema                         string `json:"schema"`
+	Threads                        int    `json:"threads"`
+	AuthType                       string `json:"auth_type,omitempty"`
+	WorkloadPoolProviderPath       string `json:"workload_pool_provider_path,omitempty"`
+	ServiceAccountImpersonationURL string `json:"service_account_impersonation_url,omitempty"`
 }
 
 type BigQueryCredential struct {
@@ -49,6 +52,40 @@ func (c *BigQueryCredential) GetThreads() int {
 	}
 	// For v0 credentials or if not found
 	return c.Threads
+}
+
+// GetAuthType returns the auth_type from unencrypted_credential_details (v1 only)
+func (c *BigQueryCredential) GetAuthType() string {
+	if c.UnencryptedCredentialDetails != nil {
+		return c.UnencryptedCredentialDetails.AuthType
+	}
+	return ""
+}
+
+// GetWorkloadPoolProviderPath returns the workload_pool_provider_path from unencrypted_credential_details (v1 only)
+func (c *BigQueryCredential) GetWorkloadPoolProviderPath() string {
+	if c.UnencryptedCredentialDetails != nil {
+		return c.UnencryptedCredentialDetails.WorkloadPoolProviderPath
+	}
+	return ""
+}
+
+// GetServiceAccountImpersonationURL returns the service_account_impersonation_url from unencrypted_credential_details (v1 only)
+func (c *BigQueryCredential) GetServiceAccountImpersonationURL() string {
+	if c.UnencryptedCredentialDetails != nil {
+		return c.UnencryptedCredentialDetails.ServiceAccountImpersonationURL
+	}
+	return ""
+}
+
+// BigQueryCredentialGlobConnPatch is used for updating credentials with the new adapter
+// format (bigquery_v1). Those credentials keep their settings in credential_details,
+// which the endpoint merges field by field. threads is also stored on the credential
+// itself, and the endpoint only refreshes that copy when the payload carries it, so it
+// is sent at the top level as well to keep the two in step.
+type BigQueryCredentialGlobConnPatch struct {
+	Threads           int                      `json:"threads"`
+	CredentialDetails AdapterCredentialDetails `json:"credential_details"`
 }
 
 // BigQueryCredentialGlobConn is used for creating credentials with the new adapter format (bigquery_v1)
@@ -103,6 +140,9 @@ func (c *Client) CreateBigQueryCredential(
 	dataset string,
 	numThreads int,
 	adapterVersion string,
+	authType string,
+	workloadPoolProviderPath string,
+	serviceAccountImpersonationURL string,
 ) (*BigQueryCredential, error) {
 	var requestData []byte
 	var err error
@@ -110,7 +150,7 @@ func (c *Client) CreateBigQueryCredential(
 	// When adapter_version is provided, use the new adapter format with credential_details
 	// This is required for connections using use_latest_adapter=true (bigquery_v1)
 	if adapterVersion != "" {
-		credentialDetails, err := GenerateBigQueryCredentialDetails(dataset, numThreads)
+		credentialDetails, err := GenerateBigQueryCredentialDetails(dataset, numThreads, authType, workloadPoolProviderPath, serviceAccountImpersonationURL)
 		if err != nil {
 			return nil, err
 		}
@@ -173,62 +213,127 @@ func (c *Client) CreateBigQueryCredential(
 }
 
 // GenerateBigQueryCredentialDetails creates the credential_details structure for BigQuery v1 credentials
-func GenerateBigQueryCredentialDetails(dataset string, numThreads int) (AdapterCredentialDetails, error) {
+func GenerateBigQueryCredentialDetails(
+	dataset string,
+	numThreads int,
+	authType string,
+	workloadPoolProviderPath string,
+	serviceAccountImpersonationURL string,
+) (AdapterCredentialDetails, error) {
 	// The credential_details structure for BigQuery follows the same pattern as other adapters
-	defaultConfig := `{
-	"fields": {
+	fields := map[string]AdapterCredentialField{
 		"schema": {
-			"metadata": {
-				"label": "Dataset",
-				"description": "The default dataset to use for this credential",
-				"field_type": "text",
-				"encrypt": false,
-				"overrideable": false,
-				"validation": {
-					"required": true
-				}
+			Metadata: AdapterCredentialFieldMetadata{
+				Label:       "Dataset",
+				Description: "The default dataset to use for this credential",
+				Field_Type:  "text",
+				Encrypt:     false,
+				Validation:  AdapterCredentialFieldMetadataValidation{Required: true},
 			},
-			"value": ""
+			Value: dataset,
 		},
 		"threads": {
-			"metadata": {
-				"label": "Threads",
-				"description": "The number of threads to use",
-				"field_type": "number",
-				"encrypt": false,
-				"overrideable": false,
-				"validation": {
-					"required": true
-				}
+			Metadata: AdapterCredentialFieldMetadata{
+				Label:       "Threads",
+				Description: "The number of threads to use",
+				Field_Type:  "number",
+				Encrypt:     false,
+				Validation:  AdapterCredentialFieldMetadataValidation{Required: true},
 			},
-			"value": 4
+			Value: numThreads,
+		},
+	}
+
+	if authType != "" {
+		fields["auth_type"] = AdapterCredentialField{
+			Metadata: AdapterCredentialFieldMetadata{
+				Label:       "Authentication Method",
+				Description: "The authentication method to use for this credential.",
+				Field_Type:  "select",
+				Encrypt:     false,
+				Validation:  AdapterCredentialFieldMetadataValidation{Required: true},
+				Options: []AdapterCredentialFieldMetadataOptions{
+					{Label: "Service Account JSON", Value: "service-account-json"},
+					{Label: "Native OAuth", Value: "oauth-secrets"},
+					{Label: "Workload Identity Federation", Value: "external-oauth-wif"},
+				},
+			},
+			Value: authType,
 		}
 	}
-}`
 
-	var bigQueryCredentialDetailsDefault AdapterCredentialDetails
-	err := json.Unmarshal([]byte(defaultConfig), &bigQueryCredentialDetailsDefault)
-	if err != nil {
-		return bigQueryCredentialDetailsDefault, err
+	if workloadPoolProviderPath != "" {
+		fields["workload_pool_provider_path"] = AdapterCredentialField{
+			Metadata: AdapterCredentialFieldMetadata{
+				Label:       "Workload Pool Provider Path",
+				Description: "The fully specified resource name of the workload pool provider",
+				Field_Type:  "text",
+				Encrypt:     false,
+				Validation:  AdapterCredentialFieldMetadataValidation{Required: true},
+			},
+			Value: workloadPoolProviderPath,
+		}
 	}
 
-	fieldMapping := map[string]interface{}{
-		"schema":  dataset,
-		"threads": numThreads,
+	if serviceAccountImpersonationURL != "" {
+		fields["service_account_impersonation_url"] = AdapterCredentialField{
+			Metadata: AdapterCredentialFieldMetadata{
+				Label:       "Service Account Impersonation URL",
+				Description: "The URL for the service account impersonation request",
+				Field_Type:  "text",
+				Encrypt:     false,
+				Validation:  AdapterCredentialFieldMetadataValidation{Required: false},
+			},
+			Value: serviceAccountImpersonationURL,
+		}
 	}
 
-	bigQueryCredentialFields := map[string]AdapterCredentialField{}
-	for key, value := range bigQueryCredentialDetailsDefault.Fields {
-		field := value
-		field.Value = fieldMapping[key]
-		bigQueryCredentialFields[key] = field
-	}
-
-	credentialDetails := AdapterCredentialDetails{
-		Fields:      bigQueryCredentialFields,
+	return AdapterCredentialDetails{
+		Fields:      fields,
 		Field_Order: []string{},
+	}, nil
+}
+
+// UpdateBigQueryCredentialGlobConn updates an adapter-backed BigQuery credential.
+// These credentials keep dataset and threads in credential_details; the top-level
+// threads value is also sent to keep the API's duplicate credential value synchronized.
+func (c *Client) UpdateBigQueryCredentialGlobConn(
+	projectId int,
+	credentialId int,
+	bigQueryCredential BigQueryCredentialGlobConnPatch,
+) (*BigQueryCredential, error) {
+	requestData, err := json.Marshal(bigQueryCredential)
+	if err != nil {
+		return nil, err
 	}
-	return credentialDetails, nil
+
+	req, err := http.NewRequest(
+		"PATCH",
+		fmt.Sprintf(
+			"%s/v3/accounts/%d/projects/%d/credentials/%d/",
+			c.HostURL,
+			c.AccountID,
+			projectId,
+			credentialId,
+		),
+		strings.NewReader(string(requestData)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequestWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	BigQueryCredentialResponse := BigQueryCredentialResponse{}
+	err = json.Unmarshal(body, &BigQueryCredentialResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BigQueryCredentialResponse.Data, nil
 }
 
 func (c *Client) UpdateBigQueryCredential(

@@ -435,6 +435,7 @@ type BigQueryConfig struct {
 	GcsBucket                  nullable.Nullable[string] `json:"gcs_bucket,omitempty"`
 	DataprocRegion             nullable.Nullable[string] `json:"dataproc_region,omitempty"`
 	DataprocClusterName        nullable.Nullable[string] `json:"dataproc_cluster_name,omitempty"`
+	ApiEndpoint                nullable.Nullable[string] `json:"api_endpoint,omitempty"`
 	Scopes                     []string                  `json:"scopes,omitempty"` //not nullable because there is a default in the UI
 	DeploymentEnvAuthType      nullable.Nullable[string] `json:"deployment_env_auth_type,omitempty"`
 }
@@ -448,11 +449,12 @@ func (BigQueryConfig) AdapterVersion() string {
 }
 
 type DatabricksConfig struct {
-	Host         *string                   `json:"host,omitempty"`
-	HTTPPath     *string                   `json:"http_path,omitempty"`
-	Catalog      nullable.Nullable[string] `json:"catalog,omitempty"`
-	ClientID     nullable.Nullable[string] `json:"client_id,omitempty"`
-	ClientSecret nullable.Nullable[string] `json:"client_secret,omitempty"`
+	Host         *string                     `json:"host,omitempty"`
+	HTTPPath     *string                     `json:"http_path,omitempty"`
+	Catalog      nullable.Nullable[string]   `json:"catalog,omitempty"`
+	ClientID     nullable.Nullable[string]   `json:"client_id,omitempty"`
+	ClientSecret nullable.Nullable[string]   `json:"client_secret,omitempty"`
+	Scopes       nullable.Nullable[[]string] `json:"scopes,omitempty"`
 }
 
 func (DatabricksConfig) AdapterVersion() string {
@@ -580,4 +582,14 @@ type SalesforceConfig struct {
 
 func (SalesforceConfig) AdapterVersion() string {
 	return "salesforce_v0"
+}
+
+type ClickhouseConfig struct {
+	Host     *string `json:"host,omitempty"`
+	Port     *int64  `json:"port,omitempty"`
+	Database *string `json:"database,omitempty"`
+}
+
+func (ClickhouseConfig) AdapterVersion() string {
+	return "clickhouse_v0"
 }

@@ -23,12 +23,15 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/user_groups"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_add_on"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/auth_provider"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_ad_application"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_project"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_dev_ops_repository"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_ad_application"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/bigquery_credential"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/clickhouse_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/connection_catalog_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/databricks_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/environment"
@@ -44,8 +47,8 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/model_notifications"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/notification_setting"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/auth_provider"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/oauth_configuration"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/openai_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_license_map"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/partial_notification"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/platform_metadata_credentials"
@@ -56,7 +59,6 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/project_repository"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/redshift_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/repository"
-	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/openai_integration"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_config_token"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/scim_group_partial_permissions"
@@ -337,6 +339,8 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		teradata_credential.TeradataCredentialDataSource,
 		environment_variable.EnvironmentVariableDataSource,
 		project.ProjectDataSource,
+		account_add_on.AccountAddOnDataSource,
+		account_add_on.AccountAddOnsDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSource,
 		privatelink_endpoint.PrivatelinkEndpointDataSourceAll,
 		profile.ProfileDataSource,
@@ -345,6 +349,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 		runs.RunsDataSource,
 		synapse_credential.SynapseCredentialDataSource,
 		salesforce_credential.SalesforceCredentialDataSource,
+		clickhouse_credential.ClickhouseCredentialDataSource,
 	}
 }
 
@@ -384,6 +389,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		redshift_credential.RedshiftCredentialResource,
 		postgres_credential.PostgresCredentialResource,
 		fabric_credential.FabricCredentialResource,
+		clickhouse_credential.ClickhouseCredentialResource,
 		user_groups.UserGroupsResource,
 		webhook.WebhookResource,
 		databricks_credential.DatabricksCredentialResource,

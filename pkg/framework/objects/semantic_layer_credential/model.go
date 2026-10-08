@@ -23,20 +23,20 @@ type SnowflakeSLCredentialModel struct {
 }
 
 type BigQuerySLCredentialModel struct {
-	ID                  types.Int64                                         `tfsdk:"id"`
-	Configuration       SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
-	Credential          bigquery_credential.BigqueryCredentialResourceModel `tfsdk:"credential"`
-	PrivateKeyID        types.String                                        `tfsdk:"private_key_id"`
-	PrivateKey          types.String                                        `tfsdk:"private_key"`
-	PrivateKeyWo        types.String                                        `tfsdk:"private_key_wo"`
-	PrivateKeyWoVersion types.Int64                                         `tfsdk:"private_key_wo_version"`
-	ClientEmail         types.String                                        `tfsdk:"client_email"`
-	ClientID            types.String                                        `tfsdk:"client_id"`
-	AuthURI             types.String                                        `tfsdk:"auth_uri"`
-	TokenURI            types.String                                        `tfsdk:"token_uri"`
-	AuthProviderCertURL types.String                                        `tfsdk:"auth_provider_x509_cert_url"`
-	ClientCertURL       types.String                                        `tfsdk:"client_x509_cert_url"`
-	ExecutionProject    types.String                                        `tfsdk:"execution_project"`
+	ID                  types.Int64                                      `tfsdk:"id"`
+	Configuration       SemanticLayerConfigurationModel                  `tfsdk:"configuration"`
+	Credential          bigquery_credential.SemanticLayerCredentialModel `tfsdk:"credential"`
+	PrivateKeyID        types.String                                     `tfsdk:"private_key_id"`
+	PrivateKey          types.String                                     `tfsdk:"private_key"`
+	PrivateKeyWo        types.String                                     `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion types.Int64                                      `tfsdk:"private_key_wo_version"`
+	ClientEmail         types.String                                     `tfsdk:"client_email"`
+	ClientID            types.String                                     `tfsdk:"client_id"`
+	AuthURI             types.String                                     `tfsdk:"auth_uri"`
+	TokenURI            types.String                                     `tfsdk:"token_uri"`
+	AuthProviderCertURL types.String                                     `tfsdk:"auth_provider_x509_cert_url"`
+	ClientCertURL       types.String                                     `tfsdk:"client_x509_cert_url"`
+	ExecutionProject    types.String                                     `tfsdk:"execution_project"`
 }
 
 type RedshiftSLCredentialModel struct {
@@ -52,7 +52,7 @@ type DatabricksSLCredentialModel struct {
 }
 
 type PostgresSLCredentialModel struct {
-	ID            types.Int64                                             `tfsdk:"id"`
-	Configuration SemanticLayerConfigurationModel                         `tfsdk:"configuration"`
-	Credential    postgres_credential.PostgresCredentialResourceModel 	  `tfsdk:"credential"`
+	ID            types.Int64                                         `tfsdk:"id"`
+	Configuration SemanticLayerConfigurationModel                     `tfsdk:"configuration"`
+	Credential    postgres_credential.PostgresCredentialResourceModel `tfsdk:"credential"`
 }

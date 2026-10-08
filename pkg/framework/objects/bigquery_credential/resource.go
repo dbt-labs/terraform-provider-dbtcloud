@@ -15,9 +15,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &bigqueryCredentialResource{}
-	_ resource.ResourceWithConfigure   = &bigqueryCredentialResource{}
-	_ resource.ResourceWithImportState = &bigqueryCredentialResource{}
+	_ resource.Resource                   = &bigqueryCredentialResource{}
+	_ resource.ResourceWithConfigure      = &bigqueryCredentialResource{}
+	_ resource.ResourceWithImportState    = &bigqueryCredentialResource{}
+	_ resource.ResourceWithValidateConfig = &bigqueryCredentialResource{}
 )
 
 // BigqueryCredentialResource is a helper function to simplify the provider implementation.
@@ -73,6 +74,31 @@ func (r *bigqueryCredentialResource) Schema(
 	resp.Schema = BigQueryResourceSchema
 }
 
+// ValidateConfig checks the cross-field requirements of the WIF authentication method.
+func (r *bigqueryCredentialResource) ValidateConfig(
+	ctx context.Context,
+	req resource.ValidateConfigRequest,
+	resp *resource.ValidateConfigResponse,
+) {
+	var config BigqueryCredentialResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.AuthType.ValueString() == AuthTypeExternalOAuthWIF &&
+		config.WorkloadPoolProviderPath.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("workload_pool_provider_path"),
+			"Missing Required Field for External OAuth WIF",
+			fmt.Sprintf(
+				"When auth_type is '%s', the field 'workload_pool_provider_path' must be specified.",
+				AuthTypeExternalOAuthWIF,
+			),
+		)
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *bigqueryCredentialResource) Create(
 	ctx context.Context,
@@ -91,6 +117,9 @@ func (r *bigqueryCredentialResource) Create(
 	projectID := int(plan.ProjectID.ValueInt64())
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
+	authType := plan.AuthType.ValueString()
+	workloadPoolProviderPath := plan.WorkloadPoolProviderPath.ValueString()
+	serviceAccountImpersonationURL := plan.ServiceAccountImpersonationURL.ValueString()
 
 	// Auto-detect adapter version from the connection if connection_id is provided
 	var adapterVersion string
@@ -107,6 +136,30 @@ func (r *bigqueryCredentialResource) Create(
 		adapterVersion = connection.Data.AdapterVersion
 	}
 
+	// A connection_id on its own doesn't guarantee the v1 adapter, and the WIF fields don't
+	// exist on v0 credentials
+	latestAdapterVersion := dbt_cloud.BigQueryConfig{}.LatestAdapterVersion()
+	if adapterVersion != latestAdapterVersion {
+		for _, field := range wifFields(plan) {
+			if field.value.IsNull() || field.value.IsUnknown() {
+				continue
+			}
+			resp.Diagnostics.AddAttributeError(
+				path.Root(field.name),
+				"Unsupported Field for the Connection Adapter",
+				fmt.Sprintf(
+					"The field '%s' is only supported for %s credentials, but the connection uses '%s'. Set `use_latest_adapter = true` on the connection to use it.",
+					field.name,
+					latestAdapterVersion,
+					adapterVersion,
+				),
+			)
+		}
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Create new credential
 	credential, err := r.client.CreateBigQueryCredential(
 		projectID,
@@ -115,6 +168,9 @@ func (r *bigqueryCredentialResource) Create(
 		dataset,
 		numThreads,
 		adapterVersion,
+		authType,
+		workloadPoolProviderPath,
+		serviceAccountImpersonationURL,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -127,6 +183,9 @@ func (r *bigqueryCredentialResource) Create(
 	// Map response body to schema and populate computed values
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, *credential.ID))
 	plan.CredentialID = types.Int64Value(int64(*credential.ID))
+	if plan.AuthType.IsUnknown() {
+		plan.AuthType = optionalString(credential.GetAuthType())
+	}
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -175,6 +234,11 @@ func (r *bigqueryCredentialResource) Read(
 	state.Dataset = types.StringValue(credential.GetDataset())
 	state.NumThreads = types.Int64Value(int64(credential.GetThreads()))
 
+	// WIF fields, v1 only
+	state.AuthType = optionalString(credential.GetAuthType())
+	state.WorkloadPoolProviderPath = optionalString(credential.GetWorkloadPoolProviderPath())
+	state.ServiceAccountImpersonationURL = optionalString(credential.GetServiceAccountImpersonationURL())
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -210,7 +274,16 @@ func (r *bigqueryCredentialResource) Update(
 	dataset := plan.Dataset.ValueString()
 	numThreads := int(plan.NumThreads.ValueInt64())
 
-	if (state.Dataset.ValueString() != dataset) || (state.NumThreads.ValueInt64() != int64(numThreads)) {
+	datasetOrThreadsChanged := (state.Dataset.ValueString() != dataset) ||
+		(state.NumThreads.ValueInt64() != int64(numThreads))
+
+	// WIF fields carry RequiresReplace, so direct edits go through Create/Delete; still
+	// re-assert them here whenever a dataset/threads change hits the API anyway.
+	wifChanged := !plan.AuthType.Equal(state.AuthType) ||
+		!plan.WorkloadPoolProviderPath.Equal(state.WorkloadPoolProviderPath) ||
+		!plan.ServiceAccountImpersonationURL.Equal(state.ServiceAccountImpersonationURL)
+
+	if datasetOrThreadsChanged || wifChanged {
 		credential, err := r.client.GetBigQueryCredential(projectID, credentialID)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -220,23 +293,52 @@ func (r *bigqueryCredentialResource) Update(
 			return
 		}
 
-		if state.Dataset.ValueString() != dataset {
-			credential.Dataset = dataset
-		}
-		if state.NumThreads.ValueInt64() != int64(numThreads) {
-			credential.Threads = numThreads
-		}
+		if credential.Type == adapterCredentialType {
+			// Rebuild credential_details from the full plan, like Create() does, so WIF
+			// fields are never sent as a partial (and possibly invalid) subset.
+			credentialDetails, detailsErr := dbt_cloud.GenerateBigQueryCredentialDetails(
+				dataset,
+				numThreads,
+				plan.AuthType.ValueString(),
+				plan.WorkloadPoolProviderPath.ValueString(),
+				plan.ServiceAccountImpersonationURL.ValueString(),
+			)
+			if detailsErr != nil {
+				resp.Diagnostics.AddError(
+					"Error updating Bigquery credential",
+					"Could not generate credential details: "+detailsErr.Error(),
+				)
+				return
+			}
 
-		_, err = r.client.UpdateBigQueryCredential(
-			projectID,
-			credentialID,
-			*credential,
-		)
+			_, err = r.client.UpdateBigQueryCredentialGlobConn(
+				projectID,
+				credentialID,
+				dbt_cloud.BigQueryCredentialGlobConnPatch{
+					Threads:           numThreads,
+					CredentialDetails: credentialDetails,
+				},
+			)
+		} else {
+			if state.Dataset.ValueString() != dataset {
+				credential.Dataset = dataset
+			}
+			if state.NumThreads.ValueInt64() != int64(numThreads) {
+				credential.Threads = numThreads
+			}
+
+			_, err = r.client.UpdateBigQueryCredential(
+				projectID,
+				credentialID,
+				*credential,
+			)
+		}
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error updating Bigquery credential",
 				"Could not update Bigquery credential, unexpected error: "+err.Error(),
 			)
+			return
 		}
 	}
 

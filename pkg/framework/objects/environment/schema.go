@@ -78,6 +78,10 @@ func (r *environmentDataSource) Schema(
 				Computed:    true,
 				Description: "Whether model query history is on",
 			},
+			"enable_dbt_state": schema.BoolAttribute{
+				Computed:    true,
+				Description: "Whether dbt State is on for this environment",
+			},
 			"primary_profile_id": schema.Int64Attribute{
 				Computed:    true,
 				Description: "The ID of the primary profile for this environment",
@@ -150,6 +154,10 @@ func (r *environmentsDataSources) Schema(
 						"enable_model_query_history": schema.BoolAttribute{
 							Computed:    true,
 							Description: "Whether model query history is on",
+						},
+						"enable_dbt_state": schema.BoolAttribute{
+							Computed:    true,
+							Description: "Whether dbt State is on for this environment",
 						},
 						"primary_profile_id": schema.Int64Attribute{
 							Computed:    true,
@@ -273,6 +281,12 @@ func (r *environmentResource) Schema(
 				Optional:    true,
 				Default:     booldefault.StaticBool(false),
 				Description: "Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.",
+			},
+			"enable_dbt_state": resource_schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Whether to enable dbt State in this environment. A job inherits it with `cost_optimization_features = [\"inherit_environment\"]`.",
 			},
 			"primary_profile_id": resource_schema.Int64Attribute{
 				Computed:    true,

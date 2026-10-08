@@ -31,6 +31,7 @@ data dbtcloud_global_connection my_connection {
 - `apache_spark` (Attributes) Apache Spark connection configuration. (see [below for nested schema](#nestedatt--apache_spark))
 - `athena` (Attributes) Athena connection configuration. (see [below for nested schema](#nestedatt--athena))
 - `bigquery` (Attributes) (see [below for nested schema](#nestedatt--bigquery))
+- `clickhouse` (Attributes) ClickHouse connection configuration. (see [below for nested schema](#nestedatt--clickhouse))
 - `databricks` (Attributes) Databricks connection configuration (see [below for nested schema](#nestedatt--databricks))
 - `fabric` (Attributes) Microsoft Fabric connection configuration. (see [below for nested schema](#nestedatt--fabric))
 - `is_ssh_tunnel_enabled` (Boolean) Whether the connection can use an SSH tunnel
@@ -89,6 +90,7 @@ Required:
 
 Read-Only:
 
+- `api_endpoint` (String) The BigQuery API endpoint the connection uses, without the scheme
 - `application_id` (String, Sensitive) OAuth Client ID
 - `application_secret` (String, Sensitive) OAuth Client Secret
 - `auth_provider_x509_cert_url` (String) Auth Provider X509 Cert URL for the Service Account
@@ -103,6 +105,7 @@ Read-Only:
 - `gcs_bucket` (String) URI for a Google Cloud Storage bucket to host Python code executed via Datapro
 - `impersonate_service_account` (String) Service Account to impersonate when running queries
 - `job_creation_timeout_seconds` (Number) Maximum timeout for the job creation step
+- `job_execution_timeout_seconds` (Number) Timeout in seconds for job execution, used by the bigquery_v1 adapter
 - `job_retry_deadline_seconds` (Number) Total number of seconds to wait while retrying the same query
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
@@ -113,6 +116,17 @@ Read-Only:
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries
 - `token_uri` (String) Token URI for the Service Account
+- `use_latest_adapter` (Boolean) Whether the connection uses the latest bigquery_v1 adapter (used for BQ WIF)
+
+
+<a id="nestedatt--clickhouse"></a>
+### Nested Schema for `clickhouse`
+
+Read-Only:
+
+- `database` (String) The database to connect to for this connection.
+- `host` (String) The ClickHouse Cloud endpoint URL.
+- `port` (Number) The port to connect to for this connection.
 
 
 <a id="nestedatt--databricks"></a>
@@ -125,6 +139,7 @@ Read-Only:
 - `client_secret` (String) Required to enable Databricks OAuth authentication for IDE developers.
 - `host` (String) The hostname of the Databricks cluster or SQL warehouse.
 - `http_path` (String) The HTTP path of the Databricks cluster or SQL warehouse.
+- `scopes` (Set of String) OAuth scopes to use for the Databricks connection (e.g. `sql`, `all-apis`). When not set, dbt Cloud relies on the default scopes (`all-apis` and `offline_access`).
 
 
 <a id="nestedatt--fabric"></a>

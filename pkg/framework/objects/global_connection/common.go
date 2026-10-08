@@ -209,6 +209,12 @@ func readGeneric(
 			state.BigQueryConfig.DataprocClusterName = types.StringNull()
 		}
 
+		if !bigqueryCfg.ApiEndpoint.IsNull() {
+			state.BigQueryConfig.ApiEndpoint = types.StringValue(bigqueryCfg.ApiEndpoint.MustGet())
+		} else {
+			state.BigQueryConfig.ApiEndpoint = types.StringNull()
+		}
+
 		// Only update DeploymentEnvAuthType if the API returns a value
 		// Otherwise, preserve the existing state value (which may have the schema default)
 		if bigqueryCfg.DeploymentEnvAuthType.IsSpecified() && !bigqueryCfg.DeploymentEnvAuthType.IsNull() {
@@ -264,6 +270,14 @@ func readGeneric(
 			state.DatabricksConfig.Catalog = types.StringValue(databricksCfg.Catalog.MustGet())
 		} else {
 			state.DatabricksConfig.Catalog = types.StringNull()
+		}
+
+		if !databricksCfg.Scopes.IsNull() {
+			state.DatabricksConfig.Scopes = helper.SliceStringToSliceTypesString(
+				databricksCfg.Scopes.MustGet(),
+			)
+		} else {
+			state.DatabricksConfig.Scopes = nil
 		}
 
 		// We don't set the sensitive fields when we read because those are secret and never returned by the API
@@ -712,6 +726,18 @@ func readGeneric(
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
+		}
+
 		// Teradata settings
 		state.TeradataConfig.Host = types.StringPointerValue(teradataCfg.Host)
 		state.TeradataConfig.Port = types.StringPointerValue(teradataCfg.Port)
@@ -755,6 +781,41 @@ func readGeneric(
 		state.SalesforceConfig.LoginURL = types.StringPointerValue(salesforceCfg.LoginURL)
 		state.SalesforceConfig.Database = types.StringPointerValue(salesforceCfg.Database)
 		state.SalesforceConfig.DataTransformRunTimeout = types.Int64PointerValue(salesforceCfg.DataTransformRunTimeout)
+
+	case state.ClickhouseConfig != nil || strings.HasPrefix(adapter, "clickhouse_"):
+		if state.ClickhouseConfig == nil {
+			state.ClickhouseConfig = &ClickhouseConfig{}
+		}
+
+		c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.ClickhouseConfig](client)
+		common, clickhouseCfg, err := c.Get(connectionID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "resource-not-found") {
+				return nil, "removeFromState", nil
+			}
+			return nil, "", err
+		}
+
+		state.ID = types.Int64PointerValue(common.ID)
+		state.AdapterVersion = types.StringValue(clickhouseCfg.AdapterVersion())
+		state.Name = types.StringPointerValue(common.Name)
+		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
+
+		// nullable common fields
+		if !common.PrivateLinkEndpointId.IsNull() {
+			state.PrivateLinkEndpointId = types.StringValue(common.PrivateLinkEndpointId.MustGet())
+		} else {
+			state.PrivateLinkEndpointId = types.StringNull()
+		}
+		if !common.OauthConfigurationId.IsNull() {
+			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
+		} else {
+			state.OauthConfigurationId = types.Int64Null()
+		}
+
+		state.ClickhouseConfig.Host = types.StringPointerValue(clickhouseCfg.Host)
+		state.ClickhouseConfig.Port = types.Int64PointerValue(clickhouseCfg.Port)
+		state.ClickhouseConfig.Database = types.StringPointerValue(clickhouseCfg.Database)
 
 	default:
 		panic("Unknown connection type")

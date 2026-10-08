@@ -25,7 +25,8 @@ var datasourceSchema = datasource_schema.Schema{
 		},
 		"private_link_endpoint_url": datasource_schema.StringAttribute{
 			Optional:    true,
-			Description: "URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource)",
+			Computed:    true,
+			Description: "URL of the PrivateLink Endpoint (name and/or private_link_endpoint_url need to be provided to return data for the datasource). The data source always returns this value, so a lookup by name alone can supply the hostname of a connection.",
 		},
 		"cidr_range": datasource_schema.StringAttribute{
 			Computed:    true,

@@ -15,6 +15,7 @@ type EnvironmentDataSourceModel struct {
 	ExtendedAttributesID    types.Int64  `tfsdk:"extended_attributes_id"`
 	ConnectionID            types.Int64  `tfsdk:"connection_id"`
 	EnableModelQueryHistory types.Bool   `tfsdk:"enable_model_query_history"`
+	EnableDbtState          types.Bool   `tfsdk:"enable_dbt_state"`
 	PrimaryProfileID        types.Int64  `tfsdk:"primary_profile_id"`
 }
 
@@ -38,5 +39,6 @@ type EnvironmentResourceModel struct {
 	ExtendedAttributesID    types.Int64  `tfsdk:"extended_attributes_id"`
 	ConnectionID            types.Int64  `tfsdk:"connection_id"`
 	EnableModelQueryHistory types.Bool   `tfsdk:"enable_model_query_history"`
+	EnableDbtState          types.Bool   `tfsdk:"enable_dbt_state"`
 	PrimaryProfileID        types.Int64  `tfsdk:"primary_profile_id"`
 }

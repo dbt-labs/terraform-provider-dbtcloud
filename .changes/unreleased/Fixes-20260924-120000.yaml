@@ -1,0 +1,3 @@
+kind: Fixes
+body: '`dbtcloud_partial_notification` with `notification_type = 5` (Slack V2) now matches existing notifications by `slack_channel_id`, instead of adopting (and overwriting the channel of) the first Slack V2 notification in the account'
+time: 2026-09-24T12:00:00.000000-05:00
