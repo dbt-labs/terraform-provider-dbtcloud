@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: Add a `write-only-attributes` skill and a doc comment on `helper.ResolveWriteOnlyString` documenting the pitfalls of write-only (`_wo`) attributes, and link `.claude/skills` to `.agents/skills`
+time: 2026-10-08T13:00:00.000000-05:00
