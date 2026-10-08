@@ -1,0 +1,3 @@
+kind: Fixes
+body: send private_key_wo, password_wo and private_key_passphrase_wo on dbtcloud_snowflake_semantic_layer_credential, which were dropped and left the credential without a key
+time: 2026-10-08T11:38:57.65398+03:00

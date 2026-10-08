@@ -68,24 +68,20 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 	req resource.CreateRequest,
 	resp *resource.CreateResponse,
 ) {
-	var plan SnowflakeSLCredentialModel
+	var plan, config SnowflakeSLCredentialModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	projectID := plan.Credential.ProjectID.ValueInt64()
 
-	values := map[string]interface{}{
-		"role":                   plan.Credential.Role.ValueString(),
-		"warehouse":              plan.Credential.Warehouse.ValueString(),
-		"user":                   plan.Credential.User.ValueString(),
-		"password":               plan.Credential.Password.ValueString(),
-		"private_key":            plan.Credential.PrivateKey.ValueString(),
-		"private_key_passphrase": plan.Credential.PrivateKeyPassphrase.ValueString(),
-		"auth_type":              plan.Credential.AuthType.ValueString(),
-	}
+	values := credentialValues(plan, config)
 
 	createdCredential, err := r.client.CreateSemanticLayerCredential(
 		projectID,
@@ -107,6 +103,7 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 	//snowflake credential ids, not used in this case
 	plan.Credential.CredentialID = types.Int64Value(int64(*createdCredential.ID))
 	plan.Credential.ID = types.StringValue(fmt.Sprintf("%d", *createdCredential.ID))
+	applyCredentialValues(&plan, plan, createdCredential.Values)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -144,7 +141,7 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
-	var plan, state SnowflakeSLCredentialModel
+	var plan, state, config SnowflakeSLCredentialModel
 
 	// Read plan and state values into the models
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -153,6 +150,10 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	}
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -168,20 +169,12 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 		return
 	}
 
-	values := map[string]interface{}{
-		"role":                   plan.Credential.Role.ValueString(),
-		"warehouse":              plan.Credential.Warehouse.ValueString(),
-		"user":                   plan.Credential.User.ValueString(),
-		"password":               plan.Credential.Password.ValueString(),
-		"private_key":            plan.Credential.PrivateKey.ValueString(),
-		"private_key_passphrase": plan.Credential.PrivateKeyPassphrase.ValueString(),
-		"auth_type":              plan.Credential.AuthType.ValueString(),
-	}
+	values := credentialValues(plan, config)
 
 	credential.Name = plan.Configuration.Name.ValueString()
 	credential.Values = values
 
-	_, err = r.client.UpdateSemanticLayerCredential(
+	updatedCredential, err := r.client.UpdateSemanticLayerCredential(
 		id,
 		*credential,
 	)
@@ -193,20 +186,10 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 		return
 	}
 
-	state.ID = types.Int64Value(int64(*credential.ID))
-	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
-
-	//update config fields
-	state.Configuration.Name = types.StringValue(credential.Name)
-
-	//update credential fields
-	state.Credential.AuthType = types.StringValue(credential.Values["auth_type"].(string))
-	state.Credential.Role = types.StringValue(credential.Values["role"].(string))
-	state.Credential.Warehouse = types.StringValue(credential.Values["warehouse"].(string))
-	state.Credential.Password = types.StringValue(credential.Values["password"].(string))
-	state.Credential.User = types.StringValue(credential.Values["user"].(string))
-	state.Credential.PrivateKey = types.StringValue(credential.Values["private_key"].(string))
-	state.Credential.PrivateKeyPassphrase = types.StringValue(credential.Values["private_key_passphrase"].(string))
+	state.ID = types.Int64Value(int64(*updatedCredential.ID))
+	state.Credential.CredentialID = types.Int64Value(int64(*updatedCredential.ID))
+	state.Configuration.Name = types.StringValue(updatedCredential.Name)
+	applyCredentialValues(&state, plan, updatedCredential.Values)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -229,4 +212,54 @@ func (r *snowflakeSemanticLayerCredentialResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = snowflake_sl_credential_resource_schema
+}
+
+// credentialValues builds the credential payload, taking each secret from its
+// write-only attribute when the configuration uses one. A write-only value is
+// null in the plan, so it has to be read from the configuration.
+func credentialValues(plan, config SnowflakeSLCredentialModel) map[string]interface{} {
+	return map[string]interface{}{
+		"role":      plan.Credential.Role.ValueString(),
+		"warehouse": plan.Credential.Warehouse.ValueString(),
+		"user":      plan.Credential.User.ValueString(),
+		"auth_type": plan.Credential.AuthType.ValueString(),
+		"password": helper.ResolveWriteOnlyString(
+			config.Credential.PasswordWo, plan.Credential.Password,
+		),
+		"private_key": helper.ResolveWriteOnlyString(
+			config.Credential.PrivateKeyWo, plan.Credential.PrivateKey,
+		),
+		"private_key_passphrase": helper.ResolveWriteOnlyString(
+			config.Credential.PrivateKeyPassphraseWo, plan.Credential.PrivateKeyPassphrase,
+		),
+	}
+}
+
+// applyCredentialValues takes each field from what the API reported, and falls
+// back to the plan for anything the response leaves out. The response carries
+// no secrets, so those always come from the plan, which keeps a write-only
+// attribute null in state.
+func applyCredentialValues(
+	target *SnowflakeSLCredentialModel,
+	plan SnowflakeSLCredentialModel,
+	values map[string]interface{},
+) {
+	target.Credential.AuthType = stringFromValues(values, "auth_type", plan.Credential.AuthType)
+	target.Credential.Role = stringFromValues(values, "role", plan.Credential.Role)
+	target.Credential.Warehouse = stringFromValues(values, "warehouse", plan.Credential.Warehouse)
+	target.Credential.User = stringFromValues(values, "user", plan.Credential.User)
+
+	target.Credential.Password = plan.Credential.Password
+	target.Credential.PasswordWoVersion = plan.Credential.PasswordWoVersion
+	target.Credential.PrivateKey = plan.Credential.PrivateKey
+	target.Credential.PrivateKeyWoVersion = plan.Credential.PrivateKeyWoVersion
+	target.Credential.PrivateKeyPassphrase = plan.Credential.PrivateKeyPassphrase
+	target.Credential.PrivateKeyPassphraseWoVersion = plan.Credential.PrivateKeyPassphraseWoVersion
+}
+
+func stringFromValues(values map[string]interface{}, key string, planned types.String) types.String {
+	if value, ok := values[key].(string); ok {
+		return types.StringValue(value)
+	}
+	return planned
 }
