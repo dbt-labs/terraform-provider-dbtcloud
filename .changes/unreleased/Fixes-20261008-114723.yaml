@@ -1,0 +1,3 @@
+kind: Fixes
+body: keep the configured order of dbtcloud_webhook job_ids, which made every apply fail when the API returned them in another order
+time: 2026-10-08T11:47:23.69696+03:00
