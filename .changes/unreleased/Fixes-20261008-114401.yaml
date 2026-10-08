@@ -1,0 +1,3 @@
+kind: Fixes
+body: send writable_environment_categories = ["all"] on dbtcloud_service_token instead of dropping it, which left the token with no environment write access
+time: 2026-10-08T11:44:01.911549+03:00
