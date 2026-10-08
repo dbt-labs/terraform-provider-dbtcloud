@@ -130,6 +130,7 @@ func (st *serviceTokenResource) Schema(_ context.Context, _ resource.SchemaReque
 							),
 							Optional:    true,
 							Computed:    true,
+							Default:     helper.EmptySetDefault(types.StringType),
 							ElementType: types.StringType,
 							PlanModifiers: []planmodifier.Set{
 								setplanmodifier.RequiresReplace(),
