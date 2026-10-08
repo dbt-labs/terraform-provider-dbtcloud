@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -57,6 +58,9 @@ var PostgresResourceSchema = resource_schema.Schema{
 		"id": resource_schema.StringAttribute{
 			Computed:    true,
 			Description: "The ID of this resource. Contains the project ID and the credential ID.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
 		},
 		"is_active": resource_schema.BoolAttribute{
 			Optional:    true,

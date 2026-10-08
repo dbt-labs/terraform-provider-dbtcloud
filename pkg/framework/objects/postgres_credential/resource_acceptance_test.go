@@ -428,8 +428,6 @@ func verifyBugIsFixed(t *testing.T, tracker *APICallTracker) resource.TestCheckF
 }
 
 func TestAccDbtCloudPostgresCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
-
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	defaultSchema := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	username := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
