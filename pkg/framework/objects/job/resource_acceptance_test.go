@@ -184,7 +184,6 @@ func TestAccDbtCloudJobResource(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -232,9 +231,6 @@ func TestAccDbtCloudJobResourceTriggers(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
-				},
 			},
 		},
 	})
@@ -287,9 +283,6 @@ func TestAccDbtCloudJobCISettings(t *testing.T) {
 				ResourceName:      "dbtcloud_job.ci_job",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
-				},
 			},
 		},
 	})
@@ -629,7 +622,6 @@ func TestAccDbtCloudJobResourceSchedules(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -887,7 +879,6 @@ func TestAccDbtCloudJobResourceJobTypeAndCompareChanges(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -989,7 +980,6 @@ func TestAccDbtCloudJobResourceIntervalCron(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -1064,9 +1054,6 @@ func TestAccDbtCloudJobCostOptimizationFeatures(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
-				},
 			},
 		},
 	})
@@ -1134,9 +1121,6 @@ func TestAccDbtCloudJobDbtStateCostOptimizationFeature(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
-				},
 			},
 		},
 	})
@@ -1196,9 +1180,6 @@ func TestAccDbtCloudJobCIWithDbtStateCostOptimizationFeature(t *testing.T) {
 				ResourceName:      "dbtcloud_job.ci_job",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
-				},
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("dbtcloud_job.ci_job", "cost_optimization_features.#", "1"),
 					resource.TestCheckTypeSetElemAttr(
@@ -1262,7 +1243,6 @@ func TestAccDbtCloudJobCIWithDeferringEnvironment(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
 					"triggers.%",
 					"triggers.custom_branch_only",
 				},
@@ -1300,7 +1280,6 @@ func TestAccDbtCloudJobMergeWithDeferringEnvironment(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"validate_execute_steps",
 					"triggers.%",
 					"triggers.custom_branch_only",
 				},

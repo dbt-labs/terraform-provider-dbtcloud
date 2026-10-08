@@ -140,8 +140,11 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	state.Name = types.StringValue(project.Name)
 	state.Description = types.StringValue(project.Description)
 
+	// No subdirectory comes back as null, which the schema represents as "".
 	if project.DbtProjectSubdirectory != nil {
 		state.DbtProjectSubdirectory = types.StringValue(*project.DbtProjectSubdirectory)
+	} else {
+		state.DbtProjectSubdirectory = types.StringValue("")
 	}
 
 	state.DbtProjectType = types.Int64Value(project.DbtProjectType)

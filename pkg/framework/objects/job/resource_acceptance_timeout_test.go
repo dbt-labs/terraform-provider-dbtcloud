@@ -60,7 +60,6 @@ func TestAccDbtCloudJobResourceTimeoutSecondsBackwardCompatibility(t *testing.T)
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -120,7 +119,6 @@ func TestAccDbtCloudJobResourceExecutionTimeoutSeconds(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 					"execution",       // execution block is only set if user configured it
 					"timeout_seconds", // after import, this gets API value since we don't know user's config preference
 				},

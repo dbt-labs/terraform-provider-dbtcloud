@@ -105,10 +105,12 @@ func TestAccDbtCloudJobResourceExecuteStepsValid(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// validate_execute_steps only exists in the provider, so an import
+				// cannot recover a true set in the configuration.
 				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -144,10 +146,12 @@ func TestAccDbtCloudJobResourceExecuteStepsMultipleFlags(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// validate_execute_steps only exists in the provider, so an import
+				// cannot recover a true set in the configuration.
 				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
@@ -188,10 +192,12 @@ func TestAccDbtCloudJobResourceExecuteStepsMultiLine(t *testing.T) {
 				ResourceName:      "dbtcloud_job.test_job",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// validate_execute_steps only exists in the provider, so an import
+				// cannot recover a true set in the configuration.
 				ImportStateVerifyIgnore: []string{
+					"validate_execute_steps",
 					"triggers.%",
 					"triggers.custom_branch_only",
-					"validate_execute_steps",
 				},
 			},
 		},
