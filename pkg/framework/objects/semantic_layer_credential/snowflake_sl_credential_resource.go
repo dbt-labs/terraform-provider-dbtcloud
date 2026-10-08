@@ -103,6 +103,7 @@ func (r *snowflakeSemanticLayerCredentialResource) Create(
 	//snowflake credential ids, not used in this case
 	plan.Credential.CredentialID = types.Int64Value(int64(*createdCredential.ID))
 	plan.Credential.ID = types.StringValue(fmt.Sprintf("%d", *createdCredential.ID))
+	applyCredentialValues(&plan, plan, createdCredential.Values)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -173,7 +174,7 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 	credential.Name = plan.Configuration.Name.ValueString()
 	credential.Values = values
 
-	_, err = r.client.UpdateSemanticLayerCredential(
+	updatedCredential, err := r.client.UpdateSemanticLayerCredential(
 		id,
 		*credential,
 	)
@@ -185,24 +186,10 @@ func (r *snowflakeSemanticLayerCredentialResource) Update(
 		return
 	}
 
-	state.ID = types.Int64Value(int64(*credential.ID))
-	state.Credential.CredentialID = types.Int64Value(int64(*credential.ID))
-
-	//update config fields
-	state.Configuration.Name = types.StringValue(credential.Name)
-
-	// The secrets are taken from the plan rather than echoed back from the
-	// request, so that a write-only attribute stays null in state.
-	state.Credential.AuthType = plan.Credential.AuthType
-	state.Credential.Role = plan.Credential.Role
-	state.Credential.Warehouse = plan.Credential.Warehouse
-	state.Credential.User = plan.Credential.User
-	state.Credential.Password = plan.Credential.Password
-	state.Credential.PasswordWoVersion = plan.Credential.PasswordWoVersion
-	state.Credential.PrivateKey = plan.Credential.PrivateKey
-	state.Credential.PrivateKeyWoVersion = plan.Credential.PrivateKeyWoVersion
-	state.Credential.PrivateKeyPassphrase = plan.Credential.PrivateKeyPassphrase
-	state.Credential.PrivateKeyPassphraseWoVersion = plan.Credential.PrivateKeyPassphraseWoVersion
+	state.ID = types.Int64Value(int64(*updatedCredential.ID))
+	state.Credential.CredentialID = types.Int64Value(int64(*updatedCredential.ID))
+	state.Configuration.Name = types.StringValue(updatedCredential.Name)
+	applyCredentialValues(&state, plan, updatedCredential.Values)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -246,4 +233,33 @@ func credentialValues(plan, config SnowflakeSLCredentialModel) map[string]interf
 			config.Credential.PrivateKeyPassphraseWo, plan.Credential.PrivateKeyPassphrase,
 		),
 	}
+}
+
+// applyCredentialValues takes each field from what the API reported, and falls
+// back to the plan for anything the response leaves out. The response carries
+// no secrets, so those always come from the plan, which keeps a write-only
+// attribute null in state.
+func applyCredentialValues(
+	target *SnowflakeSLCredentialModel,
+	plan SnowflakeSLCredentialModel,
+	values map[string]interface{},
+) {
+	target.Credential.AuthType = stringFromValues(values, "auth_type", plan.Credential.AuthType)
+	target.Credential.Role = stringFromValues(values, "role", plan.Credential.Role)
+	target.Credential.Warehouse = stringFromValues(values, "warehouse", plan.Credential.Warehouse)
+	target.Credential.User = stringFromValues(values, "user", plan.Credential.User)
+
+	target.Credential.Password = plan.Credential.Password
+	target.Credential.PasswordWoVersion = plan.Credential.PasswordWoVersion
+	target.Credential.PrivateKey = plan.Credential.PrivateKey
+	target.Credential.PrivateKeyWoVersion = plan.Credential.PrivateKeyWoVersion
+	target.Credential.PrivateKeyPassphrase = plan.Credential.PrivateKeyPassphrase
+	target.Credential.PrivateKeyPassphraseWoVersion = plan.Credential.PrivateKeyPassphraseWoVersion
+}
+
+func stringFromValues(values map[string]interface{}, key string, planned types.String) types.String {
+	if value, ok := values[key].(string); ok {
+		return types.StringValue(value)
+	}
+	return planned
 }
