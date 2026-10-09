@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -85,7 +86,20 @@ func (r *globalConnectionResource) Schema(
 					"private_key": resource_schema.StringAttribute{
 						Optional:    true,
 						Sensitive:   true,
-						Description: "Private Key for the Service Account. Required when using 'service-account-json' authentication.",
+						Description: "Private Key for the Service Account. Required when using 'service-account-json' authentication. Consider using `private_key_wo` instead, which is not stored in state.",
+						Validators: []validator.String{
+							stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("private_key_wo")),
+							helper.PreferWriteOnlyAttributeValidator{WriteOnlyAttributeName: "private_key_wo"},
+						},
+					},
+					"private_key_wo": resource_schema.StringAttribute{
+						Optional:    true,
+						WriteOnly:   true,
+						Description: "Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.",
+					},
+					"private_key_wo_version": resource_schema.Int64Attribute{
+						Optional:    true,
+						Description: "Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.",
 					},
 					"client_email": resource_schema.StringAttribute{
 						Optional:    true,
@@ -733,6 +747,15 @@ func (r *globalConnectionDataSource) Schema(
 						Computed:    true,
 						Sensitive:   true,
 						Description: "Private Key for the Service Account",
+					},
+					// the data source shares its model with the resource, so these exist but are never populated
+					"private_key_wo": datasource_schema.StringAttribute{
+						Computed:    true,
+						Description: "Not populated by the data source. Only used by the resource as a write-only alternative to `private_key`.",
+					},
+					"private_key_wo_version": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "Not populated by the data source. Only used by the resource to trigger updates of `private_key_wo`.",
 					},
 					"client_email": datasource_schema.StringAttribute{
 						Computed:    true,

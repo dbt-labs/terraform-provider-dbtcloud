@@ -112,6 +112,8 @@ Read-Only:
 - `priority` (String) The priority with which to execute BigQuery queries (batch or interactive)
 - `private_key` (String, Sensitive) Private Key for the Service Account
 - `private_key_id` (String) Private Key ID for the Service Account
+- `private_key_wo` (String) Not populated by the data source. Only used by the resource as a write-only alternative to `private_key`.
+- `private_key_wo_version` (Number) Not populated by the data source. Only used by the resource to trigger updates of `private_key_wo`.
 - `retries` (Number) Number of retries for queries
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries

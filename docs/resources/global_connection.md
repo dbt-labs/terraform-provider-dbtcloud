@@ -333,8 +333,10 @@ Optional:
 - `location` (String) Location to create new Datasets in
 - `maximum_bytes_billed` (Number) Max number of bytes that can be billed for a given BigQuery query
 - `priority` (String) The priority with which to execute BigQuery queries (batch or interactive)
-- `private_key` (String, Sensitive) Private Key for the Service Account. Required when using 'service-account-json' authentication.
+- `private_key` (String, Sensitive) Private Key for the Service Account. Required when using 'service-account-json' authentication. Consider using `private_key_wo` instead, which is not stored in state.
 - `private_key_id` (String) Private Key ID for the Service Account. Required when using 'service-account-json' authentication.
+- `private_key_wo` (String) Write-only alternative to `private_key`. The value is not stored in state. Requires `private_key_wo_version` to trigger updates.
+- `private_key_wo_version` (Number) Version number for `private_key_wo`. Increment this value to trigger an update of the private key when using `private_key_wo`.
 - `retries` (Number) Number of retries for queries
 - `scopes` (Set of String) OAuth scopes for the BigQuery connection
 - `timeout_seconds` (Number) Timeout in seconds for queries, to be used ONLY for the bigquery_v0 adapter
