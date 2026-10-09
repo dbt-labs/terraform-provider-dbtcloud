@@ -23,6 +23,11 @@ type AuthProvider struct {
 	UpdatedAt             string  `json:"updated_at,omitempty"`
 	CertExpiryDate        *string `json:"cert_expiry_date,omitempty"`
 
+	// UseAuth0 tracks whether the account has completed the Auth0 migration. The
+	// update endpoint is a POST that replaces the record instead of merging, so
+	// leaving this out of the payload silently resets a migrated account.
+	UseAuth0 *bool `json:"use_auth0,omitempty"`
+
 	// SAML / Okta
 	EntityID     *string `json:"entity_id,omitempty"`
 	SsoURL       *string `json:"sso_url,omitempty"`
