@@ -213,7 +213,11 @@ func (c *Client) CreateProject(
 }
 
 func (c *Client) UpdateProject(projectID string, project Project) (*Project, error) {
-	if project.DbtProjectSubdirectory != nil {
+	// Skip subdirectory validation for delete operations (STATE_DELETED): we're not
+	// changing this field, and legacy projects can carry a value (e.g. a leading "/")
+	// that predates today's validation rules, which would otherwise make the project
+	// permanently undeletable via terraform destroy or the API.
+	if project.DbtProjectSubdirectory != nil && project.State != STATE_DELETED {
 		*project.DbtProjectSubdirectory = strings.TrimSpace(*project.DbtProjectSubdirectory)
 		if err := IsValidSubdirectory(*project.DbtProjectSubdirectory); err != nil {
 			return nil, err
