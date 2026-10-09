@@ -1,0 +1,73 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+  }
+}
+
+*.style.font-size: 22
+*.*.style.font-size: 22
+
+title: |md
+  # Jobs & orchestration
+| {near: top-center}
+
+version_note: "dbt Cloud Terraform provider resources · v1.12.5 · 4 of 4" {
+  near: top-right
+  style: {
+    font-size: 14
+    stroke: transparent
+    fill: transparent
+  }
+}
+
+direction: right
+
+classes: {
+  external: {
+    style: {
+      stroke-dash: 2
+      stroke: "#888888"
+      fill: "#EEEEEE"
+    }
+  }
+}
+
+environment: "environment (see Project & environment diagram)" {
+  class: external
+}
+
+job: {
+  style: {
+    fill: "#ACE1AF"
+    stroke: green
+  }
+}
+job_completion_trigger
+environment_variable_job_override
+notification
+partial_notification
+notification_setting
+webhook
+runs: runs (data source)
+
+job -- environment
+job -- environment_variable_job_override
+notification -- job
+partial_notification -- job
+notification_setting -- job
+job -- job_completion_trigger: upstream
+job_completion_trigger -- job: downstream
+
+webhook -- job: triggered by {
+  style: {
+    stroke-dash: 3
+  }
+}
+runs -- job {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+(job -- *)[*].style.stroke: green
+(* -- job)[*].style.stroke: green
