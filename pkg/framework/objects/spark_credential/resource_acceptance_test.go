@@ -111,7 +111,6 @@ resource "dbtcloud_environment" "spark_environment" {
 }
 
 func TestAccDbtCloudSparkCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	targetName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))

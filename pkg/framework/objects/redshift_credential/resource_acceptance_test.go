@@ -103,7 +103,6 @@ func testAccCheckDbtCloudRedshiftCredentialExists(resource string) resource.Test
 }
 
 func TestAccDbtCloudRedshiftCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 	username := acctest.RandString(10)

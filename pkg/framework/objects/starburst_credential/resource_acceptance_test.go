@@ -138,7 +138,6 @@ func testAccCheckDbtCloudStarburstCredentialExists(resource string) resource.Tes
 }
 
 func TestAccDbtCloudStarburstCredentialResourceWriteOnly(t *testing.T) {
-	t.Skip("Requires Terraform >= 1.11")
 
 	projectName := acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 	database := "test_catalog"
