@@ -1,0 +1,3 @@
+kind: Fixes
+body: Add `UseStateForUnknown()` to `dbtcloud_postgres_credential`'s `id` attribute so `terraform plan` no longer shows a spurious in-place update on every run when using `password_wo` (#719).
+time: 2026-08-03T13:29:46.014118+03:00
