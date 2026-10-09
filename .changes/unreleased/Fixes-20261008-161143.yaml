@@ -1,0 +1,3 @@
+kind: Fixes
+body: stop imported jobs, projects and postgres credentials from showing a difference that no configuration can express
+time: 2026-10-08T16:11:43.1196+03:00

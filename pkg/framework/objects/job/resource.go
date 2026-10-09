@@ -665,6 +665,12 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		state.SelfDeferring = types.BoolValue(selfDeferring)
 	}
 
+	// validate_execute_steps only exists in the provider, so the API never
+	// returns it and an imported job has no value for it.
+	if state.ValidateExecuteSteps.IsNull() {
+		state.ValidateExecuteSteps = types.BoolValue(false)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

@@ -111,11 +111,6 @@ func (p *postgresCredentialResource) ImportState(ctx context.Context, req resour
 		path.Root("target_name"),
 		credential.Target_Name,
 	)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(
-		ctx,
-		path.Root("password"),
-		"", // Set to empty string when importing
-	)...)
 }
 
 func (p *postgresCredentialResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -256,6 +251,12 @@ func (p *postgresCredentialResource) Read(ctx context.Context, req resource.Read
 
 	// The password is not read back from the API, so whatever is in state stays.
 	// A configuration using password_wo leaves it null, and it has to stay null.
+
+	// semantic_layer_credential only exists in the provider, so an imported
+	// credential has no value for it.
+	if state.SemanticLayerCredential.IsNull() {
+		state.SemanticLayerCredential = types.BoolValue(false)
+	}
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

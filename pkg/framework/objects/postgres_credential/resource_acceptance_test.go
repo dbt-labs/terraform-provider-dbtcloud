@@ -67,7 +67,7 @@ func TestAccDbtCloudPostgresCredentialResource(t *testing.T) {
 		ResourceName:            "dbtcloud_postgres_credential.test_credential",
 		ImportState:             true,
 		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"password", "semantic_layer_credential"},
+		ImportStateVerifyIgnore: []string{"password"},
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -498,7 +498,6 @@ func TestAccDbtCloudPostgresCredentialResourceWriteOnly(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"password",
 					"password_wo", "password_wo_version",
-					"semantic_layer_credential",
 				},
 			},
 		},
