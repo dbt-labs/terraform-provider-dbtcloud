@@ -1,0 +1,49 @@
+name: List stale acceptance-test projects (dry run)
+
+# Manual, read-only diagnostic for the shared live dbt Cloud acceptance-test
+# account. Lists projects and how old they are so we can see how much cruft
+# has accumulated from acceptance-test runs whose destroy step failed
+# (leaving the project dangling). Makes GET requests only - never deletes
+# anything. Output is meant to be reviewed (and shared for approval) before
+# any cleanup action is taken.
+
+on:
+  workflow_dispatch:
+    inputs:
+      min_age:
+        description: "Only list projects older than this (Go duration, e.g. 1h, 24h)"
+        required: false
+        default: "1h"
+  # workflow_dispatch can't be invoked until this file exists on the default
+  # branch. This is a throwaway diagnostic PR that isn't meant to be merged,
+  # so trigger on pull_request instead - that runs the workflow file as it
+  # exists on the PR branch itself. Secrets are available because this
+  # branch is pushed directly to the repo, not from a fork.
+  pull_request:
+    paths:
+      - "tools/list-stale-projects/**"
+      - ".github/workflows/list-stale-test-projects.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  list-stale-projects:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # actions/checkout@v3
+
+      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # actions/setup-go@v4
+        with:
+          go-version: '>=1.17.0'
+
+      - name: List projects older than min_age
+        shell: bash
+        run: |
+          set -o pipefail
+          go run ./tools/list-stale-projects -min-age="${{ github.event.inputs.min_age || '1h' }}" | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
+          DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
+          DBT_CLOUD_HOST_URL: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
