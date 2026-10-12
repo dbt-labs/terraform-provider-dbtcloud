@@ -3,6 +3,7 @@ package model_notifications
 import (
 	"context"
 
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -16,7 +17,11 @@ func (r *modelNotificationsResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		Description: "Configure model notifications for a dbt Cloud environment. By default all the `on_...` are set to false. When destroyed, the model notifications are disabled.",
+		Description: helper.DocString(
+			`Configure model notifications for a dbt Cloud environment. By default all the ` + "`on_...`" + ` are set to false. When destroyed, the model notifications are disabled.
+
+			~> This resource needs a token with the Account Admin permission set. On enterprise accounts no other permission set grants write access to model notifications, including Notification Manager, which applies to job notifications only. A token without this permission gets a 405 error. The message reports an incorrect method, but the cause is the missing permission.`,
+		),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
