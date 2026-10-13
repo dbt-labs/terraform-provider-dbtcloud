@@ -179,6 +179,7 @@ resource "dbtcloud_auth_provider" "gsuite" {
 - `login_url` (String) The SSO login URL for the account, auto-generated from the slug.
 - `state` (Number) The state of the auth provider (1 = active).
 - `updated_at` (String)
+- `use_auth0` (Boolean) Whether the account has completed the Auth0 authentication migration. This is set by the "Begin migration" step in the dbt Cloud UI and cannot be changed from Terraform.
 
 ## Import
 

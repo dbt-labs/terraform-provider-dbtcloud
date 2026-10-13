@@ -390,6 +390,7 @@ func applyAPIResponse(ap *dbt_cloud.AuthProvider, m *AuthProviderResourceModel) 
 	m.Slug = types.StringValue(ap.Slug)
 	m.AllowPasswordBackdoor = types.BoolValue(ap.AllowPasswordBackdoor)
 	m.LoginURL = types.StringValue(ap.LoginURL)
+	m.UseAuth0 = types.BoolValue(ap.UseAuth0 != nil && *ap.UseAuth0)
 	m.CreatedAt = types.StringValue(ap.CreatedAt)
 	m.UpdatedAt = types.StringValue(ap.UpdatedAt)
 

@@ -61,6 +61,10 @@ func (r *authProviderResource) Schema(
 				Computed:    true,
 				Description: "The SSO login URL for the account, auto-generated from the slug.",
 			},
+			"use_auth0": resource_schema.BoolAttribute{
+				Computed:    true,
+				Description: "Whether the account has completed the Auth0 authentication migration. This is set by the \"Begin migration\" step in the dbt Cloud UI and cannot be changed from Terraform.",
+			},
 			"cert_expiry_date": resource_schema.StringAttribute{
 				Computed:    true,
 				Description: "Expiry date of the SAML X.509 certificate (SAML/Okta only).",

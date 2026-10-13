@@ -13,6 +13,7 @@ type AuthProviderResourceModel struct {
 	Slug                  types.String `tfsdk:"slug"`
 	AllowPasswordBackdoor types.Bool   `tfsdk:"allow_password_backdoor"`
 	LoginURL              types.String `tfsdk:"login_url"`
+	UseAuth0              types.Bool   `tfsdk:"use_auth0"`
 	CreatedAt             types.String `tfsdk:"created_at"`
 	UpdatedAt             types.String `tfsdk:"updated_at"`
 

@@ -1,0 +1,3 @@
+kind: Fixes
+body: Stop `dbtcloud_auth_provider` from resetting the Auth0 migration status on update, and expose it as `use_auth0`
+time: 2026-10-09T15:14:03.71012+03:00
