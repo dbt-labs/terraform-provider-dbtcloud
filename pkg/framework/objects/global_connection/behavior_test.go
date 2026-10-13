@@ -113,7 +113,8 @@ func TestReadGeneric_BigQueryV1_SetsUseLatestAdapter(t *testing.T) {
 					"job_creation_timeout_seconds": null,
 					"gcs_bucket": null,
 					"dataproc_region": null,
-					"dataproc_cluster_name": null
+					"dataproc_cluster_name": null,
+					"api_endpoint": null
 				}
 			}
 		}`))
@@ -167,7 +168,8 @@ func TestReadGeneric_BigQueryV0_SetsUseLatestAdapterFalse(t *testing.T) {
 					"job_creation_timeout_seconds": null,
 					"gcs_bucket": null,
 					"dataproc_region": null,
-					"dataproc_cluster_name": null
+					"dataproc_cluster_name": null,
+					"api_endpoint": null
 				}
 			}
 		}`))
@@ -303,7 +305,11 @@ func TestUpdate_BigQueryV1_DoesNotSendTimeoutSecondsToAPI(t *testing.T) {
 	resp := &resource.UpdateResponse{State: tfsdk.State{Schema: schemaResp.Schema}}
 	r.Update(
 		context.Background(),
-		resource.UpdateRequest{Plan: tfPlan, State: tfState},
+		resource.UpdateRequest{
+			Plan:   tfPlan,
+			State:  tfState,
+			Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: tfPlan.Raw},
+		},
 		resp,
 	)
 
@@ -345,7 +351,11 @@ func TestUpdate_BigQueryV0_StillSendsTimeoutSecondsToAPI(t *testing.T) {
 	resp := &resource.UpdateResponse{State: tfsdk.State{Schema: schemaResp.Schema}}
 	r.Update(
 		context.Background(),
-		resource.UpdateRequest{Plan: tfPlan, State: tfState},
+		resource.UpdateRequest{
+			Plan:   tfPlan,
+			State:  tfState,
+			Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: tfPlan.Raw},
+		},
 		resp,
 	)
 
