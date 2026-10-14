@@ -94,13 +94,19 @@ func readGeneric(
 		state.Name = types.StringPointerValue(common.Name)
 		state.IsSshTunnelEnabled = types.BoolPointerValue(common.IsSshTunnelEnabled)
 
-		// derive use_latest_adapter from the adapter version returned by the API so that
+		// Derive use_latest_adapter from the adapter version returned by the API so that
 		// imported (and refreshed) bigquery_v1 connections round-trip correctly instead of
 		// leaving use_latest_adapter unset, which the resource's ModifyPlan guard then
-		// misreads as a user-requested adapter change
-		state.BigQueryConfig.UseLatestAdapter = types.BoolValue(
-			adapterVersion == bigqueryCfg.LatestAdapterVersion(),
-		)
+		// misreads as a user-requested adapter change.
+		//
+		// Only a v1 connection gets a value. On the resource the attribute is Optional
+		// with no default, so writing false for a v0 connection drifts against every
+		// configuration that leaves it unset.
+		if adapterVersion == bigqueryCfg.LatestAdapterVersion() {
+			state.BigQueryConfig.UseLatestAdapter = types.BoolValue(true)
+		} else if !state.BigQueryConfig.UseLatestAdapter.IsNull() {
+			state.BigQueryConfig.UseLatestAdapter = types.BoolValue(false)
+		}
 
 		// nullable common fields
 		if !common.PrivateLinkEndpointId.IsNull() {

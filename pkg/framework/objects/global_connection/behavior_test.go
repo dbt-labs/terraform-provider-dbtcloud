@@ -142,9 +142,11 @@ func TestReadGeneric_BigQueryV1_SetsUseLatestAdapter(t *testing.T) {
 	}
 }
 
-// TestReadGeneric_BigQueryV0_SetsUseLatestAdapterFalse confirms the derivation
-// discriminates correctly rather than always reporting true.
-func TestReadGeneric_BigQueryV0_SetsUseLatestAdapterFalse(t *testing.T) {
+// TestReadGeneric_BigQueryV0_LeavesUnsetUseLatestAdapterNull confirms the derivation
+// discriminates correctly rather than always reporting true, and that it leaves an
+// unset attribute alone. use_latest_adapter is Optional with no default, so reading
+// false onto a configuration that omits it plans "false -> null" on every run.
+func TestReadGeneric_BigQueryV0_LeavesUnsetUseLatestAdapterNull(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
@@ -186,8 +188,63 @@ func TestReadGeneric_BigQueryV0_SetsUseLatestAdapterFalse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("readGeneric returned an unexpected error: %v", err)
 	}
-	if newState.BigQueryConfig.UseLatestAdapter.IsNull() || newState.BigQueryConfig.UseLatestAdapter.ValueBool() {
-		t.Fatalf("expected use_latest_adapter=false for a bigquery_v0 connection")
+	if !newState.BigQueryConfig.UseLatestAdapter.IsNull() {
+		t.Fatalf(
+			"expected use_latest_adapter to stay null for a bigquery_v0 connection that does not set it, got %v",
+			newState.BigQueryConfig.UseLatestAdapter,
+		)
+	}
+}
+
+// TestReadGeneric_BigQueryV0_KeepsExplicitUseLatestAdapterFalse covers the other v0
+// case: a configuration that sets the attribute explicitly keeps a known value.
+func TestReadGeneric_BigQueryV0_KeepsExplicitUseLatestAdapterFalse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"status": {"code": 200, "is_success": true},
+			"data": {
+				"id": 456,
+				"name": "bq-v0-conn",
+				"account_id": 1,
+				"adapter_version": "bigquery_v0",
+				"private_link_endpoint_id": null,
+				"oauth_configuration_id": null,
+				"config": {
+					"gcp_project_id": "my-project",
+					"timeout_seconds": 300,
+					"priority": null,
+					"location": null,
+					"maximum_bytes_billed": null,
+					"execution_project": null,
+					"impersonate_service_account": null,
+					"job_retry_deadline_seconds": null,
+					"job_creation_timeout_seconds": null,
+					"gcs_bucket": null,
+					"dataproc_region": null,
+					"dataproc_cluster_name": null,
+					"api_endpoint": null
+				}
+			}
+		}`))
+	}))
+	defer server.Close()
+
+	client := newTestClient(t, server)
+	state := &GlobalConnectionResourceModel{
+		ID: types.Int64Value(456),
+		BigQueryConfig: &BigQueryConfig{
+			UseLatestAdapter: types.BoolValue(false),
+		},
+	}
+
+	newState, _, err := readGeneric(client, state, "")
+	if err != nil {
+		t.Fatalf("readGeneric returned an unexpected error: %v", err)
+	}
+	if newState.BigQueryConfig.UseLatestAdapter.IsNull() ||
+		newState.BigQueryConfig.UseLatestAdapter.ValueBool() {
+		t.Fatalf("expected use_latest_adapter to stay false when the configuration sets it")
 	}
 }
 
@@ -199,8 +256,51 @@ func TestReadGeneric_BigQueryV0_SetsUseLatestAdapterFalse(t *testing.T) {
 func TestModifyPlan_BigQueryV1_NoFalsePositiveWhenAdapterUnchanged(t *testing.T) {
 	schemaResp := testResourceSchema(t)
 
+	// Drive the state through readGeneric rather than hand-building it, so the test
+	// exercises the import path that #709 reported. A hand-built state with
+	// use_latest_adapter already set passes with or without the read-path fix.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"status": {"code": 200, "is_success": true},
+			"data": {
+				"id": 123,
+				"name": "bq-conn",
+				"account_id": 1,
+				"adapter_version": "bigquery_v1",
+				"private_link_endpoint_id": null,
+				"oauth_configuration_id": null,
+				"config": {
+					"gcp_project_id": "my-project",
+					"priority": null,
+					"location": null,
+					"maximum_bytes_billed": null,
+					"execution_project": null,
+					"impersonate_service_account": null,
+					"job_retry_deadline_seconds": null,
+					"job_creation_timeout_seconds": null,
+					"gcs_bucket": null,
+					"dataproc_region": null,
+					"dataproc_cluster_name": null,
+					"api_endpoint": null
+				}
+			}
+		}`))
+	}))
+	defer server.Close()
+
 	plan := bigQueryModel(true, 300)
-	state := bigQueryModel(true, 300) // what readGeneric now produces after the fix
+
+	// An import starts with nothing but the ID, which is what left use_latest_adapter
+	// null and made the guard below fire on a plan with no changes in it.
+	imported := &GlobalConnectionResourceModel{
+		ID:             types.Int64Value(123),
+		BigQueryConfig: &BigQueryConfig{},
+	}
+	state, _, err := readGeneric(newTestClient(t, server), imported, "")
+	if err != nil {
+		t.Fatalf("readGeneric returned an unexpected error: %v", err)
+	}
 
 	tfPlan := tfsdk.Plan{Schema: schemaResp.Schema}
 	if diags := tfPlan.Set(context.Background(), plan); diags.HasError() {
