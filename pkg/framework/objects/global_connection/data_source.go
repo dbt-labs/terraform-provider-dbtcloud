@@ -65,8 +65,9 @@ func (d *globalConnectionDataSource) Read(
 		return
 	}
 
-	// readGeneric can't infer this one: the API only reports the adapter version, so
-	// the resource carries `use_latest_adapter` over from its own state instead
+	// readGeneric sets this for v1 only, because on the resource the attribute is
+	// Optional and a v0 connection has to keep the null it never configured. Here the
+	// attribute is Computed, so report a concrete value for both adapter versions.
 	if newState.BigQueryConfig != nil {
 		newState.BigQueryConfig.UseLatestAdapter = types.BoolValue(
 			globalConnectionResponse.Data.AdapterVersion == dbt_cloud.BigQueryConfig{}.LatestAdapterVersion(),

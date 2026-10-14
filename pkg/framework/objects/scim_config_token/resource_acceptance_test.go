@@ -16,6 +16,12 @@ import (
 // config token: create, verify token_string is populated, name change forces
 // replace, import (with token_string absent as expected), and destroy.
 func TestAccDbtCloudSCIMConfigTokenResource(t *testing.T) {
+	// The create endpoint rejects every API token type, so the provider cannot create
+	// this resource at all and the test can only fail. Skipped until #779 is resolved,
+	// either by the endpoint accepting service tokens again or by the resource being
+	// deprecated.
+	t.Skip("Blocked on #779: the create endpoint rejects API tokens")
+
 	tokenName := "tf-acc-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlpha)
 	tokenNameUpdated := "tf-acc-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlpha)
 
