@@ -1,0 +1,3 @@
+kind: Fixes
+body: project updates no longer send `connection_id`, so applying `dbtcloud_semantic_layer_configuration` or `dbtcloud_project_artefacts` no longer cascades the project connection onto every environment and overrides their global connection IDs (#516)
+time: 2026-10-14T11:31:53.652491+03:00
