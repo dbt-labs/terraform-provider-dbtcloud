@@ -293,7 +293,7 @@ func (r *environmentResource) Schema(
 				Optional:    true,
 				Description: "The ID of the primary profile for this environment. A profile ties together a connection and credentials. Only applicable to deployment environments. " +
 					"~> Setting `primary_profile_id` alongside `connection_id`, `credential_id`, or `extended_attributes_id` " +
-					"will produce an error. When a profile is assigned, the API determines those values from the profile. " +
+					"will produce an error. Those values belong to the profile. " +
 					"Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.",
 				PlanModifiers: []planmodifier.Int64{
 					validators.UseStateWhenConfigSet{},
