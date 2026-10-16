@@ -44,10 +44,10 @@ resource "dbtcloud_environment" "dev_environment" {
   // credential_id is not actionable for development environments
 }
 
-// Deployment environment with a primary profile (binds connection + credentials via profile)
-// NOTE: avoid setting connection_id, credential_id, or extended_attributes_id alongside
-// primary_profile_id — dbt Cloud may propagate the environment's values onto the profile,
-// overwriting the profile's own settings and affecting other environments sharing that profile.
+// Deployment environment with a primary profile (connection and credentials come from the profile)
+// NOTE: do not set connection_id, credential_id, or extended_attributes_id alongside
+// primary_profile_id. Manage those values on the dbtcloud_profile resource instead, since a
+// profile can be shared by several environments.
 resource "dbtcloud_environment" "profiled_environment" {
   dbt_version        = "latest"
   name               = "Staging"
@@ -78,7 +78,7 @@ resource "dbtcloud_environment" "profiled_environment" {
 - `enable_model_query_history` (Boolean) Whether to enable model query history in this environment. As of Oct 2024, works only for Snowflake and BigQuery.
 - `extended_attributes_id` (Number) The ID of the extended attributes applied
 - `is_active` (Boolean) Whether the environment is active
-- `primary_profile_id` (Number) The ID of the primary profile for this environment. A profile ties together a connection and credentials. Only applicable to deployment environments. ~> Setting `primary_profile_id` alongside `connection_id`, `credential_id`, or `extended_attributes_id` will produce an error. When a profile is assigned, the API determines those values from the profile. Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.
+- `primary_profile_id` (Number) The ID of the primary profile for this environment. A profile ties together a connection and credentials. Only applicable to deployment environments. ~> Setting `primary_profile_id` alongside `connection_id`, `credential_id`, or `extended_attributes_id` will produce an error. Those values belong to the profile. Manage connection, credentials, and extended attributes through the `dbtcloud_profile` resource instead.
 - `use_custom_branch` (Boolean) Whether to use a custom git branch in this environment
 
 ### Read-Only
