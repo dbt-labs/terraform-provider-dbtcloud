@@ -9,6 +9,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/testhelpers"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestSemanticLayerCredentials_WriteOnlySecrets(t *testing.T) {
@@ -118,6 +119,9 @@ provider "dbtcloud" {
 			resource.Test(t, resource.TestCase{
 				IsUnitTest:               true,
 				ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+					tfversion.SkipBelow(tfversion.Version1_11_0),
+				},
 				Steps: []resource.TestStep{
 					{
 						Config: providerConfig + testCase.config("create", 1),
