@@ -1,0 +1,3 @@
+kind: Fixes
+body: 'Send write-only secrets when creating or updating semantic layer credentials'
+time: 2026-08-23T22:58:16.1508412+08:00
