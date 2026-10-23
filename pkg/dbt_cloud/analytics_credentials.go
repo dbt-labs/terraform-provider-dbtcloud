@@ -41,6 +41,9 @@ type AnalyticsCredentialConfig struct {
 	// Databricks fields
 	Token   string `json:"token,omitempty"`
 	Catalog string `json:"catalog,omitempty"`
+
+	// Redshift fields (the password is shared with Snowflake)
+	Username string `json:"username,omitempty"`
 }
 
 // AnalyticsCredentialCreateRequest is the create body; the adapter comes from the connection.

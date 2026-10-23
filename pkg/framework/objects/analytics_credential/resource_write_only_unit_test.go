@@ -280,3 +280,79 @@ func TestAnalyticsCredential_DatabricksTokenSentOnVersionBump(t *testing.T) {
 		},
 	}))
 }
+
+// Rule: secrets never reach the state.
+// given: a redshift credential created with password_wo
+// when: it is applied and refreshed against a GET that returns a password
+// then: the POST carries the password, the state does not, and an update without a version bump omits it
+func TestAnalyticsCredential_RedshiftPasswordWriteOnly(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "redshift_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{
+			Config: redshiftConfig(srv.URL, 42, redshiftAttributes),
+			Check: tfresource.ComposeTestCheckFunc(
+				func(*terraform.State) error {
+					posts := calls(srv, t, "POST", collectionPath)
+					if len(posts) != 1 {
+						return fmt.Errorf("expected one POST, got %d", len(posts))
+					}
+					config := configOf(t, posts[0])
+					if config["password"] != "super-secret-redshift" || config["username"] != "analytics_user" {
+						return fmt.Errorf("unexpected POST config: %v", config)
+					}
+					return nil
+				},
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "redshift.password_wo"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "redshift.password"),
+				stateHasNoSecret("super-secret-redshift"),
+			),
+		},
+		{
+			PreConfig:    func() { api.mu.Lock(); api.leakSecrets = true; api.mu.Unlock() },
+			RefreshState: true,
+			Check: tfresource.ComposeTestCheckFunc(
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "redshift.password"),
+				stateHasNoSecret("leaked-password"),
+			),
+		},
+		{
+			PreConfig: func() { api.mu.Lock(); api.leakSecrets = false; api.mu.Unlock() },
+			Config: redshiftConfig(srv.URL, 42, `username = "other_user"
+    password_wo = "super-secret-redshift"
+    password_wo_version = 1`),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 1 {
+					return fmt.Errorf("expected one PATCH, got %d", len(patches))
+				}
+				config := configOf(t, patches[0])
+				if _, ok := config["password"]; ok {
+					return fmt.Errorf("the PATCH body carries the password without a version bump")
+				}
+				if config["username"] != "other_user" {
+					return fmt.Errorf("expected the new username, got %v", config["username"])
+				}
+				return nil
+			},
+		},
+		{
+			Config: redshiftConfig(srv.URL, 42, `username = "other_user"
+    password_wo = "rotated-redshift"
+    password_wo_version = 2`),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 2 {
+					return fmt.Errorf("expected two PATCH calls, got %d", len(patches))
+				}
+				if got := configOf(t, patches[1])["password"]; got != "rotated-redshift" {
+					return fmt.Errorf("expected the rotated password, got %v", got)
+				}
+				return nil
+			},
+		},
+	}))
+}

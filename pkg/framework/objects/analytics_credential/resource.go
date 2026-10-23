@@ -229,6 +229,14 @@ func snowflakeConfig(plan, config, state *SnowflakeModel) dbt_cloud.AnalyticsCre
 func (r *analyticsCredentialResource) apiConfig(
 	plan, config, state *AnalyticsCredentialResourceModel,
 ) dbt_cloud.AnalyticsCredentialConfig {
+	if plan.Redshift != nil {
+		var stateRedshift *RedshiftModel
+		if state != nil {
+			stateRedshift = state.Redshift
+		}
+		return redshiftConfig(plan.Redshift, config.Redshift, stateRedshift)
+	}
+
 	if plan.Databricks != nil {
 		var stateDatabricks *DatabricksModel
 		if state != nil {
@@ -242,6 +250,16 @@ func (r *analyticsCredentialResource) apiConfig(
 		stateSnowflake = state.Snowflake
 	}
 	return snowflakeConfig(plan.Snowflake, config.Snowflake, stateSnowflake)
+}
+
+// redshiftConfig builds the API config of the redshift block; the password is sent only
+// on create or when its version changed
+func redshiftConfig(plan, config, state *RedshiftModel) dbt_cloud.AnalyticsCredentialConfig {
+	apiConfig := dbt_cloud.AnalyticsCredentialConfig{Username: plan.Username.ValueString()}
+	if state == nil || !plan.PasswordWoVersion.Equal(state.PasswordWoVersion) {
+		apiConfig.Password = helper.ResolveWriteOnlyString(config.PasswordWo, types.StringNull())
+	}
+	return apiConfig
 }
 
 // databricksConfig builds the API config of the databricks block; the token is sent only
@@ -348,6 +366,12 @@ func (r *analyticsCredentialResource) Read(
 		if credential.Config.Catalog != "" {
 			state.Databricks.Catalog = types.StringValue(credential.Config.Catalog)
 		}
+	case blockRedshift:
+		if state.Redshift == nil {
+			// import: nothing carried over, the version stays null
+			state.Redshift = &RedshiftModel{PasswordWo: types.StringNull(), PasswordWoVersion: types.Int64Null()}
+		}
+		state.Redshift.Username = types.StringValue(credential.Config.Username)
 	default:
 		resp.Diagnostics.AddError(
 			"Unsupported adapter",

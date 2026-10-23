@@ -15,6 +15,11 @@ variable "databricks_token" {
   ephemeral = true
 }
 
+variable "redshift_password" {
+  type      = string
+  ephemeral = true
+}
+
 // The adapter block must match the adapter of the connection
 resource "dbtcloud_analytics_credential" "snowflake" {
   connection_id = dbtcloud_global_connection.snowflake.id
@@ -38,5 +43,15 @@ resource "dbtcloud_analytics_credential" "databricks" {
     token_wo         = var.databricks_token
     token_wo_version = 1
     catalog          = "analytics"
+  }
+}
+
+resource "dbtcloud_analytics_credential" "redshift" {
+  connection_id = dbtcloud_global_connection.redshift.id
+
+  redshift = {
+    username            = "analytics_user"
+    password_wo         = var.redshift_password
+    password_wo_version = 1
   }
 }

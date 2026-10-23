@@ -282,3 +282,22 @@ func TestDeleteAnalyticsCredential_NotFound(t *testing.T) {
 		t.Fatal("expected an error on 404")
 	}
 }
+
+// Rule: the analytics credential config sends only the fields that are set, under the server's key names.
+// given: a Redshift config with a username and a password
+// when: it is serialized
+// then: the JSON has exactly the keys username and password.
+func TestAnalyticsCredentialConfig_RedshiftKeys(t *testing.T) {
+	body, err := json.Marshal(AnalyticsCredentialConfig{Username: "analytics_user", Password: "secret"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	got := map[string]any{}
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got) != 2 || got["username"] != "analytics_user" || got["password"] != "secret" {
+		t.Fatalf("unexpected keys: %v", got)
+	}
+}

@@ -12,13 +12,14 @@ import (
 const (
 	blockSnowflake  = "snowflake"
 	blockDatabricks = "databricks"
+	blockRedshift   = "redshift"
 
 	authTypePassword = "password"
 	authTypeKeypair  = "keypair"
 )
 
 // supportedAdapterBlocks lists the adapter blocks of the schema; exactly one must be set
-var supportedAdapterBlocks = []string{blockSnowflake, blockDatabricks}
+var supportedAdapterBlocks = []string{blockSnowflake, blockDatabricks, blockRedshift}
 
 // adapterVersionToBlock maps the adapter version of a connection to its adapter block
 var adapterVersionToBlock = map[string]string{
@@ -125,6 +126,26 @@ func analyticsCredentialSchema() schema.Schema {
 					"catalog": schema.StringAttribute{
 						Optional:    true,
 						Description: "The Unity Catalog name. It cannot be removed once set.",
+					},
+				},
+			},
+			blockRedshift: schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Redshift credential.",
+				Attributes: map[string]schema.Attribute{
+					"username": schema.StringAttribute{
+						Required:    true,
+						Description: "The username to connect to the cluster.",
+					},
+					"password_wo": schema.StringAttribute{
+						Required:    true,
+						WriteOnly:   true,
+						Sensitive:   true,
+						Description: "The password to connect to the cluster. Write-only: it is never stored in the state.",
+					},
+					"password_wo_version": schema.Int64Attribute{
+						Required:    true,
+						Description: "Version of `password_wo`. Change it to send a new password; the value alone is not tracked because it is write-only.",
 					},
 				},
 			},

@@ -30,9 +30,11 @@ type accAnalyticsConfig struct {
 	snowflakePrivateKey                                     string
 	databricksHost, databricksHTTPPath                      string
 	databricksToken, databricksCatalog                      string
+	redshiftHostname, redshiftDatabase                      string
+	redshiftUsername, redshiftPassword                      string
 }
 
-func accConfig(t *testing.T, needSnowflake, needDatabricks, needPrivateKey bool) accAnalyticsConfig {
+func accConfig(t *testing.T, needSnowflake, needDatabricks, needPrivateKey bool, needRedshift ...bool) accAnalyticsConfig {
 	t.Helper()
 	if os.Getenv("DBT_ACCEPTANCE_TEST_ANALYTICS_CREDENTIALS_ENABLED") != "true" {
 		t.Skip("Skipping: set DBT_ACCEPTANCE_TEST_ANALYTICS_CREDENTIALS_ENABLED=true when the cc-4192-enable-analytics-credentials flag is on for the account.")
@@ -66,6 +68,16 @@ func accConfig(t *testing.T, needSnowflake, needDatabricks, needPrivateKey bool)
 		config.databricksHTTPPath = databricks.HTTPPath
 		config.databricksToken = databricks.Token
 		config.databricksCatalog = databricks.Catalog
+	}
+	if len(needRedshift) > 0 && needRedshift[0] {
+		config.redshiftHostname = os.Getenv("DBT_ACCEPTANCE_TEST_REDSHIFT_HOSTNAME")
+		config.redshiftDatabase = os.Getenv("DBT_ACCEPTANCE_TEST_REDSHIFT_DATABASE")
+		config.redshiftUsername = os.Getenv("DBT_ACCEPTANCE_TEST_REDSHIFT_USERNAME")
+		config.redshiftPassword = os.Getenv("DBT_ACCEPTANCE_TEST_REDSHIFT_PASSWORD")
+		if config.redshiftHostname == "" || config.redshiftDatabase == "" ||
+			config.redshiftUsername == "" || config.redshiftPassword == "" {
+			t.Skip("Skipping: the DBT_ACCEPTANCE_TEST_REDSHIFT_* environment variables are not set.")
+		}
 	}
 	return config
 }
@@ -165,7 +177,35 @@ func randomName() string {
 	return strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
 }
 
+func (c accAnalyticsConfig) redshiftConnection(name string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_global_connection" "redshift" {
+  name = "%s"
+
+  redshift = {
+    hostname = "%s"
+    dbname   = "%s"
+  }
+}
+`, name, c.redshiftHostname, c.redshiftDatabase)
+}
+
+func (c accAnalyticsConfig) redshiftCredential(version int, password string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "redshift" {
+  connection_id = dbtcloud_global_connection.redshift.id
+
+  redshift = {
+    username            = "%s"
+    password_wo         = "%s"
+    password_wo_version = %d
+  }
+}
+`, c.redshiftUsername, password, version)
+}
+
 var versionsIgnoredOnImport = []string{
+	"redshift.password_wo_version",
 	"snowflake.password_wo_version",
 	"snowflake.private_key_wo_version",
 	"snowflake.private_key_passphrase_wo_version",
@@ -249,6 +289,36 @@ func TestAccDbtCloudAnalyticsCredentialDatabricks(t *testing.T) {
 		},
 		{
 			Config:                  config.databricksConnection(name) + config.databricksCredential("databricks", 2, config.databricksToken),
+			ResourceName:            address,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: versionsIgnoredOnImport,
+		},
+	}))
+}
+
+func TestAccDbtCloudAnalyticsCredentialRedshift(t *testing.T) {
+	config := accConfig(t, false, false, false, true)
+	name := randomName()
+	address := "dbtcloud_analytics_credential.redshift"
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			Config: config.redshiftConnection(name) + config.redshiftCredential(1, config.redshiftPassword),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(address, "adapter_version", "redshift_v0"),
+				resource.TestCheckResourceAttr(address, "redshift.username", config.redshiftUsername),
+				resource.TestCheckNoResourceAttr(address, "redshift.password_wo"),
+				stateHasNoSecret(config.redshiftPassword),
+			),
+		},
+		{
+			// the version bump sends the password again
+			Config: config.redshiftConnection(name) + config.redshiftCredential(2, config.redshiftPassword),
+			Check:  resource.TestCheckResourceAttr(address, "redshift.password_wo_version", "2"),
+		},
+		{
+			Config:                  config.redshiftConnection(name) + config.redshiftCredential(2, config.redshiftPassword),
 			ResourceName:            address,
 			ImportState:             true,
 			ImportStateVerify:       true,

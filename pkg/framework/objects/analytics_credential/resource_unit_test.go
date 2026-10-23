@@ -931,3 +931,159 @@ func TestAnalyticsCredential_DatabricksAdapterLookup(t *testing.T) {
 		})
 	}
 }
+
+// --- redshift block --------------------------------------------------------------------
+
+func redshiftConfig(hostURL string, connectionID int, attributes string) string {
+	return providerBlock(hostURL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = %d
+  redshift = {
+    %s
+  }
+}
+`, connectionID, attributes)
+}
+
+const redshiftAttributes = `username = "analytics_user"
+    password_wo = "super-secret-redshift"
+    password_wo_version = 1`
+
+func redshiftCredentialModel(connectionID int64) analytics_credential.AnalyticsCredentialResourceModel {
+	return analytics_credential.AnalyticsCredentialResourceModel{
+		ID:             types.Int64Value(credentialID),
+		ConnectionID:   types.Int64Value(connectionID),
+		AdapterVersion: types.StringValue("redshift_v0"),
+		Redshift: &analytics_credential.RedshiftModel{
+			Username:          types.StringValue("analytics_user"),
+			PasswordWo:        types.StringNull(),
+			PasswordWoVersion: types.Int64Value(1),
+		},
+	}
+}
+
+// Rule: a credential has exactly one adapter block.
+// given: a redshift block together with another block
+// when: the configuration is validated
+// then: the plan fails with the ExactlyOneOf error
+func TestAnalyticsCredential_RedshiftAndAnotherBlockFail(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "redshift_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+		Config: providerBlock(srv.URL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = 42
+  redshift = {
+    %s
+  }
+  databricks = {
+    %s
+  }
+}`, redshiftAttributes, databricksAttributes),
+		PlanOnly:    true,
+		ExpectError: regexp.MustCompile(`Invalid Attribute Combination`),
+	}}))
+}
+
+// Rule: the adapter block must match the adapter of the connection.
+// given: a redshift block
+// when: it is planned against a Redshift connection and against a Snowflake one
+// then: the first is accepted and the second is a mismatch
+func TestAnalyticsCredential_RedshiftAdapterLookup(t *testing.T) {
+	for adapter, summary := range map[string]string{"redshift_v0": "", "snowflake_v0": "Adapter mismatch"} {
+		t.Run(adapter, func(t *testing.T) {
+			srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+				"GET " + connectionPath(42): connectionHandler(42, adapter),
+			})
+			defer srv.Close()
+			r := newTestResource(t, srv.URL)
+			s := resourceSchema(t, r)
+
+			resp := runModifyPlan(t, r, buildPlan(t, s, redshiftCredentialModel(42)), nullState(s))
+
+			if summary == "" && resp.Diagnostics.HasError() {
+				t.Fatalf("unexpected error: %v", resp.Diagnostics)
+			}
+			if summary != "" && !hasErrorSummary(resp, summary) {
+				t.Fatalf("expected %q, got %v", summary, resp.Diagnostics)
+			}
+		})
+	}
+}
+
+// Rule: the adapter of a credential cannot change in place.
+// given: a redshift state
+// when: the configuration moves to another block on the same connection, or to a connection of another adapter with that block
+// then: the first fails at plan time and sends no DELETE; the second is replace
+func TestAnalyticsCredential_RedshiftSwapRules(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(42): connectionHandler(42, "redshift_v0"),
+		"GET " + connectionPath(43): connectionHandler(43, "databricks_v0"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+
+	t.Run("same connection fails", func(t *testing.T) {
+		resp := runModifyPlan(t, r,
+			buildPlan(t, s, credentialModel(42, snowflakeModel("password"))),
+			buildState(t, s, redshiftCredentialModel(42)))
+		if !hasErrorSummary(resp, "Adapter mismatch") {
+			t.Fatalf("expected the mismatch error, got %v", resp.Diagnostics)
+		}
+		if countCalls(srv, "DELETE") != 0 {
+			t.Fatalf("expected no DELETE")
+		}
+	})
+	t.Run("other adapter connection replaces", func(t *testing.T) {
+		resp := runModifyPlan(t, r,
+			buildPlan(t, s, databricksCredentialModel(43)),
+			buildState(t, s, redshiftCredentialModel(42)))
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("unexpected error: %v", resp.Diagnostics)
+		}
+		for _, block := range []string{"redshift", "databricks"} {
+			if !requiresReplace(resp, path.Root(block)) {
+				t.Fatalf("expected replace on %s, got %v", block, resp.RequiresReplace)
+			}
+		}
+	})
+}
+
+// Rule: the redshift block needs a username and a password.
+// given: a redshift block without username, without password_wo, or without the version
+// when: the configuration is validated at plan time
+// then: the plan fails
+func TestAnalyticsCredential_RedshiftValidators(t *testing.T) {
+	cases := map[string]struct{ attributes, expect string }{
+		"missing username": {
+			`password_wo = "x"
+    password_wo_version = 1`, `(?s)Incorrect attribute value type.*"username"`,
+		},
+		"missing password": {
+			`username = "u"
+    password_wo_version = 1`, `(?s)Incorrect attribute value type.*"password_wo"`,
+		},
+		"missing version": {
+			`username = "u"
+    password_wo = "x"`, `(?s)Incorrect attribute value type.*"password_wo_version"`,
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			setupAcc(t)
+			api := newFakeAPI(map[int]string{42: "redshift_v0"})
+			srv := testhelpers.SetupMockServer(t, api.handlers())
+			defer srv.Close()
+
+			tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+				Config:      redshiftConfig(srv.URL, 42, tc.attributes),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(tc.expect),
+			}}))
+		})
+	}
+}

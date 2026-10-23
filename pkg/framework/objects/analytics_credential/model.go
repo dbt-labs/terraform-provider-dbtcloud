@@ -9,6 +9,14 @@ type AnalyticsCredentialResourceModel struct {
 	AdapterVersion types.String     `tfsdk:"adapter_version"`
 	Snowflake      *SnowflakeModel  `tfsdk:"snowflake"`
 	Databricks     *DatabricksModel `tfsdk:"databricks"`
+	Redshift       *RedshiftModel   `tfsdk:"redshift"`
+}
+
+// RedshiftModel is the redshift adapter block; the password is write-only
+type RedshiftModel struct {
+	Username          types.String `tfsdk:"username"`
+	PasswordWo        types.String `tfsdk:"password_wo"`
+	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
 }
 
 // DatabricksModel is the databricks adapter block; the token is write-only
@@ -48,5 +56,6 @@ func (m *AnalyticsCredentialResourceModel) blocksPresent() map[string]bool {
 	return map[string]bool{
 		blockSnowflake:  m.Snowflake != nil,
 		blockDatabricks: m.Databricks != nil,
+		blockRedshift:   m.Redshift != nil,
 	}
 }
