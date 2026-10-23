@@ -42,6 +42,17 @@ func (c blockChecker) forbid(name string, value types.String) {
 	}
 }
 
+// forbidVersion rejects the version of a secret that this auth type does not use
+func (c blockChecker) forbidVersion(name string, value types.Int64) {
+	if !value.IsNull() {
+		c.diags.AddAttributeError(
+			c.attribute(name),
+			fmt.Sprintf("Attribute `%s` not allowed", name),
+			fmt.Sprintf("`%s` cannot be set when `auth_type` is `%s`.", name, c.authType),
+		)
+	}
+}
+
 // version requires the version of a write-only secret that is set
 func (c blockChecker) version(name string, value types.String, version types.Int64) {
 	if !value.IsNull() && version.IsNull() {
@@ -95,9 +106,12 @@ func (snowflakeAuthValidator) ValidateResource(
 		check.require("password_wo", snowflake.PasswordWo)
 		check.forbid("private_key_wo", snowflake.PrivateKeyWo)
 		check.forbid("private_key_passphrase_wo", snowflake.PrivateKeyPassphraseWo)
+		check.forbidVersion("private_key_wo_version", snowflake.PrivateKeyWoVersion)
+		check.forbidVersion("private_key_passphrase_wo_version", snowflake.PrivateKeyPassphraseWoVersion)
 	case authTypeKeypair:
 		check.require("private_key_wo", snowflake.PrivateKeyWo)
 		check.forbid("password_wo", snowflake.PasswordWo)
+		check.forbidVersion("password_wo_version", snowflake.PasswordWoVersion)
 	}
 
 	check.version("password_wo", snowflake.PasswordWo, snowflake.PasswordWoVersion)

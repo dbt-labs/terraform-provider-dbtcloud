@@ -273,6 +273,10 @@ var versionsIgnoredOnImport = []string{
 	"databricks.token_wo_version",
 }
 
+// Rule: a Snowflake credential with password authentication is created, rotated and imported without its password reaching the state.
+// given: a Snowflake connection and a credential with password_wo
+// when: the credential is applied, its version is bumped and it is imported
+// then: the state holds no password, the version change sends the secret again and the import matches.
 func TestAccDbtCloudAnalyticsCredentialSnowflakePassword(t *testing.T) {
 	config := accConfig(t, true, false, false)
 	name := randomName()
@@ -305,6 +309,10 @@ func TestAccDbtCloudAnalyticsCredentialSnowflakePassword(t *testing.T) {
 	}))
 }
 
+// Rule: a Snowflake credential with keypair authentication keeps its private key out of the state.
+// given: a Snowflake connection and a credential with private_key_wo
+// when: the credential is applied
+// then: the state holds no private key.
 func TestAccDbtCloudAnalyticsCredentialSnowflakeKeypair(t *testing.T) {
 	config := accConfig(t, true, false, true)
 	name := randomName()
@@ -329,6 +337,10 @@ func TestAccDbtCloudAnalyticsCredentialSnowflakeKeypair(t *testing.T) {
 	}))
 }
 
+// Rule: a Databricks credential keeps its token out of the state.
+// given: a Databricks connection and a credential with token_wo
+// when: the credential is applied and imported
+// then: the state holds no token and the import matches.
 func TestAccDbtCloudAnalyticsCredentialDatabricks(t *testing.T) {
 	config := accConfig(t, false, true, false)
 	name := randomName()
@@ -358,6 +370,10 @@ func TestAccDbtCloudAnalyticsCredentialDatabricks(t *testing.T) {
 	}))
 }
 
+// Rule: a Redshift credential keeps its password out of the state.
+// given: a Redshift connection and a credential with password_wo
+// when: the credential is applied and imported
+// then: the state holds no password and the import matches.
 func TestAccDbtCloudAnalyticsCredentialRedshift(t *testing.T) {
 	config := accConfig(t, false, false, false, true)
 	name := randomName()
@@ -388,6 +404,10 @@ func TestAccDbtCloudAnalyticsCredentialRedshift(t *testing.T) {
 	}))
 }
 
+// Rule: a BigQuery service account credential keeps its private key out of the state.
+// given: a BigQuery connection and a credential with private_key_wo
+// when: the credential is applied and imported
+// then: the state holds no private key and the import matches.
 func TestAccDbtCloudAnalyticsCredentialBigQueryServiceAccount(t *testing.T) {
 	accConfig(t, false, false, false)
 	name := randomName()
@@ -418,6 +438,10 @@ func TestAccDbtCloudAnalyticsCredentialBigQueryServiceAccount(t *testing.T) {
 	}))
 }
 
+// Rule: a BigQuery credential can use workload identity federation without service account keys.
+// given: a BigQuery connection and a credential with external-oauth-wif
+// when: the credential is applied
+// then: it is created with the provider path and no key fields.
 func TestAccDbtCloudAnalyticsCredentialBigQueryWorkloadIdentityFederation(t *testing.T) {
 	accConfig(t, false, false, false)
 	name := randomName()
@@ -611,4 +635,80 @@ func testAccCheckAnalyticsCredentialDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+// Rule: a project can use a connection as its analytics connection, and keeps it on unrelated updates.
+// given: a Snowflake connection and a project that uses it as analytics connection
+// when: the project is created, updated on another attribute, imported and read by the data source
+// then: the analytics connection is set each time, and removing the attribute clears it.
+func TestAccDbtCloudAnalyticsConnectionOnProject(t *testing.T) {
+	config := accConfig(t, true, false, false)
+	name := randomName()
+	connection := config.snowflakeConnection(name)
+	project := func(attributes string) string {
+		return fmt.Sprintf(`
+resource "dbtcloud_project" "analytics" {
+  name = "%s"
+  %s
+}
+
+data "dbtcloud_project" "analytics" {
+  id = dbtcloud_project.analytics.id
+}
+`, name, attributes)
+	}
+	attached := "analytics_connection_id = dbtcloud_global_connection.snowflake.id"
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			Config: connection + project(attached),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrPair("dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+				resource.TestCheckResourceAttrPair("data.dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+			),
+		},
+		{
+			Config: connection + project(attached+"\n  description = \"updated\""),
+			Check:  resource.TestCheckResourceAttrPair("dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+		},
+		{
+			Config:            connection + project(attached),
+			ResourceName:      "dbtcloud_project.analytics",
+			ImportState:       true,
+			ImportStateVerify: true,
+		},
+		{
+			Config: connection + project(""),
+			Check:  resource.TestCheckNoResourceAttr("dbtcloud_project.analytics", "analytics_connection_id"),
+		},
+	}))
+}
+
+// Rule: a connection shows the analytics credential attached to it.
+// given: a Snowflake connection and an analytics credential created on it
+// when: the connection is read, as a resource and as a data source
+// then: its analytics_credentials_id is the id of the credential.
+func TestAccDbtCloudConnectionShowsAnalyticsCredentialsID(t *testing.T) {
+	config := accConfig(t, true, false, false)
+	name := randomName()
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			Config: config.snowflakeConnection(name) + config.snowflakePasswordCredential("snowflake", 1, config.snowflakePassword) + `
+data "dbtcloud_global_connection" "snowflake" {
+  id = dbtcloud_global_connection.snowflake.id
+
+  depends_on = [dbtcloud_analytics_credential.snowflake]
+}
+`,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrPair("data.dbtcloud_global_connection.snowflake", "analytics_credentials_id", "dbtcloud_analytics_credential.snowflake", "id"),
+			),
+		},
+		{
+			// the attached credential shows on the connection after a refresh
+			Config: config.snowflakeConnection(name) + config.snowflakePasswordCredential("snowflake", 1, config.snowflakePassword),
+			Check:  resource.TestCheckResourceAttrPair("dbtcloud_global_connection.snowflake", "analytics_credentials_id", "dbtcloud_analytics_credential.snowflake", "id"),
+		},
+	}))
 }

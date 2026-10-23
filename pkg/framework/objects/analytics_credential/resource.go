@@ -530,6 +530,10 @@ func (r *analyticsCredentialResource) Delete(
 	}
 
 	if err := r.client.DeleteAnalyticsCredential(state.ID.ValueInt64()); err != nil {
+		// already gone: nothing left to delete
+		if strings.HasPrefix(err.Error(), "resource-not-found") {
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting analytics credential", err.Error())
 	}
 }
