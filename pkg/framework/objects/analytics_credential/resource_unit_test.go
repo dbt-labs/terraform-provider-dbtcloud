@@ -355,7 +355,7 @@ func requiresReplace(resp *resource.ModifyPlanResponse, p path.Path) bool {
 	return false
 }
 
-// --- R02 -------------------------------------------------------------------------------
+// --- Exactly one adapter block, matching the connection ---
 
 // Rule: a credential has exactly one adapter block.
 // given: a credential with no adapter block
@@ -498,7 +498,7 @@ func TestAnalyticsCredential_DestroyPlanReadsNoConnection(t *testing.T) {
 	}
 }
 
-// --- R01 -------------------------------------------------------------------------------
+// --- The adapter cannot change ---
 
 // Rule: the adapter of a credential cannot change in place.
 // given: a state with a snowflake block, or with none
