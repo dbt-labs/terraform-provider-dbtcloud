@@ -33,12 +33,26 @@ Snowflake password authentication is deprecated on the server.
 
 ### Optional
 
+- `databricks` (Attributes) Databricks credential. (see [below for nested schema](#nestedatt--databricks))
 - `snowflake` (Attributes) Snowflake credential. Password authentication is deprecated on the server. (see [below for nested schema](#nestedatt--snowflake))
 
 ### Read-Only
 
 - `adapter_version` (String) The adapter version of the credential, taken from the connection.
 - `id` (Number) The ID of the analytics credential.
+
+<a id="nestedatt--databricks"></a>
+### Nested Schema for `databricks`
+
+Required:
+
+- `token_wo` (String, Sensitive) The personal access token. Write-only: it is never stored in the state.
+- `token_wo_version` (Number) Version of `token_wo`. Change it to send a new token; the value alone is not tracked because it is write-only.
+
+Optional:
+
+- `catalog` (String) The Unity Catalog name. It cannot be removed once set.
+
 
 <a id="nestedatt--snowflake"></a>
 ### Nested Schema for `snowflake`

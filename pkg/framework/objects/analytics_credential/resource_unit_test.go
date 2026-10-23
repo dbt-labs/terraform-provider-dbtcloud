@@ -755,3 +755,179 @@ func TestAnalyticsCredential_Import(t *testing.T) {
 		},
 	}))
 }
+
+// --- databricks block ------------------------------------------------------------------
+
+func databricksConfig(hostURL string, connectionID int, attributes string) string {
+	return providerBlock(hostURL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = %d
+  databricks = {
+    %s
+  }
+}
+`, connectionID, attributes)
+}
+
+const databricksAttributes = `token_wo = "super-secret-token"
+    token_wo_version = 1
+    catalog = "main"`
+
+func databricksModel() *analytics_credential.DatabricksModel {
+	return &analytics_credential.DatabricksModel{
+		TokenWo:        types.StringNull(),
+		TokenWoVersion: types.Int64Value(1),
+		Catalog:        types.StringNull(),
+	}
+}
+
+func databricksCredentialModel(connectionID int64) analytics_credential.AnalyticsCredentialResourceModel {
+	return analytics_credential.AnalyticsCredentialResourceModel{
+		ID:             types.Int64Value(credentialID),
+		ConnectionID:   types.Int64Value(connectionID),
+		AdapterVersion: types.StringValue("databricks_v0"),
+		Databricks:     databricksModel(),
+	}
+}
+
+// Rule: a credential has exactly one adapter block.
+// given: a databricks block together with a snowflake block
+// when: the configuration is validated
+// then: the plan fails with the ExactlyOneOf error; a databricks block alone is valid
+func TestAnalyticsCredential_DatabricksAndSnowflakeBlocksTogetherFail(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "databricks_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	both := providerBlock(srv.URL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = 42
+  snowflake = {
+    %s
+  }
+  databricks = {
+    %s
+  }
+}`, passwordAttributes, databricksAttributes)
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{
+			Config:      both,
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(`Invalid Attribute Combination`),
+		},
+		{
+			Config:             databricksConfig(srv.URL, 42, databricksAttributes),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	}))
+}
+
+// Rule: a credential has exactly one adapter block.
+// given: a databricks block without token_wo or without its version
+// when: the configuration is validated at plan time
+// then: the plan fails
+func TestAnalyticsCredential_DatabricksTokenIsRequired(t *testing.T) {
+	cases := map[string]struct{ attributes, expect string }{
+		"missing token": {
+			`token_wo_version = 1
+    catalog = "main"`, `(?s)Incorrect attribute value type.*"token_wo"`,
+		},
+		"missing version": {
+			`token_wo = "x"
+    catalog = "main"`, `(?s)Incorrect attribute value type.*"token_wo_version"`,
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			setupAcc(t)
+			api := newFakeAPI(map[int]string{42: "databricks_v0"})
+			srv := testhelpers.SetupMockServer(t, api.handlers())
+			defer srv.Close()
+
+			tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+				Config:      databricksConfig(srv.URL, 42, tc.attributes),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(tc.expect),
+			}}))
+		})
+	}
+}
+
+// Rule: the adapter of a credential cannot change in place.
+// given: a snowflake state
+// when: the configuration moves to a databricks block on the same connection
+// then: the plan fails at plan time with the adapter mismatch and the server records no DELETE
+func TestAnalyticsCredential_SwapToDatabricksOnSameConnectionFailsWithoutDestroy(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(42): connectionHandler(42, "snowflake_v0"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+
+	resp := runModifyPlan(t, r,
+		buildPlan(t, s, databricksCredentialModel(42)),
+		buildState(t, s, credentialModel(42, snowflakeModel("password"))))
+
+	if !hasErrorSummary(resp, "Adapter mismatch") {
+		t.Fatalf("expected the mismatch error, got %v", resp.Diagnostics)
+	}
+	if countCalls(srv, "DELETE") != 0 {
+		t.Fatalf("expected no DELETE")
+	}
+}
+
+// Rule: the adapter of a credential cannot change in place.
+// given: a snowflake state on a Snowflake connection
+// when: the configuration moves to a databricks block on a Databricks connection
+// then: the plan is replace for both blocks
+func TestAnalyticsCredential_SwapToDatabricksOnDatabricksConnectionRequiresReplace(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(43): connectionHandler(43, "databricks_v0"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+
+	resp := runModifyPlan(t, r,
+		buildPlan(t, s, databricksCredentialModel(43)),
+		buildState(t, s, credentialModel(42, snowflakeModel("password"))))
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("unexpected error: %v", resp.Diagnostics)
+	}
+	for _, block := range []string{"snowflake", "databricks"} {
+		if !requiresReplace(resp, path.Root(block)) {
+			t.Fatalf("expected replace on %s, got %v", block, resp.RequiresReplace)
+		}
+	}
+}
+
+// Rule: the adapter block must match the adapter of the connection.
+// given: a databricks block
+// when: it is planned against a Databricks connection and against a Snowflake one
+// then: the first is accepted and the second is a mismatch
+func TestAnalyticsCredential_DatabricksAdapterLookup(t *testing.T) {
+	for adapter, summary := range map[string]string{"databricks_v0": "", "snowflake_v0": "Adapter mismatch"} {
+		t.Run(adapter, func(t *testing.T) {
+			srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+				"GET " + connectionPath(42): connectionHandler(42, adapter),
+			})
+			defer srv.Close()
+			r := newTestResource(t, srv.URL)
+			s := resourceSchema(t, r)
+
+			resp := runModifyPlan(t, r, buildPlan(t, s, databricksCredentialModel(42)), nullState(s))
+
+			if summary == "" && resp.Diagnostics.HasError() {
+				t.Fatalf("unexpected error: %v", resp.Diagnostics)
+			}
+			if summary != "" && !hasErrorSummary(resp, summary) {
+				t.Fatalf("expected %q, got %v", summary, resp.Diagnostics)
+			}
+		})
+	}
+}

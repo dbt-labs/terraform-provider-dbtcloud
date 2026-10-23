@@ -167,8 +167,11 @@ func (r *analyticsCredentialResource) ModifyPlan(
 	}
 
 	// an existing credential never changes adapter in place
-	if (state.Snowflake == nil) != (plan.Snowflake == nil) {
-		resp.RequiresReplace = append(resp.RequiresReplace, path.Root(blockSnowflake))
+	statePresent := state.blocksPresent()
+	for block, present := range plan.blocksPresent() {
+		if present != statePresent[block] {
+			resp.RequiresReplace = append(resp.RequiresReplace, path.Root(block))
+		}
 	}
 
 	if state.Snowflake != nil && plan.Snowflake != nil {
@@ -176,14 +179,23 @@ func (r *analyticsCredentialResource) ModifyPlan(
 		if !plan.Snowflake.AuthType.IsUnknown() && !plan.Snowflake.AuthType.Equal(state.Snowflake.AuthType) {
 			resp.RequiresReplace = append(resp.RequiresReplace, snowflakePath.AtName("auth_type"))
 		}
-		if !state.Snowflake.Role.IsNull() && plan.Snowflake.Role.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				snowflakePath.AtName("role"),
-				"Optional attribute cannot be removed",
-				"The API cannot clear `role` once it is set. Set a new value, or recreate the credential "+
-					"(for example with `terraform apply -replace=<resource address>`).",
-			)
-		}
+		rejectRemoval(resp, snowflakePath.AtName("role"), state.Snowflake.Role, plan.Snowflake.Role)
+	}
+	if state.Databricks != nil && plan.Databricks != nil {
+		rejectRemoval(resp, path.Root(blockDatabricks).AtName("catalog"), state.Databricks.Catalog, plan.Databricks.Catalog)
+	}
+}
+
+// rejectRemoval fails the plan when an optional attribute that is set in the state is removed:
+// the API cannot clear it
+func rejectRemoval(resp *resource.ModifyPlanResponse, attribute path.Path, state, plan types.String) {
+	if !state.IsNull() && plan.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			attribute,
+			"Optional attribute cannot be removed",
+			"The API cannot clear `"+attribute.String()+"` once it is set. Set a new value, or recreate the credential "+
+				"(for example with `terraform apply -replace=<resource address>`).",
+		)
 	}
 }
 
@@ -217,11 +229,29 @@ func snowflakeConfig(plan, config, state *SnowflakeModel) dbt_cloud.AnalyticsCre
 func (r *analyticsCredentialResource) apiConfig(
 	plan, config, state *AnalyticsCredentialResourceModel,
 ) dbt_cloud.AnalyticsCredentialConfig {
+	if plan.Databricks != nil {
+		var stateDatabricks *DatabricksModel
+		if state != nil {
+			stateDatabricks = state.Databricks
+		}
+		return databricksConfig(plan.Databricks, config.Databricks, stateDatabricks)
+	}
+
 	var stateSnowflake *SnowflakeModel
 	if state != nil {
 		stateSnowflake = state.Snowflake
 	}
 	return snowflakeConfig(plan.Snowflake, config.Snowflake, stateSnowflake)
+}
+
+// databricksConfig builds the API config of the databricks block; the token is sent only
+// on create or when its version changed
+func databricksConfig(plan, config, state *DatabricksModel) dbt_cloud.AnalyticsCredentialConfig {
+	apiConfig := dbt_cloud.AnalyticsCredentialConfig{Catalog: plan.Catalog.ValueString()}
+	if state == nil || !plan.TokenWoVersion.Equal(state.TokenWoVersion) {
+		apiConfig.Token = helper.ResolveWriteOnlyString(config.TokenWo, types.StringNull())
+	}
+	return apiConfig
 }
 
 func (r *analyticsCredentialResource) Create(
@@ -308,6 +338,15 @@ func (r *analyticsCredentialResource) Read(
 		state.Snowflake.Role = types.StringNull()
 		if credential.Config.Role != "" {
 			state.Snowflake.Role = types.StringValue(credential.Config.Role)
+		}
+	case blockDatabricks:
+		if state.Databricks == nil {
+			// import: nothing carried over, the version stays null
+			state.Databricks = &DatabricksModel{TokenWo: types.StringNull(), TokenWoVersion: types.Int64Null()}
+		}
+		state.Databricks.Catalog = types.StringNull()
+		if credential.Config.Catalog != "" {
+			state.Databricks.Catalog = types.StringValue(credential.Config.Catalog)
 		}
 	default:
 		resp.Diagnostics.AddError(

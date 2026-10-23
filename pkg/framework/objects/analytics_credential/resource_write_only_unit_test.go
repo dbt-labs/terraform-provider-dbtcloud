@@ -189,3 +189,94 @@ func TestAnalyticsCredential_UpdateSendsSecretOnlyOnVersionBump(t *testing.T) {
 		},
 	}))
 }
+
+// Rule: secrets never reach the state.
+// given: a databricks credential created with token_wo
+// when: it is applied and refreshed against a GET that returns a token
+// then: the POST body carries the token and the state never does; an update without a version bump omits it from the PATCH
+func TestAnalyticsCredential_DatabricksTokenWriteOnly(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "databricks_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{
+			Config: databricksConfig(srv.URL, 42, databricksAttributes),
+			Check: tfresource.ComposeTestCheckFunc(
+				func(*terraform.State) error {
+					posts := calls(srv, t, "POST", collectionPath)
+					if len(posts) != 1 {
+						return fmt.Errorf("expected one POST, got %d", len(posts))
+					}
+					if got := configOf(t, posts[0])["token"]; got != "super-secret-token" {
+						return fmt.Errorf("expected the token in the POST body, got %v", got)
+					}
+					return nil
+				},
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "databricks.token_wo"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "databricks.token"),
+				tfresource.TestCheckResourceAttr(resourceAddress, "databricks.catalog", "main"),
+				stateHasNoSecret("super-secret-token"),
+			),
+		},
+		{
+			PreConfig:    func() { api.mu.Lock(); api.leakSecrets = true; api.mu.Unlock() },
+			RefreshState: true,
+			Check: tfresource.ComposeTestCheckFunc(
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "databricks.token"),
+				stateHasNoSecret("leaked-token"),
+			),
+		},
+		{
+			PreConfig: func() { api.mu.Lock(); api.leakSecrets = false; api.mu.Unlock() },
+			Config: databricksConfig(srv.URL, 42, `token_wo = "super-secret-token"
+    token_wo_version = 1
+    catalog = "other"`),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 1 {
+					return fmt.Errorf("expected one PATCH, got %d", len(patches))
+				}
+				config := configOf(t, patches[0])
+				if _, ok := config["token"]; ok {
+					return fmt.Errorf("the PATCH body carries the token without a version bump")
+				}
+				if config["catalog"] != "other" {
+					return fmt.Errorf("expected the new catalog, got %v", config["catalog"])
+				}
+				return nil
+			},
+		},
+	}))
+}
+
+// Rule: a secret is only sent again when its version changes.
+// given: an applied databricks credential
+// when: token_wo_version is bumped
+// then: the PATCH body carries the token
+func TestAnalyticsCredential_DatabricksTokenSentOnVersionBump(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "databricks_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{Config: databricksConfig(srv.URL, 42, databricksAttributes)},
+		{
+			Config: databricksConfig(srv.URL, 42, `token_wo = "rotated-token"
+    token_wo_version = 2
+    catalog = "main"`),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 1 {
+					return fmt.Errorf("expected one PATCH, got %d", len(patches))
+				}
+				if got := configOf(t, patches[0])["token"]; got != "rotated-token" {
+					return fmt.Errorf("expected the rotated token, got %v", got)
+				}
+				return nil
+			},
+		},
+	}))
+}

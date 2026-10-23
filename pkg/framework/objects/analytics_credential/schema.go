@@ -10,14 +10,15 @@ import (
 )
 
 const (
-	blockSnowflake = "snowflake"
+	blockSnowflake  = "snowflake"
+	blockDatabricks = "databricks"
 
 	authTypePassword = "password"
 	authTypeKeypair  = "keypair"
 )
 
 // supportedAdapterBlocks lists the adapter blocks of the schema; exactly one must be set
-var supportedAdapterBlocks = []string{blockSnowflake}
+var supportedAdapterBlocks = []string{blockSnowflake, blockDatabricks}
 
 // adapterVersionToBlock maps the adapter version of a connection to its adapter block
 var adapterVersionToBlock = map[string]string{
@@ -105,6 +106,26 @@ func analyticsCredentialSchema() schema.Schema {
 					"private_key_wo_version":            secretVersion("private_key_wo"),
 					"private_key_passphrase_wo":         writeOnlySecret("The passphrase of the private key. Only with `keypair`."),
 					"private_key_passphrase_wo_version": secretVersion("private_key_passphrase_wo"),
+				},
+			},
+			blockDatabricks: schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "Databricks credential.",
+				Attributes: map[string]schema.Attribute{
+					"token_wo": schema.StringAttribute{
+						Required:    true,
+						WriteOnly:   true,
+						Sensitive:   true,
+						Description: "The personal access token. Write-only: it is never stored in the state.",
+					},
+					"token_wo_version": schema.Int64Attribute{
+						Required:    true,
+						Description: "Version of `token_wo`. Change it to send a new token; the value alone is not tracked because it is write-only.",
+					},
+					"catalog": schema.StringAttribute{
+						Optional:    true,
+						Description: "The Unity Catalog name. It cannot be removed once set.",
+					},
 				},
 			},
 		},
