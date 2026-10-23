@@ -28,6 +28,7 @@ data dbtcloud_global_connection my_connection {
 ### Read-Only
 
 - `adapter_version` (String) Version of the adapter
+- `analytics_credentials_id` (Number) The ID of the analytics credential attached to this connection, if any.
 - `apache_spark` (Attributes) Apache Spark connection configuration. (see [below for nested schema](#nestedatt--apache_spark))
 - `athena` (Attributes) Athena connection configuration. (see [below for nested schema](#nestedatt--athena))
 - `bigquery` (Attributes) (see [below for nested schema](#nestedatt--bigquery))

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/oapi-codegen/nullable"
 )
 
 type Project struct {
@@ -21,6 +23,9 @@ type Project struct {
 	FreshnessJobId         *int    `json:"freshness_job_id"`
 	DocsJobId              *int    `json:"docs_job_id,"`
 	SemanticLayerConfigID  *int64  `json:"semantic_layer_config_id,omitempty"`
+	// AnalyticsConnectionID has three states so a project keeps its value when it is
+	// posted back: unspecified (the server sent none, so none is sent), null, or a value.
+	AnalyticsConnectionID nullable.Nullable[int64] `json:"analytics_connection_id,omitempty"`
 }
 
 type ProjectListResponse struct {
@@ -162,6 +167,7 @@ func (c *Client) CreateProject(
 	description string,
 	dbtProjectSubdirectory string,
 	dbtProjectType int64,
+	analyticsConnectionID *int64,
 ) (*Project, error) {
 	newProject := Project{
 		Name:           name,
@@ -177,6 +183,10 @@ func (c *Client) CreateProject(
 			return nil, err
 		}
 		newProject.DbtProjectSubdirectory = &dbtProjectSubdirectory
+	}
+
+	if analyticsConnectionID != nil {
+		newProject.AnalyticsConnectionID.Set(*analyticsConnectionID)
 	}
 
 	newProjectData, err := json.Marshal(newProject)

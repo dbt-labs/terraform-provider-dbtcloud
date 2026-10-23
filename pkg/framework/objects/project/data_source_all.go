@@ -63,6 +63,7 @@ func (d *projectsDataSource) Read(
 		currentProject.SemanticLayerConfigID = types.Int64PointerValue(
 			project.SemanticLayerConfigID,
 		)
+		currentProject.AnalyticsConnectionID = types.Int64PointerValue(project.AnalyticsConnectionID)
 		currentProject.DbtProjectSubdirectory = types.StringValue(
 			project.DbtProjectSubdirectory,
 		)

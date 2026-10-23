@@ -82,7 +82,18 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Call CreateProject with the correct signature (string, string, string, int)
-	project, err := r.client.CreateProject(name, description, dbtProjectSubdirectory, dbtProjectType)
+	var analyticsConnectionID *int64
+	if !plan.AnalyticsConnectionID.IsNull() {
+		analyticsConnectionID = plan.AnalyticsConnectionID.ValueInt64Pointer()
+	}
+
+	project, err := r.client.CreateProject(
+		name,
+		description,
+		dbtProjectSubdirectory,
+		dbtProjectType,
+		analyticsConnectionID,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating project",
@@ -148,6 +159,11 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	state.DbtProjectType = types.Int64Value(project.DbtProjectType)
+
+	state.AnalyticsConnectionID = types.Int64Null()
+	if project.AnalyticsConnectionID.IsSpecified() && !project.AnalyticsConnectionID.IsNull() {
+		state.AnalyticsConnectionID = types.Int64Value(project.AnalyticsConnectionID.MustGet())
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -215,6 +231,14 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	// the connection ID will be cascaded to all environments in the project and will override any
 	// existing connection IDs on those environments.
 	updateProject.ConnectionID = nil
+
+	// The project read above carries its analytics connection back, so an update never
+	// clears it by accident; only removing the attribute sends an explicit null.
+	if !plan.AnalyticsConnectionID.IsNull() {
+		updateProject.AnalyticsConnectionID.Set(plan.AnalyticsConnectionID.ValueInt64())
+	} else if !state.AnalyticsConnectionID.IsNull() {
+		updateProject.AnalyticsConnectionID.SetNull()
+	}
 
 	// Perform the update
 	project, err := r.client.UpdateProject(projectIDString, *updateProject)

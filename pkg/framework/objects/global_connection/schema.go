@@ -62,6 +62,10 @@ func (r *globalConnectionResource) Schema(
 				Optional:    true,
 				Description: "External OAuth configuration ID. Supported for all connection types.",
 			},
+			"analytics_credentials_id": resource_schema.Int64Attribute{
+				Computed:    true,
+				Description: "The ID of the analytics credential attached to this connection, if any. Read-only; manage it with `dbtcloud_analytics_credential`.",
+			},
 			"bigquery": resource_schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]resource_schema.Attribute{
@@ -723,6 +727,10 @@ func (r *globalConnectionDataSource) Schema(
 			},
 			"oauth_configuration_id": datasource_schema.Int64Attribute{
 				Computed: true,
+			},
+			"analytics_credentials_id": datasource_schema.Int64Attribute{
+				Computed:    true,
+				Description: "The ID of the analytics credential attached to this connection, if any.",
 			},
 			"bigquery": datasource_schema.SingleNestedAttribute{
 				Computed: true,

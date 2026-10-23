@@ -50,6 +50,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// snowflake settings
 		state.SnowflakeConfig.Account = types.StringPointerValue(snowflakeCfg.Account)
@@ -118,6 +123,11 @@ func readGeneric(
 			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
+		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
 		}
 
 		// BigQuery settings
@@ -274,6 +284,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Databricks settings
 		state.DatabricksConfig.Host = types.StringPointerValue(databricksCfg.Host)
@@ -334,6 +349,11 @@ func readGeneric(
 			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
+		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
 		}
 
 		// Redshift settings
@@ -401,6 +421,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Postgres settings
 		state.PostgresConfig.HostName = types.StringPointerValue(postgresCfg.HostName)
@@ -462,6 +487,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Fabric settings
 		state.FabricConfig.Server = types.StringPointerValue(fabricCfg.Server)
@@ -506,6 +536,11 @@ func readGeneric(
 			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
+		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
 		}
 
 		// Synapse settings
@@ -552,6 +587,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Starburst settings
 		state.StarburstConfig.Method = types.StringPointerValue(starburstCfg.Method)
@@ -593,6 +633,11 @@ func readGeneric(
 			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
+		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
 		}
 
 		// Athena settings
@@ -689,6 +734,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Spark settings
 		state.ApacheSparkConfig.Method = types.StringPointerValue(sparkCfg.Method)
@@ -751,6 +801,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Teradata settings
 		state.TeradataConfig.Host = types.StringPointerValue(teradataCfg.Host)
@@ -790,6 +845,11 @@ func readGeneric(
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
 		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
+		}
 
 		// Salesforce settings
 		state.SalesforceConfig.LoginURL = types.StringPointerValue(salesforceCfg.LoginURL)
@@ -825,6 +885,11 @@ func readGeneric(
 			state.OauthConfigurationId = types.Int64Value(common.OauthConfigurationId.MustGet())
 		} else {
 			state.OauthConfigurationId = types.Int64Null()
+		}
+		if common.AnalyticsCredentialsId.IsSpecified() && !common.AnalyticsCredentialsId.IsNull() {
+			state.AnalyticsCredentialsId = types.Int64Value(common.AnalyticsCredentialsId.MustGet())
+		} else {
+			state.AnalyticsCredentialsId = types.Int64Null()
 		}
 
 		state.ClickhouseConfig.Host = types.StringPointerValue(clickhouseCfg.Host)

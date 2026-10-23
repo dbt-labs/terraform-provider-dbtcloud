@@ -38,6 +38,10 @@ var datasourceSchema = datasource_schema.Schema{
 						Computed:    true,
 						Description: "Semantic layer config ID",
 					},
+					"analytics_connection_id": datasource_schema.Int64Attribute{
+						Computed:    true,
+						Description: "ID of the global connection used for analytics, if any",
+					},
 					"dbt_project_subdirectory": datasource_schema.StringAttribute{
 						Computed:    true,
 						Description: "Subdirectory for the dbt project inside the git repo",
@@ -115,6 +119,10 @@ var singleDatasourceSchema = datasource_schema.Schema{
 		"semantic_layer_config_id": datasource_schema.Int64Attribute{
 			Computed:    true,
 			Description: "Semantic layer config ID",
+		},
+		"analytics_connection_id": datasource_schema.Int64Attribute{
+			Computed:    true,
+			Description: "ID of the global connection used for analytics, if any",
 		},
 		"dbt_project_subdirectory": datasource_schema.StringAttribute{
 			Computed:    true,
@@ -221,6 +229,10 @@ var resourceSchema = resource_schema.Schema{
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.UseStateForUnknown(),
 			},
+		},
+		"analytics_connection_id": resource_schema.Int64Attribute{
+			Description: "ID of the global connection used for analytics. It must be a connection of the same account. Removing it from the configuration clears it. Enabled by the `cc-4224` rollout on the account.",
+			Optional:    true,
 		},
 	},
 }
