@@ -81,15 +81,19 @@ func (r *analyticsCredentialResource) ConfigValidators(_ context.Context) []reso
 	return []resource.ConfigValidator{
 		resourcevalidator.ExactlyOneOf(adapterBlocks...),
 		snowflakeAuthValidator{},
+		bigqueryAuthValidator{},
 	}
 }
 
-// checkAdapter fails when the adapter block does not match the adapter of the connection
+// checkAdapter fails when the adapter block does not match the adapter of the connection,
+// or when the block uses an attribute the adapter version does not have
 func (r *analyticsCredentialResource) checkAdapter(
-	connectionID int64,
-	block string,
+	plan *AnalyticsCredentialResourceModel,
 	diags *diag.Diagnostics,
 ) {
+	connectionID := plan.ConnectionID.ValueInt64()
+	block := plan.configuredBlock()
+
 	connection, err := r.client.GetGlobalConnectionAdapter(connectionID)
 	if err != nil {
 		diags.AddAttributeError(
@@ -100,14 +104,15 @@ func (r *analyticsCredentialResource) checkAdapter(
 		return
 	}
 
-	expected, ok := adapterVersionToBlock[connection.Data.AdapterVersion]
+	adapterVersion := connection.Data.AdapterVersion
+	expected, ok := adapterVersionToBlock[adapterVersion]
 	if !ok {
 		diags.AddAttributeError(
 			path.Root("connection_id"),
 			"Unsupported adapter",
 			fmt.Sprintf(
 				"Connection %d uses the adapter %q, which does not support analytics credentials in this provider.",
-				connectionID, connection.Data.AdapterVersion,
+				connectionID, adapterVersion,
 			),
 		)
 		return
@@ -119,7 +124,20 @@ func (r *analyticsCredentialResource) checkAdapter(
 			"Adapter mismatch",
 			fmt.Sprintf(
 				"The `%s` block does not match connection %d, whose adapter is %q. Use the `%s` block, or point `connection_id` at a connection of the matching adapter.",
-				block, connectionID, connection.Data.AdapterVersion, expected,
+				block, connectionID, adapterVersion, expected,
+			),
+		)
+		return
+	}
+
+	// a bigquery_v0 credential is always a service account and has no auth type
+	if adapterVersion == "bigquery_v0" && !plan.BigQuery.AuthType.IsNull() && !plan.BigQuery.AuthType.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root(blockBigQuery).AtName("auth_type"),
+			"Unsupported attribute for adapter",
+			fmt.Sprintf(
+				"Connection %d uses the adapter %q, which has no `auth_type`. Remove it, or use a connection of the latest BigQuery adapter.",
+				connectionID, adapterVersion,
 			),
 		)
 	}
@@ -143,7 +161,7 @@ func (r *analyticsCredentialResource) ModifyPlan(
 
 	block := plan.configuredBlock()
 	if r.client != nil && block != "" && !plan.ConnectionID.IsUnknown() && !plan.ConnectionID.IsNull() {
-		r.checkAdapter(plan.ConnectionID.ValueInt64(), block, &resp.Diagnostics)
+		r.checkAdapter(&plan, &resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return
 		}
@@ -181,9 +199,28 @@ func (r *analyticsCredentialResource) ModifyPlan(
 		}
 		rejectRemoval(resp, snowflakePath.AtName("role"), state.Snowflake.Role, plan.Snowflake.Role)
 	}
+	if state.BigQuery != nil && plan.BigQuery != nil {
+		bigqueryPath := path.Root(blockBigQuery)
+		if effectiveBigQueryAuthType(plan.BigQuery) != effectiveBigQueryAuthType(state.BigQuery) &&
+			!plan.BigQuery.AuthType.IsUnknown() {
+			resp.RequiresReplace = append(resp.RequiresReplace, bigqueryPath.AtName("auth_type"))
+		}
+		rejectRemoval(resp, bigqueryPath.AtName("execution_project"), state.BigQuery.ExecutionProject, plan.BigQuery.ExecutionProject)
+		rejectRemoval(resp, bigqueryPath.AtName("service_account_impersonation_url"),
+			state.BigQuery.ServiceAccountImpersonationURL, plan.BigQuery.ServiceAccountImpersonationURL)
+	}
 	if state.Databricks != nil && plan.Databricks != nil {
 		rejectRemoval(resp, path.Root(blockDatabricks).AtName("catalog"), state.Databricks.Catalog, plan.Databricks.Catalog)
 	}
+}
+
+// effectiveBigQueryAuthType is the auth type the server uses: a missing one is a service
+// account on the latest adapter, and stays unset on bigquery_v0
+func effectiveBigQueryAuthType(bigquery *BigQueryModel) string {
+	if bigquery.AuthType.IsNull() {
+		return authTypeServiceAccount
+	}
+	return bigquery.AuthType.ValueString()
 }
 
 // rejectRemoval fails the plan when an optional attribute that is set in the state is removed:
@@ -229,6 +266,14 @@ func snowflakeConfig(plan, config, state *SnowflakeModel) dbt_cloud.AnalyticsCre
 func (r *analyticsCredentialResource) apiConfig(
 	plan, config, state *AnalyticsCredentialResourceModel,
 ) dbt_cloud.AnalyticsCredentialConfig {
+	if plan.BigQuery != nil {
+		var stateBigQuery *BigQueryModel
+		if state != nil {
+			stateBigQuery = state.BigQuery
+		}
+		return bigqueryConfig(plan.BigQuery, config.BigQuery, stateBigQuery)
+	}
+
 	if plan.Redshift != nil {
 		var stateRedshift *RedshiftModel
 		if state != nil {
@@ -250,6 +295,36 @@ func (r *analyticsCredentialResource) apiConfig(
 		stateSnowflake = state.Snowflake
 	}
 	return snowflakeConfig(plan.Snowflake, config.Snowflake, stateSnowflake)
+}
+
+// bigqueryConfig builds the API config of the bigquery block; the private key is sent only
+// on create or when its version changed
+func bigqueryConfig(plan, config, state *BigQueryModel) dbt_cloud.AnalyticsCredentialConfig {
+	apiConfig := dbt_cloud.AnalyticsCredentialConfig{
+		AuthType:                       plan.AuthType.ValueString(),
+		ExecutionProject:               plan.ExecutionProject.ValueString(),
+		PrivateKeyID:                   plan.PrivateKeyID.ValueString(),
+		ClientEmail:                    plan.ClientEmail.ValueString(),
+		ClientID:                       plan.ClientID.ValueString(),
+		AuthURI:                        plan.AuthURI.ValueString(),
+		TokenURI:                       plan.TokenURI.ValueString(),
+		AuthProviderX509CertURL:        plan.AuthProviderX509CertURL.ValueString(),
+		ClientX509CertURL:              plan.ClientX509CertURL.ValueString(),
+		WorkloadPoolProviderPath:       plan.WorkloadPoolProviderPath.ValueString(),
+		ServiceAccountImpersonationURL: plan.ServiceAccountImpersonationURL.ValueString(),
+	}
+	if !plan.PrivateKeyWoVersion.IsNull() && (state == nil || !plan.PrivateKeyWoVersion.Equal(state.PrivateKeyWoVersion)) {
+		apiConfig.PrivateKey = helper.ResolveWriteOnlyString(config.PrivateKeyWo, types.StringNull())
+	}
+	return apiConfig
+}
+
+// stringOrNull maps the empty strings of the API to null
+func stringOrNull(value string) types.String {
+	if value == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(value)
 }
 
 // redshiftConfig builds the API config of the redshift block; the password is sent only
@@ -284,7 +359,7 @@ func (r *analyticsCredentialResource) Create(
 		return
 	}
 
-	r.checkAdapter(plan.ConnectionID.ValueInt64(), plan.configuredBlock(), &resp.Diagnostics)
+	r.checkAdapter(&plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -372,6 +447,31 @@ func (r *analyticsCredentialResource) Read(
 			state.Redshift = &RedshiftModel{PasswordWo: types.StringNull(), PasswordWoVersion: types.Int64Null()}
 		}
 		state.Redshift.Username = types.StringValue(credential.Config.Username)
+	case blockBigQuery:
+		if state.BigQuery == nil {
+			// import: nothing carried over, the version stays null
+			state.BigQuery = &BigQueryModel{
+				AuthType:            types.StringNull(),
+				PrivateKeyWo:        types.StringNull(),
+				PrivateKeyWoVersion: types.Int64Null(),
+			}
+		}
+		bigquery := state.BigQuery
+		// the latest adapter defaults to a service account: keep an auth_type that was left out of the configuration unset
+		apiAuthType := credential.Config.AuthType
+		if apiAuthType != "" && !(apiAuthType == authTypeServiceAccount && bigquery.AuthType.IsNull()) {
+			bigquery.AuthType = types.StringValue(apiAuthType)
+		}
+		bigquery.ExecutionProject = stringOrNull(credential.Config.ExecutionProject)
+		bigquery.PrivateKeyID = stringOrNull(credential.Config.PrivateKeyID)
+		bigquery.ClientEmail = stringOrNull(credential.Config.ClientEmail)
+		bigquery.ClientID = stringOrNull(credential.Config.ClientID)
+		bigquery.AuthURI = stringOrNull(credential.Config.AuthURI)
+		bigquery.TokenURI = stringOrNull(credential.Config.TokenURI)
+		bigquery.AuthProviderX509CertURL = stringOrNull(credential.Config.AuthProviderX509CertURL)
+		bigquery.ClientX509CertURL = stringOrNull(credential.Config.ClientX509CertURL)
+		bigquery.WorkloadPoolProviderPath = stringOrNull(credential.Config.WorkloadPoolProviderPath)
+		bigquery.ServiceAccountImpersonationURL = stringOrNull(credential.Config.ServiceAccountImpersonationURL)
 	default:
 		resp.Diagnostics.AddError(
 			"Unsupported adapter",
@@ -399,7 +499,7 @@ func (r *analyticsCredentialResource) Update(
 		return
 	}
 
-	r.checkAdapter(plan.ConnectionID.ValueInt64(), plan.configuredBlock(), &resp.Diagnostics)
+	r.checkAdapter(&plan, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

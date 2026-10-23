@@ -44,6 +44,19 @@ type AnalyticsCredentialConfig struct {
 
 	// Redshift fields (the password is shared with Snowflake)
 	Username string `json:"username,omitempty"`
+
+	// BigQuery fields (auth_type and private_key are shared with Snowflake; a v0 config
+	// has no auth_type, and a workload identity federation config has no service account keys)
+	ExecutionProject               string `json:"execution_project,omitempty"`
+	PrivateKeyID                   string `json:"private_key_id,omitempty"`
+	ClientEmail                    string `json:"client_email,omitempty"`
+	ClientID                       string `json:"client_id,omitempty"`
+	AuthURI                        string `json:"auth_uri,omitempty"`
+	TokenURI                       string `json:"token_uri,omitempty"`
+	AuthProviderX509CertURL        string `json:"auth_provider_x509_cert_url,omitempty"`
+	ClientX509CertURL              string `json:"client_x509_cert_url,omitempty"`
+	WorkloadPoolProviderPath       string `json:"workload_pool_provider_path,omitempty"`
+	ServiceAccountImpersonationURL string `json:"service_account_impersonation_url,omitempty"`
 }
 
 // AnalyticsCredentialCreateRequest is the create body; the adapter comes from the connection.

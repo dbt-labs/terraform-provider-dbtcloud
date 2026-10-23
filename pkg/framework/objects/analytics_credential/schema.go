@@ -13,13 +13,17 @@ const (
 	blockSnowflake  = "snowflake"
 	blockDatabricks = "databricks"
 	blockRedshift   = "redshift"
+	blockBigQuery   = "bigquery"
+
+	authTypeServiceAccount = "service-account-json"
+	authTypeWIF            = "external-oauth-wif"
 
 	authTypePassword = "password"
 	authTypeKeypair  = "keypair"
 )
 
 // supportedAdapterBlocks lists the adapter blocks of the schema; exactly one must be set
-var supportedAdapterBlocks = []string{blockSnowflake, blockDatabricks, blockRedshift}
+var supportedAdapterBlocks = []string{blockSnowflake, blockDatabricks, blockRedshift, blockBigQuery}
 
 // adapterVersionToBlock maps the adapter version of a connection to its adapter block
 var adapterVersionToBlock = map[string]string{
@@ -146,6 +150,61 @@ func analyticsCredentialSchema() schema.Schema {
 					"password_wo_version": schema.Int64Attribute{
 						Required:    true,
 						Description: "Version of `password_wo`. Change it to send a new password; the value alone is not tracked because it is write-only.",
+					},
+				},
+			},
+			blockBigQuery: schema.SingleNestedAttribute{
+				Optional:    true,
+				Description: "BigQuery credential, either a service account (the default) or workload identity federation. A `bigquery_v0` connection only supports service accounts and takes no `auth_type`.",
+				Attributes: map[string]schema.Attribute{
+					"auth_type": schema.StringAttribute{
+						Optional:    true,
+						Description: "The authentication type: `service-account-json` (the default on the latest adapter) or `external-oauth-wif`. Not allowed on a `bigquery_v0` connection. Changing it recreates the credential.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(authTypeServiceAccount, authTypeWIF),
+						},
+					},
+					"execution_project": schema.StringAttribute{
+						Optional:    true,
+						Description: "The project billed for query execution. It cannot be removed once set.",
+					},
+					"private_key_id": schema.StringAttribute{
+						Optional:    true,
+						Description: "The private key ID of the service account. Service account only.",
+					},
+					"private_key_wo":         writeOnlySecret("The private key of the service account. Required for a service account, not allowed with workload identity federation."),
+					"private_key_wo_version": secretVersion("private_key_wo"),
+					"client_email": schema.StringAttribute{
+						Optional:    true,
+						Description: "The client email of the service account. Service account only.",
+					},
+					"client_id": schema.StringAttribute{
+						Optional:    true,
+						Description: "The client ID of the service account. Service account only.",
+					},
+					"auth_uri": schema.StringAttribute{
+						Optional:    true,
+						Description: "The auth URI of the service account. Service account only.",
+					},
+					"token_uri": schema.StringAttribute{
+						Optional:    true,
+						Description: "The token URI of the service account. Service account only.",
+					},
+					"auth_provider_x509_cert_url": schema.StringAttribute{
+						Optional:    true,
+						Description: "The auth provider X509 cert URL of the service account. Service account only.",
+					},
+					"client_x509_cert_url": schema.StringAttribute{
+						Optional:    true,
+						Description: "The client X509 cert URL of the service account. Service account only.",
+					},
+					"workload_pool_provider_path": schema.StringAttribute{
+						Optional:    true,
+						Description: "The audience of the Security Token Service, usually the full resource name of the workload pool provider. Required for `external-oauth-wif`, not allowed otherwise.",
+					},
+					"service_account_impersonation_url": schema.StringAttribute{
+						Optional:    true,
+						Description: "The URL of the service account impersonation request. Only with `external-oauth-wif`. It cannot be removed once set.",
 					},
 				},
 			},

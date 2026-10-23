@@ -301,3 +301,46 @@ func TestAnalyticsCredentialConfig_RedshiftKeys(t *testing.T) {
 		t.Fatalf("unexpected keys: %v", got)
 	}
 }
+
+// Rule: the adapter version decides the BigQuery config keys.
+// given: a v0 service account config, a v1 service account config and a v1 workload identity federation config
+// when: they are serialized
+// then: v0 has no auth_type, and the WIF body has the provider path and no service account keys.
+func TestAnalyticsCredentialConfig_BigQueryKeys(t *testing.T) {
+	keys := func(config AnalyticsCredentialConfig) map[string]any {
+		body, err := json.Marshal(config)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		got := map[string]any{}
+		if err := json.Unmarshal(body, &got); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		return got
+	}
+
+	v0 := keys(AnalyticsCredentialConfig{
+		PrivateKeyID: "id", PrivateKey: "k", ClientEmail: "e", ClientID: "c", AuthURI: "a",
+		TokenURI: "t", AuthProviderX509CertURL: "p", ClientX509CertURL: "x", ExecutionProject: "proj",
+	})
+	if _, ok := v0["auth_type"]; ok || len(v0) != 9 {
+		t.Fatalf("unexpected v0 keys: %v", v0)
+	}
+	for _, key := range []string{"private_key_id", "private_key", "client_email", "client_id", "auth_uri",
+		"token_uri", "auth_provider_x509_cert_url", "client_x509_cert_url", "execution_project"} {
+		if _, ok := v0[key]; !ok {
+			t.Fatalf("missing key %s in %v", key, v0)
+		}
+	}
+
+	wif := keys(AnalyticsCredentialConfig{
+		AuthType:                       "external-oauth-wif",
+		WorkloadPoolProviderPath:       "//iam.googleapis.com/pool",
+		ServiceAccountImpersonationURL: "https://example.com/impersonate",
+	})
+	if len(wif) != 3 || wif["auth_type"] != "external-oauth-wif" ||
+		wif["workload_pool_provider_path"] != "//iam.googleapis.com/pool" ||
+		wif["service_account_impersonation_url"] != "https://example.com/impersonate" {
+		t.Fatalf("unexpected WIF keys: %v", wif)
+	}
+}

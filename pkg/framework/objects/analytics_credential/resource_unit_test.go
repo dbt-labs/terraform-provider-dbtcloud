@@ -62,7 +62,7 @@ func (f *fakeAPI) credential() map[string]interface{} {
 		config[k] = v
 	}
 	// the API returns the nullable fields as explicit nulls
-	for _, nullable := range []string{"role", "catalog"} {
+	for _, nullable := range []string{"role", "catalog", "execution_project", "service_account_impersonation_url"} {
 		if _, ok := config[nullable]; !ok {
 			config[nullable] = nil
 		}
@@ -95,6 +95,10 @@ func (f *fakeAPI) store(r *http.Request, replace bool) {
 	config, _ := body["config"].(map[string]interface{})
 	if replace {
 		f.config = map[string]interface{}{}
+		// like the server, a v1 BigQuery credential defaults to a service account
+		if _, ok := config["auth_type"]; !ok && f.connections[f.connection] == "bigquery_v1" {
+			f.config["auth_type"] = "service-account-json"
+		}
 	}
 	for k, v := range config {
 		isSecret := false
@@ -1085,5 +1089,287 @@ func TestAnalyticsCredential_RedshiftValidators(t *testing.T) {
 				ExpectError: regexp.MustCompile(tc.expect),
 			}}))
 		})
+	}
+}
+
+// --- bigquery block --------------------------------------------------------------------
+
+func bigqueryConfig(hostURL string, connectionID int, attributes string) string {
+	return providerBlock(hostURL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = %d
+  bigquery = {
+    %s
+  }
+}
+`, connectionID, attributes)
+}
+
+const serviceAccountFields = `private_key_id = "key-id"
+    private_key_wo = "super-secret-bq-key"
+    private_key_wo_version = 1
+    client_email = "sa@example.iam.gserviceaccount.com"
+    client_id = "123"
+    auth_uri = "https://accounts.google.com/o/oauth2/auth"
+    token_uri = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/sa"`
+
+const wifFields = `workload_pool_provider_path = "//iam.googleapis.com/projects/1/locations/global/workloadIdentityPools/p/providers/q"`
+
+func bigqueryCredentialModel(
+	connectionID int64,
+	adapterVersion string,
+	authType *string,
+) analytics_credential.AnalyticsCredentialResourceModel {
+	bigquery := &analytics_credential.BigQueryModel{
+		AuthType:                       types.StringNull(),
+		ExecutionProject:               types.StringNull(),
+		PrivateKeyID:                   types.StringValue("key-id"),
+		PrivateKeyWo:                   types.StringNull(),
+		PrivateKeyWoVersion:            types.Int64Value(1),
+		ClientEmail:                    types.StringValue("sa@example.iam.gserviceaccount.com"),
+		ClientID:                       types.StringValue("123"),
+		AuthURI:                        types.StringValue("https://accounts.google.com/o/oauth2/auth"),
+		TokenURI:                       types.StringValue("https://oauth2.googleapis.com/token"),
+		AuthProviderX509CertURL:        types.StringValue("https://www.googleapis.com/oauth2/v1/certs"),
+		ClientX509CertURL:              types.StringValue("https://www.googleapis.com/robot/v1/metadata/x509/sa"),
+		WorkloadPoolProviderPath:       types.StringNull(),
+		ServiceAccountImpersonationURL: types.StringNull(),
+	}
+	if authType != nil {
+		bigquery.AuthType = types.StringValue(*authType)
+	}
+	return analytics_credential.AnalyticsCredentialResourceModel{
+		ID:             types.Int64Value(credentialID),
+		ConnectionID:   types.Int64Value(connectionID),
+		AdapterVersion: types.StringValue(adapterVersion),
+		BigQuery:       bigquery,
+	}
+}
+
+func strPtr(s string) *string { return &s }
+
+// Rule: a credential has exactly one adapter block.
+// given: a bigquery block together with a redshift block
+// when: the configuration is validated
+// then: the plan fails with the ExactlyOneOf error
+func TestAnalyticsCredential_BigQueryAndAnotherBlockFail(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "bigquery_v1"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+		Config: providerBlock(srv.URL) + fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "test" {
+  connection_id = 42
+  bigquery = {
+    %s
+  }
+  redshift = {
+    %s
+  }
+}`, serviceAccountFields, redshiftAttributes),
+		PlanOnly:    true,
+		ExpectError: regexp.MustCompile(`Invalid Attribute Combination`),
+	}}))
+}
+
+// Rule: the adapter block must match the adapter of the connection.
+// given: a bigquery block
+// when: it is planned against bigquery_v0 and bigquery_v1 connections and against a Snowflake one
+// then: both BigQuery versions are accepted and the Snowflake connection is a mismatch
+func TestAnalyticsCredential_BigQueryAdapterLookup(t *testing.T) {
+	for adapter, summary := range map[string]string{"bigquery_v1": "", "snowflake_v0": "Adapter mismatch"} {
+		t.Run(adapter, func(t *testing.T) {
+			srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+				"GET " + connectionPath(42): connectionHandler(42, adapter),
+			})
+			defer srv.Close()
+			r := newTestResource(t, srv.URL)
+			s := resourceSchema(t, r)
+
+			resp := runModifyPlan(t, r, buildPlan(t, s, bigqueryCredentialModel(42, "bigquery_v1", nil)), nullState(s))
+
+			if summary == "" && resp.Diagnostics.HasError() {
+				t.Fatalf("unexpected error: %v", resp.Diagnostics)
+			}
+			if summary != "" && !hasErrorSummary(resp, summary) {
+				t.Fatalf("expected %q, got %v", summary, resp.Diagnostics)
+			}
+		})
+	}
+}
+
+// Rule: a bigquery_v0 connection has no auth type.
+// given: a bigquery block with auth_type on a bigquery_v0 connection
+// when: the plan is made
+// then: the plan fails; without auth_type it is accepted
+func TestAnalyticsCredential_BigQueryV0RejectsAuthType(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(42): connectionHandler(42, "bigquery_v0"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+
+	withAuthType := runModifyPlan(t, r,
+		buildPlan(t, s, bigqueryCredentialModel(42, "bigquery_v0", strPtr("service-account-json"))), nullState(s))
+	if !hasErrorSummary(withAuthType, "Unsupported attribute for adapter") {
+		t.Fatalf("expected the auth_type error, got %v", withAuthType.Diagnostics)
+	}
+
+	without := runModifyPlan(t, r, buildPlan(t, s, bigqueryCredentialModel(42, "bigquery_v0", nil)), nullState(s))
+	if without.Diagnostics.HasError() {
+		t.Fatalf("unexpected error: %v", without.Diagnostics)
+	}
+}
+
+// Rule: the bigquery auth type decides which fields are required and which are forbidden.
+// given: bigquery blocks that miss a required field or mix the two auth types
+// when: the configuration is validated at plan time
+// then: each case fails with the expected error
+func TestAnalyticsCredential_BigQueryValidators(t *testing.T) {
+	without := func(field string) string {
+		var kept []string
+		for _, line := range strings.Split(serviceAccountFields, "\n") {
+			if !strings.HasPrefix(strings.TrimSpace(line), field+" ") && !strings.HasPrefix(strings.TrimSpace(line), field+"=") {
+				kept = append(kept, line)
+			}
+		}
+		return strings.Join(kept, "\n")
+	}
+	cases := []struct{ name, attributes, expect string }{
+		{"service account missing private_key_wo", without("private_key_wo"), "Missing required attribute .private_key_wo."},
+		{"service account missing private_key_id", without("private_key_id"), "Missing required attribute .private_key_id."},
+		{"service account missing client_email", without("client_email"), "Missing required attribute .client_email."},
+		{"service account missing client_id", without("client_id"), "Missing required attribute .client_id."},
+		{"service account missing auth_uri", without("auth_uri"), "Missing required attribute .auth_uri."},
+		{"service account missing token_uri", without("token_uri"), "Missing required attribute .token_uri."},
+		{"service account missing auth_provider_x509_cert_url", without("auth_provider_x509_cert_url"), "Missing required attribute .auth_provider_x509_cert_url."},
+		{"service account missing client_x509_cert_url", without("client_x509_cert_url"), "Missing required attribute .client_x509_cert_url."},
+		{"service account missing key version", without("private_key_wo_version"), "Missing required attribute .private_key_wo_version."},
+		{"service account with wif fields", serviceAccountFields + "\n    " + wifFields, "Attribute .workload_pool_provider_path. not allowed"},
+		{"wif missing path", `auth_type = "external-oauth-wif"`, "Missing required attribute .workload_pool_provider_path."},
+		{"wif with service account fields", `auth_type = "external-oauth-wif"
+    ` + wifFields + `
+    client_email = "sa@example.com"`, "Attribute .client_email. not allowed"},
+		{"wif with private key", `auth_type = "external-oauth-wif"
+    ` + wifFields + `
+    private_key_wo = "k"
+    private_key_wo_version = 1`, "Attribute .private_key_wo. not allowed"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			setupAcc(t)
+			api := newFakeAPI(map[int]string{42: "bigquery_v1"})
+			srv := testhelpers.SetupMockServer(t, api.handlers())
+			defer srv.Close()
+
+			tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+				Config:      bigqueryConfig(srv.URL, 42, tc.attributes),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(tc.expect),
+			}}))
+		})
+	}
+}
+
+// Rule: the bigquery auth type decides which fields are required and which are forbidden.
+// given: valid service account and workload identity federation blocks
+// when: the configuration is planned
+// then: both are accepted
+func TestAnalyticsCredential_ValidBigQueryBlocksPlan(t *testing.T) {
+	for name, attributes := range map[string]string{
+		"service account default": serviceAccountFields,
+		"service account explicit": `auth_type = "service-account-json"
+    ` + serviceAccountFields,
+		"wif": `auth_type = "external-oauth-wif"
+    ` + wifFields + `
+    service_account_impersonation_url = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/sa@example.com:generateAccessToken"`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			setupAcc(t)
+			api := newFakeAPI(map[int]string{42: "bigquery_v1"})
+			srv := testhelpers.SetupMockServer(t, api.handlers())
+			defer srv.Close()
+
+			tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+				Config:             bigqueryConfig(srv.URL, 42, attributes),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			}}))
+		})
+	}
+}
+
+// Rule: the adapter of a credential cannot change in place.
+// given: a bigquery state
+// when: the configuration moves to another block on the same connection, to another BigQuery connection with another block, or flips auth_type
+// then: the first fails at plan time without a DELETE and the others are replace
+func TestAnalyticsCredential_BigQuerySwapRules(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(42): connectionHandler(42, "bigquery_v1"),
+		"GET " + connectionPath(43): connectionHandler(43, "databricks_v0"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+	state := buildState(t, s, bigqueryCredentialModel(42, "bigquery_v1", strPtr("service-account-json")))
+
+	t.Run("same connection fails", func(t *testing.T) {
+		resp := runModifyPlan(t, r, buildPlan(t, s, redshiftCredentialModel(42)), state)
+		if !hasErrorSummary(resp, "Adapter mismatch") {
+			t.Fatalf("expected the mismatch error, got %v", resp.Diagnostics)
+		}
+		if countCalls(srv, "DELETE") != 0 {
+			t.Fatalf("expected no DELETE")
+		}
+	})
+	t.Run("other adapter connection replaces", func(t *testing.T) {
+		resp := runModifyPlan(t, r, buildPlan(t, s, databricksCredentialModel(43)), state)
+		for _, block := range []string{"bigquery", "databricks"} {
+			if !requiresReplace(resp, path.Root(block)) {
+				t.Fatalf("expected replace on %s, got %v", block, resp.RequiresReplace)
+			}
+		}
+	})
+	t.Run("auth_type flip replaces", func(t *testing.T) {
+		flipped := bigqueryCredentialModel(42, "bigquery_v1", strPtr("external-oauth-wif"))
+		resp := runModifyPlan(t, r, buildPlan(t, s, flipped), state)
+		if !requiresReplace(resp, path.Root("bigquery").AtName("auth_type")) {
+			t.Fatalf("expected replace on bigquery.auth_type, got %v", resp.RequiresReplace)
+		}
+	})
+	t.Run("default auth_type is not a flip", func(t *testing.T) {
+		resp := runModifyPlan(t, r, buildPlan(t, s, bigqueryCredentialModel(42, "bigquery_v1", nil)), state)
+		if len(resp.RequiresReplace) != 0 || resp.Diagnostics.HasError() {
+			t.Fatalf("expected no replace and no error, got %v %v", resp.RequiresReplace, resp.Diagnostics)
+		}
+	})
+}
+
+// Rule: an optional field cannot be cleared once set.
+// given: execution_project set in the state
+// when: it is removed from the configuration
+// then: the plan fails with the documented error
+func TestAnalyticsCredential_RemovingExecutionProjectFailsPlan(t *testing.T) {
+	srv := testhelpers.SetupMockServer(t, map[string]testhelpers.MockEndpointHandler{
+		"GET " + connectionPath(42): connectionHandler(42, "bigquery_v1"),
+	})
+	defer srv.Close()
+	r := newTestResource(t, srv.URL)
+	s := resourceSchema(t, r)
+
+	withProject := bigqueryCredentialModel(42, "bigquery_v1", nil)
+	withProject.BigQuery.ExecutionProject = types.StringValue("billing-project")
+
+	resp := runModifyPlan(t, r,
+		buildPlan(t, s, bigqueryCredentialModel(42, "bigquery_v1", nil)),
+		buildState(t, s, withProject))
+
+	if !hasErrorSummary(resp, "Optional attribute cannot be removed") {
+		t.Fatalf("expected the clearing error, got %v", resp.Diagnostics)
 	}
 }

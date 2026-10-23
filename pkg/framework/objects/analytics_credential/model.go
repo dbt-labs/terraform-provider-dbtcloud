@@ -10,6 +10,25 @@ type AnalyticsCredentialResourceModel struct {
 	Snowflake      *SnowflakeModel  `tfsdk:"snowflake"`
 	Databricks     *DatabricksModel `tfsdk:"databricks"`
 	Redshift       *RedshiftModel   `tfsdk:"redshift"`
+	BigQuery       *BigQueryModel   `tfsdk:"bigquery"`
+}
+
+// BigQueryModel is the bigquery adapter block, for service account and workload identity
+// federation credentials; the private key is write-only
+type BigQueryModel struct {
+	AuthType                       types.String `tfsdk:"auth_type"`
+	ExecutionProject               types.String `tfsdk:"execution_project"`
+	PrivateKeyID                   types.String `tfsdk:"private_key_id"`
+	PrivateKeyWo                   types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion            types.Int64  `tfsdk:"private_key_wo_version"`
+	ClientEmail                    types.String `tfsdk:"client_email"`
+	ClientID                       types.String `tfsdk:"client_id"`
+	AuthURI                        types.String `tfsdk:"auth_uri"`
+	TokenURI                       types.String `tfsdk:"token_uri"`
+	AuthProviderX509CertURL        types.String `tfsdk:"auth_provider_x509_cert_url"`
+	ClientX509CertURL              types.String `tfsdk:"client_x509_cert_url"`
+	WorkloadPoolProviderPath       types.String `tfsdk:"workload_pool_provider_path"`
+	ServiceAccountImpersonationURL types.String `tfsdk:"service_account_impersonation_url"`
 }
 
 // RedshiftModel is the redshift adapter block; the password is write-only
@@ -57,5 +76,6 @@ func (m *AnalyticsCredentialResourceModel) blocksPresent() map[string]bool {
 		blockSnowflake:  m.Snowflake != nil,
 		blockDatabricks: m.Databricks != nil,
 		blockRedshift:   m.Redshift != nil,
+		blockBigQuery:   m.BigQuery != nil,
 	}
 }

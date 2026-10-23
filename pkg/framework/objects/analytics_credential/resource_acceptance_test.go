@@ -204,7 +204,68 @@ resource "dbtcloud_analytics_credential" "redshift" {
 `, c.redshiftUsername, password, version)
 }
 
+// bigqueryConnection creates a BigQuery connection with fixture values: nothing calls GCP
+// when a connection or an analytics credential is stored
+func bigqueryConnection(name string, latestAdapter bool) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_global_connection" "bigquery" {
+  name = "%s"
+
+  bigquery = {
+    gcp_project_id              = "analytics-fixture-project"
+    private_key_id              = "fixture-private-key-id"
+    private_key                 = "ABCDEFGHIJKL"
+    client_email                = "fixture@example.iam.gserviceaccount.com"
+    client_id                   = "fixture-client-id"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/fixture"
+    use_latest_adapter          = %t
+  }
+}
+`, name, latestAdapter)
+}
+
+func bigqueryServiceAccountCredential(authType string, version int) string {
+	authTypeLine := ""
+	if authType != "" {
+		authTypeLine = fmt.Sprintf("auth_type = %q", authType)
+	}
+	return fmt.Sprintf(`
+resource "dbtcloud_analytics_credential" "bigquery" {
+  connection_id = dbtcloud_global_connection.bigquery.id
+
+  bigquery = {
+    %s
+    private_key_id              = "analytics-private-key-id"
+    private_key_wo              = "analytics-fixture-private-key"
+    private_key_wo_version      = %d
+    client_email                = "analytics@example.iam.gserviceaccount.com"
+    client_id                   = "analytics-client-id"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/analytics"
+    execution_project           = "analytics-billing-project"
+  }
+}
+`, authTypeLine, version)
+}
+
+const bigqueryWifCredential = `
+resource "dbtcloud_analytics_credential" "bigquery" {
+  connection_id = dbtcloud_global_connection.bigquery.id
+
+  bigquery = {
+    auth_type                   = "external-oauth-wif"
+    workload_pool_provider_path = "//iam.googleapis.com/projects/1/locations/global/workloadIdentityPools/fixture/providers/fixture"
+  }
+}
+`
+
 var versionsIgnoredOnImport = []string{
+	"bigquery.private_key_wo_version",
 	"redshift.password_wo_version",
 	"snowflake.password_wo_version",
 	"snowflake.private_key_wo_version",
@@ -325,6 +386,79 @@ func TestAccDbtCloudAnalyticsCredentialRedshift(t *testing.T) {
 			ImportStateVerifyIgnore: versionsIgnoredOnImport,
 		},
 	}))
+}
+
+func TestAccDbtCloudAnalyticsCredentialBigQueryServiceAccount(t *testing.T) {
+	accConfig(t, false, false, false)
+	name := randomName()
+	address := "dbtcloud_analytics_credential.bigquery"
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			Config: bigqueryConnection(name, true) + bigqueryServiceAccountCredential("", 1),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(address, "adapter_version", "bigquery_v1"),
+				resource.TestCheckResourceAttr(address, "bigquery.execution_project", "analytics-billing-project"),
+				resource.TestCheckNoResourceAttr(address, "bigquery.private_key_wo"),
+				stateHasNoSecret("analytics-fixture-private-key"),
+			),
+		},
+		{
+			// the version bump sends the private key again
+			Config: bigqueryConnection(name, true) + bigqueryServiceAccountCredential("", 2),
+			Check:  resource.TestCheckResourceAttr(address, "bigquery.private_key_wo_version", "2"),
+		},
+		{
+			Config:                  bigqueryConnection(name, true) + bigqueryServiceAccountCredential("", 2),
+			ResourceName:            address,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: versionsIgnoredOnImport,
+		},
+	}))
+}
+
+func TestAccDbtCloudAnalyticsCredentialBigQueryWorkloadIdentityFederation(t *testing.T) {
+	accConfig(t, false, false, false)
+	name := randomName()
+	address := "dbtcloud_analytics_credential.bigquery"
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			Config: bigqueryConnection(name, true) + bigqueryWifCredential,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(address, "adapter_version", "bigquery_v1"),
+				resource.TestCheckResourceAttr(address, "bigquery.auth_type", "external-oauth-wif"),
+				resource.TestCheckNoResourceAttr(address, "bigquery.private_key_wo"),
+			),
+		},
+		{
+			Config:                  bigqueryConnection(name, true) + bigqueryWifCredential,
+			ResourceName:            address,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: versionsIgnoredOnImport,
+		},
+	}))
+}
+
+// bigquery_v0 connections are only tested when the account can still create them
+func TestAccDbtCloudAnalyticsCredentialBigQueryV0(t *testing.T) {
+	accConfig(t, false, false, false)
+	if os.Getenv("DBT_ACCEPTANCE_TEST_ANALYTICS_BIGQUERY_V0") != "true" {
+		t.Skip("Skipping: set DBT_ACCEPTANCE_TEST_ANALYTICS_BIGQUERY_V0=true when the account can create bigquery_v0 connections.")
+	}
+	name := randomName()
+	address := "dbtcloud_analytics_credential.bigquery"
+
+	resource.Test(t, accTestCase(t, []resource.TestStep{{
+		Config: bigqueryConnection(name, false) + bigqueryServiceAccountCredential("", 1),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(address, "adapter_version", "bigquery_v0"),
+			resource.TestCheckNoResourceAttr(address, "bigquery.auth_type"),
+			stateHasNoSecret("analytics-fixture-private-key"),
+		),
+	}}))
 }
 
 // Rule: the adapter of a credential cannot change in place.

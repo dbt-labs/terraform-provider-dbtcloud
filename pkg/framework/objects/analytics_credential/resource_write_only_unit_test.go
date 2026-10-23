@@ -356,3 +356,107 @@ func TestAnalyticsCredential_RedshiftPasswordWriteOnly(t *testing.T) {
 		},
 	}))
 }
+
+// Rule: secrets never reach the state.
+// given: a bigquery service account credential created with private_key_wo
+// when: it is applied, refreshed against a GET that returns a private key, and updated
+// then: the POST carries the key, the state never does, and an update without a version bump omits it
+func TestAnalyticsCredential_BigQueryPrivateKeyWriteOnly(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "bigquery_v1"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	withProject := func(project string) string {
+		return bigqueryConfig(srv.URL, 42, serviceAccountFields+"\n    execution_project = \""+project+"\"")
+	}
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{
+			Config: withProject("billing-one"),
+			Check: tfresource.ComposeTestCheckFunc(
+				func(*terraform.State) error {
+					posts := calls(srv, t, "POST", collectionPath)
+					if len(posts) != 1 {
+						return fmt.Errorf("expected one POST, got %d", len(posts))
+					}
+					if got := configOf(t, posts[0])["private_key"]; got != "super-secret-bq-key" {
+						return fmt.Errorf("expected the private key in the POST body, got %v", got)
+					}
+					return nil
+				},
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "bigquery.private_key_wo"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "bigquery.private_key"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "bigquery.auth_type"),
+				stateHasNoSecret("super-secret-bq-key"),
+			),
+		},
+		{
+			PreConfig:    func() { api.mu.Lock(); api.leakSecrets = true; api.mu.Unlock() },
+			RefreshState: true,
+			Check: tfresource.ComposeTestCheckFunc(
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "bigquery.private_key"),
+				stateHasNoSecret("leaked-private-key"),
+			),
+		},
+		{
+			PreConfig: func() { api.mu.Lock(); api.leakSecrets = false; api.mu.Unlock() },
+			Config:    withProject("billing-two"),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 1 {
+					return fmt.Errorf("expected one PATCH, got %d", len(patches))
+				}
+				config := configOf(t, patches[0])
+				if _, ok := config["private_key"]; ok {
+					return fmt.Errorf("the PATCH body carries the private key without a version bump")
+				}
+				if config["execution_project"] != "billing-two" {
+					return fmt.Errorf("expected the new execution project, got %v", config["execution_project"])
+				}
+				return nil
+			},
+		},
+	}))
+}
+
+// Rule: secrets never reach the state.
+// given: a bigquery workload identity federation credential
+// when: it is applied
+// then: the POST carries the path and no service account key, the state has no secret, and nothing is re-sent when unchanged
+func TestAnalyticsCredential_BigQueryWifHasNoSecret(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "bigquery_v1"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	config := bigqueryConfig(srv.URL, 42, `auth_type = "external-oauth-wif"
+    `+wifFields)
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{
+			Config: config,
+			Check: tfresource.ComposeTestCheckFunc(
+				func(*terraform.State) error {
+					posts := calls(srv, t, "POST", collectionPath)
+					if len(posts) != 1 {
+						return fmt.Errorf("expected one POST, got %d", len(posts))
+					}
+					body := configOf(t, posts[0])
+					if body["workload_pool_provider_path"] == nil || body["auth_type"] != "external-oauth-wif" {
+						return fmt.Errorf("unexpected POST config: %v", body)
+					}
+					for _, key := range []string{"private_key", "private_key_id", "client_email", "client_id", "auth_uri", "token_uri"} {
+						if _, ok := body[key]; ok {
+							return fmt.Errorf("the WIF body carries %s", key)
+						}
+					}
+					return nil
+				},
+				tfresource.TestCheckResourceAttr(resourceAddress, "bigquery.auth_type", "external-oauth-wif"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "bigquery.private_key_wo"),
+			),
+		},
+		{Config: config, PlanOnly: true},
+	}))
+}
