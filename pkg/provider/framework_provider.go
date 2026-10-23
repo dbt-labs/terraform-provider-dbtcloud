@@ -25,6 +25,7 @@ import (
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_add_on"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/account_features"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/analytics_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/athena_credential"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/auth_provider"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/azure_ad_application"
@@ -355,6 +356,7 @@ func (p *dbtCloudProvider) DataSources(_ context.Context) []func() datasource.Da
 
 func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		analytics_credential.AnalyticsCredentialResource,
 		auth_provider.AuthProviderResource,
 		account_features.AccountFeaturesResource,
 		athena_credential.NewAthenaCredentialResource,

@@ -1,0 +1,191 @@
+package analytics_credential_test
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/testhelpers"
+	tfresource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+const resourceAddress = "dbtcloud_analytics_credential.test"
+
+// stateHasNoSecret fails when any attribute of the state carries one of the given values
+func stateHasNoSecret(secrets ...string) tfresource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, res := range s.RootModule().Resources {
+			if res.Type != "dbtcloud_analytics_credential" {
+				continue
+			}
+			for key, value := range res.Primary.Attributes {
+				for _, secret := range secrets {
+					if strings.Contains(value, secret) {
+						return fmt.Errorf("the state attribute %s carries a secret", key)
+					}
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func configOf(t *testing.T, call map[string]interface{}) map[string]interface{} {
+	t.Helper()
+	config, ok := call["config"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("no config in the payload: %v", call)
+	}
+	return config
+}
+
+// Rule: secrets never reach the state.
+// given: a snowflake credential created with password_wo
+// when: it is applied
+// then: the POST body carries the password, the state has no secret value and the schema has no plain password attribute
+func TestAnalyticsCredential_PasswordWriteOnlySentButNotStored(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "snowflake_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+		Config: snowflakeConfig(srv.URL, 42, passwordAttributes),
+		Check: tfresource.ComposeTestCheckFunc(
+			func(*terraform.State) error {
+				posts := calls(srv, t, "POST", collectionPath)
+				if len(posts) != 1 {
+					return fmt.Errorf("expected one POST, got %d", len(posts))
+				}
+				if got := configOf(t, posts[0])["password"]; got != "super-secret-password" {
+					return fmt.Errorf("expected the password in the POST body, got %v", got)
+				}
+				return nil
+			},
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.password_wo"),
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.password"),
+			tfresource.TestCheckResourceAttr(resourceAddress, "snowflake.password_wo_version", "1"),
+			stateHasNoSecret("super-secret-password"),
+		),
+	}}))
+}
+
+// Rule: secrets never reach the state.
+// given: a snowflake credential created with private_key_wo and private_key_passphrase_wo
+// when: it is applied
+// then: the POST body carries both, the state has neither and the schema has no plain secret attribute
+func TestAnalyticsCredential_KeypairWriteOnlySentButNotStored(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "snowflake_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{{
+		Config: snowflakeConfig(srv.URL, 42, keypairAttributes),
+		Check: tfresource.ComposeTestCheckFunc(
+			func(*terraform.State) error {
+				posts := calls(srv, t, "POST", collectionPath)
+				if len(posts) != 1 {
+					return fmt.Errorf("expected one POST, got %d", len(posts))
+				}
+				config := configOf(t, posts[0])
+				if config["private_key"] != "super-secret-key" {
+					return fmt.Errorf("expected the private key in the POST body, got %v", config["private_key"])
+				}
+				if config["private_key_passphrase"] != "super-secret-passphrase" {
+					return fmt.Errorf("expected the passphrase in the POST body, got %v", config["private_key_passphrase"])
+				}
+				if _, ok := config["password"]; ok {
+					return fmt.Errorf("keypair auth must not send a password")
+				}
+				return nil
+			},
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key_wo"),
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key"),
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key_passphrase_wo"),
+			tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key_passphrase"),
+			stateHasNoSecret("super-secret-key", "super-secret-passphrase"),
+		),
+	}}))
+}
+
+// Rule: secrets never reach the state.
+// given: an applied credential
+// when: it is refreshed against a GET that deliberately returns password, private_key and private_key_passphrase
+// then: none of them is written to the state
+func TestAnalyticsCredential_RefreshIgnoresSecretsInResponse(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "snowflake_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{Config: snowflakeConfig(srv.URL, 42, passwordAttributes)},
+		{
+			PreConfig:    func() { api.mu.Lock(); api.leakSecrets = true; api.mu.Unlock() },
+			RefreshState: true,
+			Check: tfresource.ComposeTestCheckFunc(
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.password"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key"),
+				tfresource.TestCheckNoResourceAttr(resourceAddress, "snowflake.private_key_passphrase"),
+				stateHasNoSecret("leaked-password", "leaked-private-key", "leaked-passphrase"),
+			),
+		},
+	}))
+}
+
+// Rule: a secret is only sent again when its version changes.
+// given: an applied credential
+// when: warehouse changes alone, then password_wo_version is bumped
+// then: the first PATCH body has no secret key and the second carries the password
+func TestAnalyticsCredential_UpdateSendsSecretOnlyOnVersionBump(t *testing.T) {
+	setupAcc(t)
+	api := newFakeAPI(map[int]string{42: "snowflake_v0"})
+	srv := testhelpers.SetupMockServer(t, api.handlers())
+	defer srv.Close()
+
+	withWarehouse := func(warehouse string, version int) string {
+		return snowflakeConfig(srv.URL, 42, fmt.Sprintf(`auth_type = "password"
+    user = "analytics_user"
+    warehouse = %q
+    password_wo = "super-secret-password"
+    password_wo_version = %d`, warehouse, version))
+	}
+
+	tfresource.Test(t, unitTestCase([]tfresource.TestStep{
+		{Config: withWarehouse("wh_one", 1)},
+		{
+			Config: withWarehouse("wh_two", 1),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 1 {
+					return fmt.Errorf("expected one PATCH, got %d", len(patches))
+				}
+				config := configOf(t, patches[0])
+				for _, key := range secretKeys {
+					if _, ok := config[key]; ok {
+						return fmt.Errorf("the PATCH body carries %s", key)
+					}
+				}
+				if config["warehouse"] != "wh_two" {
+					return fmt.Errorf("expected the new warehouse, got %v", config["warehouse"])
+				}
+				return nil
+			},
+		},
+		{
+			Config: withWarehouse("wh_two", 2),
+			Check: func(*terraform.State) error {
+				patches := calls(srv, t, "PATCH", itemPath(credentialID))
+				if len(patches) != 2 {
+					return fmt.Errorf("expected two PATCH calls, got %d", len(patches))
+				}
+				if got := configOf(t, patches[1])["password"]; got != "super-secret-password" {
+					return fmt.Errorf("expected the password after the version bump, got %v", got)
+				}
+				return nil
+			},
+		},
+	}))
+}
