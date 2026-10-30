@@ -7,6 +7,7 @@ import (
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -82,7 +83,18 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Call CreateProject with the correct signature (string, string, string, int)
-	project, err := r.client.CreateProject(name, description, dbtProjectSubdirectory, dbtProjectType)
+	var analyticsConnectionID *int64
+	if !plan.AnalyticsConnectionID.IsNull() {
+		analyticsConnectionID = plan.AnalyticsConnectionID.ValueInt64Pointer()
+	}
+
+	project, err := r.client.CreateProject(
+		name,
+		description,
+		dbtProjectSubdirectory,
+		dbtProjectType,
+		analyticsConnectionID,
+	)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating project",
@@ -101,12 +113,16 @@ func (r *projectResource) Create(ctx context.Context, req resource.CreateRequest
 
 	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
 
+	planned := plan.AnalyticsConnectionID
+	plan.AnalyticsConnectionID = analyticsConnectionFromProject(project, planned)
+
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	addAnalyticsConnectionMismatch(&resp.Diagnostics, planned, plan.AnalyticsConnectionID, plan.ID)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -148,6 +164,8 @@ func (r *projectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	state.DbtProjectType = types.Int64Value(project.DbtProjectType)
+
+	state.AnalyticsConnectionID = analyticsConnectionFromProject(project, types.Int64Null())
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -216,6 +234,14 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 	// existing connection IDs on those environments.
 	updateProject.ConnectionID = nil
 
+	// The update body is built from the project read from the API, which carries its analytics
+	// connection, so an update keeps it; only removing the attribute sends an explicit null.
+	if !plan.AnalyticsConnectionID.IsNull() {
+		updateProject.AnalyticsConnectionID.Set(plan.AnalyticsConnectionID.ValueInt64())
+	} else if !state.AnalyticsConnectionID.IsNull() {
+		updateProject.AnalyticsConnectionID.SetNull()
+	}
+
 	// Perform the update
 	project, err := r.client.UpdateProject(projectIDString, *updateProject)
 	if err != nil {
@@ -236,11 +262,15 @@ func (r *projectResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	plan.DbtProjectType = types.Int64Value(project.DbtProjectType)
 
+	planned := plan.AnalyticsConnectionID
+	plan.AnalyticsConnectionID = analyticsConnectionFromProject(project, planned)
+
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	addAnalyticsConnectionMismatch(&resp.Diagnostics, planned, plan.AnalyticsConnectionID, plan.ID)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -295,4 +325,35 @@ func (r *projectResource) ImportState(ctx context.Context, req resource.ImportSt
 
 	// Set the ID attribute
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), projectID)...)
+}
+
+// analyticsConnectionFromProject maps the analytics connection of a project read from the API.
+// A response that leaves the field out reports nothing, so it gets the fallback value.
+func analyticsConnectionFromProject(project *dbt_cloud.Project, fallback types.Int64) types.Int64 {
+	if !project.AnalyticsConnectionID.IsSpecified() {
+		return fallback
+	}
+	if project.AnalyticsConnectionID.IsNull() {
+		return types.Int64Null()
+	}
+	return types.Int64Value(project.AnalyticsConnectionID.MustGet())
+}
+
+// addAnalyticsConnectionMismatch reports a response whose analytics connection differs from the plan.
+// The state already holds the reported value, so the next plan shows the difference.
+func addAnalyticsConnectionMismatch(
+	diags *diag.Diagnostics,
+	planned, reported types.Int64,
+	projectID types.Int64,
+) {
+	if reported.Equal(planned) {
+		return
+	}
+	diags.AddError(
+		"Analytics connection was not applied",
+		fmt.Sprintf(
+			"The configuration sets analytics_connection_id to %s for project %s, but the API reports %s.",
+			planned, projectID, reported,
+		),
+	)
 }

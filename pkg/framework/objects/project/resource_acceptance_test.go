@@ -2,10 +2,12 @@ package project_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/acctest_helper"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -182,4 +184,68 @@ func testAccCheckDbtCloudProjectDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+// Rule: a project can use a connection as its analytics connection, and keeps it on unrelated updates.
+// given: a Snowflake connection and a project that uses it as analytics connection
+// when: the project is created, updated on another attribute, imported and read by the data source
+// then: the analytics connection is set each time, and removing the attribute clears it.
+func TestAccDbtCloudProjectAnalyticsConnection(t *testing.T) {
+	if os.Getenv("DBT_ACCEPTANCE_TEST_ANALYTICS_CONNECTION_ENABLED") != "true" {
+		t.Skip("Skipping: set DBT_ACCEPTANCE_TEST_ANALYTICS_CONNECTION_ENABLED=true when the account supports an analytics connection on projects.")
+	}
+	name := "tf-acc-analytics-" + acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+	connection := fmt.Sprintf(`
+resource "dbtcloud_global_connection" "snowflake" {
+  name = "%s"
+
+  snowflake = {
+    account   = "analytics-acc"
+    database  = "ANALYTICS_DB"
+    warehouse = "ANALYTICS_WH"
+    allow_sso = false
+  }
+}
+`, name)
+	project := func(attributes string) string {
+		return fmt.Sprintf(`
+resource "dbtcloud_project" "analytics" {
+  name = "%s"
+  %s
+}
+
+data "dbtcloud_project" "analytics" {
+  id = dbtcloud_project.analytics.id
+}
+`, name, attributes)
+	}
+	attached := "analytics_connection_id = dbtcloud_global_connection.snowflake.id"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: connection + project(attached),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+					resource.TestCheckResourceAttrPair("data.dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+				),
+			},
+			{
+				Config: connection + project(attached+"\n  description = \"updated\""),
+				Check:  resource.TestCheckResourceAttrPair("dbtcloud_project.analytics", "analytics_connection_id", "dbtcloud_global_connection.snowflake", "id"),
+			},
+			{
+				Config:            connection + project(attached),
+				ResourceName:      "dbtcloud_project.analytics",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: connection + project(""),
+				Check:  resource.TestCheckNoResourceAttr("dbtcloud_project.analytics", "analytics_connection_id"),
+			},
+		},
+	})
 }
