@@ -142,25 +142,26 @@ var mappingAdapterDetails = map[string]ConfigDetails{
 var supportedGlobalConfigTypes = lo.Keys(mappingAdapterDetails)
 
 type GlobalConnectionResourceModel struct {
-	ID                    types.Int64        `tfsdk:"id"`
-	AdapterVersion        types.String       `tfsdk:"adapter_version"`
-	Name                  types.String       `tfsdk:"name"`
-	IsSshTunnelEnabled    types.Bool         `tfsdk:"is_ssh_tunnel_enabled"` //TODO: check if we can deprecate this
-	PrivateLinkEndpointId types.String       `tfsdk:"private_link_endpoint_id"`
-	OauthConfigurationId  types.Int64        `tfsdk:"oauth_configuration_id"`
-	SnowflakeConfig       *SnowflakeConfig   `tfsdk:"snowflake"`
-	BigQueryConfig        *BigQueryConfig    `tfsdk:"bigquery"`
-	DatabricksConfig      *DatabricksConfig  `tfsdk:"databricks"`
-	RedshiftConfig        *RedshiftConfig    `tfsdk:"redshift"`
-	PostgresConfig        *PostgresConfig    `tfsdk:"postgres"`
-	FabricConfig          *FabricConfig      `tfsdk:"fabric"`
-	SynapseConfig         *SynapseConfig     `tfsdk:"synapse"`
-	StarburstConfig       *StarburstConfig   `tfsdk:"starburst"`
-	AthenaConfig          *AthenaConfig      `tfsdk:"athena"`
-	ApacheSparkConfig     *ApacheSparkConfig `tfsdk:"apache_spark"`
-	TeradataConfig        *TeradataConfig    `tfsdk:"teradata"`
-	SalesforceConfig      *SalesforceConfig  `tfsdk:"salesforce"`
-	ClickhouseConfig      *ClickhouseConfig  `tfsdk:"clickhouse"`
+	ID                     types.Int64        `tfsdk:"id"`
+	AdapterVersion         types.String       `tfsdk:"adapter_version"`
+	Name                   types.String       `tfsdk:"name"`
+	IsSshTunnelEnabled     types.Bool         `tfsdk:"is_ssh_tunnel_enabled"` //TODO: check if we can deprecate this
+	PrivateLinkEndpointId  types.String       `tfsdk:"private_link_endpoint_id"`
+	OauthConfigurationId   types.Int64        `tfsdk:"oauth_configuration_id"`
+	AnalyticsCredentialsId types.Int64        `tfsdk:"analytics_credentials_id"`
+	SnowflakeConfig        *SnowflakeConfig   `tfsdk:"snowflake"`
+	BigQueryConfig         *BigQueryConfig    `tfsdk:"bigquery"`
+	DatabricksConfig       *DatabricksConfig  `tfsdk:"databricks"`
+	RedshiftConfig         *RedshiftConfig    `tfsdk:"redshift"`
+	PostgresConfig         *PostgresConfig    `tfsdk:"postgres"`
+	FabricConfig           *FabricConfig      `tfsdk:"fabric"`
+	SynapseConfig          *SynapseConfig     `tfsdk:"synapse"`
+	StarburstConfig        *StarburstConfig   `tfsdk:"starburst"`
+	AthenaConfig           *AthenaConfig      `tfsdk:"athena"`
+	ApacheSparkConfig      *ApacheSparkConfig `tfsdk:"apache_spark"`
+	TeradataConfig         *TeradataConfig    `tfsdk:"teradata"`
+	SalesforceConfig       *SalesforceConfig  `tfsdk:"salesforce"`
+	ClickhouseConfig       *ClickhouseConfig  `tfsdk:"clickhouse"`
 }
 
 type SSHTunnelConfig struct {
@@ -322,13 +323,14 @@ type GlobalConnectionsDatasourceModel struct {
 }
 
 type GlobalConnectionSummary struct {
-	ID                    types.Int64  `tfsdk:"id"`
-	Name                  types.String `tfsdk:"name"`
-	CreatedAt             types.String `tfsdk:"created_at"`
-	UpdatedAt             types.String `tfsdk:"updated_at"`
-	AdapterVersion        types.String `tfsdk:"adapter_version"`
-	PrivateLinkEndpointID types.String `tfsdk:"private_link_endpoint_id"`
-	IsSSHTunnelEnabled    types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
-	OauthConfigurationID  types.Int64  `tfsdk:"oauth_configuration_id"`
-	EnvironmentCount      types.Int64  `tfsdk:"environment__count"`
+	ID                     types.Int64  `tfsdk:"id"`
+	Name                   types.String `tfsdk:"name"`
+	CreatedAt              types.String `tfsdk:"created_at"`
+	UpdatedAt              types.String `tfsdk:"updated_at"`
+	AdapterVersion         types.String `tfsdk:"adapter_version"`
+	PrivateLinkEndpointID  types.String `tfsdk:"private_link_endpoint_id"`
+	IsSSHTunnelEnabled     types.Bool   `tfsdk:"is_ssh_tunnel_enabled"`
+	OauthConfigurationID   types.Int64  `tfsdk:"oauth_configuration_id"`
+	AnalyticsCredentialsID types.Int64  `tfsdk:"analytics_credentials_id"`
+	EnvironmentCount       types.Int64  `tfsdk:"environment__count"`
 }

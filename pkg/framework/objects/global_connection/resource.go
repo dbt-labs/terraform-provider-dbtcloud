@@ -737,6 +737,10 @@ func (r *globalConnectionResource) Create(
 		panic("Unknown connection type")
 	}
 
+	// a new connection has no analytics credential yet; the next refresh reads the real value
+	if plan.AnalyticsCredentialsId.IsUnknown() {
+		plan.AnalyticsCredentialsId = types.Int64Null()
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
