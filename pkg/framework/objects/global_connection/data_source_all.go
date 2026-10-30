@@ -63,6 +63,9 @@ func (d *globalConnectionsDataSource) Read(
 		currentConnection.OauthConfigurationID = types.Int64PointerValue(
 			connection.OauthConfigurationID,
 		)
+		currentConnection.AnalyticsCredentialsID = types.Int64PointerValue(
+			connection.AnalyticsCredentialsID,
+		)
 		currentConnection.EnvironmentCount = types.Int64Value(connection.EnvironmentCount)
 
 		allConnections = append(allConnections, currentConnection)
