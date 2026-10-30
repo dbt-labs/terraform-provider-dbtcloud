@@ -144,6 +144,8 @@ func (d *projectDataSource) Read(
 		state.DocsJobID = types.Int64Null()
 	}
 
+	state.AnalyticsConnectionID = analyticsConnectionFromProject(project, types.Int64Null())
+
 	state.State = types.Int64Value(int64(project.State))
 	state.DbtProjectType = types.Int64Value(int64(project.DbtProjectType))
 	// Set state
