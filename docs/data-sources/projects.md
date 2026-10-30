@@ -57,6 +57,7 @@ check "no_different_projects_with_same_name" {
 
 Read-Only:
 
+- `analytics_connection_id` (Number) ID of the global connection used for analytics, if any
 - `created_at` (String) When the project was created
 - `dbt_project_subdirectory` (String) Subdirectory for the dbt project inside the git repo
 - `description` (String) Project description
