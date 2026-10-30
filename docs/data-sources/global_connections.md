@@ -30,6 +30,7 @@ data dbtcloud_global_connections my_connections {
 Read-Only:
 
 - `adapter_version` (String) Type of adapter used for the connection
+- `analytics_credentials_id` (Number) The ID of the analytics credential attached to this connection, if any.
 - `created_at` (String) When the connection was created
 - `environment__count` (Number) Number of environments using this connection
 - `id` (Number) Connection Identifier

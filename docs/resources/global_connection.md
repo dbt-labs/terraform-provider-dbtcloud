@@ -260,6 +260,7 @@ resource "dbtcloud_global_connection" "clickhouse" {
 ### Read-Only
 
 - `adapter_version` (String) Version of the adapter
+- `analytics_credentials_id` (Number) The ID of the analytics credential attached to this connection, if any. Read-only.
 - `id` (Number) Connection Identifier
 - `is_ssh_tunnel_enabled` (Boolean) Whether the connection can use an SSH tunnel
 
