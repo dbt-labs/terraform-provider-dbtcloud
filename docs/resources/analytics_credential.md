@@ -1,0 +1,248 @@
+---
+page_title: "dbtcloud_analytics_credential Resource - dbtcloud"
+subcategory: ""
+description: |-
+  Analytics credential of a global connection: the shared warehouse credential that read-only users' queries run with when they have no personal credentials. It is shared, so give it the least privilege needed.
+  The adapter is fixed by the connection: set exactly one adapter block, and it must match the adapter of the connection. Changing the adapter block, or the auth_type of an adapter block, recreates the credential. Optional attributes of an adapter block cannot be removed once set; recreate the credential to clear them.
+  A connection can have one analytics credential, so a replacement on the same connection cannot use create_before_destroy. Deleting the credential also clears the analytics connection of the projects that use the connection.
+  Each secret is given either as a write-only value (*_wo, with a *_wo_version to trigger a rotation), which is never stored in the state and needs Terraform >= 1.11, or as a plain value, which is marked sensitive but stored in the state. Prefer the write-only value.
+---
+
+# dbtcloud_analytics_credential (Resource)
+
+
+Analytics credential of a global connection: the shared warehouse credential that read-only users' queries run with when they have no personal credentials. It is shared, so give it the least privilege needed.
+
+The adapter is fixed by the connection: set exactly one adapter block, and it must match the adapter of the connection. Changing the adapter block, or the `auth_type` of an adapter block, recreates the credential. Optional attributes of an adapter block cannot be removed once set; recreate the credential to clear them.
+
+A connection can have one analytics credential, so a replacement on the same connection cannot use `create_before_destroy`. Deleting the credential also clears the analytics connection of the projects that use the connection.
+
+Each secret is given either as a write-only value (`*_wo`, with a `*_wo_version` to trigger a rotation), which is never stored in the state and needs Terraform >= 1.11, or as a plain value, which is marked sensitive but stored in the state. Prefer the write-only value.
+
+## Example Usage
+
+```terraform
+// Write-only secrets (`*_wo`) are not stored in state and need Terraform >= 1.11.
+// Change the matching `_wo_version` to send a new value.
+variable "snowflake_private_key" {
+  type      = string
+  ephemeral = true
+}
+
+variable "snowflake_private_key_passphrase" {
+  type      = string
+  ephemeral = true
+}
+
+variable "databricks_token" {
+  type      = string
+  ephemeral = true
+}
+
+variable "bigquery_private_key" {
+  type      = string
+  ephemeral = true
+}
+
+variable "redshift_password" {
+  type      = string
+  ephemeral = true
+}
+
+// The adapter block must match the adapter of the connection
+resource "dbtcloud_analytics_credential" "snowflake" {
+  connection_id = dbtcloud_global_connection.snowflake.id
+
+  snowflake = {
+    auth_type                         = "keypair"
+    user                              = "ANALYTICS_USER"
+    role                              = "ANALYTICS_ROLE"
+    warehouse                         = "ANALYTICS_WH"
+    private_key_wo                    = var.snowflake_private_key
+    private_key_wo_version            = 1
+    private_key_passphrase_wo         = var.snowflake_private_key_passphrase
+    private_key_passphrase_wo_version = 1
+  }
+}
+
+resource "dbtcloud_analytics_credential" "databricks" {
+  connection_id = dbtcloud_global_connection.databricks.id
+
+  databricks = {
+    token_wo         = var.databricks_token
+    token_wo_version = 1
+    catalog          = "analytics"
+  }
+}
+
+resource "dbtcloud_analytics_credential" "redshift" {
+  connection_id = dbtcloud_global_connection.redshift.id
+
+  redshift = {
+    username            = "analytics_user"
+    password_wo         = var.redshift_password
+    password_wo_version = 1
+  }
+}
+
+// A secret can also be a plain value: it works on any Terraform version, is marked sensitive
+// and is stored in the state. It cannot come from an ephemeral variable.
+variable "redshift_plain_password" {
+  type      = string
+  sensitive = true
+}
+
+resource "dbtcloud_analytics_credential" "redshift_plain_password" {
+  connection_id = dbtcloud_global_connection.redshift_other.id
+
+  redshift = {
+    username = "analytics_user"
+    password = var.redshift_plain_password
+  }
+}
+
+// BigQuery with a service account (`auth_type` defaults to "service-account-json")
+resource "dbtcloud_analytics_credential" "bigquery" {
+  connection_id = dbtcloud_global_connection.bigquery.id
+
+  bigquery = {
+    private_key_id              = "my-private-key-id"
+    private_key_wo              = var.bigquery_private_key
+    private_key_wo_version      = 1
+    client_email                = "analytics@my-project.iam.gserviceaccount.com"
+    client_id                   = "123456789"
+    auth_uri                    = "https://accounts.google.com/o/oauth2/auth"
+    token_uri                   = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url        = "https://www.googleapis.com/robot/v1/metadata/x509/analytics%40my-project.iam.gserviceaccount.com"
+    execution_project           = "my-billing-project"
+  }
+}
+
+// BigQuery with workload identity federation (latest adapter only, no secret)
+resource "dbtcloud_analytics_credential" "bigquery_wif" {
+  connection_id = dbtcloud_global_connection.bigquery_latest.id
+
+  bigquery = {
+    auth_type                   = "external-oauth-wif"
+    workload_pool_provider_path = "//iam.googleapis.com/projects/123/locations/global/workloadIdentityPools/my-pool/providers/my-provider"
+  }
+}
+```
+
+<!-- schema generated by tfplugindocs -->
+## Schema
+
+### Required
+
+- `connection_id` (Number) The ID of the global connection the credential belongs to. Changing it recreates the credential.
+
+### Optional
+
+- `bigquery` (Attributes) BigQuery credential, either a service account (the default) or workload identity federation. A `bigquery_v0` connection only supports service accounts and takes no `auth_type`. (see [below for nested schema](#nestedatt--bigquery))
+- `databricks` (Attributes) Databricks credential. (see [below for nested schema](#nestedatt--databricks))
+- `redshift` (Attributes) Redshift credential. (see [below for nested schema](#nestedatt--redshift))
+- `snowflake` (Attributes) Snowflake credential. Password authentication is deprecated on the server. (see [below for nested schema](#nestedatt--snowflake))
+
+### Read-Only
+
+- `adapter_version` (String) The adapter version of the credential, taken from the connection.
+- `id` (Number) The ID of the analytics credential.
+
+<a id="nestedatt--bigquery"></a>
+### Nested Schema for `bigquery`
+
+Optional:
+
+- `auth_provider_x509_cert_url` (String) The auth provider X509 cert URL of the service account. Service account only.
+- `auth_type` (String) The authentication type: `service-account-json` (the default on the latest adapter) or `external-oauth-wif`. Not allowed on a `bigquery_v0` connection. Changing it recreates the credential.
+- `auth_uri` (String) The auth URI of the service account. Service account only.
+- `client_email` (String) The client email of the service account. Service account only.
+- `client_id` (String) The client ID of the service account. Service account only.
+- `client_x509_cert_url` (String) The client X509 cert URL of the service account. Service account only.
+- `execution_project` (String) The project billed for query execution. It cannot be removed once set.
+- `private_key` (String, Sensitive) The private key of the service account. Required for a service account, not allowed with workload identity federation. Stored in the state, marked sensitive. Prefer `private_key_wo`, which is never stored.
+- `private_key_id` (String) The private key ID of the service account. Service account only.
+- `private_key_wo` (String, Sensitive) The private key of the service account. Required for a service account, not allowed with workload identity federation. Write-only: it is never stored in the state. Requires the matching `_wo_version`.
+- `private_key_wo_version` (Number) Version of `private_key_wo`. Change it to send a new value of `private_key_wo`; the value alone is not tracked because it is write-only.
+- `service_account_impersonation_url` (String) The URL of the service account impersonation request. Only with `external-oauth-wif`. It cannot be removed once set.
+- `token_uri` (String) The token URI of the service account. Service account only.
+- `workload_pool_provider_path` (String) The audience of the Security Token Service, usually the full resource name of the workload pool provider. Required for `external-oauth-wif`, not allowed otherwise.
+
+
+<a id="nestedatt--databricks"></a>
+### Nested Schema for `databricks`
+
+Optional:
+
+- `catalog` (String) The Unity Catalog name. It cannot be removed once set.
+- `token` (String, Sensitive) The personal access token. Required unless `token_wo` is set. Stored in the state, marked sensitive. Prefer `token_wo`, which is never stored.
+- `token_wo` (String, Sensitive) The personal access token, write-only: it is never stored in the state. Required unless `token` is set, and it requires `token_wo_version`.
+- `token_wo_version` (Number) Version of `token_wo`. Change it to send a new value of `token_wo`; the value alone is not tracked because it is write-only.
+
+
+<a id="nestedatt--redshift"></a>
+### Nested Schema for `redshift`
+
+Required:
+
+- `username` (String) The username to connect to the cluster.
+
+Optional:
+
+- `password` (String, Sensitive) The password to connect to the cluster. Required unless `password_wo` is set. Stored in the state, marked sensitive. Prefer `password_wo`, which is never stored.
+- `password_wo` (String, Sensitive) The password to connect to the cluster, write-only: it is never stored in the state. Required unless `password` is set, and it requires `password_wo_version`.
+- `password_wo_version` (Number) Version of `password_wo`. Change it to send a new value of `password_wo`; the value alone is not tracked because it is write-only.
+
+
+<a id="nestedatt--snowflake"></a>
+### Nested Schema for `snowflake`
+
+Required:
+
+- `auth_type` (String) The authentication type: `password` (deprecated) or `keypair`. Changing it recreates the credential.
+- `user` (String) The Snowflake user name.
+- `warehouse` (String) The Snowflake warehouse.
+
+Optional:
+
+- `password` (String, Sensitive) The password. Required when `auth_type` is `password`, not allowed with `keypair`. Stored in the state, marked sensitive. Prefer `password_wo`, which is never stored.
+- `password_wo` (String, Sensitive) The password. Required when `auth_type` is `password`, not allowed with `keypair`. Write-only: it is never stored in the state. Requires the matching `_wo_version`.
+- `password_wo_version` (Number) Version of `password_wo`. Change it to send a new value of `password_wo`; the value alone is not tracked because it is write-only.
+- `private_key` (String, Sensitive) The private key. Required when `auth_type` is `keypair`, not allowed with `password`. Stored in the state, marked sensitive. Prefer `private_key_wo`, which is never stored.
+- `private_key_passphrase` (String, Sensitive) The passphrase of the private key. Only with `keypair`. Stored in the state, marked sensitive. Prefer `private_key_passphrase_wo`, which is never stored.
+- `private_key_passphrase_wo` (String, Sensitive) The passphrase of the private key. Only with `keypair`. Write-only: it is never stored in the state. Requires the matching `_wo_version`.
+- `private_key_passphrase_wo_version` (Number) Version of `private_key_passphrase_wo`. Change it to send a new value of `private_key_passphrase_wo`; the value alone is not tracked because it is write-only.
+- `private_key_wo` (String, Sensitive) The private key. Required when `auth_type` is `keypair`, not allowed with `password`. Write-only: it is never stored in the state. Requires the matching `_wo_version`.
+- `private_key_wo_version` (Number) Version of `private_key_wo`. Change it to send a new value of `private_key_wo`; the value alone is not tracked because it is write-only.
+- `role` (String) The Snowflake role. It cannot be removed once set.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# using import blocks (requires Terraform >= 1.5)
+import {
+  to = dbtcloud_analytics_credential.my_credential
+  id = "credential_id"
+}
+
+import {
+  to = dbtcloud_analytics_credential.my_credential
+  id = "account_id:credential_id"
+}
+
+import {
+  to = dbtcloud_analytics_credential.my_credential
+  id = "1234"
+}
+
+# using the older import command
+terraform import dbtcloud_analytics_credential.my_credential "credential_id"
+terraform import dbtcloud_analytics_credential.my_credential "account_id:credential_id"
+terraform import dbtcloud_analytics_credential.my_credential 1234
+
+# secrets are write-only, so after an import the first plan shows an update
+# that sets the `_wo_version` attributes
+```
