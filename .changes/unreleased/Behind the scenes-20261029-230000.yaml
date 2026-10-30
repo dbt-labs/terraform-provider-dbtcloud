@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: Build with Go 1.26.10, which blocks the compromised emSign (eMudhra) intermediate certificates
+time: 2026-10-29T23:00:00.000000+00:00
