@@ -1,0 +1,3 @@
+kind: Changes
+body: add the `dbtcloud_analytics_credential` resource and the analytics credentials API client
+time: 2026-10-23T11:00:00.000000+00:00
