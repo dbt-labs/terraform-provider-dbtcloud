@@ -260,8 +260,8 @@ func (r *environmentResource) Update(
 		}
 	}
 
-	// Read keeps the configured spelling when the API stores another spelling of the
-	// same version, so a difference here is always a change the user made.
+	// Compare to state, not the API: an equivalent spelling is planned as the state
+	// value, so an unchanged version leaves a stored alias alone.
 	if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
 		envToUpdate.Dbt_Version = plan.DbtVersion.ValueString()
 	}

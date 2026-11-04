@@ -4,6 +4,7 @@ import (
 	"context"
 
 	job_validators "github.com/dbt-labs/terraform-provider-dbtcloud/pkg/framework/objects/job/validators"
+	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/helper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -467,6 +468,9 @@ func (j *jobResource) Schema(
 			"dbt_version": resource_schema.StringAttribute{
 				Optional:    true,
 				Description: "Version number of dbt to use in this job. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`), or an equivalent `v1-` or `v2-` spelling (`v1-latest`, `v1-compatible`, `v1-extended`, `v2-stable`, `v2-extended`, `v2-nightly`, `v2-fallback`). The `v1-` and `v2-` spellings are accepted only when they are enabled for your dbt account. While `versionless` is still supported, using `latest` is recommended. If not set, the `dbt_version` configured on the environment is used.",
+				PlanModifiers: []planmodifier.String{
+					helper.KeepEquivalentDbtVersion{},
+				},
 			},
 			"force_node_selection": resource_schema.BoolAttribute{
 				Optional:    true,

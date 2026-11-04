@@ -227,6 +227,9 @@ func (r *environmentResource) Schema(
 				Validators: []validator.String{
 					helper.DbtVersionValidator{}, // Custom validator to check the dbt version format
 				},
+				PlanModifiers: []planmodifier.String{
+					helper.KeepEquivalentDbtVersion{},
+				},
 			},
 			"type": resource_schema.StringAttribute{
 				Required:    true,

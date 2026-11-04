@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -61,8 +62,7 @@ func IsFusionVersion(dbtVersion string) bool {
 }
 
 // Mirrors dbt-cloud's RELEASE_TRACK_ALIASES, plus versionless, which the API
-// saves as latest. The API returns the spelling it was given, so latest and
-// v1-latest are the same version.
+// saves as latest.
 var dbtVersionAliases = map[string]string{
 	"versionless":   "latest",
 	"v1-latest":     "latest",
@@ -89,4 +89,27 @@ func DbtVersionFromAPI(configured types.String, apiVersion string) types.String 
 		return configured
 	}
 	return types.StringValue(apiVersion)
+}
+
+// KeepEquivalentDbtVersion plans the prior state's spelling when the planned
+// one names the same version, which the plugin protocol allows for
+// semantically equal values. Without it, the first plan after an import or
+// after the UI respelled a value shows a diff that changes nothing.
+type KeepEquivalentDbtVersion struct{}
+
+func (m KeepEquivalentDbtVersion) Description(ctx context.Context) string {
+	return "Keeps the stored dbt_version when the configured one names the same version."
+}
+
+func (m KeepEquivalentDbtVersion) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m KeepEquivalentDbtVersion) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() || req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+	if CanonicalDbtVersion(req.PlanValue.ValueString()) == CanonicalDbtVersion(req.StateValue.ValueString()) {
+		resp.PlanValue = req.StateValue
+	}
 }

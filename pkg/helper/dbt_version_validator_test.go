@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -183,6 +184,43 @@ func TestDbtVersionFromAPI(t *testing.T) {
 			t.Parallel()
 			if got := DbtVersionFromAPI(tc.configured, tc.apiVersion); !got.Equal(tc.expected) {
 				t.Fatalf("DbtVersionFromAPI(%s, %q) = %s, want %s", tc.configured, tc.apiVersion, got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestKeepEquivalentDbtVersion(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		state    types.String
+		plan     types.String
+		expected types.String
+	}{
+		{name: "import: config latest, state v1-latest", state: types.StringValue("v1-latest"), plan: types.StringValue("latest"), expected: types.StringValue("v1-latest")},
+		{name: "respelled config", state: types.StringValue("latest"), plan: types.StringValue("v1-latest"), expected: types.StringValue("latest")},
+		{name: "fusion alias", state: types.StringValue("v2-stable"), plan: types.StringValue("fusion-stable"), expected: types.StringValue("v2-stable")},
+		{name: "versionless", state: types.StringValue("latest"), plan: types.StringValue("versionless"), expected: types.StringValue("latest")},
+		{name: "different version", state: types.StringValue("latest"), plan: types.StringValue("v2-stable"), expected: types.StringValue("v2-stable")},
+		{name: "latest-fusion is not fusion-stable", state: types.StringValue("fusion-stable"), plan: types.StringValue("latest-fusion"), expected: types.StringValue("latest-fusion")},
+		{name: "create", state: types.StringNull(), plan: types.StringValue("latest"), expected: types.StringValue("latest")},
+		{name: "unset on job", state: types.StringValue("latest"), plan: types.StringNull(), expected: types.StringNull()},
+		{name: "unknown plan", state: types.StringValue("latest"), plan: types.StringUnknown(), expected: types.StringUnknown()},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			resp := &planmodifier.StringResponse{PlanValue: tc.plan}
+			KeepEquivalentDbtVersion{}.PlanModifyString(context.Background(), planmodifier.StringRequest{
+				Path:        path.Root("dbt_version"),
+				StateValue:  tc.state,
+				PlanValue:   tc.plan,
+				ConfigValue: tc.plan,
+			}, resp)
+			if !resp.PlanValue.Equal(tc.expected) {
+				t.Fatalf("planned %s, want %s", resp.PlanValue, tc.expected)
 			}
 		})
 	}
