@@ -60,9 +60,9 @@ func IsFusionVersion(dbtVersion string) bool {
 	return false
 }
 
-// dbtVersionAliases maps each alternate spelling of a release track to the
-// name the dbt platform resolves it to. The API stores and returns the
-// spelling it was given, so `latest` and `v1-latest` are the same version.
+// Mirrors dbt-cloud's RELEASE_TRACK_ALIASES, plus versionless, which the API
+// saves as latest. The API returns the spelling it was given, so latest and
+// v1-latest are the same version.
 var dbtVersionAliases = map[string]string{
 	"versionless":   "latest",
 	"v1-latest":     "latest",
@@ -74,8 +74,6 @@ var dbtVersionAliases = map[string]string{
 	"v2-fallback":   "fusion-fallback",
 }
 
-// CanonicalDbtVersion returns the release track name that dbtVersion resolves
-// to, or dbtVersion itself when it is not an alias.
 func CanonicalDbtVersion(dbtVersion string) string {
 	if canonical, ok := dbtVersionAliases[dbtVersion]; ok {
 		return canonical
@@ -83,10 +81,8 @@ func CanonicalDbtVersion(dbtVersion string) string {
 	return dbtVersion
 }
 
-// DbtVersionFromAPI returns the dbt_version to store after reading apiVersion
-// back from the API. It keeps the configured spelling when both name the same
-// version, so a config of `latest` doesn't show a diff after the API returns
-// `v1-latest`.
+// DbtVersionFromAPI keeps the configured spelling when it names the same version
+// as the API's, so a config of latest shows no diff when the API returns v1-latest.
 func DbtVersionFromAPI(configured types.String, apiVersion string) types.String {
 	if !configured.IsNull() && !configured.IsUnknown() &&
 		CanonicalDbtVersion(configured.ValueString()) == CanonicalDbtVersion(apiVersion) {

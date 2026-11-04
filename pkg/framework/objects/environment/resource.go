@@ -260,9 +260,9 @@ func (r *environmentResource) Update(
 		}
 	}
 
-	// Only send dbt_version when it names a different version from the stored
-	// one; `latest` and `v1-latest` are the same version under two spellings.
-	if helper.CanonicalDbtVersion(plan.DbtVersion.ValueString()) != helper.CanonicalDbtVersion(envToUpdate.Dbt_Version) {
+	// Read keeps the configured spelling when the API stores another spelling of the
+	// same version, so a difference here is always a change the user made.
+	if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
 		envToUpdate.Dbt_Version = plan.DbtVersion.ValueString()
 	}
 
