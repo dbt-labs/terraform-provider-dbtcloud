@@ -44,7 +44,7 @@ func (r *environmentDataSource) Schema(
 			},
 			"dbt_version": schema.StringAttribute{
 				Computed:    true,
-				Description: "Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`).",
+				Description: "Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`), or an equivalent `v1-` or `v2-` spelling (`v1-latest`, `v1-compatible`, `v1-extended`, `v2-stable`, `v2-extended`, `v2-nightly`, `v2-fallback`).",
 			},
 			"type": schema.StringAttribute{
 				Computed:    true,
@@ -125,7 +125,7 @@ func (r *environmentsDataSources) Schema(
 						},
 						"dbt_version": schema.StringAttribute{
 							Computed:    true,
-							Description: "Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`).",
+							Description: "Version number of dbt configured on this environment. Will be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`), or an equivalent `v1-` or `v2-` spelling (`v1-latest`, `v1-compatible`, `v1-extended`, `v2-stable`, `v2-extended`, `v2-nightly`, `v2-fallback`).",
 						},
 						"type": schema.StringAttribute{
 							Computed:    true,
@@ -223,9 +223,12 @@ func (r *environmentResource) Schema(
 				Computed:    true,
 				Optional:    true,
 				Default:     stringdefault.StaticString("latest"),
-				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`). While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
+				Description: "Version number of dbt to use in this environment. It needs to be in the format `major.minor.0-latest` (e.g. `1.5.0-latest`), `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, or one of the Fusion release tracks (`latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`), or an equivalent `v1-` or `v2-` spelling (`v1-latest`, `v1-compatible`, `v1-extended`, `v2-stable`, `v2-extended`, `v2-nightly`, `v2-fallback`). The `v1-` and `v2-` spellings are accepted only when they are enabled for your dbt account. While `versionless` is still supported, using `latest` is recommended. Defaults to `latest` if no version is provided",
 				Validators: []validator.String{
 					helper.DbtVersionValidator{}, // Custom validator to check the dbt version format
+				},
+				PlanModifiers: []planmodifier.String{
+					helper.KeepEquivalentDbtVersion{},
 				},
 			},
 			"type": resource_schema.StringAttribute{
