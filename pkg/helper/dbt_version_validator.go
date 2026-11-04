@@ -91,10 +91,11 @@ func DbtVersionFromAPI(configured types.String, apiVersion string) types.String 
 	return types.StringValue(apiVersion)
 }
 
-// KeepEquivalentDbtVersion plans the prior state's spelling when the planned
-// one names the same version, which the plugin protocol allows for
-// semantically equal values. Without it, the first plan after an import or
-// after the UI respelled a value shows a diff that changes nothing.
+// KeepEquivalentDbtVersion plans the prior state's spelling when the config
+// names the same version, which the protocol allows. After an import, state
+// holds the API's spelling. Not used on dbtcloud_job: a plan that differs from
+// state marks job_type and cost_optimization_features unknown, and this would
+// keep that diff on every plan.
 type KeepEquivalentDbtVersion struct{}
 
 func (m KeepEquivalentDbtVersion) Description(ctx context.Context) string {

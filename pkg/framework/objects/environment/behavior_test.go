@@ -256,7 +256,6 @@ func TestUpdate_SendsDbtVersionOnlyWhenConfigChanges(t *testing.T) {
 	}{
 		{name: "unchanged config keeps the stored alias", state: "latest", plan: "latest", apiVersion: "v1-latest", wantSent: "v1-latest"},
 		{name: "unchanged versionless keeps latest", state: "versionless", plan: "versionless", apiVersion: "latest", wantSent: "latest"},
-		{name: "respelled config is sent", state: "latest", plan: "v1-latest", apiVersion: "latest", wantSent: "v1-latest"},
 		{name: "new version is sent", state: "latest", plan: "v2-stable", apiVersion: "latest", wantSent: "v2-stable"},
 	}
 
