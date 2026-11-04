@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/dbt-labs/terraform-provider-dbtcloud/pkg/dbt_cloud"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -144,5 +145,88 @@ func TestRead_404IsTreatedAsSuccess(t *testing.T) {
 
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("regression: Read failed on a 404 instead of treating it as an idempotent success: %v", resp.Diagnostics)
+	}
+}
+
+// TestRead_KeepsConfiguredDbtVersionSpelling covers the API returning a
+// different spelling of the configured release track, e.g. after the dbt
+// platform UI saved `v1-latest` on an environment configured with `latest`.
+// Copying the API value into state would show a diff on every plan.
+func TestRead_KeepsConfiguredDbtVersionSpelling(t *testing.T) {
+	testCases := []struct {
+		configured string
+		apiVersion string
+		expected   string
+	}{
+		{configured: "latest", apiVersion: "v1-latest", expected: "latest"},
+		{configured: "versionless", apiVersion: "latest", expected: "versionless"},
+		{configured: "fusion-stable", apiVersion: "v2-stable", expected: "fusion-stable"},
+		{configured: "v2-stable", apiVersion: "fusion-stable", expected: "v2-stable"},
+		{configured: "latest", apiVersion: "v2-stable", expected: "v2-stable"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.configured+"/"+tc.apiVersion, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					t.Fatalf("unexpected request method %s", r.Method)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"data": {"id": 456, "account_id": 1, "project_id": 123, "name": "test-env", "dbt_version": "` + tc.apiVersion + `", "type": "deployment", "use_custom_branch": false, "state": 1}, "status": {"code": 200, "is_success": true}}`))
+			}))
+			defer server.Close()
+
+			u, err := url.Parse(server.URL)
+			if err != nil {
+				t.Fatalf("failed to parse test server URL: %v", err)
+			}
+			r := &environmentResource{client: &dbt_cloud.Client{
+				HostURL:    u,
+				HTTPClient: server.Client(),
+				AccountID:  1,
+				MaxRetries: 1,
+			}}
+
+			var schemaResp resource.SchemaResponse
+			r.Schema(context.Background(), resource.SchemaRequest{}, &schemaResp)
+			if schemaResp.Diagnostics.HasError() {
+				t.Fatalf("unexpected schema error: %v", schemaResp.Diagnostics)
+			}
+
+			model := &EnvironmentResourceModel{
+				ID:                      types.StringValue("123:456"),
+				EnvironmentID:           types.Int64Value(456),
+				ProjectID:               types.Int64Value(123),
+				CredentialID:            types.Int64Null(),
+				IsActive:                types.BoolValue(true),
+				Name:                    types.StringValue("test-env"),
+				DbtVersion:              types.StringValue(tc.configured),
+				Type:                    types.StringValue("deployment"),
+				UseCustomBranch:         types.BoolValue(false),
+				CustomBranch:            types.StringNull(),
+				DeploymentType:          types.StringNull(),
+				ExtendedAttributesID:    types.Int64Null(),
+				ConnectionID:            types.Int64Null(),
+				EnableModelQueryHistory: types.BoolValue(false),
+				PrimaryProfileID:        types.Int64Null(),
+			}
+
+			state := tfsdk.State{Schema: schemaResp.Schema}
+			if diags := state.Set(context.Background(), model); diags.HasError() {
+				t.Fatalf("failed to build state fixture: %v", diags)
+			}
+
+			resp := &resource.ReadResponse{State: state}
+			r.Read(context.Background(), resource.ReadRequest{State: state}, resp)
+			if resp.Diagnostics.HasError() {
+				t.Fatalf("Read failed: %v", resp.Diagnostics)
+			}
+
+			var got types.String
+			resp.State.GetAttribute(context.Background(), path.Root("dbt_version"), &got)
+			if got.ValueString() != tc.expected {
+				t.Fatalf("dbt_version in state = %q, want %q", got.ValueString(), tc.expected)
+			}
+		})
 	}
 }

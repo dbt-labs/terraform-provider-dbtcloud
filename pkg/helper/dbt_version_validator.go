@@ -6,11 +6,12 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type DbtVersionValidator struct{}
 
-const validDbtVersionsDescription = "`major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, `latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly` or `fusion-fallback`"
+const validDbtVersionsDescription = "`major.minor.0-latest`, `major.minor.0-pre`, `compatible`, `extended`, `versionless`, `latest`, `fallback`, `latest-fusion`, `fusion-stable`, `fusion-extended`, `fusion-nightly`, `fusion-fallback`, or the equivalent `v1-latest`, `v1-compatible`, `v1-extended`, `v2-stable`, `v2-extended`, `v2-nightly` or `v2-fallback`"
 
 func (v DbtVersionValidator) Description(ctx context.Context) string {
 	return "Validates that the dbt_version is in the format " + validDbtVersionsDescription + "."
@@ -30,7 +31,7 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 	dbtVersion := req.ConfigValue.ValueString()
 
 	// Define the regex pattern for valid dbt_version formats
-	validVersionPattern := `^(compatible|extended|latest|fallback|versionless|latest-fusion|fusion-stable|fusion-extended|fusion-nightly|fusion-fallback|[0-9]+\.[0-9]+\.0-(latest|pre))$`
+	validVersionPattern := `^(compatible|extended|latest|fallback|versionless|latest-fusion|fusion-stable|fusion-extended|fusion-nightly|fusion-fallback|v1-latest|v1-compatible|v1-extended|v2-stable|v2-extended|v2-nightly|v2-fallback|[0-9]+\.[0-9]+\.0-(latest|pre))$`
 	matched, err := regexp.MatchString(validVersionPattern, dbtVersion)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -52,9 +53,44 @@ func (v DbtVersionValidator) ValidateString(ctx context.Context, req validator.S
 // IsFusionVersion reports whether the supplied dbt_version string is one of
 // the Fusion release tracks.
 func IsFusionVersion(dbtVersion string) bool {
-	switch dbtVersion {
+	switch CanonicalDbtVersion(dbtVersion) {
 	case "latest-fusion", "fusion-stable", "fusion-extended", "fusion-nightly", "fusion-fallback":
 		return true
 	}
 	return false
+}
+
+// dbtVersionAliases maps each alternate spelling of a release track to the
+// name the dbt platform resolves it to. The API stores and returns the
+// spelling it was given, so `latest` and `v1-latest` are the same version.
+var dbtVersionAliases = map[string]string{
+	"versionless":   "latest",
+	"v1-latest":     "latest",
+	"v1-compatible": "compatible",
+	"v1-extended":   "extended",
+	"v2-stable":     "fusion-stable",
+	"v2-extended":   "fusion-extended",
+	"v2-nightly":    "fusion-nightly",
+	"v2-fallback":   "fusion-fallback",
+}
+
+// CanonicalDbtVersion returns the release track name that dbtVersion resolves
+// to, or dbtVersion itself when it is not an alias.
+func CanonicalDbtVersion(dbtVersion string) string {
+	if canonical, ok := dbtVersionAliases[dbtVersion]; ok {
+		return canonical
+	}
+	return dbtVersion
+}
+
+// DbtVersionFromAPI returns the dbt_version to store after reading apiVersion
+// back from the API. It keeps the configured spelling when both name the same
+// version, so a config of `latest` doesn't show a diff after the API returns
+// `v1-latest`.
+func DbtVersionFromAPI(configured types.String, apiVersion string) types.String {
+	if !configured.IsNull() && !configured.IsUnknown() &&
+		CanonicalDbtVersion(configured.ValueString()) == CanonicalDbtVersion(apiVersion) {
+		return configured
+	}
+	return types.StringValue(apiVersion)
 }
