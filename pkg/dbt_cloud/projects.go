@@ -12,6 +12,7 @@ type ProjectConnectionRepository struct {
 	ConnectionID           int64                                 `json:"connection_id,omitempty"`
 	RepositoryID           int64                                 `json:"repository_id,omitempty"`
 	SemanticLayerConfigID  *int64                                `json:"semantic_layer_config_id,omitempty"`
+	AnalyticsConnectionID  *int64                                `json:"analytics_connection_id,omitempty"`
 	SkippedSetup           bool                                  `json:"skipped_setup,omitempty"`
 	State                  int64                                 `json:"state,omitempty"`
 	DbtProjectSubdirectory string                                `json:"dbt_project_subdirectory,omitempty"`
