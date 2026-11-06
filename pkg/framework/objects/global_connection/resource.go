@@ -1773,7 +1773,8 @@ func (r *globalConnectionResource) handleSSHTunnelUpdates(
 			State:        dbt_cloud.STATE_DELETED,
 		}
 		_, err := c.CreateUpdateEncryption(sshTunnelPayload)
-		if err != nil {
+		// the connection update that came first already removes the tunnel when it leaves it disabled
+		if err != nil && !strings.Contains(err.Error(), "resource-not-found") {
 			return nil, err
 		}
 	} else if sshTunnelPlan != nil && sshTunnelState == nil {

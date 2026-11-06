@@ -1,0 +1,3 @@
+kind: Fixes
+body: Removing the `ssh_tunnel` block of a `dbtcloud_global_connection` no longer fails when the server has already removed the tunnel
+time: 2026-11-06T15:00:00.000000+00:00
