@@ -1,6 +1,6 @@
 package helper
 
-// Additional functions to the samber/lo package.
+// Additional helper functions on top of the samber/lo package.
 
 // Same as Intersect but with a predicate function to compare elements.
 func IntersectBy[T any](list1 []T, list2 []T, predicate func(T, T) bool) []T {
