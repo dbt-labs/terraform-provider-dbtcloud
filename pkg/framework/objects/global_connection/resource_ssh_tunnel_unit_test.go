@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 	"sync"
 	"testing"
 
@@ -27,8 +29,8 @@ type sshTunnelAPI struct {
 	adapterVersion string
 	tunnelEnabled  bool
 	tunnelExists   bool
-	// deleteStatus, when not zero, answers the encryption update call instead of the real behaviour
-	deleteStatus int
+	// failStatus, when not zero, answers every call to the encryption instead of the real behaviour
+	failStatus int
 }
 
 func (a *sshTunnelAPI) connection() map[string]interface{} {
@@ -133,9 +135,9 @@ func (a *sshTunnelAPI) server(t *testing.T) *testhelpers.MockServer {
 		"POST " + encryption: func(r *http.Request) (int, interface{}, error) {
 			a.mu.Lock()
 			defer a.mu.Unlock()
-			if a.deleteStatus != 0 {
-				return a.deleteStatus, map[string]interface{}{
-					"status": map[string]interface{}{"code": a.deleteStatus, "is_success": false, "user_message": "boom"},
+			if a.failStatus != 0 {
+				return a.failStatus, map[string]interface{}{
+					"status": map[string]interface{}{"code": a.failStatus, "is_success": false, "user_message": "boom"},
 				}, nil
 			}
 			if !a.tunnelExists {
@@ -220,6 +222,63 @@ func TestGlobalConnectionSSHTunnel_RemovalSucceedsWhenServerAlreadyRemovedIt(t *
 							resource.TestCheckResourceAttr("dbtcloud_global_connection.test", "is_ssh_tunnel_enabled", "false"),
 							resource.TestCheckNoResourceAttr("dbtcloud_global_connection.test", adapter+".ssh_tunnel.hostname"),
 						),
+					},
+				},
+			})
+		})
+	}
+}
+
+func (a *sshTunnelAPI) failEncryptionCallsWith(status int) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.failStatus = status
+}
+
+// Rule: only an already removed tunnel is accepted when the tunnel is removed or changed.
+// given: a connection with an SSH tunnel and a server that answers the call to the tunnel with an error
+// when: the ssh_tunnel block is removed (a 403 answer), or its hostname is changed (a 404 answer)
+// then: the apply fails with the SSH tunnel error in both cases, and a later apply succeeds.
+func TestGlobalConnectionSSHTunnel_OtherTunnelErrorsStillFail(t *testing.T) {
+	defer enableAcceptanceMode(t)()
+
+	cases := map[string]struct {
+		status int
+		// the configuration of the failing step, applied to a connection that has the tunnel
+		failingTunnel func(hostURL string) string
+	}{
+		"removal answered with a 403": {
+			status:        http.StatusForbidden,
+			failingTunnel: func(hostURL string) string { return sshTunnelConfig(hostURL, "postgres", false) },
+		},
+		"hostname change answered with a 404": {
+			status: http.StatusNotFound,
+			failingTunnel: func(hostURL string) string {
+				return strings.Replace(sshTunnelConfig(hostURL, "postgres", true), `hostname = "host2"`, `hostname = "host3"`, 1)
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			api := &sshTunnelAPI{adapterVersion: "postgres_v0"}
+			srv := api.server(t)
+			defer srv.Close()
+
+			resource.Test(t, resource.TestCase{
+				ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{Config: sshTunnelConfig(srv.URL, "postgres", false)},
+					{Config: sshTunnelConfig(srv.URL, "postgres", true)},
+					{
+						PreConfig:   func() { api.failEncryptionCallsWith(tc.status) },
+						Config:      tc.failingTunnel(srv.URL),
+						ExpectError: regexp.MustCompile(`Error with the SSH Tunnel`),
+					},
+					{
+						// the tunnel calls work again, so the connection can be destroyed afterwards
+						PreConfig: func() { api.failEncryptionCallsWith(0) },
+						Config:    sshTunnelConfig(srv.URL, "postgres", true),
 					},
 				},
 			})
