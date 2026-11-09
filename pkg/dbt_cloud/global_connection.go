@@ -58,6 +58,8 @@ type GlobalConnectionCommon struct {
 	IsSshTunnelEnabled    *bool                     `json:"is_ssh_tunnel_enabled,omitempty"`
 	PrivateLinkEndpointId nullable.Nullable[string] `json:"private_link_endpoint_id,omitempty"`
 	OauthConfigurationId  nullable.Nullable[int64]  `json:"oauth_configuration_id,omitempty"`
+	// AnalyticsCredentialsId is read-only: it is returned by the API and never sent back
+	AnalyticsCredentialsId nullable.Nullable[int64] `json:"analytics_credentials_id,omitempty"`
 	// OauthRedirectUri           *string `json:"oauth_redirect_uri"` //those are read-only fields, we could maybe get them as Computed but never send them
 	// IsConfiguredForNativeOauth bool    `json:"is_configured_for_native_oauth"`
 }
