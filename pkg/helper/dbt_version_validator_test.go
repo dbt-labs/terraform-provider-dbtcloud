@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -144,6 +145,9 @@ func TestEveryDbtVersionAliasIsValid(t *testing.T) {
 	t.Parallel()
 
 	for alias, canonical := range dbtVersionAliases {
+		if !slices.Contains(dbtReleaseTracks, canonical) {
+			t.Errorf("alias %q targets %q, which is not in dbtReleaseTracks", alias, canonical)
+		}
 		for _, v := range []string{alias, canonical} {
 			response := validator.StringResponse{}
 			DbtVersionValidator{}.ValidateString(context.Background(), validator.StringRequest{
