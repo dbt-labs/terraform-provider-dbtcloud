@@ -1,0 +1,3 @@
+kind: Changes
+body: add the `analytics_connection_id` attribute on the `dbtcloud_project` resource and on the `dbtcloud_project` and `dbtcloud_projects` data sources
+time: 2026-10-29T10:00:00.000000+00:00

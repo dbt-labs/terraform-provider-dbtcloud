@@ -12,6 +12,7 @@ type ProjectConnectionRepository struct {
 	Name                   types.String       `tfsdk:"name"`
 	Description            types.String       `tfsdk:"description"`
 	SemanticLayerConfigID  types.Int64        `tfsdk:"semantic_layer_config_id"`
+	AnalyticsConnectionID  types.Int64        `tfsdk:"analytics_connection_id"`
 	DbtProjectSubdirectory types.String       `tfsdk:"dbt_project_subdirectory"`
 	DbtProjectType         types.Int64        `tfsdk:"type"`
 	CreatedAt              types.String       `tfsdk:"created_at"`
@@ -25,6 +26,7 @@ type ProjectDataSourceModel struct {
 	Name                   types.String       `tfsdk:"name"`
 	Description            types.String       `tfsdk:"description"`
 	SemanticLayerConfigID  types.Int64        `tfsdk:"semantic_layer_config_id"`
+	AnalyticsConnectionID  types.Int64        `tfsdk:"analytics_connection_id"`
 	DbtProjectSubdirectory types.String       `tfsdk:"dbt_project_subdirectory"`
 	DbtProjectType         types.Int64        `tfsdk:"type"`
 	CreatedAt              types.String       `tfsdk:"created_at"`
@@ -54,4 +56,5 @@ type ProjectResourceModel struct {
 	Description            types.String `tfsdk:"description"`
 	DbtProjectSubdirectory types.String `tfsdk:"dbt_project_subdirectory"`
 	DbtProjectType         types.Int64  `tfsdk:"type"`
+	AnalyticsConnectionID  types.Int64  `tfsdk:"analytics_connection_id"`
 }
