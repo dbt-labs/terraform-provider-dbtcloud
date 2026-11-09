@@ -190,13 +190,13 @@ func enableAcceptanceMode(t *testing.T) func() {
 	}
 }
 
-// Rule: removing an SSH tunnel succeeds when the server has already removed the tunnel.
+// Rule: removing an SSH tunnel relies on the connection update and does not call the tunnel.
 // given: a connection with an SSH tunnel, and a server that removes the tunnel when the connection
-// update leaves the tunnel disabled
+// update leaves the tunnel disabled (a call to the removed tunnel answers 404)
 // when: the ssh_tunnel block is removed from the configuration and applied
-// then: the apply succeeds although the call to the removed tunnel answers 404, the state has no
-// ssh_tunnel and is_ssh_tunnel_enabled is false.
-func TestGlobalConnectionSSHTunnel_RemovalSucceedsWhenServerAlreadyRemovedIt(t *testing.T) {
+// then: the apply succeeds, no call is made to the tunnel, the state has no ssh_tunnel and
+// is_ssh_tunnel_enabled is false.
+func TestGlobalConnectionSSHTunnel_RemovalDoesNotCallTheTunnel(t *testing.T) {
 	defer enableAcceptanceMode(t)()
 
 	for adapter, adapterVersion := range map[string]string{"postgres": "postgres_v0", "redshift": "redshift_v0"} {
@@ -225,6 +225,11 @@ func TestGlobalConnectionSSHTunnel_RemovalSucceedsWhenServerAlreadyRemovedIt(t *
 					},
 				},
 			})
+
+			encryptionPath := fmt.Sprintf("/v2/accounts/%d/encryptions/%d/", sshAccountID, sshEncryptionID)
+			if calls := srv.GetCapturedCalls(encryptionPath); len(calls) != 0 {
+				t.Errorf("expected no call to the tunnel when it is removed, got %d", len(calls))
+			}
 		})
 	}
 }
@@ -235,53 +240,34 @@ func (a *sshTunnelAPI) failEncryptionCallsWith(status int) {
 	a.failStatus = status
 }
 
-// Rule: only an already removed tunnel is accepted when the tunnel is removed or changed.
-// given: a connection with an SSH tunnel and a server that answers the call to the tunnel with an error
-// when: the ssh_tunnel block is removed (a 403 answer), or its hostname is changed (a 404 answer)
-// then: the apply fails with the SSH tunnel error in both cases, and a later apply succeeds.
-func TestGlobalConnectionSSHTunnel_OtherTunnelErrorsStillFail(t *testing.T) {
+// Rule: an error on the tunnel call still fails the apply when the tunnel is changed.
+// given: a connection with an SSH tunnel and a server that answers the call to the tunnel with a 404
+// when: the hostname of the tunnel is changed and applied
+// then: the apply fails with the SSH tunnel error, and a later apply succeeds.
+func TestGlobalConnectionSSHTunnel_TunnelChangeErrorStillFails(t *testing.T) {
 	defer enableAcceptanceMode(t)()
 
-	cases := map[string]struct {
-		status int
-		// the configuration of the failing step, applied to a connection that has the tunnel
-		failingTunnel func(hostURL string) string
-	}{
-		"removal answered with a 403": {
-			status:        http.StatusForbidden,
-			failingTunnel: func(hostURL string) string { return sshTunnelConfig(hostURL, "postgres", false) },
-		},
-		"hostname change answered with a 404": {
-			status: http.StatusNotFound,
-			failingTunnel: func(hostURL string) string {
-				return strings.Replace(sshTunnelConfig(hostURL, "postgres", true), `hostname = "host2"`, `hostname = "host3"`, 1)
+	api := &sshTunnelAPI{adapterVersion: "postgres_v0"}
+	srv := api.server(t)
+	defer srv.Close()
+
+	changedHostname := strings.Replace(sshTunnelConfig(srv.URL, "postgres", true), `hostname = "host2"`, `hostname = "host3"`, 1)
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: sshTunnelConfig(srv.URL, "postgres", false)},
+			{Config: sshTunnelConfig(srv.URL, "postgres", true)},
+			{
+				PreConfig:   func() { api.failEncryptionCallsWith(http.StatusNotFound) },
+				Config:      changedHostname,
+				ExpectError: regexp.MustCompile(`Error with the SSH Tunnel`),
+			},
+			{
+				// the tunnel calls work again, so the connection can be destroyed afterwards
+				PreConfig: func() { api.failEncryptionCallsWith(0) },
+				Config:    sshTunnelConfig(srv.URL, "postgres", true),
 			},
 		},
-	}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			api := &sshTunnelAPI{adapterVersion: "postgres_v0"}
-			srv := api.server(t)
-			defer srv.Close()
-
-			resource.Test(t, resource.TestCase{
-				ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{Config: sshTunnelConfig(srv.URL, "postgres", false)},
-					{Config: sshTunnelConfig(srv.URL, "postgres", true)},
-					{
-						PreConfig:   func() { api.failEncryptionCallsWith(tc.status) },
-						Config:      tc.failingTunnel(srv.URL),
-						ExpectError: regexp.MustCompile(`Error with the SSH Tunnel`),
-					},
-					{
-						// the tunnel calls work again, so the connection can be destroyed afterwards
-						PreConfig: func() { api.failEncryptionCallsWith(0) },
-						Config:    sshTunnelConfig(srv.URL, "postgres", true),
-					},
-				},
-			})
-		})
-	}
+	})
 }

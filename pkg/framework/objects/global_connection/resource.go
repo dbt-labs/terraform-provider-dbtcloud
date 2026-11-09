@@ -1761,22 +1761,9 @@ func (r *globalConnectionResource) handleSSHTunnelUpdates(
 ) (*SSHTunnelConfig, error) {
 	c := dbt_cloud.NewGlobalConnectionClient[dbt_cloud.RedshiftConfig](r.client)
 	if sshTunnelPlan == nil && sshTunnelState != nil {
-		// delete the encryption
-		valueID := sshTunnelState.ID.ValueInt64()
-		sshTunnelPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
-			ID:           &valueID,
-			AccountID:    accountID,
-			ConnectionID: connectionID,
-			Username:     sshTunnelState.Username.ValueString(),
-			Port:         sshTunnelState.Port.ValueInt64(),
-			HostName:     sshTunnelState.HostName.ValueString(),
-			State:        dbt_cloud.STATE_DELETED,
-		}
-		_, err := c.CreateUpdateEncryption(sshTunnelPayload)
-		// the connection update that came first already removes the tunnel when it leaves it disabled
-		if err != nil && !strings.Contains(err.Error(), "resource-not-found") {
-			return nil, err
-		}
+		// nothing to call: the connection update that came first leaves the tunnel disabled, and the
+		// server removes the tunnel with it
+		return nil, nil
 	} else if sshTunnelPlan != nil && sshTunnelState == nil {
 		// create the encryption
 		sshPayload := dbt_cloud.GlobalConnectionEncryptionPayload{
