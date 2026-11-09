@@ -74,12 +74,7 @@ func (r *environmentResource) Read(
 	state.Name = types.StringValue(environment.Name)
 	state.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
 
-	// Handle versionless to latest conversion
-	if state.DbtVersion.ValueString() == "versionless" && environment.Dbt_Version == "latest" {
-		state.DbtVersion = types.StringValue("versionless")
-	} else {
-		state.DbtVersion = types.StringValue(environment.Dbt_Version)
-	}
+	state.DbtVersion = helper.DbtVersionFromAPI(state.DbtVersion, environment.Dbt_Version)
 
 	state.Type = types.StringValue(environment.Type)
 	state.UseCustomBranch = types.BoolValue(environment.Use_Custom_Branch)
@@ -180,12 +175,7 @@ func (r *environmentResource) Create(
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", plan.ProjectID.ValueInt64(), plan.EnvironmentID.ValueInt64()))
 	plan.IsActive = types.BoolValue(environment.State == dbt_cloud.STATE_ACTIVE)
 
-	// Handle versionless to latest conversion
-	if plan.DbtVersion.ValueString() == "versionless" && environment.Dbt_Version == "latest" {
-		plan.DbtVersion = types.StringValue("versionless")
-	} else {
-		plan.DbtVersion = types.StringValue(environment.Dbt_Version)
-	}
+	plan.DbtVersion = helper.DbtVersionFromAPI(plan.DbtVersion, environment.Dbt_Version)
 
 	if plan.Type.IsUnknown() {
 		plan.Type = types.StringValue(environment.Type)
@@ -270,10 +260,9 @@ func (r *environmentResource) Update(
 		}
 	}
 
-	// Handle versionless to latest conversion
-	if plan.DbtVersion.ValueString() == "versionless" && envToUpdate.Dbt_Version == "latest" {
-		plan.DbtVersion = types.StringValue("versionless")
-	} else if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
+	// Compare to state, not the API: an equivalent spelling is planned as the state
+	// value, so an unchanged version leaves a stored alias alone.
+	if plan.DbtVersion.ValueString() != state.DbtVersion.ValueString() {
 		envToUpdate.Dbt_Version = plan.DbtVersion.ValueString()
 	}
 

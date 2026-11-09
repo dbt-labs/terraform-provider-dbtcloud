@@ -500,7 +500,7 @@ func (j *jobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.ExecuteSteps = helper.SliceStringToSliceTypesString(retrievedJob.ExecuteSteps)
 
 	if retrievedJob.DbtVersion != nil {
-		state.DbtVersion = types.StringValue(*retrievedJob.DbtVersion)
+		state.DbtVersion = helper.DbtVersionFromAPI(state.DbtVersion, *retrievedJob.DbtVersion)
 	} else {
 		state.DbtVersion = types.StringNull()
 	}
