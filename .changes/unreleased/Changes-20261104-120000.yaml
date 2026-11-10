@@ -1,3 +1,0 @@
-kind: Changes
-body: accept the `v1-` and `v2-` spellings of the dbt release tracks (`v1-latest`, `v2-stable`, ...) for `dbt_version` on `dbtcloud_environment` and `dbtcloud_job`, treat `v2-` tracks as Fusion, and stop showing a diff when the configured and stored values are two spellings of the same version, including after importing a `dbtcloud_environment`
-time: 2026-11-04T12:00:00.000000+00:00
