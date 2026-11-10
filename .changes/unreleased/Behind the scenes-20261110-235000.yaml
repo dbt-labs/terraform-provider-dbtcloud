@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: stop building the windows/arm (32-bit) binary, which Go 1.26 no longer supports and which failed the v1.12.13 release
+time: 2026-11-10T23:50:00.000000+00:00
