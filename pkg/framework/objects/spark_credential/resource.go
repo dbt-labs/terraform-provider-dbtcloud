@@ -213,6 +213,10 @@ func (d *sparkCredentialResource) Read(ctx context.Context, req resource.ReadReq
 
 	credential, err := d.client.GetSparkCredential(projectID, credentialID)
 	if err != nil {
+		if helper.HandleResourceNotFound(ctx, err, &resp.Diagnostics, &resp.State, "Apache Spark credential") {
+			return
+		}
+
 		resp.Diagnostics.AddError("Error reading Apache Spark credential", "Could not read Apache Spark credential ID "+state.ID.ValueString()+": "+err.Error())
 		return
 	}
