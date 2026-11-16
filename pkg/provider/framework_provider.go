@@ -378,6 +378,7 @@ func (p *dbtCloudProvider) Resources(_ context.Context) []func() resource.Resour
 		partial_notification.PartialNotificationResource,
 		platform_metadata_credentials.SnowflakePlatformMetadataCredentialResource,
 		platform_metadata_credentials.DatabricksPlatformMetadataCredentialResource,
+		platform_metadata_credentials.BigQueryPlatformMetadataCredentialResource,
 		profile.ProfileResource,
 		project_artefacts.ProjectArtefactsResource,
 		repository.RepositoryResource,
