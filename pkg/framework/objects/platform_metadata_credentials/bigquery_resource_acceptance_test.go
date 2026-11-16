@@ -32,12 +32,9 @@ var bqAccImpersonationURLPattern = regexp.MustCompile(
 )
 
 // bqAccConnection returns a BigQuery global connection. v1 selects the latest adapter
-// (bigquery_v1), which is the only one that supports WIF.
+// (bigquery_v1), which is the only one that supports WIF; otherwise the legacy bigquery_v0 is used.
 func bqAccConnection(name string, v1 bool, impersonate string) string {
-	extra := ""
-	if v1 {
-		extra += "\n    use_latest_adapter = true"
-	}
+	extra := fmt.Sprintf("\n    use_latest_adapter = %t", v1)
 	if impersonate != "" {
 		extra += fmt.Sprintf("\n    impersonate_service_account = %q", impersonate)
 	}
@@ -216,7 +213,7 @@ func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceWIF(t *testing.T) 
 		t.Run(name, func(t *testing.T) {
 			connection := bqAccConnection(bqAccName(), true, tc.impersonate)
 
-			resource.Test(t, resource.TestCase{
+			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 				ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 				CheckDestroy:             testAccCheckDbtCloudBigQueryPlatformMetadataCredentialDestroy,
@@ -262,7 +259,7 @@ func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceSwitchAuth(t *test
 	wif := connection + bqAccCredential(bqAccWIF(""))
 	credentialID := ""
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudBigQueryPlatformMetadataCredentialDestroy,
@@ -272,6 +269,7 @@ func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceSwitchAuth(t *test
 				Check: resource.ComposeTestCheckFunc(
 					credentialIDSame(&credentialID),
 					resource.TestCheckResourceAttr(bqAccResource, "auth_type", "service-account-json"),
+					resource.TestCheckResourceAttr(bqAccResource, "adapter_version", "bigquery_v1"),
 					resource.TestCheckNoResourceAttr(bqAccResource, "service_account_impersonation_url"),
 				),
 			},
@@ -307,46 +305,75 @@ func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceSwitchAuth(t *test
 	})
 }
 
-// write-only attributes require Terraform >= 1.11
+// write-only attributes require Terraform >= 1.11. The key is rotated the same way on both adapters.
 func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceWriteOnly(t *testing.T) {
-	connection := bqAccConnection(bqAccName(), true, "")
-	config := func(key string, version int) string {
-		return connection + bqAccCredential(bqAccServiceAccount(
-			fmt.Sprintf("private_key_wo = %q\n  private_key_wo_version = %d", key, version), "key-id-1", "",
-		))
-	}
-	credentialID := ""
+	for name, adapter := range map[string]struct {
+		v1      bool
+		version string
+	}{
+		"bigquery_v0": {false, "bigquery_v0"},
+		"bigquery_v1": {true, "bigquery_v1"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			connection := bqAccConnection(bqAccName(), adapter.v1, "")
+			config := func(key string, version int) string {
+				return connection + bqAccCredential(bqAccServiceAccount(
+					fmt.Sprintf("private_key_wo = %q\n  private_key_wo_version = %d", key, version), "key-id-1", "",
+				))
+			}
+			credentialID := ""
 
-	resource.Test(t, resource.TestCase{
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+				ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+				CheckDestroy:             testAccCheckDbtCloudBigQueryPlatformMetadataCredentialDestroy,
+				TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+					tfversion.SkipBelow(tfversion.Version1_11_0),
+				},
+				Steps: []resource.TestStep{
+					{
+						Config: config("first-key", 1),
+						Check: resource.ComposeTestCheckFunc(
+							credentialIDSame(&credentialID),
+							resource.TestCheckResourceAttr(bqAccResource, "adapter_version", adapter.version),
+							resource.TestCheckNoResourceAttr(bqAccResource, "private_key_wo"),
+							resource.TestCheckNoResourceAttr(bqAccResource, "private_key"),
+							resource.TestCheckResourceAttr(bqAccResource, "private_key_wo_version", "1"),
+						),
+					},
+					{
+						// bumping the version rotates the key in place
+						Config: config("second-key", 2),
+						Check: resource.ComposeTestCheckFunc(
+							credentialIDSame(&credentialID),
+							resource.TestCheckResourceAttr(bqAccResource, "private_key_wo_version", "2"),
+						),
+					},
+					{
+						ResourceName:            bqAccResource,
+						ImportState:             true,
+						ImportStateVerify:       true,
+						ImportStateVerifyIgnore: []string{"private_key_wo_version"},
+					},
+				},
+			})
+		})
+	}
+}
+
+// WIF needs bigquery_v1. On bigquery_v0 dbt Cloud validates the config as a service account key
+// and rejects it, and the provider adds a hint to the error.
+func TestAccDbtCloudBigQueryPlatformMetadataCredentialResourceWIFOnV0(t *testing.T) {
+	connection := bqAccConnection(bqAccName(), false, "")
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckDbtCloudBigQueryPlatformMetadataCredentialDestroy,
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_11_0),
-		},
 		Steps: []resource.TestStep{
 			{
-				Config: config("first-key", 1),
-				Check: resource.ComposeTestCheckFunc(
-					credentialIDSame(&credentialID),
-					resource.TestCheckNoResourceAttr(bqAccResource, "private_key_wo"),
-					resource.TestCheckNoResourceAttr(bqAccResource, "private_key"),
-					resource.TestCheckResourceAttr(bqAccResource, "private_key_wo_version", "1"),
-				),
-			},
-			{
-				// bumping the version rotates the key in place
-				Config: config("second-key", 2),
-				Check: resource.ComposeTestCheckFunc(
-					credentialIDSame(&credentialID),
-					resource.TestCheckResourceAttr(bqAccResource, "private_key_wo_version", "2"),
-				),
-			},
-			{
-				ResourceName:            bqAccResource,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"private_key_wo_version"},
+				Config:      connection + bqAccCredential(bqAccWIF("")),
+				ExpectError: regexp.MustCompile(`external-oauth-wif requires a bigquery_v1\s+connection`),
 			},
 		},
 	})
