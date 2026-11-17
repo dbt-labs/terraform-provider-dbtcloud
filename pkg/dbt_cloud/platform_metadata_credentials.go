@@ -34,7 +34,7 @@ type PlatformMetadataCredential struct {
 }
 
 // PlatformMetadataCredentialConfig represents the adapter-specific configuration
-// This uses a flexible structure to support different adapters (Snowflake, Databricks)
+// This uses a flexible structure to support different adapters (Snowflake, Databricks, BigQuery)
 type PlatformMetadataCredentialConfig struct {
 	// Common/Snowflake fields
 	AuthType             string `json:"auth_type,omitempty"`
@@ -48,6 +48,17 @@ type PlatformMetadataCredentialConfig struct {
 	// Databricks fields
 	Token   string `json:"token,omitempty"`
 	Catalog string `json:"catalog,omitempty"`
+
+	// BigQuery fields. AuthType and PrivateKey above are shared.
+	PrivateKeyID                   string `json:"private_key_id,omitempty"`
+	ClientEmail                    string `json:"client_email,omitempty"`
+	ClientID                       string `json:"client_id,omitempty"`
+	AuthURI                        string `json:"auth_uri,omitempty"`
+	TokenURI                       string `json:"token_uri,omitempty"`
+	AuthProviderX509CertURL        string `json:"auth_provider_x509_cert_url,omitempty"`
+	ClientX509CertURL              string `json:"client_x509_cert_url,omitempty"`
+	WorkloadPoolProviderPath       string `json:"workload_pool_provider_path,omitempty"`
+	ServiceAccountImpersonationURL string `json:"service_account_impersonation_url,omitempty"`
 }
 
 // GetPlatformMetadataCredential retrieves a single platform metadata credential by ID

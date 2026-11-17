@@ -54,3 +54,36 @@ type DatabricksPlatformMetadataCredentialResourceModel struct {
 	// Read-only fields
 	AdapterVersion types.String `tfsdk:"adapter_version"`
 }
+
+// BigQueryPlatformMetadataCredentialResourceModel represents the Terraform state for BigQuery
+type BigQueryPlatformMetadataCredentialResourceModel struct {
+	ID           types.String `tfsdk:"id"`
+	CredentialID types.Int64  `tfsdk:"credential_id"`
+	ConnectionID types.Int64  `tfsdk:"connection_id"`
+
+	// Feature flags
+	CatalogIngestionEnabled types.Bool `tfsdk:"catalog_ingestion_enabled"`
+	CostOptimizationEnabled types.Bool `tfsdk:"cost_optimization_enabled"`
+	CostInsightsEnabled     types.Bool `tfsdk:"cost_insights_enabled"`
+
+	AuthType types.String `tfsdk:"auth_type"`
+
+	// Service account JSON fields
+	PrivateKey              types.String `tfsdk:"private_key"`
+	PrivateKeyWo            types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion     types.Int64  `tfsdk:"private_key_wo_version"`
+	PrivateKeyID            types.String `tfsdk:"private_key_id"`
+	ClientEmail             types.String `tfsdk:"client_email"`
+	ClientID                types.String `tfsdk:"client_id"`
+	AuthURI                 types.String `tfsdk:"auth_uri"`
+	TokenURI                types.String `tfsdk:"token_uri"`
+	AuthProviderX509CertURL types.String `tfsdk:"auth_provider_x509_cert_url"`
+	ClientX509CertURL       types.String `tfsdk:"client_x509_cert_url"`
+
+	// Workload identity federation fields
+	WorkloadPoolProviderPath       types.String `tfsdk:"workload_pool_provider_path"`
+	ServiceAccountImpersonationURL types.String `tfsdk:"service_account_impersonation_url"`
+
+	// Read-only fields
+	AdapterVersion types.String `tfsdk:"adapter_version"`
+}
