@@ -1,3 +1,0 @@
-kind: Changes
-body: add the `dbtcloud_bigquery_platform_metadata_credential` resource to manage BigQuery platform metadata credentials (service account key and Workload Identity Federation), with in-place key rotation
-time: 2026-11-16T13:52:55.345566Z
