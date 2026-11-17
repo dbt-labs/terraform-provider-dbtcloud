@@ -438,6 +438,36 @@ func TestBigQueryPMC_WriteOnlyKey_CreateAndRotate(t *testing.T) {
 	})
 }
 
+// A new private_key_id with the same write-only version still sends the key, so the stored key
+// isn't kept under the new ID.
+func TestBigQueryPMC_WriteOnlyKey_KeyIDChangeSendsKey(t *testing.T) {
+	api := newFakeBigQueryAPI(t, "bigquery_v1", false)
+	config := func(keyID string) string {
+		return bqConfig(api.srv.URL, strings.Replace(
+			bqServiceAccountBody("private_key_wo = \"the-key\"\n  private_key_wo_version = 1", ""),
+			"key-id-1", keyID, 1,
+		))
+	}
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		TerraformVersionChecks:   bqWriteOnlyVersionCheck,
+		Steps: []resource.TestStep{
+			{Config: config("key-id-1")},
+			{
+				Config: config("key-id-2"),
+				Check: resource.ComposeTestCheckFunc(
+					api.checkSent(http.MethodPatch, 0, map[string]string{
+						"private_key":    "the-key",
+						"private_key_id": "key-id-2",
+					}),
+					resource.TestCheckResourceAttr(bqResourceName, "private_key_id", "key-id-2"),
+				),
+			},
+		},
+	})
+}
+
 // The validators on private_key point at private_key_wo with a relative path. They only run when
 // the plain key is set, so a plan with it catches path expression errors.
 func TestBigQueryPMC_PlainSecret_PlanOnly(t *testing.T) {

@@ -364,6 +364,7 @@ func (r *bigQueryPlatformMetadataCredentialResource) Update(
 		!plan.AuthType.Equal(state.AuthType)
 	if !plan.PrivateKey.Equal(state.PrivateKey) ||
 		!plan.PrivateKeyWoVersion.Equal(state.PrivateKeyWoVersion) ||
+		!plan.PrivateKeyID.Equal(state.PrivateKeyID) ||
 		switchesToServiceAccount {
 		privateKey = helper.ResolveWriteOnlyString(config.PrivateKeyWo, plan.PrivateKey)
 	}
