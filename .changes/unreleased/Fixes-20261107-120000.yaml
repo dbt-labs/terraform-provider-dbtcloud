@@ -1,0 +1,3 @@
+kind: Fixes
+body: remove `dbtcloud_databricks_credential` and `dbtcloud_spark_credential` from the state when Read gets a 404, instead of failing every plan after the credential was deleted outside of Terraform
+time: 2026-11-07T12:00:00.000000+00:00
