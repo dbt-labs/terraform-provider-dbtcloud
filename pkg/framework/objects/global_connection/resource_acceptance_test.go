@@ -2550,3 +2550,68 @@ resource dbtcloud_global_connection test {
 
 `, connectionName, privateKeyWo, privateKeyWoVersion)
 }
+
+func TestAccDbtCloudGlobalConnectionFabricExternalOAuthResource(t *testing.T) {
+	// Rule: A Fabric connection attaches to an Entra OAuth configuration with no drift
+	//
+	// given: the Fabric External OAuth opt-in and an Entra OAuth configuration
+	// when: a Fabric connection is created with its id and then planned and imported
+	// then: the connection keeps the configuration id and nothing drifts
+	acctest_helper.SkipUnlessFabricOAuth(t)
+
+	connectionName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+	oAuthConfigurationClientID := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudGlobalConnectionFabricExternalOAuthConfig(
+					connectionName,
+					oAuthConfigurationClientID,
+				),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(
+						"dbtcloud_global_connection.test",
+						"oauth_configuration_id",
+						"dbtcloud_oauth_configuration.test",
+						"id",
+					),
+				),
+			},
+			{
+				ResourceName:      "dbtcloud_global_connection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccDbtCloudGlobalConnectionFabricExternalOAuthConfig(
+	connectionName, oAuthConfigurationClientID string,
+) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_oauth_configuration" "test" {
+  type               = "entra"
+  name               = "OAuth config %s"
+  client_secret      = "secret"
+  client_id          = "%s"
+  redirect_uri       = "http://example.com"
+  token_url          = "http://example.com"
+  authorize_url      = "http://example.com"
+  application_id_uri = "app-uri"
+}
+
+resource "dbtcloud_global_connection" "test" {
+  name                   = "%s"
+  oauth_configuration_id = dbtcloud_oauth_configuration.test.id
+
+  fabric = {
+    server   = "example.com"
+    database = "database"
+  }
+}
+`, oAuthConfigurationClientID, oAuthConfigurationClientID, connectionName)
+}

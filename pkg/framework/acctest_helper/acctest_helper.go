@@ -61,6 +61,15 @@ func TestAccPreCheck(t *testing.T) {
 	}
 }
 
+// SkipUnlessFabricOAuth skips a test that needs the Fabric External OAuth rollout flag and the
+// account's External OAuth feature. Set ACC_TEST_FABRIC_OAUTH=true on an account that has both.
+func SkipUnlessFabricOAuth(t *testing.T) {
+	t.Helper()
+	if os.Getenv("ACC_TEST_FABRIC_OAUTH") != "true" {
+		t.Skip("set ACC_TEST_FABRIC_OAUTH=true to run the Fabric External OAuth tests")
+	}
+}
+
 func HelperTestResourceSchema[R resource.Resource](t *testing.T, r R) {
 	ctx := context.Background()
 
