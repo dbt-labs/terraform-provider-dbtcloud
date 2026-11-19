@@ -54,6 +54,11 @@ func getBasicConfigTestStep(projectName, user, password string) resource.TestSte
 			),
 			resource.TestCheckResourceAttr(
 				"dbtcloud_fabric_credential.test_credential",
+				"authentication",
+				"ActiveDirectoryPassword",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_fabric_credential.test_credential",
 				"user",
 				user,
 			),
@@ -82,6 +87,11 @@ func getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret strin
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudFabricCredentialExists(
 				"dbtcloud_fabric_credential.test_credential",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_fabric_credential.test_credential",
+				"authentication",
+				"ServicePrincipal",
 			),
 			resource.TestCheckResourceAttr(
 				"dbtcloud_fabric_credential.test_credential",
@@ -470,15 +480,6 @@ func testAccDbtCloudFabricCredentialResourceExternalOAuthConfig(projectName stri
 	return fmt.Sprintf(`
 resource "dbtcloud_project" "test_project" {
   name = "%s"
-}
-
-resource "dbtcloud_global_connection" "fabric" {
-  name = "My Fabric connection"
-  fabric = {
-    database = "testdb"
-    server   = "example.com"
-    port     = 1234
-  }
 }
 
 resource "dbtcloud_fabric_credential" "test_credential" {

@@ -370,10 +370,15 @@ func (r *fabricCredentialResource) ImportState(
 		Schema:              types.StringValue(credential.UnencryptedCredentialDetails.Schema),
 		SchemaAuthorization: types.StringValue(credential.UnencryptedCredentialDetails.SchemaAuthorization),
 		User:                types.StringValue(credential.UnencryptedCredentialDetails.User),
-		Authentication:      types.StringValue(credential.UnencryptedCredentialDetails.Authentication),
-		ClientId:            types.StringValue(credential.UnencryptedCredentialDetails.ClientId),
-		TenantId:            types.StringValue(credential.UnencryptedCredentialDetails.TenantId),
-		AdapterType:         types.StringValue(credential.AdapterVersion),
+		Authentication: types.StringValue(
+			resolveAuthentication(
+				types.StringValue(credential.UnencryptedCredentialDetails.Authentication),
+				credential.UnencryptedCredentialDetails.User,
+			),
+		),
+		ClientId:    types.StringValue(credential.UnencryptedCredentialDetails.ClientId),
+		TenantId:    types.StringValue(credential.UnencryptedCredentialDetails.TenantId),
+		AdapterType: types.StringValue(credential.AdapterVersion),
 	}
 
 	// Set state to fully populated data
