@@ -10,6 +10,17 @@ resource "dbtcloud_oauth_configuration" "entra" {
   application_id_uri = "uri"
 }
 
+// Using an Entra configuration with a Fabric connection (the credential then uses `authentication = "external_oauth"`)
+resource "dbtcloud_global_connection" "fabric_with_entra" {
+  name                   = "My Fabric connection"
+  oauth_configuration_id = dbtcloud_oauth_configuration.entra.id
+
+  fabric = {
+    server   = "example.datawarehouse.fabric.microsoft.com"
+    database = "my_database"
+  }
+}
+
 resource "dbtcloud_oauth_configuration" "okta" {
   type          = "okta"
   name          = "My Okta Oauth integration"

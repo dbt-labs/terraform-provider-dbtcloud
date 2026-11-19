@@ -22,7 +22,7 @@ func (r *oAuthConfigurationResource) Schema(
 ) {
 	resp.Schema = resource_schema.Schema{
 		Description: helper.DocString(
-			`Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
+			`Configure an external OAuth integration for the data warehouse. Supports Okta and Entra ID (i.e. Azure AD) for the connection types that support External OAuth, for example Snowflake and Fabric (Entra ID).
 			
 			See the [documentation](https://docs.getdbt.com/docs/cloud/manage-access/external-oauth) for more information on how to configure it.`,
 		),

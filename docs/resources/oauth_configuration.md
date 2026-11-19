@@ -2,14 +2,14 @@
 page_title: "dbtcloud_oauth_configuration Resource - dbtcloud"
 subcategory: ""
 description: |-
-  Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
+  Configure an external OAuth integration for the data warehouse. Supports Okta and Entra ID (i.e. Azure AD) for the connection types that support External OAuth, for example Snowflake and Fabric (Entra ID).
   See the documentation https://docs.getdbt.com/docs/cloud/manage-access/external-oauth for more information on how to configure it.
 ---
 
 # dbtcloud_oauth_configuration (Resource)
 
 
-Configure an external OAuth integration for the data warehouse. Currently supports Okta and Entra ID (i.e. Azure AD) for Snowflake.
+Configure an external OAuth integration for the data warehouse. Supports Okta and Entra ID (i.e. Azure AD) for the connection types that support External OAuth, for example Snowflake and Fabric (Entra ID).
 
 See the [documentation](https://docs.getdbt.com/docs/cloud/manage-access/external-oauth) for more information on how to configure it.
 
@@ -26,6 +26,17 @@ resource "dbtcloud_oauth_configuration" "entra" {
   token_url          = "http://example.com"
   authorize_url      = "http://example.com"
   application_id_uri = "uri"
+}
+
+// Using an Entra configuration with a Fabric connection (the credential then uses `authentication = "external_oauth"`)
+resource "dbtcloud_global_connection" "fabric_with_entra" {
+  name                   = "My Fabric connection"
+  oauth_configuration_id = dbtcloud_oauth_configuration.entra.id
+
+  fabric = {
+    server   = "example.datawarehouse.fabric.microsoft.com"
+    database = "my_database"
+  }
 }
 
 resource "dbtcloud_oauth_configuration" "okta" {
