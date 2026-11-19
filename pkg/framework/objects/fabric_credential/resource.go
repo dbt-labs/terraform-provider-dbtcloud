@@ -104,10 +104,12 @@ func (r *fabricCredentialResource) Create(
 	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
+	authentication := resolveAuthentication(plan.Authentication, user)
+
 	// Create new credential
 	credential, err := r.client.CreateFabricCredential(
 		projectID,
-		"",
+		authentication,
 		user,
 		password,
 		tenantId,
@@ -127,6 +129,7 @@ func (r *fabricCredentialResource) Create(
 	// Map response body to schema and populate computed values
 	plan.ID = types.StringValue(fmt.Sprintf("%d:%d", projectID, *credential.ID))
 	plan.CredentialID = types.Int64Value(int64(*credential.ID))
+	plan.Authentication = types.StringValue(authentication)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -169,6 +172,9 @@ func (r *fabricCredentialResource) Read(
 
 	// Refresh state values
 	state.Schema = types.StringValue(credential.UnencryptedCredentialDetails.Schema)
+	if authentication := credential.UnencryptedCredentialDetails.Authentication; authentication != "" {
+		state.Authentication = types.StringValue(authentication)
+	}
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
@@ -219,9 +225,12 @@ func (r *fabricCredentialResource) Update(
 	password := helper.ResolveWriteOnlyString(config.PasswordWo, plan.Password)
 	clientSecret := helper.ResolveWriteOnlyString(config.ClientSecretWo, plan.ClientSecret)
 
+	authentication := resolveAuthentication(plan.Authentication, user)
+	plan.Authentication = types.StringValue(authentication)
+
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(
-		"",
+		authentication,
 		user,
 		password,
 		tenantId,
@@ -361,6 +370,7 @@ func (r *fabricCredentialResource) ImportState(
 		Schema:              types.StringValue(credential.UnencryptedCredentialDetails.Schema),
 		SchemaAuthorization: types.StringValue(credential.UnencryptedCredentialDetails.SchemaAuthorization),
 		User:                types.StringValue(credential.UnencryptedCredentialDetails.User),
+		Authentication:      types.StringValue(credential.UnencryptedCredentialDetails.Authentication),
 		ClientId:            types.StringValue(credential.UnencryptedCredentialDetails.ClientId),
 		TenantId:            types.StringValue(credential.UnencryptedCredentialDetails.TenantId),
 		AdapterType:         types.StringValue(credential.AdapterVersion),
@@ -372,4 +382,13 @@ func (r *fabricCredentialResource) ImportState(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// resolveAuthentication is the authentication to send: the configured one, or the one inferred
+// from the user when it is not set.
+func resolveAuthentication(configured types.String, user string) string {
+	if !configured.IsNull() && !configured.IsUnknown() && configured.ValueString() != "" {
+		return configured.ValueString()
+	}
+	return dbt_cloud.InferFabricAuthentication(user)
 }

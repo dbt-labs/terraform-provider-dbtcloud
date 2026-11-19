@@ -140,6 +140,15 @@ func (c *Client) CreateFabricCredential(
 	return &fabricCredentialResponse.Data, nil
 }
 
+// InferFabricAuthentication is the authentication used when none is set: no user means a
+// service principal, a user means Active Directory.
+func InferFabricAuthentication(user string) string {
+	if user == "" {
+		return "ServicePrincipal"
+	}
+	return "ActiveDirectoryPassword"
+}
+
 // GenerateFabricCredentialDetails builds the credential details. An empty authentication is
 // inferred from the user: no user means a service principal, a user means Active Directory.
 func GenerateFabricCredentialDetails(
@@ -336,11 +345,7 @@ func GenerateFabricCredentialDetails(
 	}
 
 	if authentication == "" {
-		if user == "" {
-			authentication = "ServicePrincipal"
-		} else {
-			authentication = "ActiveDirectoryPassword"
-		}
+		authentication = InferFabricAuthentication(user)
 	}
 
 	fieldMapping := map[string]interface{}{
