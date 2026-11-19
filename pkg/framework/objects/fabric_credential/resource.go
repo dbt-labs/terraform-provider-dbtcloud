@@ -107,6 +107,7 @@ func (r *fabricCredentialResource) Create(
 	// Create new credential
 	credential, err := r.client.CreateFabricCredential(
 		projectID,
+		"",
 		user,
 		password,
 		tenantId,
@@ -220,6 +221,7 @@ func (r *fabricCredentialResource) Update(
 
 	// Generate credential details
 	credentialDetails, err := dbt_cloud.GenerateFabricCredentialDetails(
+		"",
 		user,
 		password,
 		tenantId,
