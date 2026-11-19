@@ -8,6 +8,7 @@ import (
 type FabricCredentialResourceModel struct {
 	ID                     types.String `tfsdk:"id"`
 	CredentialID           types.Int64  `tfsdk:"credential_id"`
+	Authentication         types.String `tfsdk:"authentication"`
 	ProjectID              types.Int64  `tfsdk:"project_id"`
 	User                   types.String `tfsdk:"user"`
 	Password               types.String `tfsdk:"password"`
