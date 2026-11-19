@@ -54,6 +54,11 @@ func getBasicConfigTestStep(projectName, user, password string) resource.TestSte
 			),
 			resource.TestCheckResourceAttr(
 				"dbtcloud_fabric_credential.test_credential",
+				"authentication",
+				"ActiveDirectoryPassword",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_fabric_credential.test_credential",
 				"user",
 				user,
 			),
@@ -82,6 +87,11 @@ func getModifyConfigTestStep(projectName, clientId, tenantId, clientSecret strin
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckDbtCloudFabricCredentialExists(
 				"dbtcloud_fabric_credential.test_credential",
+			),
+			resource.TestCheckResourceAttr(
+				"dbtcloud_fabric_credential.test_credential",
+				"authentication",
+				"ServicePrincipal",
 			),
 			resource.TestCheckResourceAttr(
 				"dbtcloud_fabric_credential.test_credential",
@@ -426,4 +436,57 @@ func testAccCheckDbtCloudFabricCredentialDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func TestAccDbtCloudFabricCredentialResourceExternalOAuth(t *testing.T) {
+	// Rule: An external_oauth credential applies, reads back and imports with no drift
+	//
+	// given: the Fabric External OAuth opt-in and a credential with only the schema and the authentication
+	// when: it is applied, planned again and imported
+	// then: the authentication stays external_oauth and nothing drifts
+	acctest_helper.SkipUnlessFabricOAuth(t)
+
+	projectName := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest_helper.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest_helper.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckDbtCloudFabricCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDbtCloudFabricCredentialResourceExternalOAuthConfig(projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbtCloudFabricCredentialExists(
+						"dbtcloud_fabric_credential.test_credential",
+					),
+					resource.TestCheckResourceAttr(
+						"dbtcloud_fabric_credential.test_credential",
+						"authentication",
+						"external_oauth",
+					),
+				),
+			},
+			{
+				ResourceName:            "dbtcloud_fabric_credential.test_credential",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password", "client_secret", "schema_authorization", "user", "adapter_type"},
+			},
+		},
+	})
+}
+
+func testAccDbtCloudFabricCredentialResourceExternalOAuthConfig(projectName string) string {
+	return fmt.Sprintf(`
+resource "dbtcloud_project" "test_project" {
+  name = "%s"
+}
+
+resource "dbtcloud_fabric_credential" "test_credential" {
+  project_id     = dbtcloud_project.test_project.id
+  schema         = "my_schema"
+  authentication = "external_oauth"
+  adapter_type   = "fabric"
+}
+`, projectName)
 }

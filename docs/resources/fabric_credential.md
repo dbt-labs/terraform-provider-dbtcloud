@@ -34,6 +34,16 @@ resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ" {
   schema_authorization = "abcd"
 }
 
+# when using External OAuth (each developer signs in with their own Microsoft Entra account)
+#
+# The connection needs an Entra `dbtcloud_oauth_configuration`, set with `oauth_configuration_id`.
+# Do not set the user, password, tenant, client or secret fields with this authentication.
+resource "dbtcloud_fabric_credential" "my_fabric_cred_external_oauth" {
+  project_id     = dbtcloud_project.dbt_project.id
+  schema         = "my_schema"
+  authentication = "external_oauth"
+}
+
 // Using write-only attributes (not stored in state, requires Terraform >= 1.11)
 //
 // The password_wo and client_secret_wo values are never persisted in the Terraform state file.
@@ -81,6 +91,7 @@ resource "dbtcloud_fabric_credential" "my_fabric_cred_serv_princ_wo" {
 
 ### Optional
 
+- `authentication` (String) How the credential authenticates: `ActiveDirectoryPassword`, `ServicePrincipal` or `external_oauth` (per-developer Microsoft Entra sign-in, which needs an OAuth configuration on the connection). When not set, it is `ServicePrincipal` without a `user` and `ActiveDirectoryPassword` with one.
 - `client_id` (String) The client ID of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal.
 - `client_secret` (String, Sensitive) The client secret of the Azure Active Directory service principal. This is only used when connecting to Azure SQL with an AAD service principal. Consider using `client_secret_wo` instead, which is not stored in state.
 - `client_secret_wo` (String) Write-only alternative to `client_secret`. The value is not stored in state. Requires `client_secret_wo_version` to trigger updates.

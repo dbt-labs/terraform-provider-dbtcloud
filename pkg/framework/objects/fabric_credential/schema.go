@@ -40,6 +40,19 @@ var resourceSchema = resource_schema.Schema{
 				int64planmodifier.UseStateForUnknown(),
 			},
 		},
+		"authentication": resource_schema.StringAttribute{
+			Optional:    true,
+			Computed:    true,
+			Description: "How the credential authenticates: `ActiveDirectoryPassword`, `ServicePrincipal` or `external_oauth` (per-developer Microsoft Entra sign-in, which needs an OAuth configuration on the connection). When not set, it is `ServicePrincipal` without a `user` and `ActiveDirectoryPassword` with one.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					authenticationActiveDirectoryPassword,
+					authenticationServicePrincipal,
+					authenticationExternalOAuth,
+				),
+				externalOAuthExclusiveValidator{},
+			},
+		},
 		"user": resource_schema.StringAttribute{
 			Optional:    true,
 			Computed:    true,
@@ -155,6 +168,55 @@ var resourceSchema = resource_schema.Schema{
 			},
 		},
 	},
+}
+
+const (
+	authenticationActiveDirectoryPassword = "ActiveDirectoryPassword"
+	authenticationServicePrincipal        = "ServicePrincipal"
+	authenticationExternalOAuth           = "external_oauth"
+)
+
+// externalOAuthExclusiveValidator rejects the password and service principal fields when the
+// authentication is external_oauth, since the developer's own token is used instead.
+type externalOAuthExclusiveValidator struct{}
+
+var externalOAuthConflictingFields = []string{
+	"user", "password", "password_wo", "tenant_id", "client_id", "client_secret", "client_secret_wo",
+}
+
+func (v externalOAuthExclusiveValidator) Description(ctx context.Context) string {
+	return fmt.Sprintf(
+		"When authentication is %s, these fields cannot be set: %v",
+		authenticationExternalOAuth,
+		externalOAuthConflictingFields,
+	)
+}
+
+func (v externalOAuthExclusiveValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v externalOAuthExclusiveValidator) ValidateString(
+	ctx context.Context,
+	req validator.StringRequest,
+	resp *validator.StringResponse,
+) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() ||
+		req.ConfigValue.ValueString() != authenticationExternalOAuth {
+		return
+	}
+
+	for _, field := range externalOAuthConflictingFields {
+		var value types.String
+		resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root(field), &value)...)
+		if !value.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root(field),
+				"Conflicting Fields",
+				fmt.Sprintf("%s cannot be set when authentication is %s", field, authenticationExternalOAuth),
+			)
+		}
+	}
 }
 
 type conflictingFieldsValidator struct {
