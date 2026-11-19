@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '45 2 * * *'
   workflow_dispatch:
+  # TEMPORARY: run on every push to this branch while fixing the acceptance tests. Remove before merge.
+  push:
+    branches:
+      - maja/fix-daily-acceptance-env
 
 permissions:
   contents: read
