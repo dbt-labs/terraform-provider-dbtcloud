@@ -36,9 +36,6 @@ jobs:
       - name: Run acceptance tests
         run: make test-acceptance
         env:
-          # TEMPORARY: surface provider tflog output (e.g. the BYOK delete lines)
-          # while debugging the acceptance tests. Remove before merge.
-          TF_LOG_PROVIDER: INFO
           DBT_CLOUD_ACCOUNT_ID: ${{ secrets.TEST_DBT_CLOUD_ACCOUNT_ID }}
           DBT_CLOUD_TOKEN: ${{ secrets.TEST_DBT_CLOUD_TOKEN }}
           DBT_CLOUD_HOST_URL: ${{ secrets.TEST_DBT_CLOUD_HOST_URL }}
