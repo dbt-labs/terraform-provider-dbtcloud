@@ -1,0 +1,3 @@
+kind: Behind the scenes
+body: fix the daily acceptance test workflow to reference the Snowflake and Databricks repository secrets by their actual names, so the platform metadata credential and connection catalog config tests are no longer silently skipped
+time: 2026-11-23T12:00:00.000000Z
