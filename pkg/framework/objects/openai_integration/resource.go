@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var (
@@ -263,9 +264,27 @@ func (r *openAIIntegrationResource) Delete(
 		return
 	}
 
-	if err := r.client.DeleteOpenAIIntegration(state.ID.ValueInt64()); err != nil {
+	integrationID := state.ID.ValueInt64()
+
+	tflog.Info(ctx, "Deleting OpenAI integration (BYOK key)", map[string]any{
+		"integration_id": integrationID,
+		"account_id":     r.client.AccountID,
+	})
+
+	if err := r.client.DeleteOpenAIIntegration(integrationID); err != nil {
+		tflog.Error(ctx, "Failed to delete OpenAI integration (BYOK key)", map[string]any{
+			"integration_id": integrationID,
+			"account_id":     r.client.AccountID,
+			"error":          err.Error(),
+		})
 		resp.Diagnostics.AddError("Unable to delete OpenAI integration", err.Error())
+		return
 	}
+
+	tflog.Info(ctx, "Deleted OpenAI integration (BYOK key)", map[string]any{
+		"integration_id": integrationID,
+		"account_id":     r.client.AccountID,
+	})
 }
 
 // ── Import ────────────────────────────────────────────────────────────────────
